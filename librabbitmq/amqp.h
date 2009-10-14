@@ -191,17 +191,30 @@ extern int amqp_send_method(amqp_connection_state_t state,
 extern amqp_rpc_reply_t amqp_simple_rpc(amqp_connection_state_t state,
 					amqp_channel_t channel,
 					amqp_method_number_t request_id,
-					amqp_method_number_t expected_reply_id,
+					amqp_method_number_t *expected_reply_ids,
 					void *decoded_request_method);
+
+#define AMQP_EXPAND_METHOD(classname, methodname) (AMQP_ ## classname ## _ ## methodname ## _METHOD)
 
 #define AMQP_SIMPLE_RPC(state, channel, classname, requestname, replyname, structname, ...) \
   ({									\
     structname _simple_rpc_request___ = (structname) { __VA_ARGS__ };	\
+    amqp_method_number_t _replies__[2] = { AMQP_EXPAND_METHOD(classname, replyname), 0}; \
     amqp_simple_rpc(state, channel,					\
-		    AMQP_ ## classname ## _ ## requestname ## _METHOD,	\
-		    AMQP_ ## classname ## _ ## replyname ## _METHOD,	\
+		    AMQP_EXPAND_METHOD(classname, requestname),	\
+		    (amqp_method_number_t *)&_replies__,	\
 		    &_simple_rpc_request___);				\
   })
+
+#define AMQP_MULTIPLE_RESPONSE_RPC(state, channel, classname, requestname, replynames, structname, ...) \
+  ({									\
+    structname _simple_rpc_request___ = (structname) { __VA_ARGS__ };	\
+    amqp_simple_rpc(state, channel,					\
+		    AMQP_EXPAND_METHOD(classname, requestname),	\
+		    replynames,	\
+		    &_simple_rpc_request___);				\
+  })
+
 
 extern amqp_rpc_reply_t amqp_login(amqp_connection_state_t state,
 				   char const *vhost,
@@ -276,6 +289,22 @@ extern int amqp_basic_ack(amqp_connection_state_t state,
 			  uint64_t delivery_tag,
 			  amqp_boolean_t multiple);
 
+extern amqp_rpc_reply_t amqp_basic_get(amqp_connection_state_t state,
+          amqp_channel_t channel,
+          amqp_bytes_t queue,
+          amqp_boolean_t no_ack);
+
+extern struct amqp_queue_purge_ok_t_ *amqp_queue_purge(amqp_connection_state_t state,
+            amqp_channel_t channel,
+            amqp_bytes_t queue,
+            amqp_boolean_t no_wait);
+
+// Can be used to see if there is data still in the buffer, if so
+// calling amqp_simple_wait_frame will not enter the blocking read
+// possibly amqp_frames_enqueued should be used for this?
+extern amqp_boolean_t amqp_data_in_buffer(amqp_connection_state_t state);
+// Expose amqp_rpc_reply to libraries
+extern amqp_rpc_reply_t amqp_get_rpc_reply();
 #ifdef __cplusplus
 }
 #endif

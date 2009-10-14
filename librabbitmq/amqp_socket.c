@@ -107,6 +107,12 @@ amqp_boolean_t amqp_frames_enqueued(amqp_connection_state_t state) {
   return (state->first_queued_frame != NULL);
 }
 
+// Check to see if we have data in our buffer so we will avoid
+// if this returns 1, we will avoid a blocking read in amqp_simple_wait_frame
+amqp_boolean_t amqp_data_in_buffer(amqp_connection_state_t state) {
+  return (state->sock_inbound_offset < state->sock_inbound_limit);
+}
+
 static int wait_frame_inner(amqp_connection_state_t state,
 			    amqp_frame_t *decoded_frame)
 {
@@ -202,10 +208,19 @@ int amqp_send_method(amqp_connection_state_t state,
   return amqp_send_frame(state, &frame);
 }
 
+static int amqp_id_in_reply_list( amqp_method_number_t expected, amqp_method_number_t *list )
+{
+  while ( *list != 0 ) {
+    if ( *list == expected ) return 1;
+    list++;
+  }
+  return 0;
+}
+
 amqp_rpc_reply_t amqp_simple_rpc(amqp_connection_state_t state,
 				 amqp_channel_t channel,
 				 amqp_method_number_t request_id,
-				 amqp_method_number_t expected_reply_id,
+				 amqp_method_number_t *expected_reply_ids,
 				 void *decoded_request_method)
 {
   int status;
@@ -241,7 +256,7 @@ amqp_rpc_reply_t amqp_simple_rpc(amqp_connection_state_t state,
      */
     if (!( (frame.frame_type == AMQP_FRAME_METHOD) &&
 	   (   ((frame.channel == channel) &&
-		((frame.payload.method.id == expected_reply_id) ||
+		((amqp_id_in_reply_list(frame.payload.method.id, expected_reply_ids)) ||
 		 (frame.payload.method.id == AMQP_CHANNEL_CLOSE_METHOD)))
 	    ||
 	       ((frame.channel == 0) &&
@@ -265,7 +280,7 @@ amqp_rpc_reply_t amqp_simple_rpc(amqp_connection_state_t state,
       goto retry;
     }
 
-    result.reply_type = (frame.payload.method.id == expected_reply_id)
+    result.reply_type = (amqp_id_in_reply_list(frame.payload.method.id, expected_reply_ids))
       ? AMQP_RESPONSE_NORMAL
       : AMQP_RESPONSE_SERVER_EXCEPTION;
 
@@ -374,10 +389,11 @@ amqp_rpc_reply_t amqp_login(amqp_connection_state_t state,
 	.capabilities = {.len = 0, .bytes = NULL},
 	.insist = 1
       };
+    amqp_method_number_t replies[] = { AMQP_EXPAND_METHOD( CONNECTION, OPEN_OK ), 0 };
     result = amqp_simple_rpc(state,
 			     0,
 			     AMQP_CONNECTION_OPEN_METHOD,
-			     AMQP_CONNECTION_OPEN_OK_METHOD,
+			     (amqp_method_number_t *) &replies,
 			     &s);
     if (result.reply_type != AMQP_RESPONSE_NORMAL) {
       return result;
