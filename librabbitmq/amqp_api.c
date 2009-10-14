@@ -213,7 +213,9 @@ amqp_rpc_reply_t amqp_basic_get(amqp_connection_state_t state,
 			amqp_bytes_t queue,
 			amqp_boolean_t no_ack)
 {
-	amqp_method_number_t replies[] = { AMQP_EXPAND_METHOD(BASIC, GET_OK), AMQP_EXPAND_METHOD(BASIC, GET_EMPTY), 0}; 
+	amqp_method_number_t replies[] = { AMQP_BASIC_GET_OK_METHOD,
+					   AMQP_BASIC_GET_EMPTY_METHOD,
+					   0 };
 	amqp_rpc_reply =
 		AMQP_MULTIPLE_RESPONSE_RPC(state, channel, BASIC, GET, replies,
 			amqp_basic_get_t,
@@ -221,8 +223,10 @@ amqp_rpc_reply_t amqp_basic_get(amqp_connection_state_t state,
 	return amqp_rpc_reply;
 }
 
-// Expose amqp_rpc_reply to dynamically linked libraries
-amqp_rpc_reply_t amqp_get_rpc_reply()
+/*
+ * Expose amqp_rpc_reply to dynamically linked libraries
+ */
+amqp_rpc_reply_t amqp_get_rpc_reply(void)
 {
 	return amqp_rpc_reply;
 }

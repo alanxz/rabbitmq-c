@@ -299,12 +299,20 @@ extern struct amqp_queue_purge_ok_t_ *amqp_queue_purge(amqp_connection_state_t s
             amqp_bytes_t queue,
             amqp_boolean_t no_wait);
 
-// Can be used to see if there is data still in the buffer, if so
-// calling amqp_simple_wait_frame will not enter the blocking read
-// possibly amqp_frames_enqueued should be used for this?
+/*
+ * Can be used to see if there is data still in the buffer, if so
+ * calling amqp_simple_wait_frame will not immediately enter a
+ * blocking read.
+ *
+ * Possibly amqp_frames_enqueued should be used for this?
+ */
 extern amqp_boolean_t amqp_data_in_buffer(amqp_connection_state_t state);
-// Expose amqp_rpc_reply to libraries
-extern amqp_rpc_reply_t amqp_get_rpc_reply();
+
+/*
+ * Expose amqp_rpc_reply to libraries.
+ */
+extern amqp_rpc_reply_t amqp_get_rpc_reply(void);
+
 #ifdef __cplusplus
 }
 #endif

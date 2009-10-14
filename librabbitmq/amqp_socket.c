@@ -74,7 +74,7 @@ static amqp_bytes_t sasl_method_name(amqp_sasl_method_enum method) {
     default:
       amqp_assert(0, "Invalid SASL method: %d", (int) method);
   }
-  abort(); // unreachable
+  abort(); /* unreachable */
 }
 
 static amqp_bytes_t sasl_response(amqp_pool_t *pool,
@@ -107,8 +107,10 @@ amqp_boolean_t amqp_frames_enqueued(amqp_connection_state_t state) {
   return (state->first_queued_frame != NULL);
 }
 
-// Check to see if we have data in our buffer so we will avoid
-// if this returns 1, we will avoid a blocking read in amqp_simple_wait_frame
+/*
+ * Check to see if we have data in our buffer. If this returns 1, we
+ * will avoid an immediate blocking read in amqp_simple_wait_frame.
+ */
 amqp_boolean_t amqp_data_in_buffer(amqp_connection_state_t state) {
   return (state->sock_inbound_offset < state->sock_inbound_limit);
 }
@@ -119,7 +121,7 @@ static int wait_frame_inner(amqp_connection_state_t state,
   while (1) {
     int result;
 
-    while (state->sock_inbound_offset < state->sock_inbound_limit) {
+    while (amqp_data_in_buffer(state)) {
       amqp_bytes_t buffer;
       buffer.len = state->sock_inbound_limit - state->sock_inbound_offset;
       buffer.bytes = ((char *) state->sock_inbound_buffer.bytes) + state->sock_inbound_offset;
@@ -389,7 +391,7 @@ amqp_rpc_reply_t amqp_login(amqp_connection_state_t state,
 	.capabilities = {.len = 0, .bytes = NULL},
 	.insist = 1
       };
-    amqp_method_number_t replies[] = { AMQP_EXPAND_METHOD( CONNECTION, OPEN_OK ), 0 };
+    amqp_method_number_t replies[] = { AMQP_CONNECTION_OPEN_OK_METHOD, 0 };
     result = amqp_simple_rpc(state,
 			     0,
 			     AMQP_CONNECTION_OPEN_METHOD,
