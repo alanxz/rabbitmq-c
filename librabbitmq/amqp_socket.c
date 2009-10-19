@@ -81,7 +81,7 @@ static amqp_bytes_t sasl_method_name(amqp_sasl_method_enum method) {
     default:
       amqp_assert(0, "Invalid SASL method: %d", (int) method);
   }
-  abort(); // unreachable
+  abort(); /* unreachable */
 }
 
 static amqp_bytes_t sasl_response(amqp_pool_t *pool,
@@ -114,13 +114,21 @@ amqp_boolean_t amqp_frames_enqueued(amqp_connection_state_t state) {
   return (state->first_queued_frame != NULL);
 }
 
+/*
+ * Check to see if we have data in our buffer. If this returns 1, we
+ * will avoid an immediate blocking read in amqp_simple_wait_frame.
+ */
+amqp_boolean_t amqp_data_in_buffer(amqp_connection_state_t state) {
+  return (state->sock_inbound_offset < state->sock_inbound_limit);
+}
+
 static int wait_frame_inner(amqp_connection_state_t state,
 			    amqp_frame_t *decoded_frame)
 {
   while (1) {
     int result;
 
-    while (state->sock_inbound_offset < state->sock_inbound_limit) {
+    while (amqp_data_in_buffer(state)) {
       amqp_bytes_t buffer;
       buffer.len = state->sock_inbound_limit - state->sock_inbound_offset;
       buffer.bytes = ((char *) state->sock_inbound_buffer.bytes) + state->sock_inbound_offset;
@@ -209,10 +217,19 @@ int amqp_send_method(amqp_connection_state_t state,
   return amqp_send_frame(state, &frame);
 }
 
+static int amqp_id_in_reply_list( amqp_method_number_t expected, amqp_method_number_t *list )
+{
+  while ( *list != 0 ) {
+    if ( *list == expected ) return 1;
+    list++;
+  }
+  return 0;
+}
+
 amqp_rpc_reply_t amqp_simple_rpc(amqp_connection_state_t state,
 				 amqp_channel_t channel,
 				 amqp_method_number_t request_id,
-				 amqp_method_number_t expected_reply_id,
+				 amqp_method_number_t *expected_reply_ids,
 				 void *decoded_request_method)
 {
   int status;
@@ -248,7 +265,7 @@ amqp_rpc_reply_t amqp_simple_rpc(amqp_connection_state_t state,
      */
     if (!( (frame.frame_type == AMQP_FRAME_METHOD) &&
 	   (   ((frame.channel == channel) &&
-		((frame.payload.method.id == expected_reply_id) ||
+		((amqp_id_in_reply_list(frame.payload.method.id, expected_reply_ids)) ||
 		 (frame.payload.method.id == AMQP_CHANNEL_CLOSE_METHOD)))
 	    ||
 	       ((frame.channel == 0) &&
@@ -272,7 +289,7 @@ amqp_rpc_reply_t amqp_simple_rpc(amqp_connection_state_t state,
       goto retry;
     }
 
-    result.reply_type = (frame.payload.method.id == expected_reply_id)
+    result.reply_type = (amqp_id_in_reply_list(frame.payload.method.id, expected_reply_ids))
       ? AMQP_RESPONSE_NORMAL
       : AMQP_RESPONSE_SERVER_EXCEPTION;
 
@@ -381,10 +398,11 @@ amqp_rpc_reply_t amqp_login(amqp_connection_state_t state,
 	.deprecated_capabilities = {.len = 0, .bytes = NULL},
 	.deprecated_insist = 1
       };
+    amqp_method_number_t replies[] = { AMQP_CONNECTION_OPEN_OK_METHOD, 0 };
     result = amqp_simple_rpc(state,
 			     0,
 			     AMQP_CONNECTION_OPEN_METHOD,
-			     AMQP_CONNECTION_OPEN_OK_METHOD,
+			     (amqp_method_number_t *) &replies,
 			     &s);
     if (result.reply_type != AMQP_RESPONSE_NORMAL) {
       return result;
