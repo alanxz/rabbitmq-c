@@ -31,24 +31,135 @@ typedef struct amqp_table_t_ {
 
 #define AMQP_EMPTY_TABLE ((amqp_table_t) { .num_entries = 0, .entries = NULL })
 
-typedef struct amqp_table_entry_t_ {
-  amqp_bytes_t key;
+typedef struct amqp_array_t_ {
+  int num_entries;
+  struct amqp_field_value_t_ *entries;
+} amqp_array_t;
+
+#define AMQP_EMPTY_ARRAY ((amqp_array_t) { .num_entries = 0, .entries = NULL })
+
+/*
+  0-9   0-9-1   Qpid/Rabbit  Type               Remarks
+---------------------------------------------------------------------------
+        t       t            Boolean
+        b       b            Signed 8-bit
+        B                    Unsigned 8-bit
+        U       s            Signed 16-bit	(A1)
+        u                    Unsigned 16-bit
+  I     I       I	     Signed 32-bit
+        i		     Unsigned 32-bit
+        L       l	     Signed 64-bit	(B)
+        l		     Unsigned 64-bit
+        f       f	     32-bit float
+        d       d	     64-bit float
+  D     D       D	     Decimal
+        s		     Short string	(A2)
+  S     S       S	     Long string
+        A		     Nested Array
+  T     T       T	     Timestamp (u64)
+  F     F       F	     Nested Table
+  V     V       V	     Void
+                x	     Byte array
+
+Remarks:
+
+ A1, A2: Notice how the types **CONFLICT** here. In Qpid and Rabbit,
+         's' means a signed 16-bit integer; in 0-9-1, it means a
+	 short string.
+
+ B: Notice how the signednesses **CONFLICT** here. In Qpid and Rabbit,
+    'l' means a signed 64-bit integer; in 0-9-1, it means an unsigned
+    64-bit integer.
+
+I'm going with the Qpid/Rabbit types, where there's a conflict, and
+the 0-9-1 types otherwise. 0-8 is a subset of 0-9, which is a subset
+of the other two, so this will work for both 0-8 and 0-9-1 branches of
+the code.
+*/
+
+typedef struct amqp_field_value_t_ {
   char kind;
   union {
-    amqp_bytes_t bytes;
+    amqp_boolean_t boolean;
+    int8_t i8;
+    uint8_t u8;
+    int16_t i16;
+    uint16_t u16;
     int32_t i32;
-    amqp_decimal_t decimal;
+    uint32_t u32;
+    int64_t i64;
     uint64_t u64;
+    float f32;
+    double f64;
+    amqp_decimal_t decimal;
+    amqp_bytes_t bytes;
     amqp_table_t table;
+    amqp_array_t array;
   } value;
+} amqp_field_value_t;
+
+typedef struct amqp_table_entry_t_ {
+  amqp_bytes_t key;
+  amqp_field_value_t value;
 } amqp_table_entry_t;
 
-#define _AMQP_TE_INIT(ke,ki,v) { .key = (ke), .kind = (ki), .value = { v } }
-#define AMQP_TABLE_ENTRY_S(k,v) _AMQP_TE_INIT(amqp_cstring_bytes(k), 'S', .bytes = (v))
-#define AMQP_TABLE_ENTRY_I(k,v) _AMQP_TE_INIT(amqp_cstring_bytes(k), 'I', .i32 = (v))
-#define AMQP_TABLE_ENTRY_D(k,v) _AMQP_TE_INIT(amqp_cstring_bytes(k), 'D', .decimal = (v))
-#define AMQP_TABLE_ENTRY_T(k,v) _AMQP_TE_INIT(amqp_cstring_bytes(k), 'T', .u64 = (v))
-#define AMQP_TABLE_ENTRY_F(k,v) _AMQP_TE_INIT(amqp_cstring_bytes(k), 'F', .table = (v))
+typedef enum {
+  AMQP_FIELD_KIND_BOOLEAN = 't',
+  AMQP_FIELD_KIND_I8 = 'b',
+  AMQP_FIELD_KIND_U8 = 'B',
+  AMQP_FIELD_KIND_I16 = 's',
+  AMQP_FIELD_KIND_U16 = 'u',
+  AMQP_FIELD_KIND_I32 = 'I',
+  AMQP_FIELD_KIND_U32 = 'i',
+  AMQP_FIELD_KIND_I64 = 'l',
+  AMQP_FIELD_KIND_F32 = 'f',
+  AMQP_FIELD_KIND_F64 = 'd',
+  AMQP_FIELD_KIND_DECIMAL = 'D',
+  AMQP_FIELD_KIND_UTF8 = 'S',
+  AMQP_FIELD_KIND_ARRAY = 'A',
+  AMQP_FIELD_KIND_TIMESTAMP = 'T',
+  AMQP_FIELD_KIND_TABLE = 'F',
+  AMQP_FIELD_KIND_VOID = 'V',
+  AMQP_FIELD_KIND_BYTES = 'x',
+} amqp_field_value_kind_t;
+
+#define _AMQP_TEINIT(ke,ki,v) {.key = (ke), .value = {.kind = AMQP_FIELD_KIND_##ki, .value = {v}}}
+#define AMQP_TABLE_ENTRY_BOOLEAN(k,v) _AMQP_TEINIT(amqp_cstring_bytes(k), BOOLEAN, .boolean = (v))
+#define AMQP_TABLE_ENTRY_I8(k,v) _AMQP_TEINIT(amqp_cstring_bytes(k), I8, .i8 = (v))
+#define AMQP_TABLE_ENTRY_U8(k,v) _AMQP_TEINIT(amqp_cstring_bytes(k), U8, .u8 = (v))
+#define AMQP_TABLE_ENTRY_I16(k,v) _AMQP_TEINIT(amqp_cstring_bytes(k), I16, .i16 = (v))
+#define AMQP_TABLE_ENTRY_U16(k,v) _AMQP_TEINIT(amqp_cstring_bytes(k), U16, .u16 = (v))
+#define AMQP_TABLE_ENTRY_I32(k,v) _AMQP_TEINIT(amqp_cstring_bytes(k), I32, .i32 = (v))
+#define AMQP_TABLE_ENTRY_U32(k,v) _AMQP_TEINIT(amqp_cstring_bytes(k), U32, .u32 = (v))
+#define AMQP_TABLE_ENTRY_I64(k,v) _AMQP_TEINIT(amqp_cstring_bytes(k), I64, .i64 = (v))
+#define AMQP_TABLE_ENTRY_F32(k,v) _AMQP_TEINIT(amqp_cstring_bytes(k), F32, .f32 = (v))
+#define AMQP_TABLE_ENTRY_F64(k,v) _AMQP_TEINIT(amqp_cstring_bytes(k), F64, .f64 = (v))
+#define AMQP_TABLE_ENTRY_DECIMAL(k,v) _AMQP_TEINIT(amqp_cstring_bytes(k), DECIMAL, .decimal = (v))
+#define AMQP_TABLE_ENTRY_UTF8(k,v) _AMQP_TEINIT(amqp_cstring_bytes(k), UTF8, .bytes = (v))
+#define AMQP_TABLE_ENTRY_ARRAY(k,v) _AMQP_TEINIT(amqp_cstring_bytes(k), ARRAY, .array = (v))
+#define AMQP_TABLE_ENTRY_TIMESTAMP(k,v) _AMQP_TEINIT(amqp_cstring_bytes(k), TIMESTAMP, .u64 = (v))
+#define AMQP_TABLE_ENTRY_TABLE(k,v) _AMQP_TEINIT(amqp_cstring_bytes(k), TABLE, .table = (v))
+#define AMQP_TABLE_ENTRY_VOID(k)   _AMQP_TEINIT(amqp_cstring_bytes(k), VOID, .u8 = 0)
+#define AMQP_TABLE_ENTRY_BYTES(k,v) _AMQP_TEINIT(amqp_cstring_bytes(k), BYTES, .bytes = (v))
+
+#define _AMQP_FVINIT(ki,v) {.kind = AMQP_FIELD_KIND_##ki, .value = {v}}
+#define AMQP_FIELD_VALUE_BOOLEAN(v) _AMQP_FVINIT(BOOLEAN, .boolean = (v))
+#define AMQP_FIELD_VALUE_I8(v) _AMQP_FVINIT(I8, .i8 = (v))
+#define AMQP_FIELD_VALUE_U8(v) _AMQP_FVINIT(U8, .u8 = (v))
+#define AMQP_FIELD_VALUE_I16(v) _AMQP_FVINIT(I16, .i16 = (v))
+#define AMQP_FIELD_VALUE_U16(v) _AMQP_FVINIT(U16, .u16 = (v))
+#define AMQP_FIELD_VALUE_I32(v) _AMQP_FVINIT(I32, .i32 = (v))
+#define AMQP_FIELD_VALUE_U32(v) _AMQP_FVINIT(U32, .u32 = (v))
+#define AMQP_FIELD_VALUE_I64(v) _AMQP_FVINIT(I64, .i64 = (v))
+#define AMQP_FIELD_VALUE_F32(v) _AMQP_FVINIT(F32, .f32 = (v))
+#define AMQP_FIELD_VALUE_F64(v) _AMQP_FVINIT(F64, .f64 = (v))
+#define AMQP_FIELD_VALUE_DECIMAL(v) _AMQP_FVINIT(DECIMAL, .decimal = (v))
+#define AMQP_FIELD_VALUE_UTF8(v) _AMQP_FVINIT(UTF8, .bytes = (v))
+#define AMQP_FIELD_VALUE_ARRAY(v) _AMQP_FVINIT(ARRAY, .array = (v))
+#define AMQP_FIELD_VALUE_TIMESTAMP(v) _AMQP_FVINIT(TIMESTAMP, .u64 = (v))
+#define AMQP_FIELD_VALUE_TABLE(v) _AMQP_FVINIT(TABLE, .table = (v))
+#define AMQP_FIELD_VALUE_VOID(k)   _AMQP_FVINIT(VOID, .u8 = 0)
+#define AMQP_FIELD_VALUE_BYTES(v) _AMQP_FVINIT(BYTES, .bytes = (v))
 
 typedef struct amqp_pool_blocklist_t_ {
   int num_blocks;

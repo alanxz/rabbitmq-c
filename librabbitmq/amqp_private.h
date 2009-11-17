@@ -115,12 +115,14 @@ extern int amqp_encode_table(amqp_bytes_t encoded,
     }						\
   })
 
-#define AMQP_CHECK_RESULT(expr)			\
+#define AMQP_CHECK_RESULT_CLEANUP(expr, stmts)	\
   ({						\
     int _result = (expr);			\
-    if (_result < 0) return _result;		\
+    if (_result < 0) { stmts; return _result; }	\
     _result;					\
   })
+
+#define AMQP_CHECK_RESULT(expr) AMQP_CHECK_RESULT_CLEANUP(expr, )
 
 #define AMQP_CHECK_EOF_RESULT(expr)		\
   ({						\
