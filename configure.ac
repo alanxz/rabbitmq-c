@@ -20,6 +20,12 @@ if test "x$GCC" = "xyes"; then
   fi
 fi
 
+dnl Enable -m64 if we were asked to do so
+AC_ARG_ENABLE(64-bit,
+[  --enable-64-bit         produce 64-bit library],
+[CFLAGS="$CFLAGS -m64"; LDFLAGS="$LDFLAGS -m64"],
+)
+
 AC_MSG_CHECKING(location of AMQP codegen directory)
 sibling_codegen_dir="$ac_abs_confdir/../rabbitmq-codegen"
 AMQP_CODEGEN_DIR=$(test -d "$sibling_codegen_dir" && echo "$sibling_codegen_dir" || echo "$ac_abs_confdir/codegen")
