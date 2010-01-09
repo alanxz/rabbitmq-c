@@ -244,6 +244,25 @@ def genErl(spec):
     print '#include "amqp_private.h"'
 
     print """
+char const *amqp_constant_name(int constantNumber) {
+  switch (constantNumber) {"""
+    for (c,v,cls) in spec.constants:
+        print "    case %s: return \"%s\";" % (cConstantName(c), cConstantName(c))
+    print """    default: return "(unknown)";
+  }
+}"""
+
+    print """
+amqp_boolean_t amqp_constant_is_hard_error(int constantNumber) {
+  switch (constantNumber) {"""
+    for (c,v,cls) in spec.constants:
+        if cls == 'hard-error':
+            print "    case %s: return 1;" % (cConstantName(c),)
+    print """    default: return 0;
+  }
+}"""
+
+    print """
 char const *amqp_method_name(amqp_method_number_t methodNumber) {
   switch (methodNumber) {"""
     for m in methods: genLookupMethodName(m)
@@ -380,6 +399,8 @@ extern "C" {
     print
 
     print """/* Function prototypes. */
+extern char const *amqp_constant_name(int constantNumber);
+extern amqp_boolean_t amqp_constant_is_hard_error(int constantNumber);
 extern char const *amqp_method_name(amqp_method_number_t methodNumber);
 extern amqp_boolean_t amqp_method_has_content(amqp_method_number_t methodNumber);
 extern int amqp_decode_method(amqp_method_number_t methodNumber,
