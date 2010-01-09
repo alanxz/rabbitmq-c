@@ -141,3 +141,14 @@ amqp_bytes_t amqp_bytes_malloc_dup(amqp_bytes_t src) {
   }
   return result;
 }
+
+amqp_bytes_t amqp_bytes_malloc(size_t amount) {
+  amqp_bytes_t result;
+  result.len = amount;
+  result.bytes = malloc(amount); /* will return NULL if it fails */
+  return result;
+}
+
+void amqp_bytes_free(amqp_bytes_t bytes) {
+  AMQP_BYTES_FREE(bytes);
+}

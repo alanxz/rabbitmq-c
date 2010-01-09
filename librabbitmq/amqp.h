@@ -238,6 +238,8 @@ extern void amqp_pool_alloc_bytes(amqp_pool_t *pool, size_t amount, amqp_bytes_t
 
 extern amqp_bytes_t amqp_cstring_bytes(char const *cstr);
 extern amqp_bytes_t amqp_bytes_malloc_dup(amqp_bytes_t src);
+extern amqp_bytes_t amqp_bytes_malloc(size_t amount);
+extern void amqp_bytes_free(amqp_bytes_t bytes);
 
 #define AMQP_BYTES_FREE(b)			\
   ({						\
