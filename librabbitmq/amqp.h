@@ -191,6 +191,7 @@ typedef struct amqp_frame_t_ {
       uint16_t class_id;
       uint64_t body_size;
       void *decoded;
+      amqp_bytes_t raw;
     } properties;
     amqp_bytes_t body_fragment;
     struct {

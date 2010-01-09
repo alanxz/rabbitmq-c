@@ -221,6 +221,7 @@ int amqp_handle_input(amqp_connection_state_t state,
 	  decoded_frame->frame_type = AMQP_FRAME_HEADER;
 	  decoded_frame->payload.properties.class_id = D_16(state->inbound_buffer, HEADER_SIZE);
 	  decoded_frame->payload.properties.body_size = D_64(state->inbound_buffer, HEADER_SIZE+4);
+	  decoded_frame->payload.properties.raw = encoded;
 	  AMQP_CHECK_RESULT(amqp_decode_properties(decoded_frame->payload.properties.class_id,
 						   &state->decoding_pool,
 						   encoded,
