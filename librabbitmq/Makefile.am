@@ -8,8 +8,6 @@ BUILT_SOURCES = amqp_framing.h amqp_framing.c
 CLEANFILES = amqp_framing.h amqp_framing.c
 EXTRA_DIST = codegen.py
 
-PYTHON = python2.5
-
 CODEGEN_PY=$(srcdir)/codegen.py
 
 amqp_framing.h: $(AMQP_SPEC_JSON_PATH) $(CODEGEN_PY)

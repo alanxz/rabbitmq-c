@@ -37,8 +37,31 @@ else
   AC_MSG_ERROR(could not find AMQP spec file at "'$AMQP_SPEC_JSON_PATH'")
 fi
 
+AC_MSG_CHECKING(finding a python with simplejson installed)
+found_python=no
+checkPython() {
+    if test "$found_python" = "yes"
+    then
+      return
+    fi
+    PYTHON=$1
+    if $PYTHON -c 'import simplejson' 2>/dev/null
+    then
+      found_python=yes
+      AC_MSG_RESULT($PYTHON)
+    fi
+}
+checkPython python
+checkPython python2.6
+checkPython python2.5
+if test "$found_python" = "no"
+then
+  AC_MSG_ERROR(could not find a python that can 'import simplejson')
+fi
+
 AC_SUBST(AMQP_CODEGEN_DIR)
 AC_SUBST(AMQP_SPEC_JSON_PATH)
+AC_SUBST(PYTHON)
 
 AC_OUTPUT(
 Makefile
