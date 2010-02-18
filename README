@@ -84,3 +84,23 @@ terminal window:
     ----
     00000000: 68 65 6C 6C 6F 20 77 6F : 72 6C 64                 hello world
     0000000B:
+
+## Writing applications using `librabbitmq`
+
+Please see the `examples` directory for short examples of the use of
+the `librabbitmq` library.
+
+### Threading
+
+You cannot share a socket, an `amqp_connection_state_t`, or a channel
+between threads using `librabbitmq`. The `librabbitmq` library is
+built with event-driven, single-threaded applications in mind, and
+does not yet cater to any of the requirements of `pthread`ed
+applications.
+
+Your applications instead should open an AMQP connection (and an
+associated socket, of course) per thread. If your program needs to
+access an AMQP connection or any of its channels from more than one
+thread, it is entirely responsible for designing and implementing an
+appropriate locking scheme. It will generally be much simpler to have
+a connection exclusive to each thread that needs AMQP service.
