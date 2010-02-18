@@ -379,10 +379,18 @@ amqp_rpc_reply_t amqp_login(amqp_connection_state_t state,
 {
   va_list vl;
   amqp_rpc_reply_t result;
+  int status;
 
   va_start(vl, sasl_method);
 
-  amqp_login_inner(state, channel_max, frame_max, heartbeat, sasl_method, vl);
+  status = amqp_login_inner(state, channel_max, frame_max, heartbeat, sasl_method, vl);
+  if (status <= 0) {
+    result.reply_type = AMQP_RESPONSE_LIBRARY_EXCEPTION;
+    result.reply.id = 0;
+    result.reply.decoded = NULL;
+    result.library_errno = -status;
+    return result;
+  }
 
   {
     amqp_connection_open_t s =
