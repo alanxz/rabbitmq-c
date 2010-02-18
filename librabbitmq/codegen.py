@@ -395,6 +395,7 @@ extern "C" {
 """
     print "#define AMQP_PROTOCOL_VERSION_MAJOR %d" % (spec.major)
     print "#define AMQP_PROTOCOL_VERSION_MINOR %d" % (spec.minor)
+    print "#define AMQP_PROTOCOL_VERSION_REVISION %d" % (spec.revision)
     print "#define AMQP_PROTOCOL_PORT %d" % (spec.port)
 
     for (c,v,cls) in spec.constants:

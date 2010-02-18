@@ -173,12 +173,13 @@ amqp_basic_consume_ok_t *amqp_basic_consume(amqp_connection_state_t state,
 					    amqp_bytes_t consumer_tag,
 					    amqp_boolean_t no_local,
 					    amqp_boolean_t no_ack,
-					    amqp_boolean_t exclusive)
+					    amqp_boolean_t exclusive,
+					    amqp_table_t filter)
 {
   state->most_recent_api_result =
     AMQP_SIMPLE_RPC(state, channel, BASIC, CONSUME, CONSUME_OK,
 		    amqp_basic_consume_t,
-		    0, queue, consumer_tag, no_local, no_ack, exclusive, 0);
+		    0, queue, consumer_tag, no_local, no_ack, exclusive, 0, filter);
   return RPC_REPLY(amqp_basic_consume_ok_t);
 }
 
