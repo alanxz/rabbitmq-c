@@ -199,28 +199,28 @@ int amqp_basic_ack(amqp_connection_state_t state,
 }
 
 amqp_queue_purge_ok_t *amqp_queue_purge(amqp_connection_state_t state,
-						amqp_channel_t channel,
-						amqp_bytes_t queue,
-						amqp_boolean_t no_wait)
+					amqp_channel_t channel,
+					amqp_bytes_t queue,
+					amqp_boolean_t no_wait)
 {
   amqp_rpc_reply = AMQP_SIMPLE_RPC(state, channel, QUEUE, PURGE, PURGE_OK,
-			amqp_queue_purge_t, channel, queue, no_wait);
+				   amqp_queue_purge_t, channel, queue, no_wait);
   return RPC_REPLY(amqp_queue_purge_ok_t);
 }
 
 amqp_rpc_reply_t amqp_basic_get(amqp_connection_state_t state,
-			amqp_channel_t channel,
-			amqp_bytes_t queue,
-			amqp_boolean_t no_ack)
+				amqp_channel_t channel,
+				amqp_bytes_t queue,
+				amqp_boolean_t no_ack)
 {
-	amqp_method_number_t replies[] = { AMQP_BASIC_GET_OK_METHOD,
-					   AMQP_BASIC_GET_EMPTY_METHOD,
-					   0 };
-	amqp_rpc_reply =
-		AMQP_MULTIPLE_RESPONSE_RPC(state, channel, BASIC, GET, replies,
-			amqp_basic_get_t,
-			channel, queue, no_ack);
-	return amqp_rpc_reply;
+  amqp_method_number_t replies[] = { AMQP_BASIC_GET_OK_METHOD,
+				     AMQP_BASIC_GET_EMPTY_METHOD,
+				     0 };
+  amqp_rpc_reply =
+    AMQP_MULTIPLE_RESPONSE_RPC(state, channel, BASIC, GET, replies,
+			       amqp_basic_get_t,
+			       channel, queue, no_ack);
+  return amqp_rpc_reply;
 }
 
 /*
