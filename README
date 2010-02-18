@@ -1,8 +1,86 @@
-If you're working from a mercurial checkout,
+# RabbitMQ C AMQP client library
+
+## Introduction
+
+This is a C-language AMQP client library for use with AMQP servers
+speaking protocol versions 0-8 and 0-9-1.
+
+ - <http://www.rabbitmq.com/>
+ - <http://www.amqp.org/>
+ - <http://hg.rabbitmq.com/rabbitmq-c>
+
+*NB*: This library's source code supports *either* 0-8 *or* 0-9-1, not
+both simultaneously. Please check carefully that you have the variant
+you require.
+
+Announcements regarding the library are periodically made on the
+RabbitMQ mailing list and on LShift's blog.
+
+ - <http://lists.rabbitmq.com/cgi-bin/mailman/listinfo/rabbitmq-discuss>
+ - <http://www.lshift.net/blog/>
+ - <http://www.lshift.net/blog/category/lshift-sw/rabbitmq/>
+
+## Retrieving the code
+
+In addition to the source code for this library, you will require a
+copy of `rabbitmq-codegen`. Here is a short `sh` script for retrieving
+the necessary pieces:
+
+    hg clone http://hg.rabbitmq.com/rabbitmq-codegen/
+    hg clone http://hg.rabbitmq.com/rabbitmq-c/
+
+You will also need a recent python with the simplejson module
+installed, and the GNU autotools (autoconf, automake, libtool etc).
+
+In current releases, the default (trunk) branch of the mercurial
+repository hosting the `rabbitmq-c` code is set up for AMQP 0-8
+support, with AMQP 0-9-1 support living on a separate mercurial
+branch. To switch your checked-out copy of the source code to 0-9-1
+support,
+
+    (cd rabbitmq-codegen; hg up amqp_0_9_1)
+    (cd rabbitmq-c; hg up amqp_0_9_1)
+
+before building the code. If you switch branches after having compiled
+the code, make sure to rerun `autoreconf`, `configure`, `make clean`
+and `make` after switching branches.
+
+## Building the code
+
+Once you have all the prerequisites, change to the `rabbitmq-c`
+directory and run
 
     autoreconf -i
 
-before
+to run the GNU autotools and generate the configure script, followed
+by
 
     ./configure
     make
+
+to build the `librabbitmq` library and the example programs.
+
+## Running the examples
+
+Arrange for a RabbitMQ or other AMQP server to be running on
+`localhost` at TCP port number 5672.
+
+In one terminal, run
+
+    ./examples/amqp_listen localhost 5672 amq.direct test
+
+In another terminal,
+
+    ./examples/amqp_sendstring localhost 5672 amq.direct test "hello world"
+
+You should see output similar to the following in the listener's
+terminal window:
+
+    Result 1
+    Frame type 1, channel 1
+    Method AMQP_BASIC_DELIVER_METHOD
+    Delivery 1, exchange amq.direct routingkey test
+    Content-type: text/plain
+    ----
+    00000000: 68 65 6C 6C 6F 20 77 6F : 72 6C 64                 hello world
+    0000000B:

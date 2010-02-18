@@ -337,8 +337,6 @@ extern amqp_rpc_reply_t amqp_login(amqp_connection_state_t state,
 				   int heartbeat,
 				   amqp_sasl_method_enum sasl_method, ...);
 
-extern amqp_rpc_reply_t amqp_rpc_reply;
-
 extern struct amqp_channel_open_ok_t_ *amqp_channel_open(amqp_connection_state_t state,
 							 amqp_channel_t channel);
 
@@ -424,9 +422,19 @@ extern struct amqp_queue_purge_ok_t_ *amqp_queue_purge(amqp_connection_state_t s
 extern amqp_boolean_t amqp_data_in_buffer(amqp_connection_state_t state);
 
 /*
- * Expose amqp_rpc_reply to libraries.
+ * For those API operations (such as amqp_basic_ack,
+ * amqp_queue_declare, and so on) that do not themselves return
+ * amqp_rpc_reply_t instances, we need some way of discovering what,
+ * if anything, went wrong. amqp_get_rpc_reply() returns the most
+ * recent amqp_rpc_reply_t instance corresponding to such an API
+ * operation for the given connection.
+ *
+ * Only use it for operations that do not themselves return
+ * amqp_rpc_reply_t; operations that do return amqp_rpc_reply_t
+ * generally do NOT update this per-connection-global amqp_rpc_reply_t
+ * instance.
  */
-extern amqp_rpc_reply_t amqp_get_rpc_reply(void);
+extern amqp_rpc_reply_t amqp_get_rpc_reply(amqp_connection_state_t state);
 
 #ifdef __cplusplus
 }
