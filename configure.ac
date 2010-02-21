@@ -5,6 +5,7 @@ AM_INIT_AUTOMAKE
 AC_CONFIG_HEADER([config.h])
 
 dnl Program checks
+AC_GNU_SOURCE
 AC_PROG_CC
 
 dnl Library checks
@@ -63,9 +64,28 @@ AC_SUBST(AMQP_CODEGEN_DIR)
 AC_SUBST(AMQP_SPEC_JSON_PATH)
 AC_SUBST(PYTHON)
 
+AC_ARG_WITH([popt],
+  [AS_HELP_STRING([--with-popt], [use the popt library.  Needed for tools])],
+  [],
+  [with_popt=check])
+
+LIBPOPT=
+AS_IF([test "x$with_popt" != xno],
+  [AC_CHECK_LIB([popt], [poptGetContext],
+    [AC_SUBST([LIBPOPT], ["-lpopt"])
+     AC_DEFINE([HAVE_LIBPOPT], [1], [Define if you have libpopt])
+    ],
+    [if test "x$with_popt" != xcheck; then
+       AC_MSG_FAILURE([--with-popt was given, but test for libpopt failed])
+     fi
+    ])])
+
+AM_CONDITIONAL(TOOLS, test "x$LIBPOPT" != "x")
+
 AC_OUTPUT(
 Makefile
 librabbitmq/Makefile
 tests/Makefile
 examples/Makefile
+tools/Makefile
 )

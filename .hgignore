@@ -18,7 +18,7 @@
 
 ^librabbitmq/amqp_framing\.[ch]$
 
-^(|librabbitmq/|tests/|examples/)Makefile(\.in)?$
+^(|librabbitmq/|tests/|examples/|tools/)Makefile(\.in)?$
 ^tests/test_tables$
 ^examples/amqp_sendstring$
 ^examples/amqp_exchange_declare$
@@ -28,3 +28,6 @@
 ^examples/amqp_unbind$
 ^examples/amqp_bind$
 ^examples/amqp_listenq$
+^tools/amqp-publish$
+^tools/amqp-get$
+^tools/amqp-consume$
