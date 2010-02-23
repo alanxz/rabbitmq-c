@@ -111,8 +111,9 @@ int main(int argc, const char **argv)
 			       "[OPTIONS]... <command> <args>");
 	
 	cmd_argv = poptGetArgs(opts);
-	if (!cmd_argv[0]) {
-		fprintf(stderr, "consuming command not specified");
+	if (!cmd_argv || !cmd_argv[0]) {
+		fprintf(stderr, "consuming command not specified\n");
+		poptPrintUsage(opts, stderr, 0);
 		goto error;
 	}
 

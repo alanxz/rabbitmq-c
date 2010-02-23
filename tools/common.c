@@ -374,9 +374,7 @@ poptContext process_options(int argc, const char **argv,
 {
 	int c;
 	poptContext opts = poptGetContext(NULL, argc, argv, options, 0);
-	
-	if (!help)
-		poptSetOtherOptionHelp(opts, "[OPTIONS]... <command> <args>");
+	poptSetOtherOptionHelp(opts, help);
 
 	while ((c = poptGetNextOpt(opts)) >= 0) {
 		// no options require explicit handling
@@ -396,7 +394,8 @@ poptContext process_options(int argc, const char **argv,
 void process_all_options(int argc, const char **argv,
 			 struct poptOption *options)
 {
-	poptContext opts = process_options(argc, argv, options, NULL);
+	poptContext opts = process_options(argc, argv, options,
+					   "[OPTIONS]...");
         const char *opt = poptPeekArg(opts);
 	
 	if (opt) {
