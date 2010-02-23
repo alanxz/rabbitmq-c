@@ -64,6 +64,8 @@ AC_SUBST(AMQP_CODEGEN_DIR)
 AC_SUBST(AMQP_SPEC_JSON_PATH)
 AC_SUBST(PYTHON)
 
+# Check for libpopt, which we need to build the tools
+
 AC_ARG_WITH([popt],
   [AS_HELP_STRING([--with-popt], [use the popt library.  Needed for tools])],
   [],
@@ -79,6 +81,11 @@ AS_IF([test "x$with_popt" != xno],
        AC_MSG_FAILURE([--with-popt was given, but test for libpopt failed])
      fi
     ])])
+
+AS_IF([test "x$LIBPOPT" != "x"],
+  [AC_CHECK_HEADER([popt.h], [],
+     [AC_MSG_FAILURE([You have libpopt, but could not find the popt.h header])])
+  ])
 
 AM_CONDITIONAL(TOOLS, test "x$LIBPOPT" != "x")
 
