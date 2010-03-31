@@ -253,7 +253,8 @@ amqp_queue_purge_ok_t *amqp_queue_purge(amqp_connection_state_t state,
 {
   state->most_recent_api_result =
     AMQP_SIMPLE_RPC(state, channel, QUEUE, PURGE, PURGE_OK,
-		    amqp_queue_purge_t, channel, queue, no_wait);
+		    amqp_queue_purge_t,
+		    0, queue, no_wait);
   return RPC_REPLY(amqp_queue_purge_ok_t);
 }
 
@@ -268,8 +269,35 @@ amqp_rpc_reply_t amqp_basic_get(amqp_connection_state_t state,
   state->most_recent_api_result =
     AMQP_MULTIPLE_RESPONSE_RPC(state, channel, BASIC, GET, replies,
 			       amqp_basic_get_t,
-			       channel, queue, no_ack);
+			       0, queue, no_ack);
   return state->most_recent_api_result;
+}
+
+amqp_tx_select_ok_t *amqp_tx_select(amqp_connection_state_t state,
+				    amqp_channel_t channel)
+{
+  state->most_recent_api_result =
+    AMQP_SIMPLE_RPC(state, channel, TX, SELECT, SELECT_OK,
+		    amqp_tx_select_t);
+  return RPC_REPLY(amqp_tx_select_ok_t);
+}
+
+amqp_tx_commit_ok_t *amqp_tx_commit(amqp_connection_state_t state,
+				    amqp_channel_t channel)
+{
+  state->most_recent_api_result =
+    AMQP_SIMPLE_RPC(state, channel, TX, COMMIT, COMMIT_OK,
+		    amqp_tx_commit_t);
+  return RPC_REPLY(amqp_tx_commit_ok_t);
+}
+
+amqp_tx_rollback_ok_t *amqp_tx_rollback(amqp_connection_state_t state,
+					amqp_channel_t channel)
+{
+  state->most_recent_api_result =
+    AMQP_SIMPLE_RPC(state, channel, TX, ROLLBACK, ROLLBACK_OK,
+		    amqp_tx_rollback_t);
+  return RPC_REPLY(amqp_tx_rollback_ok_t);
 }
 
 amqp_rpc_reply_t amqp_get_rpc_reply(amqp_connection_state_t state)

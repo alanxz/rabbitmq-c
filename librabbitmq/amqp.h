@@ -461,6 +461,15 @@ extern struct amqp_queue_purge_ok_t_ *amqp_queue_purge(amqp_connection_state_t s
             amqp_bytes_t queue,
             amqp_boolean_t no_wait);
 
+extern struct amqp_tx_select_ok_t_ *amqp_tx_select(amqp_connection_state_t state,
+						   amqp_channel_t channel);
+
+extern struct amqp_tx_commit_ok_t_ *amqp_tx_commit(amqp_connection_state_t state,
+						   amqp_channel_t channel);
+
+extern struct amqp_tx_rollback_ok_t_ *amqp_tx_rollback(amqp_connection_state_t state,
+						       amqp_channel_t channel);
+
 /*
  * Can be used to see if there is data still in the buffer, if so
  * calling amqp_simple_wait_frame will not immediately enter a
