@@ -61,7 +61,7 @@ static void do_consume(amqp_connection_state_t conn, int no_ack,
 		       const char * const *argv)
 {
 	if (!amqp_basic_consume(conn, 1, setup_queue(conn),
-			       AMQP_EMPTY_BYTES, 0, no_ack, 0))
+				AMQP_EMPTY_BYTES, 0, no_ack, 0, AMQP_EMPTY_TABLE))
 		die_rpc(amqp_get_rpc_reply(conn), "basic.consume");
 
 	for (;;) {
