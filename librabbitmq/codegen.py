@@ -169,6 +169,7 @@ def genErl(spec):
         print "    case %s: {" % (m.defName(),)
         print "      %s *m = (%s *) amqp_pool_alloc(pool, sizeof(%s));" % \
               (m.structName(), m.structName(), m.structName())
+        print "      if (m == NULL) { return -ENOMEM; }"
         bitindex = None
         for f in m.arguments:
             if spec.resolveDomain(f.domain) == 'bit':
@@ -193,6 +194,7 @@ def genErl(spec):
         print "    case %d: {" % (c.index,)
         print "      %s *p = (%s *) amqp_pool_alloc(pool, sizeof(%s));" % \
               (c.structName(), c.structName(), c.structName())
+        print "      if (p == NULL) { return -ENOMEM; }"
         print "      p->_flags = flags;"
         for f in c.fields:
             if spec.resolveDomain(f.domain) == 'bit':

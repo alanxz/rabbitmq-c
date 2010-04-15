@@ -140,6 +140,11 @@ static amqp_bytes_t sasl_response(amqp_pool_t *pool,
       char *password = va_arg(args, char *);
       size_t password_len = strlen(password);
       amqp_pool_alloc_bytes(pool, strlen(username) + strlen(password) + 2, &response);
+      if (response.bytes == NULL) {
+	/* We never request a zero-length block, because of the +2
+	   above, so a NULL here really is ENOMEM. */
+	return response;
+      }
       *BUF_AT(response, 0) = 0;
       memcpy(((char *) response.bytes) + 1, username, username_len);
       *BUF_AT(response, username_len + 1) = 0;
@@ -317,6 +322,12 @@ amqp_rpc_reply_t amqp_simple_rpc(amqp_connection_state_t state,
       amqp_frame_t *frame_copy = amqp_pool_alloc(&state->decoding_pool, sizeof(amqp_frame_t));
       amqp_link_t *link = amqp_pool_alloc(&state->decoding_pool, sizeof(amqp_link_t));
 
+      if (frame_copy == NULL || link == NULL) {
+	result.reply_type = AMQP_RESPONSE_LIBRARY_EXCEPTION;
+	result.library_errno = ENOMEM;
+	return result;
+      }
+
       *frame_copy = frame;
 
       link->next = NULL;
@@ -370,7 +381,11 @@ static int amqp_login_inner(amqp_connection_state_t state,
 
   {
     amqp_bytes_t response_bytes = sasl_response(&state->decoding_pool, sasl_method, vl);
-    amqp_connection_start_ok_t s =
+    amqp_connection_start_ok_t s;
+    if (response_bytes.bytes == NULL) {
+      return -ENOMEM;
+    }
+    s =
       (amqp_connection_start_ok_t) {
         .client_properties = {.num_entries = 0, .entries = NULL},
 	.mechanism = sasl_method_name(sasl_method),

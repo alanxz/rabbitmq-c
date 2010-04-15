@@ -114,8 +114,13 @@ static int amqp_decode_array(amqp_bytes_t encoded,
 
   output->num_entries = num_entries;
   output->entries = amqp_pool_alloc(pool, num_entries * sizeof(amqp_field_value_t));
-  memcpy(output->entries, entries, num_entries * sizeof(amqp_field_value_t));
+  if (output->entries == NULL && num_entries > 0) {
+    /* NULL is legitimate if we requested a zero-length block. */
+    free(entries);
+    return -ENOMEM;
+  }
 
+  memcpy(output->entries, entries, num_entries * sizeof(amqp_field_value_t));
   free(entries);
 
   *offsetptr = offset;
@@ -174,8 +179,13 @@ int amqp_decode_table(amqp_bytes_t encoded,
 
   output->num_entries = num_entries;
   output->entries = amqp_pool_alloc(pool, num_entries * sizeof(amqp_table_entry_t));
-  memcpy(output->entries, entries, num_entries * sizeof(amqp_table_entry_t));
+  if (output->entries == NULL && num_entries > 0) {
+    /* NULL is legitimate if we requested a zero-length block. */
+    free(entries);
+    return -ENOMEM;
+  }
 
+  memcpy(output->entries, entries, num_entries * sizeof(amqp_table_entry_t));
   free(entries);
 
   *offsetptr = offset;
