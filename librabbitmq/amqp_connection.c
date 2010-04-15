@@ -56,6 +56,7 @@
 
 #include <unistd.h>
 #include <sys/uio.h>
+#include <sys/types.h>
 
 #include "amqp.h"
 #include "amqp_framing.h"
@@ -423,15 +424,19 @@ int amqp_send_frame(amqp_connection_state_t state,
 			      payload_len + (HEADER_SIZE + FOOTER_SIZE)));
       return 0;
 
-    case 1:
-      AMQP_CHECK_RESULT(write(state->sockfd, state->outbound_buffer.bytes, HEADER_SIZE));
-      AMQP_CHECK_RESULT(write(state->sockfd, encoded.bytes, payload_len));
-      {
-	assert(FOOTER_SIZE == 1);
-	char frame_end_byte = AMQP_FRAME_END;
-	AMQP_CHECK_RESULT(write(state->sockfd, &frame_end_byte, FOOTER_SIZE));
-      }
+    case 1: {
+      struct iovec iov[3];
+      char frame_end_byte = AMQP_FRAME_END;
+      iov[0].iov_base = state->outbound_buffer.bytes;
+      iov[0].iov_len = HEADER_SIZE;
+      iov[1].iov_base = encoded.bytes;
+      iov[1].iov_len = payload_len;
+      iov[2].iov_base = &frame_end_byte;
+      assert(FOOTER_SIZE == 1);
+      iov[2].iov_len = FOOTER_SIZE;
+      AMQP_CHECK_RESULT(writev(state->sockfd, &iov[0], 3));
       return 0;
+    }
 
     default:
       return separate_body;
