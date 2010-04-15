@@ -32,19 +32,6 @@ the necessary pieces:
 You will also need a recent python with the simplejson module
 installed, and the GNU autotools (autoconf, automake, libtool etc).
 
-In current releases, the default (trunk) branch of the mercurial
-repository hosting the `rabbitmq-c` code is set up for AMQP 0-8
-support, with AMQP 0-9-1 support living on a separate mercurial
-branch. To switch your checked-out copy of the source code to 0-9-1
-support,
-
-    (cd rabbitmq-codegen; hg up amqp_0_9_1)
-    (cd rabbitmq-c; hg up amqp_0_9_1)
-
-before building the code. If you switch branches after having compiled
-the code, make sure to rerun `autoreconf`, `configure`, `make clean`
-and `make` after switching branches.
-
 ## Building the code
 
 Once you have all the prerequisites, change to the `rabbitmq-c`
@@ -104,3 +91,25 @@ access an AMQP connection or any of its channels from more than one
 thread, it is entirely responsible for designing and implementing an
 appropriate locking scheme. It will generally be much simpler to have
 a connection exclusive to each thread that needs AMQP service.
+
+### Switching the codebase to the 0-9-1 protocol version
+
+In current releases, the default (trunk) branch of the mercurial
+repository hosting the `rabbitmq-c` code is set up for AMQP 0-8
+support, with AMQP 0-9-1 support living on a separate mercurial
+branch.
+
+NOTE: Protocol versions 0-8 and 0-9-1 are incompatible on the
+wire. You cannot use a client library that speaks one protocol version
+to communication with a server that speaks the other.
+
+To switch your checked-out copy of the source code to 0-9-1
+support,
+
+    (cd rabbitmq-codegen; hg up amqp_0_9_1)
+    (cd rabbitmq-c; hg up amqp_0_9_1)
+
+before building the code. If you switch branches after having compiled
+the code, make sure to rerun `autoreconf`, `configure`, `make clean`
+and `make` after switching branches.
+
