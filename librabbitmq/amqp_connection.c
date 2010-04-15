@@ -195,6 +195,12 @@ int amqp_handle_input(amqp_connection_state_t state,
 
   if (state->state == CONNECTION_STATE_IDLE) {
     state->inbound_buffer.bytes = amqp_pool_alloc(&state->frame_pool, state->inbound_buffer.len);
+    if (state->inbound_buffer.bytes == NULL) {
+      /* state->inbound_buffer.len is always nonzero, because it
+	 corresponds to frame_max, which is not permitted to be less
+	 than AMQP_FRAME_MIN_SIZE (currently 4096 bytes). */
+      return -ENOMEM;
+    }
     state->state = CONNECTION_STATE_WAITING_FOR_HEADER;
   }
 
