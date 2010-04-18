@@ -12,7 +12,7 @@ clean:
 
 install: build install-stamp
 install-stamp:
-	dh install --sourcedir=debian/tmp
+	dh install
 	touch install-stamp
 
 binary-arch: install
