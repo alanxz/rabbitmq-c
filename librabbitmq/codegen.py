@@ -167,9 +167,12 @@ def genErl(spec):
 
     def genDecodeMethodFields(m):
         print "    case %s: {" % (m.defName(),)
-        print "      %s *m = (%s *) amqp_pool_alloc(pool, sizeof(%s));" % \
-              (m.structName(), m.structName(), m.structName())
-        print "      if (m == NULL) { return -ENOMEM; }"
+        if m.arguments:
+            print "      %s *m = (%s *) amqp_pool_alloc(pool, sizeof(%s));" % \
+                (m.structName(), m.structName(), m.structName())
+            print "      if (m == NULL) { return -ENOMEM; }"
+        else:
+            print "      %s *m = NULL; /* no fields */" % (m.structName(),)
         bitindex = None
         for f in m.arguments:
             if spec.resolveDomain(f.domain) == 'bit':
