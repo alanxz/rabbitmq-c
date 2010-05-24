@@ -2,7 +2,7 @@ Source: librabbitmq
 Section: libs
 Priority: extra
 Maintainer: Tony Garnock-Jones <tonyg@lshift.net>
-Build-Depends: debhelper (>= 7), autoconf, automake, libtool, python (>= 2.5), python-simplejson
+Build-Depends: debhelper (>= 7), autoconf, automake, libtool, python (>= 2.5), python-simplejson, libpopt-dev
 Standards-Version: 3.8.1
 Homepage: http://www.rabbitmq.com/
 Vcs-Browser: http://hg.rabbitmq.com/rabbitmq-c
@@ -20,3 +20,10 @@ Section: libdevel
 Priority: extra
 Depends: librabbitmq (= ${binary:Version}), libc-dev
 Description: developer's libraries and docs for librabbitmq
+
+Package: amqp-tools
+Architecture: any
+Section: net
+Priority: extra
+Depends: librabbitmq (= ${binary:Version}), libc
+Description: Command-line utilities for interacting with AMQP servers

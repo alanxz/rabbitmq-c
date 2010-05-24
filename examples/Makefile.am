@@ -1,4 +1,4 @@
-bin_PROGRAMS = amqp_sendstring amqp_exchange_declare amqp_listen amqp_producer amqp_consumer \
+noinst_PROGRAMS = amqp_sendstring amqp_exchange_declare amqp_listen amqp_producer amqp_consumer \
 	amqp_unbind amqp_bind amqp_listenq
 
 AM_CFLAGS = -I$(top_srcdir)/librabbitmq
