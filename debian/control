@@ -25,5 +25,5 @@ Package: amqp-tools
 Architecture: any
 Section: net
 Priority: extra
-Depends: librabbitmq (= ${binary:Version}), libc
+Depends: librabbitmq (= ${binary:Version}), ${shlibs:Depends}
 Description: Command-line utilities for interacting with AMQP servers
