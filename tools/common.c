@@ -187,7 +187,7 @@ static char *amqp_password = "guest";
 const char *connect_options_title = "Connection options";
 struct poptOption connect_options[] = {
 	{"server", 's', POPT_ARG_STRING, &amqp_server, 0,
-	 "the AMQP server to connect to", "server"},
+	 "the AMQP server to connect to", "hostname:port"},
 	{"vhost", 0, POPT_ARG_STRING, &amqp_vhost, 0,
 	 "the vhost to use when connecting", "vhost"},
 	{"username", 0, POPT_ARG_STRING, &amqp_username, 0,

@@ -28,6 +28,9 @@
 ^examples/amqp_unbind$
 ^examples/amqp_bind$
 ^examples/amqp_listenq$
+
 ^tools/amqp-publish$
 ^tools/amqp-get$
 ^tools/amqp-consume$
+^tools/.*\.[17]$
+^tools/doc/man-date.ent$

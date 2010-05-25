@@ -67,7 +67,7 @@ AC_SUBST(PYTHON)
 # Check for libpopt, which we need to build the tools
 
 AC_ARG_WITH([popt],
-  [AS_HELP_STRING([--with-popt], [use the popt library.  Needed for tools])],
+  [AS_HELP_STRING([--with-popt], [use the popt library.  Needed for tools.])],
   [],
   [with_popt=check])
 
@@ -88,6 +88,20 @@ AS_IF([test "x$LIBPOPT" != "x"],
   ])
 
 AM_CONDITIONAL(TOOLS, test "x$LIBPOPT" != "x")
+
+AC_ARG_WITH([xmlto],
+  [AS_HELP_STRING([--with-xmlto], [use the xmlto toolchain.  Needed for tools man pages.])],
+  [],
+  [with_xmlto=check])
+
+XMLTO=
+AS_IF([test "x$with_xmlto" != xno],
+    [AC_CHECK_PROG([XMLTO], [xmlto], [xmlto])
+     if test "x$with_xmlto" != xcheck; then
+       AC_MSG_FAILURE([--with-xmlto was given, but xmlto not found])
+     fi])
+
+AM_CONDITIONAL(TOOLS_DOC, test "x$XMLTO" != "x")
 
 AC_OUTPUT(
 Makefile
