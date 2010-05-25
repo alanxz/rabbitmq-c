@@ -377,7 +377,7 @@ poptContext process_options(int argc, const char **argv,
 	poptSetOtherOptionHelp(opts, help);
 
 	while ((c = poptGetNextOpt(opts)) >= 0) {
-		// no options require explicit handling
+		/* no options require explicit handling */
 	}
 
 	if (c < -1) {
