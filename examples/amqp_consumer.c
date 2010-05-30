@@ -84,8 +84,8 @@ static void run(amqp_connection_state_t conn)
     if (now > next_summary_time) {
       int countOverInterval = received - previous_received;
       double intervalRate = countOverInterval / ((now - previous_report_time) / 1000000.0);
-      printf("%lld ms: Received %d - %d since last report (%d Hz)\n",
-	     (now - start_time) / 1000, received, countOverInterval, (int) intervalRate);
+      printf("%d ms: Received %d - %d since last report (%d Hz)\n",
+	     (int)(now - start_time) / 1000, received, countOverInterval, (int) intervalRate);
 
       previous_received = received;
       previous_report_time = now;

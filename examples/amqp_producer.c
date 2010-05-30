@@ -95,8 +95,8 @@ static void send_batch(amqp_connection_state_t conn,
     if (now > next_summary_time) {
       int countOverInterval = sent - previous_sent;
       double intervalRate = countOverInterval / ((now - previous_report_time) / 1000000.0);
-      printf("%lld ms: Sent %d - %d since last report (%d Hz)\n",
-	     (now - start_time) / 1000, sent, countOverInterval, (int) intervalRate);
+      printf("%d ms: Sent %d - %d since last report (%d Hz)\n",
+	     (int)(now - start_time) / 1000, sent, countOverInterval, (int) intervalRate);
 
       previous_sent = sent;
       previous_report_time = now;
@@ -111,10 +111,10 @@ static void send_batch(amqp_connection_state_t conn,
 
   {
     long long stop_time = now_microseconds();
-    long long total_delta = stop_time - start_time;
+    int total_delta = stop_time - start_time;
 
     printf("PRODUCER - Message count: %d\n", message_count);
-    printf("Total time, milliseconds: %lld\n", total_delta / 1000);
+    printf("Total time, milliseconds: %d\n", total_delta / 1000);
     printf("Overall messages-per-second: %g\n", (message_count / (total_delta / 1000000.0)));
   }
 }
