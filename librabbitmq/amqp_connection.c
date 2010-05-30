@@ -428,16 +428,14 @@ int amqp_send_frame(amqp_connection_state_t state,
 		    amqp_frame_t const *frame)
 {
   amqp_bytes_t encoded;
-  int payload_len;
-  int separate_body;
+  int payload_len, res;
 
-  separate_body = inner_send_frame(state, frame, &encoded, &payload_len);
-  switch (separate_body) {
+  res = inner_send_frame(state, frame, &encoded, &payload_len);
+  switch (res) {
     case 0:
-      AMQP_CHECK_RESULT(write(state->sockfd,
-			      state->outbound_buffer.bytes,
-			      payload_len + (HEADER_SIZE + FOOTER_SIZE)));
-      return 0;
+      res = write(state->sockfd, state->outbound_buffer.bytes,
+		  payload_len + (HEADER_SIZE + FOOTER_SIZE));
+      break;
 
     case 1: {
       struct iovec iov[3];
@@ -449,13 +447,18 @@ int amqp_send_frame(amqp_connection_state_t state,
       iov[2].iov_base = &frame_end_byte;
       assert(FOOTER_SIZE == 1);
       iov[2].iov_len = FOOTER_SIZE;
-      AMQP_CHECK_RESULT(writev(state->sockfd, &iov[0], 3));
-      return 0;
+      res = writev(state->sockfd, &iov[0], 3);
+      break;
     }
 
     default:
-      return separate_body;
+      return res;
   }
+
+  if (res < 0)
+    return -encoded_errno();
+  else
+    return 0;
 }
 
 int amqp_send_frame_to(amqp_connection_state_t state,
