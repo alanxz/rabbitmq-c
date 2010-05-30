@@ -170,6 +170,15 @@ void amqp_destroy_connection(amqp_connection_state_t state) {
   free(state);
 }
 
+int amqp_end_connection(amqp_connection_state_t state) {
+  int s = state->sockfd;
+  amqp_destroy_connection(state);
+  if (close(s) < 0)
+    return -errno;
+  else
+    return 0;
+} 
+
 static void return_to_idle(amqp_connection_state_t state) {
   state->inbound_buffer.bytes = NULL;
   state->inbound_offset = 0;

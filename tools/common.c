@@ -245,16 +245,15 @@ amqp_connection_state_t make_connection(void)
 
 void close_connection(amqp_connection_state_t conn)
 {
-	int s = amqp_get_sockfd(conn);
-
+	int res;
 	die_rpc(amqp_channel_close(conn, 1, AMQP_REPLY_SUCCESS),
 		"closing channel");
 	die_rpc(amqp_connection_close(conn, AMQP_REPLY_SUCCESS),
 		"closing connection");
-	amqp_destroy_connection(conn);
-
-	if (close(s) < 0)
-		die_errno(errno, "closing socket");
+	
+	res = amqp_end_connection(conn);
+	if (res < 0)
+		die_errno(-res, "closing connection");
 }
 
 amqp_bytes_t read_all(int fd)
