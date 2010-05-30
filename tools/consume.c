@@ -54,6 +54,7 @@
 #include <stdlib.h>
 
 #include "common.h"
+#include "process.h"
 
 /* Convert a amqp_bytes_t to an escaped string form for printing.  We
    use the same escaping conventions as rabbitmqctl. */

@@ -52,17 +52,13 @@
 #include <stdio.h>
 #include <string.h>
 #include <stdint.h>
-#include <errno.h>
-
-#include <unistd.h>
-#include <sys/uio.h>
-#include <sys/types.h>
+#include <assert.h>
 
 #include "amqp.h"
 #include "amqp_framing.h"
 #include "amqp_private.h"
 
-#include <assert.h>
+#include "socket.h"
 
 #define INITIAL_FRAME_POOL_PAGE_SIZE 65536
 #define INITIAL_DECODING_POOL_PAGE_SIZE 131072
@@ -173,8 +169,8 @@ void amqp_destroy_connection(amqp_connection_state_t state) {
 int amqp_end_connection(amqp_connection_state_t state) {
   int s = state->sockfd;
   amqp_destroy_connection(state);
-  if (close(s) < 0)
-    return -encoded_errno();
+  if (socket_close(s) < 0)
+    return -encoded_socket_errno();
   else
     return 0;
 } 
@@ -433,8 +429,8 @@ int amqp_send_frame(amqp_connection_state_t state,
   res = inner_send_frame(state, frame, &encoded, &payload_len);
   switch (res) {
     case 0:
-      res = write(state->sockfd, state->outbound_buffer.bytes,
-		  payload_len + (HEADER_SIZE + FOOTER_SIZE));
+      res = socket_write(state->sockfd, state->outbound_buffer.bytes,
+			 payload_len + (HEADER_SIZE + FOOTER_SIZE));
       break;
 
     case 1: {
@@ -447,7 +443,7 @@ int amqp_send_frame(amqp_connection_state_t state,
       iov[2].iov_base = &frame_end_byte;
       assert(FOOTER_SIZE == 1);
       iov[2].iov_len = FOOTER_SIZE;
-      res = writev(state->sockfd, &iov[0], 3);
+      res = socket_writev(state->sockfd, &iov[0], 3);
       break;
     }
 
@@ -456,7 +452,7 @@ int amqp_send_frame(amqp_connection_state_t state,
   }
 
   if (res < 0)
-    return -encoded_errno();
+    return -encoded_socket_errno();
   else
     return 0;
 }

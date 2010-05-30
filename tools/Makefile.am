@@ -1,15 +1,21 @@
 bin_PROGRAMS = amqp-publish amqp-get amqp-consume
 
-AM_CFLAGS = -I$(top_srcdir)/librabbitmq
+AM_CFLAGS = -I$(top_srcdir)/librabbitmq -I$(PLATFORM_DIR)
 AM_LDFLAGS = $(top_builddir)/librabbitmq/librabbitmq.la
 
 LDADD=$(LIBPOPT)
 
-noinst_HEADERS = common.h
+noinst_HEADERS = common.h $(PLATFORM_DIR)/process.h
 
-amqp_publish_SOURCES = publish.c common.c
-amqp_get_SOURCES = get.c common.c
-amqp_consume_SOURCES = consume.c common.c
+COMMON_SOURCES = common.c
+
+if WINDOWS
+COMMON_SOURCES += windows/compat.c
+endif
+
+amqp_publish_SOURCES = publish.c $(COMMON_SOURCES)
+amqp_get_SOURCES = get.c $(COMMON_SOURCES)
+amqp_consume_SOURCES = consume.c $(PLATFORM_DIR)/process.c $(COMMON_SOURCES)
 
 if TOOLS_DOC
 man_MANS = doc/amqp-publish.1 doc/amqp-consume.1 doc/amqp-get.1 doc/librabbitmq-tools.7

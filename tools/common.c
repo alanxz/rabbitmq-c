@@ -58,12 +58,12 @@
 #include <unistd.h>
 #include <fcntl.h>
 #include <errno.h>
-#include <spawn.h>
-#include <sys/wait.h>
 
 #include "common.h"
 
-extern char **environ;
+#ifdef WINDOWS
+#include "compat.h"
+#endif
 
 void die(const char *fmt, ...)
 {
@@ -169,16 +169,6 @@ void die_rpc(amqp_rpc_reply_t r, const char *fmt, ...)
 	exit(1);
 }
 
-void set_cloexec(int fd)
-{
-	int flags;
-
-	flags = fcntl(fd, F_GETFD);
-	if (flags == -1
-	    || fcntl(fd, F_SETFD, (long)(flags | FD_CLOEXEC)) == -1)
-		die_errno(errno, "set_cloexec");
-}
-
 static char *amqp_server = "localhost";
 static char *amqp_vhost = "/";
 static char *amqp_username = "guest";
@@ -223,8 +213,6 @@ amqp_connection_state_t make_connection(void)
 
 	s = amqp_open_socket(host, port ? port : 5672);
 	die_amqp_error(-s, "opening socket to %s", amqp_server);
-	
-	set_cloexec(s);
 	
 	conn = amqp_new_connection();
 	amqp_set_sockfd(conn, s);
@@ -316,47 +304,6 @@ void copy_body(amqp_connection_state_t conn, int fd)
 		write_all(fd, frame.payload.body_fragment);
 		body_remaining -= frame.payload.body_fragment.len;
 	}
-}
-
-void pipeline(const char * const *argv, struct pipeline *pl)
-{
-	posix_spawn_file_actions_t file_acts;
-
-	int pipefds[2];
-	if (pipe(pipefds))
-		die_errno(errno, "pipe");
-
-	die_errno(posix_spawn_file_actions_init(&file_acts),
-		  "posix_spawn_file_actions_init");
-	die_errno(posix_spawn_file_actions_adddup2(&file_acts, pipefds[0], 0),
-		  "posix_spawn_file_actions_adddup2");
-	die_errno(posix_spawn_file_actions_addclose(&file_acts, pipefds[0]),
-		  "posix_spawn_file_actions_addclose");
-	die_errno(posix_spawn_file_actions_addclose(&file_acts, pipefds[1]),
-		  "posix_spawn_file_actions_addclose");
-
-	die_errno(posix_spawnp(&pl->pid, argv[0], &file_acts, NULL,
-			       (char * const *)argv, environ),
-		  "posix_spawnp: %s", argv[0]);
-
-	die_errno(posix_spawn_file_actions_destroy(&file_acts),
-		  "posix_spawn_file_actions_destroy");
-	
-	if (close(pipefds[0]))
-		die_errno(errno, "close");
-
-	pl->infd = pipefds[1];
-}
-
-int finish_pipeline(struct pipeline *pl)
-{
-	int status;
-
-	if (close(pl->infd))
-		die_errno(errno, "close");
-	if (waitpid(pl->pid, &status, 0) < 0)
-		die_errno(errno, "waitpid");
-	return WIFEXITED(status) && WEXITSTATUS(status) == 0;
 }
 
 poptContext process_options(int argc, const char **argv,

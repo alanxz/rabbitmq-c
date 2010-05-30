@@ -52,7 +52,6 @@
 #include <stdio.h>
 #include <string.h>
 #include <stdint.h>
-#include <errno.h>
 
 #include "amqp.h"
 #include "amqp_framing.h"
@@ -85,9 +84,8 @@ const char *amqp_error_string(int err)
     break;
 
   case ERROR_CATEGORY_OS:
-    str = strerror(err);
-    break;
-
+    return amqp_os_error_string(err);
+    
   default:
     str = "(undefined error category)";
   }

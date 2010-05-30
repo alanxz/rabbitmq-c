@@ -265,6 +265,7 @@ def genErl(spec):
     print '#include "amqp.h"'
     print '#include "amqp_framing.h"'
     print '#include "amqp_private.h"'
+    print '#include "socket.h"'
 
     print """
 char const *amqp_constant_name(int constantNumber) {

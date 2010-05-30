@@ -52,10 +52,10 @@
 #include <stdio.h>
 #include <string.h>
 #include <stdint.h>
-#include <errno.h>
 
 #include "amqp.h"
 #include "amqp_private.h"
+#include "socket.h"
 
 #include <assert.h>
 

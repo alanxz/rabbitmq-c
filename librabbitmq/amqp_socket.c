@@ -52,28 +52,26 @@
 #include <stdio.h>
 #include <string.h>
 #include <stdint.h>
-#include <errno.h>
 #include <stdarg.h>
+#include <assert.h>
 
 #include "amqp.h"
 #include "amqp_framing.h"
 #include "amqp_private.h"
 
-#include <sys/types.h>
-#include <sys/uio.h>
-#include <unistd.h>
-#include <sys/socket.h>
-#include <netdb.h>
-#include <netinet/in.h>
+#include "socket.h"
 
-#include <assert.h>
 
 int amqp_open_socket(char const *hostname,
 		     int portnumber)
 {
-  int sockfd;
+  int sockfd, res;
   struct sockaddr_in addr;
   struct hostent *he;
+
+  res = socket_init();
+  if (res)
+    return res;
 
   he = gethostbyname(hostname);
   if (he == NULL)
@@ -83,11 +81,11 @@ int amqp_open_socket(char const *hostname,
   addr.sin_port = htons(portnumber);
   addr.sin_addr.s_addr = * (uint32_t *) he->h_addr_list[0];
 
-  sockfd = socket(PF_INET, SOCK_STREAM, 0);
-  if (connect(sockfd, (struct sockaddr *) &addr, sizeof(addr)) < 0) {
-    int result = -encoded_errno();
-    close(sockfd);
-    return result;
+  sockfd = socket_socket(PF_INET, SOCK_STREAM, 0);
+  if (socket_connect(sockfd, (struct sockaddr *) &addr, sizeof(addr)) < 0) {
+    res = -encoded_socket_errno();
+    socket_close(sockfd);
+    return res;
   }
 
   return sockfd;
@@ -107,7 +105,7 @@ static char *header() {
 }
 
 int amqp_send_header(amqp_connection_state_t state) {
-  return write(state->sockfd, header(), 8);
+  return socket_write(state->sockfd, header(), 8);
 }
 
 int amqp_send_header_to(amqp_connection_state_t state,
@@ -190,14 +188,14 @@ static int wait_frame_inner(amqp_connection_state_t state,
       assert(result != 0);
     }	
 
-    result = read(state->sockfd,
-		  state->sock_inbound_buffer.bytes,
-		  state->sock_inbound_buffer.len);
+    result = socket_read(state->sockfd,
+			 state->sock_inbound_buffer.bytes,
+			 state->sock_inbound_buffer.len);
     if (result <= 0) {
       if (result == 0)
 	return -ERROR_CONNECTION_CLOSED;
       else
-	return -encoded_errno();
+	return -encoded_socket_errno();
     }
 
     state->sock_inbound_limit = result;

@@ -55,8 +55,6 @@
 extern "C" {
 #endif
 
-#include <arpa/inet.h> /* ntohl, htonl, ntohs, htons */
-
 /* Error numbering: Because of differences in error numbering on
  * different platforms, we want to keep error numbers opaque for
  * client code.  Internally, we encode the category of an error
@@ -78,8 +76,7 @@ extern "C" {
 #define ERROR_CONNECTION_CLOSED 7
 #define ERROR_MAX 7
 
-/* Get the encoded form of errno */
-#define encoded_errno() (errno | ERROR_CATEGORY_OS)
+extern const char *amqp_os_error_string(int err);
 
 /*
  * Connection states:

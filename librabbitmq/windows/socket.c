@@ -21,11 +21,11 @@
  * (C) 2007-2008 LShift Ltd, Cohesive Financial Technologies LLC, and
  * Rabbit Technologies Ltd.
  *
- * Portions created by LShift Ltd are Copyright (C) 2007-2009 LShift
+ * Portions created by LShift Ltd are Copyright (C) 2007-2010 LShift
  * Ltd. Portions created by Cohesive Financial Technologies LLC are
- * Copyright (C) 2007-2009 Cohesive Financial Technologies
+ * Copyright (C) 2007-2010 Cohesive Financial Technologies
  * LLC. Portions created by Rabbit Technologies Ltd are Copyright (C)
- * 2007-2009 Rabbit Technologies Ltd.
+ * 2007-2010 Rabbit Technologies Ltd.
  *
  * Portions created by Tony Garnock-Jones are Copyright (C) 2009-2010
  * LShift Ltd and Tony Garnock-Jones.
@@ -48,42 +48,41 @@
  * ***** END LICENSE BLOCK *****
  */
 
+#include <windows.h>
 #include <stdint.h>
 
-#include <popt.h>
+#include "amqp.h"
+#include "amqp_private.h"
+#include "socket.h"
 
-#include <amqp.h>
-#include <amqp_framing.h>
+static int called_wsastartup;
 
-extern const char *amqp_server_exception_string(amqp_rpc_reply_t r);
-extern const char *amqp_rpc_reply_string(amqp_rpc_reply_t r);
+int socket_init(void)
+{
+	if (!called_wsastartup) {
+		WSADATA data;
+		int res = WSAStartup(0x0202, &data);
+		if (res)
+			return -res;
+		
+		called_wsastartup = 1;
+	}
 
-extern void die(const char *fmt, ...)
-	__attribute__ ((format (printf, 1, 2)));
-extern void die_errno(int err, const char *fmt, ...)
-	__attribute__ ((format (printf, 2, 3)));
-extern void die_amqp_error(int err, const char *fmt, ...)
-	__attribute__ ((format (printf, 2, 3)));
-extern void die_rpc(amqp_rpc_reply_t r, const char *fmt, ...)
-	__attribute__ ((format (printf, 2, 3)));
+	return 0;
+}
 
-extern const char *connect_options_title;
-extern struct poptOption connect_options[];
-extern amqp_connection_state_t make_connection(void);
-extern void close_connection(amqp_connection_state_t conn);
+const char *amqp_os_error_string(int err)
+{
+	char *msg, *copy;
 
-extern amqp_bytes_t read_all(int fd);
-extern void write_all(int fd, amqp_bytes_t data);
+	if (!FormatMessage(FORMAT_MESSAGE_FROM_SYSTEM
+			       | FORMAT_MESSAGE_ALLOCATE_BUFFER,
+			   NULL, err, 
+			   MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT),
+			   (LPSTR)&msg, 0, NULL))
+		return strdup("(error retrieving Windows error message)");
 
-extern void copy_body(amqp_connection_state_t conn, int fd);
-
-#define INCLUDE_OPTIONS(options) \
-	{NULL, 0, POPT_ARG_INCLUDE_TABLE, options, 0, options ## _title, NULL}
-
-extern poptContext process_options(int argc, const char **argv,
-				   struct poptOption *options,
-				   const char *help);
-extern void process_all_options(int argc, const char **argv,
-				struct poptOption *options);
-
-extern amqp_bytes_t cstring_bytes(const char *str);
+	copy = strdup(msg);
+	LocalFree(msg);
+	return copy;
+}
