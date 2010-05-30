@@ -53,8 +53,6 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-#include <popt.h>
-
 #include "common.h"
 
 /* Convert a amqp_bytes_t to an escaped string form for printing.  We

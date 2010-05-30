@@ -54,8 +54,6 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include <popt.h>
-
 #include "common.h"
 
 static void do_publish(amqp_connection_state_t conn,

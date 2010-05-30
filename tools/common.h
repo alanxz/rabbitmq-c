@@ -50,6 +50,8 @@
 
 #include <stdint.h>
 
+#include <popt.h>
+
 #include <amqp.h>
 #include <amqp_framing.h>
 

@@ -61,8 +61,6 @@
 #include <spawn.h>
 #include <sys/wait.h>
 
-#include <popt.h>
-
 #include "common.h"
 
 extern char **environ;
