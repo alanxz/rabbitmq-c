@@ -46,7 +46,8 @@ checkPython() {
       return
     fi
     PYTHON=$1
-    if $PYTHON -c 'import simplejson' 2>/dev/null
+    if $PYTHON -c 'import json' 2>/dev/null \
+       || $PYTHON -c 'import simplejson' 2>/dev/null
     then
       found_python=yes
       AC_MSG_RESULT($PYTHON)
