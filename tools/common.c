@@ -84,11 +84,24 @@ void die_errno(int err, const char *fmt, ...)
 	va_start(ap, fmt);
 	vfprintf(stderr, fmt, ap);
 	va_end(ap);
-	fprintf(stderr, ": %s\n", strerror(err));
+	fprintf(stderr, ": %s\n", strerror(errno));
 	exit(1);
 }
 
-char *amqp_server_exception_string(amqp_rpc_reply_t r)
+void die_amqp_error(int err, const char *fmt, ...)
+{
+	if (err <= 0)
+		return;
+	
+	va_list ap;
+	va_start(ap, fmt);
+	vfprintf(stderr, fmt, ap);
+	va_end(ap);
+	fprintf(stderr, ": %s\n", amqp_error_string(err));
+	exit(1);
+}
+
+const char *amqp_server_exception_string(amqp_rpc_reply_t r)
 {
 	int res;
 	char *s;
@@ -123,26 +136,17 @@ char *amqp_server_exception_string(amqp_rpc_reply_t r)
 	return res >= 0 ? s : NULL;
 }
 
-char *amqp_rpc_reply_string(amqp_rpc_reply_t r)
+const char *amqp_rpc_reply_string(amqp_rpc_reply_t r)
 {
-	const char *s;
-
 	switch (r.reply_type) {
 	case AMQP_RESPONSE_NORMAL:
-		s = "normal response";
-		break;
+		return strdup("normal response");
 		
 	case AMQP_RESPONSE_NONE:
-		s = "missing RPC reply type";
-		break;
+		return strdup("missing RPC reply type");
 
 	case AMQP_RESPONSE_LIBRARY_EXCEPTION:
-		if (r.library_errno)
-			s = strerror(r.library_errno);
-		else
-			s = "end of stream";
-
-		break;
+		return amqp_error_string(r.library_error);
 
 	case AMQP_RESPONSE_SERVER_EXCEPTION:
 		return amqp_server_exception_string(r);
@@ -150,8 +154,6 @@ char *amqp_rpc_reply_string(amqp_rpc_reply_t r)
 	default:
 		abort();
 	}
-
-	return strdup(s);
 }
 
 void die_rpc(amqp_rpc_reply_t r, const char *fmt, ...)
@@ -220,13 +222,8 @@ amqp_connection_state_t make_connection(void)
 	}
 
 	s = amqp_open_socket(host, port ? port : 5672);
-	if (s < 0) {
-		if (s == -ENOENT)
-			die("unknown host %s", host);
-		else
-			die_errno(-s, "opening socket to %s", amqp_server);
-	}
-
+	die_amqp_error(-s, "opening socket to %s", amqp_server);
+	
 	set_cloexec(s);
 	
 	conn = amqp_new_connection();
@@ -252,8 +249,7 @@ void close_connection(amqp_connection_state_t conn)
 		"closing connection");
 	
 	res = amqp_end_connection(conn);
-	if (res < 0)
-		die_errno(-res, "closing connection");
+	die_amqp_error(-res, "closing connection");
 }
 
 amqp_bytes_t read_all(int fd)
@@ -304,8 +300,7 @@ void copy_body(amqp_connection_state_t conn, int fd)
 	amqp_frame_t frame;
 		
 	int res = amqp_simple_wait_frame(conn, &frame);
-	if (res < 0)
-		die_errno(-res, "waiting for header frame");
+	die_amqp_error(-res, "waiting for header frame");
 	if (frame.frame_type != AMQP_FRAME_HEADER)
 		die("expected header, got frame type 0x%X",
 		    frame.frame_type);
@@ -313,8 +308,7 @@ void copy_body(amqp_connection_state_t conn, int fd)
 	body_remaining = frame.payload.properties.body_size;
 	while (body_remaining) {
 		res = amqp_simple_wait_frame(conn, &frame);
-		if (res < 0)
-			die_errno(-res, "waiting for body frame");
+		die_amqp_error(-res, "waiting for body frame");
 		if (frame.frame_type != AMQP_FRAME_BODY)
 			die("expected body, got frame type 0x%X",
 			    frame.frame_type);

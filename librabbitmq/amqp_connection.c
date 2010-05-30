@@ -151,7 +151,7 @@ int amqp_tune_connection(amqp_connection_state_t state,
   newbuf = realloc(state->outbound_buffer.bytes, frame_max);
   if (newbuf == NULL) {
     amqp_destroy_connection(state);
-    return -ENOMEM;
+    return -ERROR_NO_MEMORY;
   }
   state->outbound_buffer.bytes = newbuf;
 
@@ -174,7 +174,7 @@ int amqp_end_connection(amqp_connection_state_t state) {
   int s = state->sockfd;
   amqp_destroy_connection(state);
   if (close(s) < 0)
-    return -errno;
+    return -encoded_errno();
   else
     return 0;
 } 
@@ -208,7 +208,7 @@ int amqp_handle_input(amqp_connection_state_t state,
       /* state->inbound_buffer.len is always nonzero, because it
 	 corresponds to frame_max, which is not permitted to be less
 	 than AMQP_FRAME_MIN_SIZE (currently 4096 bytes). */
-      return -ENOMEM;
+      return -ERROR_NO_MEMORY;
     }
     state->state = CONNECTION_STATE_WAITING_FOR_HEADER;
   }
@@ -255,7 +255,7 @@ int amqp_handle_input(amqp_connection_state_t state,
 
       /* Check frame end marker (footer) */
       if (D_8(state->inbound_buffer, state->target_size - 1) != AMQP_FRAME_END) {
-	return -EINVAL;
+	return -ERROR_BAD_AMQP_DATA;
       }
 
       decoded_frame->channel = D_16(state->inbound_buffer, 1);
@@ -401,7 +401,7 @@ static int inner_send_frame(amqp_connection_state_t state,
       break;
 
     default:
-      return -EINVAL;
+      abort();
   }
 
   E_32(state->outbound_buffer, 3, *payload_len);

@@ -102,25 +102,24 @@ void empty_amqp_pool(amqp_pool_t *pool) {
   empty_blocklist(&pool->pages);
 }
 
+/* Returns 1 on success, 0 on failure */
 static int record_pool_block(amqp_pool_blocklist_t *x, void *block) {
   size_t blocklistlength = sizeof(void *) * (x->num_blocks + 1);
 
   if (x->blocklist == NULL) {
     x->blocklist = malloc(blocklistlength);
-    if (x->blocklist == NULL) {
-      return -ENOMEM;
-    }
+    if (x->blocklist == NULL)
+      return 0;
   } else {
     void *newbl = realloc(x->blocklist, blocklistlength);
-    if (newbl == NULL) {
-      return -ENOMEM;
-    }
+    if (newbl == NULL)
+      return 0;
     x->blocklist = newbl;
   }
 
   x->blocklist[x->num_blocks] = block;
   x->num_blocks++;
-  return 0;
+  return 1;
 }
 
 void *amqp_pool_alloc(amqp_pool_t *pool, size_t amount) {
@@ -135,9 +134,8 @@ void *amqp_pool_alloc(amqp_pool_t *pool, size_t amount) {
     if (result == NULL) {
       return NULL;
     }
-    if (record_pool_block(&pool->large_blocks, result) != 0) {
+    if (!record_pool_block(&pool->large_blocks, result))
       return NULL;
-    }
     return result;
   }
 
@@ -156,9 +154,8 @@ void *amqp_pool_alloc(amqp_pool_t *pool, size_t amount) {
     if (pool->alloc_block == NULL) {
       return NULL;
     }
-    if (record_pool_block(&pool->pages, pool->alloc_block) != 0) {
+    if (!record_pool_block(&pool->pages, pool->alloc_block))
       return NULL;
-    }
     pool->next_page = pool->pages.num_blocks;
   } else {
     pool->alloc_block = pool->pages.blocklist[pool->next_page];

@@ -60,6 +60,41 @@
 
 #include <assert.h>
 
+static const char *client_error_strings[ERROR_MAX] = {
+  "could not allocate memory", /* ERROR_NO_MEMORY */
+  "received bad AMQP data", /* ERROR_BAD_AQMP_DATA */
+  "unknown AMQP class id", /* ERROR_UNKOWN_CLASS */
+  "unknown AMQP method id", /* ERROR_UNKOWN_METHOD */
+  "unknown host", /* ERROR_HOST_NOT_FOUND */
+  "incompatible AMQP version", /* ERROR_INCOMPATIBLE_AMQP_VERSION */
+  "connection closed unexpectedly", /* ERROR_CONNECTION_CLOSED */
+};
+
+const char *amqp_error_string(int err)
+{
+  const char *str;
+  int category = (err & ERROR_CATEGORY_MASK);
+  err = (err & ~ERROR_CATEGORY_MASK);
+
+  switch (category) {
+  case ERROR_CATEGORY_CLIENT:
+    if (err < 1 || err > ERROR_MAX)
+      str = "(undefined librabbitmq error)";
+    else
+      str = client_error_strings[err - 1];
+    break;
+
+  case ERROR_CATEGORY_OS:
+    str = strerror(err);
+    break;
+
+  default:
+    str = "(undefined error category)";
+  }
+
+  return strdup(str);
+}
+
 #define RPC_REPLY(replytype)						\
   (state->most_recent_api_result.reply_type == AMQP_RESPONSE_NORMAL	\
    ? (replytype *) state->most_recent_api_result.reply.decoded		\

@@ -94,7 +94,8 @@ static void run(amqp_connection_state_t conn)
 
     amqp_maybe_release_buffers(conn);
     result = amqp_simple_wait_frame(conn, &frame);
-    if (result <= 0) return;
+    if (result < 0)
+      return;
 
     if (frame.frame_type != AMQP_FRAME_METHOD)
       continue;
@@ -103,7 +104,9 @@ static void run(amqp_connection_state_t conn)
       continue;
 
     result = amqp_simple_wait_frame(conn, &frame);
-    if (result <= 0) return;
+    if (result < 0)
+      return;
+    
     if (frame.frame_type != AMQP_FRAME_HEADER) {
       fprintf(stderr, "Expected header!");
       abort();
@@ -114,7 +117,8 @@ static void run(amqp_connection_state_t conn)
 
     while (body_received < body_target) {
       result = amqp_simple_wait_frame(conn, &frame);
-      if (result <= 0) return;
+      if (result < 0)
+	return;
 
       if (frame.frame_type != AMQP_FRAME_BODY) {
 	fprintf(stderr, "Expected body!");

@@ -263,7 +263,7 @@ typedef enum amqp_response_type_enum_ {
 typedef struct amqp_rpc_reply_t_ {
   amqp_response_type_enum reply_type;
   amqp_method_t reply;
-  int library_errno; /* if AMQP_RESPONSE_LIBRARY_EXCEPTION, then 0 here means socket EOF */
+  int library_error; /* if AMQP_RESPONSE_LIBRARY_EXCEPTION, then 0 here means socket EOF */
 } amqp_rpc_reply_t;
 
 typedef enum amqp_sasl_method_enum_ {
@@ -494,6 +494,14 @@ extern amqp_boolean_t amqp_data_in_buffer(amqp_connection_state_t state);
  * instance.
  */
 extern amqp_rpc_reply_t amqp_get_rpc_reply(amqp_connection_state_t state);
+
+/*
+ * Get the error string for the given error code.
+ *
+ * The returned string resides on the heap; the caller is responsible
+ * for freeing it.
+ */
+extern const char *amqp_error_string(int err);
 
 #ifdef __cplusplus
 }
