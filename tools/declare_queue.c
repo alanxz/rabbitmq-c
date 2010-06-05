@@ -91,6 +91,9 @@ int main(int argc, const char **argv)
 							      0,
 							      0,
 							      AMQP_EMPTY_TABLE);
+	  if (reply == NULL) {
+	    die_rpc(amqp_get_rpc_reply(conn), "queue.declare");
+	  }
 	  write(1, reply->queue.bytes, reply->queue.len);
 	  write(1, "\n", strlen("\n"));
 	}

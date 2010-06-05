@@ -91,6 +91,9 @@ int main(int argc, const char **argv)
 							    cstring_bytes(queue),
 							    if_unused,
 							    if_empty);
+	  if (reply == NULL) {
+	    die_rpc(amqp_get_rpc_reply(conn), "queue.delete");
+	  }
 	  printf("%u\n", reply->message_count);
 	}
 	close_connection(conn);
