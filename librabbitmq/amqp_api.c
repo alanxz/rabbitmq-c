@@ -189,6 +189,19 @@ amqp_queue_declare_ok_t *amqp_queue_declare(amqp_connection_state_t state,
   return RPC_REPLY(amqp_queue_declare_ok_t);
 }
 
+amqp_queue_delete_ok_t *amqp_queue_delete(amqp_connection_state_t state,
+					  amqp_channel_t channel,
+					  amqp_bytes_t queue,
+					  amqp_boolean_t if_unused,
+					  amqp_boolean_t if_empty)
+{
+  state->most_recent_api_result =
+    AMQP_SIMPLE_RPC(state, channel, QUEUE, DELETE, DELETE_OK,
+		    amqp_queue_delete_t,
+		    0, queue, if_unused, if_empty, 0);
+  return RPC_REPLY(amqp_queue_delete_ok_t);
+}
+
 amqp_queue_bind_ok_t *amqp_queue_bind(amqp_connection_state_t state,
 				      amqp_channel_t channel,
 				      amqp_bytes_t queue,
