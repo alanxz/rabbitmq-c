@@ -100,10 +100,17 @@ static char *header() {
   header[1] = 'M';
   header[2] = 'Q';
   header[3] = 'P';
+#ifndef USE_MODERN_AMQP_PROTOCOL_HEADER
   header[4] = 1;
   header[5] = 1;
   header[6] = AMQP_PROTOCOL_VERSION_MAJOR;
   header[7] = AMQP_PROTOCOL_VERSION_MINOR;
+#else
+  header[4] = 0;
+  header[5] = AMQP_PROTOCOL_VERSION_MAJOR;
+  header[6] = AMQP_PROTOCOL_VERSION_MINOR;
+  header[7] = AMQP_PROTOCOL_VERSION_REVISION;
+#endif
   return header;
 }
 
@@ -461,8 +468,8 @@ amqp_rpc_reply_t amqp_login(amqp_connection_state_t state,
     amqp_connection_open_t s =
       (amqp_connection_open_t) {
         .virtual_host = amqp_cstring_bytes(vhost),
-	.capabilities = {.len = 0, .bytes = NULL},
-	.insist = 1
+	.deprecated_capabilities = {.len = 0, .bytes = NULL},
+	.deprecated_insist = 1
       };
     amqp_method_number_t replies[] = { AMQP_CONNECTION_OPEN_OK_METHOD, 0 };
     result = amqp_simple_rpc(state,
