@@ -20,3 +20,8 @@ amqp_get_SOURCES = get.c $(COMMON_SOURCES)
 amqp_consume_SOURCES = consume.c $(PLATFORM_DIR)/process.c $(COMMON_SOURCES)
 amqp_declare_queue_SOURCES = declare_queue.c $(COMMON_SOURCES)
 amqp_delete_queue_SOURCES = delete_queue.c $(COMMON_SOURCES)
+
+EXTRA_DIST = \
+	unix/process.c unix/process.h \
+	windows/process.c windows/process.h \
+	windows/compat.c windows/compat.h
