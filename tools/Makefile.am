@@ -14,7 +14,13 @@ amqp_declare_queue_SOURCES = declare_queue.c common.c
 amqp_delete_queue_SOURCES = delete_queue.c common.c
 
 if TOOLS_DOC
-man_MANS = doc/amqp-publish.1 doc/amqp-consume.1 doc/amqp-get.1 doc/librabbitmq-tools.7
+man_MANS = \
+	doc/amqp-publish.1 \
+	doc/amqp-consume.1 \
+	doc/amqp-get.1 \
+	doc/amqp-declare-queue.1 \
+	doc/amqp-delete-queue.1 \
+	doc/librabbitmq-tools.7
 MOSTLYCLEANFILES = doc/man-date.ent
 
 # automake complains about % pattern rules, and suffix rules don't
@@ -24,6 +30,10 @@ doc/amqp-publish.1: doc/publish.xml doc/man-date.ent
 doc/amqp-consume.1: doc/consume.xml doc/man-date.ent
 	$(XMLTO) man -o doc $<
 doc/amqp-get.1: doc/get.xml doc/man-date.ent
+	$(XMLTO) man -o doc $<
+doc/amqp-declare-queue.1: doc/declare_queue.xml doc/man-date.ent
+	$(XMLTO) man -o doc $<
+doc/amqp-delete-queue.1: doc/delete_queue.xml doc/man-date.ent
 	$(XMLTO) man -o doc $<
 doc/librabbitmq-tools.7: doc/librabbitmq-tools.xml doc/man-date.ent
 	$(XMLTO) man -o doc $<
