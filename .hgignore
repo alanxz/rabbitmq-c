@@ -18,7 +18,7 @@
 
 ^librabbitmq/amqp_framing\.[ch]$
 
-^(|librabbitmq/|tests/|examples/|tools/)Makefile(\.in)?$
+^(|librabbitmq/|tests/|examples/|tools/|tools/doc/)Makefile(\.in)?$
 ^tests/test_tables$
 ^examples/amqp_sendstring$
 ^examples/amqp_exchange_declare$
@@ -32,5 +32,7 @@
 ^tools/amqp-publish$
 ^tools/amqp-get$
 ^tools/amqp-consume$
+^tools/amqp-declare-queue$
+^tools/amqp-delete-queue$
 ^tools/.*\.[17]$
 ^tools/doc/man-date.ent$
