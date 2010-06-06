@@ -1,4 +1,4 @@
-bin_PROGRAMS = amqp-publish amqp-get amqp-consume
+bin_PROGRAMS = amqp-publish amqp-get amqp-consume amqp-declare-queue amqp-delete-queue
 
 AM_CFLAGS = -I$(top_srcdir)/librabbitmq -I$(PLATFORM_DIR)
 AM_LDFLAGS = $(top_builddir)/librabbitmq/librabbitmq.la
@@ -16,9 +16,25 @@ endif
 amqp_publish_SOURCES = publish.c $(COMMON_SOURCES)
 amqp_get_SOURCES = get.c $(COMMON_SOURCES)
 amqp_consume_SOURCES = consume.c $(PLATFORM_DIR)/process.c $(COMMON_SOURCES)
+amqp_declare_queue_SOURCES = declare_queue.c $(COMMON_SOURCES)
+amqp_delete_queue_SOURCES = delete_queue.c $(COMMON_SOURCES)
+
+EXTRA_DIST = \
+	doc/publish.xml \
+	doc/consume.xml \
+	doc/get.xml \
+	doc/declare_queue.xml \
+	doc/delete_queue.xml \
+	doc/librabbitmq-tools.xml
 
 if TOOLS_DOC
-man_MANS = doc/amqp-publish.1 doc/amqp-consume.1 doc/amqp-get.1 doc/librabbitmq-tools.7
+man_MANS = \
+	doc/amqp-publish.1 \
+	doc/amqp-consume.1 \
+	doc/amqp-get.1 \
+	doc/amqp-declare-queue.1 \
+	doc/amqp-delete-queue.1 \
+	doc/librabbitmq-tools.7
 MOSTLYCLEANFILES = doc/man-date.ent
 
 # automake complains about % pattern rules, and suffix rules don't
@@ -28,6 +44,10 @@ doc/amqp-publish.1: doc/publish.xml doc/man-date.ent
 doc/amqp-consume.1: doc/consume.xml doc/man-date.ent
 	$(XMLTO) man -o doc $<
 doc/amqp-get.1: doc/get.xml doc/man-date.ent
+	$(XMLTO) man -o doc $<
+doc/amqp-declare-queue.1: doc/declare_queue.xml doc/man-date.ent
+	$(XMLTO) man -o doc $<
+doc/amqp-delete-queue.1: doc/delete_queue.xml doc/man-date.ent
 	$(XMLTO) man -o doc $<
 doc/librabbitmq-tools.7: doc/librabbitmq-tools.xml doc/man-date.ent
 	$(XMLTO) man -o doc $<
