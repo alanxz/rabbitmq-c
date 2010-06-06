@@ -109,4 +109,5 @@ librabbitmq/Makefile
 tests/Makefile
 examples/Makefile
 tools/Makefile
+tools/doc/Makefile
 )
