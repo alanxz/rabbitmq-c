@@ -9,7 +9,10 @@ include_HEADERS = amqp_framing.h amqp.h
 noinst_HEADERS = amqp_private.h $(PLATFORM_DIR)/socket.h
 BUILT_SOURCES = amqp_framing.h amqp_framing.c
 CLEANFILES = amqp_framing.h amqp_framing.c
-EXTRA_DIST = codegen.py
+EXTRA_DIST = \
+	codegen.py \
+	unix/socket.c unix/socket.h \
+	windows/socket.c windows/socket.h
 
 CODEGEN_PY=$(srcdir)/codegen.py
 
