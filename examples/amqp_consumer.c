@@ -84,8 +84,8 @@ static void run(amqp_connection_state_t conn)
     if (now > next_summary_time) {
       int countOverInterval = received - previous_received;
       double intervalRate = countOverInterval / ((now - previous_report_time) / 1000000.0);
-      printf("%lld ms: Received %d - %d since last report (%d Hz)\n",
-	     (now - start_time) / 1000, received, countOverInterval, (int) intervalRate);
+      printf("%d ms: Received %d - %d since last report (%d Hz)\n",
+	     (int)(now - start_time) / 1000, received, countOverInterval, (int) intervalRate);
 
       previous_received = received;
       previous_report_time = now;
@@ -94,7 +94,8 @@ static void run(amqp_connection_state_t conn)
 
     amqp_maybe_release_buffers(conn);
     result = amqp_simple_wait_frame(conn, &frame);
-    if (result <= 0) return;
+    if (result < 0)
+      return;
 
     if (frame.frame_type != AMQP_FRAME_METHOD)
       continue;
@@ -103,7 +104,9 @@ static void run(amqp_connection_state_t conn)
       continue;
 
     result = amqp_simple_wait_frame(conn, &frame);
-    if (result <= 0) return;
+    if (result < 0)
+      return;
+    
     if (frame.frame_type != AMQP_FRAME_HEADER) {
       fprintf(stderr, "Expected header!");
       abort();
@@ -114,7 +117,8 @@ static void run(amqp_connection_state_t conn)
 
     while (body_received < body_target) {
       result = amqp_simple_wait_frame(conn, &frame);
-      if (result <= 0) return;
+      if (result < 0)
+	return;
 
       if (frame.frame_type != AMQP_FRAME_BODY) {
 	fprintf(stderr, "Expected body!");
@@ -180,8 +184,7 @@ int main(int argc, char const * const *argv) {
 
   die_on_amqp_error(amqp_channel_close(conn, 1, AMQP_REPLY_SUCCESS), "Closing channel");
   die_on_amqp_error(amqp_connection_close(conn, AMQP_REPLY_SUCCESS), "Closing connection");
-  amqp_destroy_connection(conn);
-  die_on_error(close(sockfd), "Closing socket");
+  die_on_error(amqp_end_connection(conn), "Ending connection");
 
   return 0;
 }

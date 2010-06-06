@@ -1,0 +1,77 @@
+# rabbitmq-c and Windows
+
+rabbitmq-c can now be built on Windows using the MinGW/MSYS ports of
+the GNU toolchain and miscellaneous utilities.  This includes the
+example programs and tools.
+
+The results are native Windows DLLs and EXEs, and can be used without
+having MinGW installed.  But the librabbitmq header files currently
+use GCC extensions, and for this reason it is still not possible to
+use Microsoft's C/C++ to build applications against the librabbitmq
+DLL.  Hopefully this will get fixed before long.
+
+
+# Building rabbitmq-c
+
+rabbitmq-c is built on Windows using MinGW and MSYS.  In brief, MinGW
+is a native port of the GNU toolchain to Windows; MSYS is a set of
+ports of common GNU utilities to run under Windows, so that typical
+autotools-based builds will work there.  MinGW/MSYS can be used to
+build native Windows applications and DLLs, which do not depend on
+MinGW/MSYS to run.
+
+So to build rabbitmq-c on Windows, you need to download and install
+the relevant parts of MinGW/MSYS.  This can be a fairly time consuming
+process - there are about 20 files to be downloaded and unpacked.  To
+make it easier, we provide a bash script that automates this process,
+in rabbitmq-c/etc/install-mingw.sh.  You can run this cygwin, or under
+Linux and copy the results over or put them on a shared drive.  Some
+MinGW packages are .tar.lzma files, so it requires a system with xz
+and a tar that supports the -J option, which probably rules out OSX.
+
+Run install-mingw.sh specifying the destination directory, e.g.
+
+  $ etc/install-mingw.sh /tmp/mingw
+
+Python is needed for the rabbitmq-c build, so you will also need to
+install python under Windows.  The Windows installer from python.org
+will do fine.
+
+You will need to get the rabbitmq-c and rabbitmq-codegen source code.
+If you are getting it from Mercurial, you will need to run "autoreconf
+-i" within rabbitmq-c somewhere other than under MinGW first (perhaps
+this can be done under MinGW/MSYS, but the packages installed by
+install-mingw.sh are not sufficient).
+
+Open a cmd window, and ensure that both the MinGW bin directory and the python install directory are in the path, e.g.
+
+  C:\>set PATH=%PATH%;C:\mingw\bin;C:\Python26
+
+Then start bash, and run the following mount command (substituting the
+Windows path of your MinGW install):
+
+  C:\>bash
+  bash-3.1$ mount 'C:\mingw' /mingw
+
+Then go to the rabbitmq-c directory, and configure and make as normal:
+
+  bash-3.1$ ./configure && make
+  [...]
+
+
+# Running the tools without mingw
+
+You can run the resulting tools EXEs without the rest of MinGW.  To do
+this, copy the following files into a directory:
+
+- rabbitmq-c/tools/.libs/*.exe
+
+- rabbitmq-c/librabbitmq/.libs/librabbitmq-0.dll
+
+- /bin/libpopt-0.dll
+
+- /bin/libiconv-2.dll
+
+- /bin/libintl-8.dll
+
+

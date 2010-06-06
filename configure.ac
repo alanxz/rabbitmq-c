@@ -9,6 +9,7 @@ AC_GNU_SOURCE
 AC_PROG_CC
 
 dnl Library checks
+AC_LIBTOOL_WIN32_DLL
 AM_PROG_LIBTOOL
 
 dnl Header-file checks
@@ -20,6 +21,26 @@ if test "x$GCC" = "xyes"; then
     CFLAGS="$CFLAGS -Wall"
   fi
 fi
+
+dnl Detect the kind of host we're building for
+AC_CANONICAL_HOST
+windows=no
+case "${host}" in 
+*-*-mingw*)
+        windows=yes
+        ;;
+esac
+AM_CONDITIONAL(WINDOWS, test "x$windows" = xyes)
+AS_IF([test "x$windows" = xyes],
+  [AC_DEFINE([WINDOWS], [1], [Define to 1 if on Windows.])]
+)
+
+dnl Decide which API abstraction layer to use
+PLATFORM_DIR=unix
+if test "x$windows" = xyes ; then
+   PLATFORM_DIR=windows
+fi
+AC_SUBST(PLATFORM_DIR)
 
 dnl Enable -m64 if we were asked to do so
 AC_ARG_ENABLE(64-bit,
@@ -46,7 +67,8 @@ checkPython() {
       return
     fi
     PYTHON=$1
-    if $PYTHON -c 'import simplejson' 2>/dev/null
+    if $PYTHON -c 'import json' 2>/dev/null \
+       || $PYTHON -c 'import simplejson' 2>/dev/null
     then
       found_python=yes
       AC_MSG_RESULT($PYTHON)
@@ -64,8 +86,12 @@ AC_SUBST(AMQP_CODEGEN_DIR)
 AC_SUBST(AMQP_SPEC_JSON_PATH)
 AC_SUBST(PYTHON)
 
-# Check for libpopt, which we need to build the tools
+dnl Decide which extra win32 libs we need
+EXTRA_LIBS=
+AS_IF([test "x$windows" = xyes], [EXTRA_LIBS="-lws2_32 $EXTRA_LIBS"])
+AC_SUBST(EXTRA_LIBS)
 
+dnl Check for libpopt, which we need to build the tools
 AC_ARG_WITH([popt],
   [AS_HELP_STRING([--with-popt], [use the popt library.  Needed for tools.])],
   [],

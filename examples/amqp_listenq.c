@@ -107,7 +107,7 @@ int main(int argc, char const * const *argv) {
       amqp_maybe_release_buffers(conn);
       result = amqp_simple_wait_frame(conn, &frame);
       printf("Result %d\n", result);
-      if (result <= 0)
+      if (result < 0)
 	break;
 
       printf("Frame type %d, channel %d\n", frame.frame_type, frame.channel);
@@ -125,7 +125,7 @@ int main(int argc, char const * const *argv) {
 	     (int) d->routing_key.len, (char *) d->routing_key.bytes);
 
       result = amqp_simple_wait_frame(conn, &frame);
-      if (result <= 0)
+      if (result < 0)
 	break;
 
       if (frame.frame_type != AMQP_FRAME_HEADER) {
@@ -144,7 +144,7 @@ int main(int argc, char const * const *argv) {
 
       while (body_received < body_target) {
 	result = amqp_simple_wait_frame(conn, &frame);
-	if (result <= 0)
+	if (result < 0)
 	  break;
 
 	if (frame.frame_type != AMQP_FRAME_BODY) {
@@ -171,8 +171,7 @@ int main(int argc, char const * const *argv) {
 
   die_on_amqp_error(amqp_channel_close(conn, 1, AMQP_REPLY_SUCCESS), "Closing channel");
   die_on_amqp_error(amqp_connection_close(conn, AMQP_REPLY_SUCCESS), "Closing connection");
-  amqp_destroy_connection(conn);
-  die_on_error(close(sockfd), "Closing socket");
+  die_on_error(amqp_end_connection(conn), "Ending connection");
 
   return 0;
 }
