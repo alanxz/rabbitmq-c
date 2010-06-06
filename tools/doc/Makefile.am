@@ -14,7 +14,7 @@ man_MANS = \
 	amqp-declare-queue.1 \
 	amqp-delete-queue.1 \
 	librabbitmq-tools.7
-MOSTLYCLEANFILES = man-date.ent
+MOSTLYCLEANFILES = man-date.ent $(man_MANS)
 
 # automake complains about % pattern rules, and suffix rules don't
 # support multiple dependencies, so we have to expand all these out.
@@ -38,8 +38,5 @@ librabbitmq-tools.7: librabbitmq-tools.xml man-date.ent
 
 man-date.ent:
 	date +'%Y-%m-%d' >$@
-
-clean::
-	rm -f man-date.ent
 
 endif
