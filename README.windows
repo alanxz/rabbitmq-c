@@ -68,10 +68,10 @@ this, copy the following files into a directory:
 
 - rabbitmq-c/librabbitmq/.libs/librabbitmq-0.dll
 
-- /lib/libpopt-0.dll
+- /bin/libpopt-0.dll
 
-- /lib/libiconv-2.dll
+- /bin/libiconv-2.dll
 
-- /lib/libintl-8.dll
+- /bin/libintl-8.dll
 
 
