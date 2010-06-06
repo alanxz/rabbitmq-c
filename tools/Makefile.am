@@ -13,6 +13,14 @@ amqp_consume_SOURCES = consume.c common.c
 amqp_declare_queue_SOURCES = declare_queue.c common.c
 amqp_delete_queue_SOURCES = delete_queue.c common.c
 
+EXTRA_DIST = \
+	doc/publish.xml \
+	doc/consume.xml \
+	doc/get.xml \
+	doc/declare_queue.xml \
+	doc/delete_queue.xml \
+	doc/librabbitmq-tools.xml
+
 if TOOLS_DOC
 man_MANS = \
 	doc/amqp-publish.1 \
