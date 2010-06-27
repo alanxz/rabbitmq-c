@@ -54,7 +54,8 @@
 #include <time.h>
 #include <errno.h>
 
-#include <stdint.h>
+#include <inttypes.h>
+
 #include <amqp.h>
 #include <amqp_framing.h>
 #include <amqp_private.h>
@@ -75,13 +76,13 @@ static void dump_value(int indent, amqp_field_value_t v) {
   putchar(' ');
   switch (v.kind) {
     case AMQP_FIELD_KIND_BOOLEAN: puts(v.value.boolean ? "true" : "false"); break;
-    case AMQP_FIELD_KIND_I8: printf("%d\n", v.value.i8); break;
-    case AMQP_FIELD_KIND_U8: printf("%d\n", v.value.u8); break;
-    case AMQP_FIELD_KIND_I16: printf("%d\n", v.value.i16); break;
-    case AMQP_FIELD_KIND_U16: printf("%d\n", v.value.u16); break;
-    case AMQP_FIELD_KIND_I32: printf("%ld\n", (long) v.value.i32); break;
-    case AMQP_FIELD_KIND_U32: printf("%lu\n", (unsigned long) v.value.u32); break;
-    case AMQP_FIELD_KIND_I64: printf("%lld\n", (long long) v.value.i64); break;
+    case AMQP_FIELD_KIND_I8: printf("%"PRId8"\n", v.value.i8); break;
+    case AMQP_FIELD_KIND_U8: printf("%"PRIu8"\n", v.value.u8); break;
+    case AMQP_FIELD_KIND_I16: printf("%"PRId16"\n", v.value.i16); break;
+    case AMQP_FIELD_KIND_U16: printf("%"PRIu16"\n", v.value.u16); break;
+    case AMQP_FIELD_KIND_I32: printf("%"PRId32"\n", v.value.i32); break;
+    case AMQP_FIELD_KIND_U32: printf("%"PRIu32"\n", v.value.u32); break;
+    case AMQP_FIELD_KIND_I64: printf("%"PRId64"\n", v.value.i64); break;
     case AMQP_FIELD_KIND_F32: printf("%g\n", (double) v.value.f32); break;
     case AMQP_FIELD_KIND_F64: printf("%g\n", v.value.f64); break;
     case AMQP_FIELD_KIND_DECIMAL:
@@ -106,7 +107,7 @@ static void dump_value(int indent, amqp_field_value_t v) {
 	}
       }
       break;
-    case AMQP_FIELD_KIND_TIMESTAMP: printf("%llu\n", (unsigned long long) v.value.u64); break;
+    case AMQP_FIELD_KIND_TIMESTAMP: printf("%"PRIu64"\n", v.value.u64); break;
     case AMQP_FIELD_KIND_TABLE:
       putchar('\n');
       {
@@ -209,7 +210,8 @@ static void test_table_codec(void) {
     int decoding_offset = 0;
     result = amqp_decode_table(decoding_bytes, &pool, &decoded, &decoding_offset);
     if (result < 0) {
-      printf("Table decoding failed: %d (%s)\n", result, strerror(-result));
+      printf("Table decoding failed: %d (%s)\n", result,
+	     amqp_error_string(-result));
       abort();
     }
     printf("BBBBBBBBBB\n");
@@ -227,7 +229,8 @@ static void test_table_codec(void) {
 
     result = amqp_encode_table(encoding_result, &table, &offset);
     if (result < 0) {
-      printf("Table encoding failed: %d (%s)\n", result, strerror(-result));
+      printf("Table encoding failed: %d (%s)\n", result, 
+	     amqp_error_string(-result));
       abort();
     }
 
@@ -272,7 +275,7 @@ int main(int argc, char const * const *argv) {
   if ((sizeof(float) != 4) || (vi.i != 0x40490fdb)) {
     printf("*** ERROR: single floating point encoding does not work as expected\n");
     printf("sizeof float is %lu, float is %g, u32 is 0x%08lx\n",
-	   sizeof(float),
+	   (unsigned long)sizeof(float),
 	   vi.f,
 	   (unsigned long) vi.i);
   }
@@ -280,10 +283,9 @@ int main(int argc, char const * const *argv) {
   vl.d = M_PI;
   if ((sizeof(double) != 8) || (vl.l != 0x400921fb54442d18L)) {
     printf("*** ERROR: double floating point encoding does not work as expected\n");
-    printf("sizeof double is %lu, double is %g, u64 is 0x%16llx\n",
-	   sizeof(double),
-	   vl.d,
-	   (unsigned long long) vl.l);
+    printf("sizeof double is %lu, double is %g, u64 is 0x%16"PRIx64"\n",
+	   (unsigned long)sizeof(double),
+	   vl.d, vl.l);
   }
 
   test_table_codec();

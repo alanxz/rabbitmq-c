@@ -21,11 +21,11 @@
  * (C) 2007-2008 LShift Ltd, Cohesive Financial Technologies LLC, and
  * Rabbit Technologies Ltd.
  *
- * Portions created by LShift Ltd are Copyright (C) 2007-2009 LShift
+ * Portions created by LShift Ltd are Copyright (C) 2007-2010 LShift
  * Ltd. Portions created by Cohesive Financial Technologies LLC are
- * Copyright (C) 2007-2009 Cohesive Financial Technologies
+ * Copyright (C) 2007-2010 Cohesive Financial Technologies
  * LLC. Portions created by Rabbit Technologies Ltd are Copyright (C)
- * 2007-2009 Rabbit Technologies Ltd.
+ * 2007-2010 Rabbit Technologies Ltd.
  *
  * Portions created by Tony Garnock-Jones are Copyright (C) 2009-2010
  * LShift Ltd and Tony Garnock-Jones.
@@ -48,42 +48,53 @@
  * ***** END LICENSE BLOCK *****
  */
 
-#include <stdint.h>
+#include <unistd.h>
+#include <errno.h>
+#include <spawn.h>
+#include <sys/wait.h>
 
-#include <popt.h>
+#include "common.h"
+#include "process.h"
 
-#include <amqp.h>
-#include <amqp_framing.h>
+extern char **environ;
 
-extern const char *amqp_server_exception_string(amqp_rpc_reply_t r);
-extern const char *amqp_rpc_reply_string(amqp_rpc_reply_t r);
+void pipeline(const char *const *argv, struct pipeline *pl)
+{
+	posix_spawn_file_actions_t file_acts;
 
-extern void die(const char *fmt, ...)
-	__attribute__ ((format (printf, 1, 2)));
-extern void die_errno(int err, const char *fmt, ...)
-	__attribute__ ((format (printf, 2, 3)));
-extern void die_amqp_error(int err, const char *fmt, ...)
-	__attribute__ ((format (printf, 2, 3)));
-extern void die_rpc(amqp_rpc_reply_t r, const char *fmt, ...)
-	__attribute__ ((format (printf, 2, 3)));
+	int pipefds[2];
+	if (pipe(pipefds))
+		die_errno(errno, "pipe");
 
-extern const char *connect_options_title;
-extern struct poptOption connect_options[];
-extern amqp_connection_state_t make_connection(void);
-extern void close_connection(amqp_connection_state_t conn);
+	die_errno(posix_spawn_file_actions_init(&file_acts),
+		  "posix_spawn_file_actions_init");
+	die_errno(posix_spawn_file_actions_adddup2(&file_acts, pipefds[0], 0),
+		  "posix_spawn_file_actions_adddup2");
+	die_errno(posix_spawn_file_actions_addclose(&file_acts, pipefds[0]),
+		  "posix_spawn_file_actions_addclose");
+	die_errno(posix_spawn_file_actions_addclose(&file_acts, pipefds[1]),
+		  "posix_spawn_file_actions_addclose");
 
-extern amqp_bytes_t read_all(int fd);
-extern void write_all(int fd, amqp_bytes_t data);
+	die_errno(posix_spawnp(&pl->pid, argv[0], &file_acts, NULL,
+			       (char * const *)argv, environ),
+		  "posix_spawnp: %s", argv[0]);
 
-extern void copy_body(amqp_connection_state_t conn, int fd);
+	die_errno(posix_spawn_file_actions_destroy(&file_acts),
+		  "posix_spawn_file_actions_destroy");
+	
+	if (close(pipefds[0]))
+		die_errno(errno, "close");
 
-#define INCLUDE_OPTIONS(options) \
-	{NULL, 0, POPT_ARG_INCLUDE_TABLE, options, 0, options ## _title, NULL}
+	pl->infd = pipefds[1];
+}
 
-extern poptContext process_options(int argc, const char **argv,
-				   struct poptOption *options,
-				   const char *help);
-extern void process_all_options(int argc, const char **argv,
-				struct poptOption *options);
+int finish_pipeline(struct pipeline *pl)
+{
+	int status;
 
-extern amqp_bytes_t cstring_bytes(const char *str);
+	if (close(pl->infd))
+		die_errno(errno, "close");
+	if (waitpid(pl->pid, &status, 0) < 0)
+		die_errno(errno, "waitpid");
+	return WIFEXITED(status) && WEXITSTATUS(status) == 0;
+}

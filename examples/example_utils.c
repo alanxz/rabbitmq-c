@@ -61,7 +61,7 @@
 
 void die_on_error(int x, char const *context) {
   if (x < 0) {
-    fprintf(stderr, "%s: %s\n", context, strerror(-x));
+    fprintf(stderr, "%s: %s\n", context, amqp_error_string(-x));
     exit(1);
   }
 }
@@ -76,8 +76,7 @@ void die_on_amqp_error(amqp_rpc_reply_t x, char const *context) {
       break;
 
     case AMQP_RESPONSE_LIBRARY_EXCEPTION:
-      fprintf(stderr, "%s: %s\n", context,
-	      x.library_errno ? strerror(x.library_errno) : "(end-of-stream)");
+      fprintf(stderr, "%s: %s\n", context, amqp_error_string(x.library_error));
       break;
 
     case AMQP_RESPONSE_SERVER_EXCEPTION:

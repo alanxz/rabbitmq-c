@@ -52,10 +52,10 @@
 #include <stdio.h>
 #include <string.h>
 #include <stdint.h>
-#include <errno.h>
 
 #include "amqp.h"
 #include "amqp_private.h"
+#include "socket.h"
 
 #include <assert.h>
 
@@ -86,7 +86,7 @@ static int amqp_decode_array(amqp_bytes_t encoded,
   int limit;
 
   if (entries == NULL) {
-    return -ENOMEM;
+    return -ERROR_NO_MEMORY;
   }
 
   offset += 4;
@@ -99,7 +99,7 @@ static int amqp_decode_array(amqp_bytes_t encoded,
       newentries = realloc(entries, allocated_entries * sizeof(amqp_field_value_t));
       if (newentries == NULL) {
 	free(entries);
-	return -ENOMEM;
+	return -ERROR_NO_MEMORY;
       }
       entries = newentries;
     }
@@ -117,7 +117,7 @@ static int amqp_decode_array(amqp_bytes_t encoded,
   if (output->entries == NULL && num_entries > 0) {
     /* NULL is legitimate if we requested a zero-length block. */
     free(entries);
-    return -ENOMEM;
+    return -ERROR_NO_MEMORY;
   }
 
   memcpy(output->entries, entries, num_entries * sizeof(amqp_field_value_t));
@@ -140,7 +140,7 @@ int amqp_decode_table(amqp_bytes_t encoded,
   int limit;
 
   if (entries == NULL) {
-    return -ENOMEM;
+    return -ERROR_NO_MEMORY;
   }
 
   offset += 4;
@@ -159,7 +159,7 @@ int amqp_decode_table(amqp_bytes_t encoded,
       newentries = realloc(entries, allocated_entries * sizeof(amqp_table_entry_t));
       if (newentries == NULL) {
 	free(entries);
-	return -ENOMEM;
+	return -ERROR_NO_MEMORY;
       }
       entries = newentries;
     }
@@ -182,7 +182,7 @@ int amqp_decode_table(amqp_bytes_t encoded,
   if (output->entries == NULL && num_entries > 0) {
     /* NULL is legitimate if we requested a zero-length block. */
     free(entries);
-    return -ENOMEM;
+    return -ERROR_NO_MEMORY;
   }
 
   memcpy(output->entries, entries, num_entries * sizeof(amqp_table_entry_t));
@@ -274,7 +274,7 @@ static int amqp_decode_field_value(amqp_bytes_t encoded,
     case AMQP_FIELD_KIND_VOID:
       break;
     default:
-      return -EINVAL;
+      return -ERROR_BAD_AMQP_DATA;
   }
 
   *offsetptr = offset;
@@ -410,7 +410,7 @@ static int amqp_encode_field_value(amqp_bytes_t encoded,
     case AMQP_FIELD_KIND_VOID:
       break;
     default:
-      return -EINVAL;
+      abort();
   }
 
   *offsetptr = offset;

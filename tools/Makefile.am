@@ -2,15 +2,26 @@ SUBDIRS=doc
 
 bin_PROGRAMS = amqp-publish amqp-get amqp-consume amqp-declare-queue amqp-delete-queue
 
-AM_CFLAGS = -I$(top_srcdir)/librabbitmq
+AM_CFLAGS = -I$(top_srcdir)/librabbitmq -I$(PLATFORM_DIR)
 AM_LDFLAGS = $(top_builddir)/librabbitmq/librabbitmq.la
 
 LDADD=$(LIBPOPT)
 
-noinst_HEADERS = common.h
+noinst_HEADERS = common.h $(PLATFORM_DIR)/process.h
 
-amqp_publish_SOURCES = publish.c common.c
-amqp_get_SOURCES = get.c common.c
-amqp_consume_SOURCES = consume.c common.c
-amqp_declare_queue_SOURCES = declare_queue.c common.c
-amqp_delete_queue_SOURCES = delete_queue.c common.c
+COMMON_SOURCES = common.c
+
+if WINDOWS
+COMMON_SOURCES += windows/compat.c
+endif
+
+amqp_publish_SOURCES = publish.c $(COMMON_SOURCES)
+amqp_get_SOURCES = get.c $(COMMON_SOURCES)
+amqp_consume_SOURCES = consume.c $(PLATFORM_DIR)/process.c $(COMMON_SOURCES)
+amqp_declare_queue_SOURCES = declare_queue.c $(COMMON_SOURCES)
+amqp_delete_queue_SOURCES = delete_queue.c $(COMMON_SOURCES)
+
+EXTRA_DIST = \
+	unix/process.c unix/process.h \
+	windows/process.c windows/process.h \
+	windows/compat.c windows/compat.h

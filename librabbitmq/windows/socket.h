@@ -1,3 +1,6 @@
+#ifndef librabbitmq_windows_socket_h
+#define librabbitmq_windows_socket_h
+
 /*
  * ***** BEGIN LICENSE BLOCK *****
  * Version: MPL 1.1/GPL 2.0
@@ -21,11 +24,11 @@
  * (C) 2007-2008 LShift Ltd, Cohesive Financial Technologies LLC, and
  * Rabbit Technologies Ltd.
  *
- * Portions created by LShift Ltd are Copyright (C) 2007-2009 LShift
+ * Portions created by LShift Ltd are Copyright (C) 2007-2010 LShift
  * Ltd. Portions created by Cohesive Financial Technologies LLC are
- * Copyright (C) 2007-2009 Cohesive Financial Technologies
+ * Copyright (C) 2007-2010 Cohesive Financial Technologies
  * LLC. Portions created by Rabbit Technologies Ltd are Copyright (C)
- * 2007-2009 Rabbit Technologies Ltd.
+ * 2007-2010 Rabbit Technologies Ltd.
  *
  * Portions created by Tony Garnock-Jones are Copyright (C) 2009-2010
  * LShift Ltd and Tony Garnock-Jones.
@@ -48,42 +51,42 @@
  * ***** END LICENSE BLOCK *****
  */
 
-#include <stdint.h>
+#include <winsock2.h>
 
-#include <popt.h>
+extern int socket_init(void);
 
-#include <amqp.h>
-#include <amqp_framing.h>
+#define socket_socket socket
+#define socket_connect connect
+#define socket_close closesocket
 
-extern const char *amqp_server_exception_string(amqp_rpc_reply_t r);
-extern const char *amqp_rpc_reply_string(amqp_rpc_reply_t r);
+static inline int socket_read(int sock, void *buf, size_t count)
+{
+	return recv(sock, buf, count, 0);
+}
 
-extern void die(const char *fmt, ...)
-	__attribute__ ((format (printf, 1, 2)));
-extern void die_errno(int err, const char *fmt, ...)
-	__attribute__ ((format (printf, 2, 3)));
-extern void die_amqp_error(int err, const char *fmt, ...)
-	__attribute__ ((format (printf, 2, 3)));
-extern void die_rpc(amqp_rpc_reply_t r, const char *fmt, ...)
-	__attribute__ ((format (printf, 2, 3)));
+static inline int socket_write(int sock, void *buf, size_t count)
+{
+	return send(sock, buf, count, 0);
+}
 
-extern const char *connect_options_title;
-extern struct poptOption connect_options[];
-extern amqp_connection_state_t make_connection(void);
-extern void close_connection(amqp_connection_state_t conn);
+/* same as WSABUF */
+struct iovec {
+	u_long iov_len;
+	char *iov_base;
+};
 
-extern amqp_bytes_t read_all(int fd);
-extern void write_all(int fd, amqp_bytes_t data);
+static inline int socket_writev(int sock, struct iovec *iov, int nvecs)
+{
+	DWORD ret;
+	if (WSASend(sock, (LPWSABUF)iov, nvecs, &ret, 0, NULL, NULL) == 0)
+		return ret;
+	else
+		return -1;
+}
 
-extern void copy_body(amqp_connection_state_t conn, int fd);
+static inline int encoded_socket_errno()
+{
+	return WSAGetLastError() | ERROR_CATEGORY_OS;
+}
 
-#define INCLUDE_OPTIONS(options) \
-	{NULL, 0, POPT_ARG_INCLUDE_TABLE, options, 0, options ## _title, NULL}
-
-extern poptContext process_options(int argc, const char **argv,
-				   struct poptOption *options,
-				   const char *help);
-extern void process_all_options(int argc, const char **argv,
-				struct poptOption *options);
-
-extern amqp_bytes_t cstring_bytes(const char *str);
+#endif

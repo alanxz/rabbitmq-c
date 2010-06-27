@@ -53,9 +53,8 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-#include <popt.h>
-
 #include "common.h"
+#include "process.h"
 
 /* Convert a amqp_bytes_t to an escaped string form for printing.  We
    use the same escaping conventions as rabbitmqctl. */
@@ -157,8 +156,7 @@ static void do_consume(amqp_connection_state_t conn, amqp_bytes_t queue,
 		struct pipeline pl;
 		uint64_t delivery_tag;
 		int res = amqp_simple_wait_frame(conn, &frame);
-		if (res < 0)
-			die_errno(-res, "waiting for header frame");
+		die_amqp_error(res, "waiting for header frame");
 
 		if (frame.frame_type != AMQP_FRAME_METHOD
 		    || frame.payload.method.id != AMQP_BASIC_DELIVER_METHOD)
@@ -172,8 +170,9 @@ static void do_consume(amqp_connection_state_t conn, amqp_bytes_t queue,
 		copy_body(conn, pl.infd);
 
 		if (finish_pipeline(&pl) && !no_ack)
-			die_errno(-amqp_basic_ack(conn, 1, delivery_tag, 0),
-				  "basic.ack");
+			die_amqp_error(amqp_basic_ack(conn, 1, delivery_tag,
+						      0),
+				       "basic.ack");
 
 		amqp_maybe_release_buffers(conn);
 	}
