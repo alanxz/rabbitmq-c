@@ -85,6 +85,10 @@ int amqp_open_socket(char const *hostname,
   addr.sin_addr.s_addr = * (uint32_t *) he->h_addr_list[0];
 
   sockfd = socket(PF_INET, SOCK_STREAM, 0);
+  if (sockfd == -1) {
+    return -errno;
+  }
+
   if (connect(sockfd, (struct sockaddr *) &addr, sizeof(addr)) < 0) {
     int result = -errno;
     close(sockfd);
