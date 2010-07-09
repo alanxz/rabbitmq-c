@@ -30,21 +30,13 @@ AC_ARG_ENABLE(64-bit,
 AC_MSG_CHECKING(location of AMQP codegen directory)
 sibling_codegen_dir="$ac_abs_confdir/../rabbitmq-codegen"
 AMQP_CODEGEN_DIR=$(test -d "$sibling_codegen_dir" && echo "$sibling_codegen_dir" || echo "$ac_abs_confdir/codegen")
-AMQP_SPEC_JSON_PATH="$AMQP_CODEGEN_DIR/amqp-0.8.json"
-AMQP_EXTENSIONS_JSON_PATH="$AMQP_CODEGEN_DIR/rabbitmq-0.8-extensions.json"
+AMQP_SPEC_JSON_PATH="$AMQP_CODEGEN_DIR/amqp-0.9.1.json"
 
 if test -f "$AMQP_SPEC_JSON_PATH"
 then
   AC_MSG_RESULT($AMQP_CODEGEN_DIR)
 else
   AC_MSG_ERROR(could not find AMQP spec file at "'$AMQP_SPEC_JSON_PATH'")
-fi
-
-if test -f "$AMQP_EXTENSIONS_JSON_PATH"
-then
-  AC_MSG_RESULT($AMQP_EXTENSIONS_DIR)
-else
-  AC_MSG_ERROR(could not find extensions spec file at "'$AMQP_EXTENSIONS_JSON_PATH'")
 fi
 
 AC_MSG_CHECKING(finding a python with simplejson installed)
@@ -71,7 +63,6 @@ fi
 
 AC_SUBST(AMQP_CODEGEN_DIR)
 AC_SUBST(AMQP_SPEC_JSON_PATH)
-AC_SUBST(AMQP_EXTENSIONS_JSON_PATH)
 AC_SUBST(PYTHON)
 
 # Check for libpopt, which we need to build the tools
