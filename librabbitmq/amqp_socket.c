@@ -65,6 +65,7 @@
 #include <sys/socket.h>
 #include <netdb.h>
 #include <netinet/in.h>
+#include <netinet/tcp.h>
 
 #include <assert.h>
 
@@ -74,6 +75,7 @@ int amqp_open_socket(char const *hostname,
   int sockfd;
   struct sockaddr_in addr;
   struct hostent *he;
+  int one = 1; /* used as a buffer by setsockopt below */
 
   he = gethostbyname(hostname);
   if (he == NULL) {
@@ -89,7 +91,9 @@ int amqp_open_socket(char const *hostname,
     return -errno;
   }
 
-  if (connect(sockfd, (struct sockaddr *) &addr, sizeof(addr)) < 0) {
+  if ((setsockopt(sockfd, IPPROTO_TCP, TCP_NODELAY, &one, sizeof(one)) < 0) ||
+      (connect(sockfd, (struct sockaddr *) &addr, sizeof(addr)) < 0))
+  {
     int result = -errno;
     close(sockfd);
     return result;
