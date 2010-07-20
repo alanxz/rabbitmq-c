@@ -472,8 +472,8 @@ amqp_rpc_reply_t amqp_login(amqp_connection_state_t state,
     amqp_connection_open_t s =
       (amqp_connection_open_t) {
         .virtual_host = amqp_cstring_bytes(vhost),
-	.deprecated_capabilities = {.len = 0, .bytes = NULL},
-	.deprecated_insist = 1
+	.capabilities = {.len = 0, .bytes = NULL},
+	.insist = 1
       };
     amqp_method_number_t replies[] = { AMQP_CONNECTION_OPEN_OK_METHOD, 0 };
     result = amqp_simple_rpc(state,
