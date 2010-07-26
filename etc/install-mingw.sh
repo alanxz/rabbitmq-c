@@ -7,7 +7,7 @@ fi
 
 unpack_dir=$1
 
-if [ -eb "$unpack_dir" ] ; then
+if [ -e "$unpack_dir" ] ; then
     echo "Destination directory already exists; please delete it if you are sure" 1>&2
     exit 1
 fi
@@ -47,6 +47,16 @@ MinGW/gettext/gettext-0.17-1/gettext-0.17-1-mingw32-dev.tar.lzma
 MinGW/libiconv/libiconv-1.13.1-1/libiconv-1.13.1-1-mingw32-dll-2.tar.lzma
 MinGW/libiconv/libiconv-1.13.1-1/libiconv-1.13.1-1-mingw32-dev.tar.lzma
 MinGW/libiconv/libiconv-1.13.1-1/libcharset-1.13.1-1-mingw32-dll-1.tar.lzma
+MSYS/autoconf/autoconf-2.65-1/autoconf-2.65-1-msys-1.0.13-bin.tar.lzma
+MSYS/automake/automake-1.11.1-1/automake-1.11.1-1-msys-1.0.13-bin.tar.lzma
+MSYS/m4/m4-1.4.14-1/m4-1.4.14-1-msys-1.0.13-bin.tar.lzma
+MSYS/libtool/libtool-2.2.7a-2/libtool-2.2.7a-2-msys-1.0.13-bin.tar.lzma
+MSYS/tar/tar-1.23-1/tar-1.23-1-msys-1.0.13-bin.tar.lzma
+MSYS/regex/regex-1.20090805-2/libregex-1.20090805-2-msys-1.0.13-dll-1.tar.lzma
+MSYS/libiconv/libiconv-1.13.1-2/libiconv-1.13.1-2-msys-1.0.13-dll-2.tar.lzma
+MSYS/gettext/gettext-0.17-2/libintl-0.17-2-msys-dll-8.tar.lzma
+MSYS/perl/perl-5.6.1_2-2/perl-5.6.1_2-2-msys-1.0.13-bin.tar.lzma
+MSYS/crypt/crypt-1.1_1-3/libcrypt-1.1_1-3-msys-1.0.13-dll-0.tar.lzma
 EOF
 
 for f in $download_dir/* ; do

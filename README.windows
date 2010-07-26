@@ -31,19 +31,17 @@ and a tar that supports the -J option, which probably rules out OSX.
 
 Run install-mingw.sh specifying the destination directory, e.g.
 
-  $ etc/install-mingw.sh /tmp/mingw
+  $ etc/install-mingw.sh mingw
 
 Python is needed for the rabbitmq-c build, so you will also need to
 install python under Windows.  The Windows installer from python.org
 will do fine.
 
-You will need to get the rabbitmq-c and rabbitmq-codegen source code.
-If you are getting it from Mercurial, you will need to run "autoreconf
--i" within rabbitmq-c somewhere other than under MinGW first (perhaps
-this can be done under MinGW/MSYS, but the packages installed by
-install-mingw.sh are not sufficient).
+You will need to copy the source code for rabbitmq-c and
+rabbitmq-codegen somewhere under your mingw directory.
 
-Open a cmd window, and ensure that both the MinGW bin directory and the python install directory are in the path, e.g.
+Open a cmd window, and ensure that both the MinGW bin directory and
+the python install directory are in the path, e.g.
 
   C:\>set PATH=%PATH%;C:\mingw\bin;C:\Python26
 
@@ -53,7 +51,17 @@ Windows path of your MinGW install):
   C:\>bash
   bash-3.1$ mount 'C:\mingw' /mingw
 
-Then go to the rabbitmq-c directory, and configure and make as normal:
+Then go to the rabbitmq-c directory.  If you got the rabbitmq-c
+directory from Mercurial (which is the only way to get it at the
+moment), you will need to run autoreconf to produce the configuration
+scripts:
+
+  bash-3.1$ autoreconf -i
+
+This will produce a few lines of informational output while it runs,
+but as long as it doesn't mention any errors, you are ok.
+
+Finally, configure and make:
 
   bash-3.1$ ./configure && make
   [...]
