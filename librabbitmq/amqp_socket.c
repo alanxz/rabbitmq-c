@@ -87,7 +87,7 @@ int amqp_open_socket(char const *hostname,
     return -encoded_socket_errno();
 
   if (socket_setsockopt(sockfd, IPPROTO_TCP, TCP_NODELAY, &one, sizeof(one)) < 0
-      || socket_connect(sockfd, (struct sockaddr *) &addr, sizeof(addr)) < 0)
+      || connect(sockfd, (struct sockaddr *) &addr, sizeof(addr)) < 0)
   {
     res = -encoded_socket_errno();
     socket_close(sockfd);

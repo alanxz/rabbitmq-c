@@ -56,7 +56,6 @@
 extern int socket_init(void);
 
 #define socket_socket socket
-#define socket_connect connect
 #define socket_close closesocket
 
 static inline int socket_setsockopt(int sock, int level, int optname,
