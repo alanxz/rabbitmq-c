@@ -57,7 +57,7 @@
 
 static int called_wsastartup;
 
-int socket_init(void)
+int amqp_socket_init(void)
 {
 	if (!called_wsastartup) {
 		WSADATA data;

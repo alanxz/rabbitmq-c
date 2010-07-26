@@ -169,8 +169,8 @@ void amqp_destroy_connection(amqp_connection_state_t state) {
 int amqp_end_connection(amqp_connection_state_t state) {
   int s = state->sockfd;
   amqp_destroy_connection(state);
-  if (socket_close(s) < 0)
-    return -encoded_socket_errno();
+  if (amqp_socket_close(s) < 0)
+    return -amqp_socket_error();
   else
     return 0;
 } 
@@ -443,7 +443,7 @@ int amqp_send_frame(amqp_connection_state_t state,
       iov[2].iov_base = &frame_end_byte;
       assert(FOOTER_SIZE == 1);
       iov[2].iov_len = FOOTER_SIZE;
-      res = socket_writev(state->sockfd, &iov[0], 3);
+      res = amqp_socket_writev(state->sockfd, &iov[0], 3);
       break;
     }
 
@@ -452,7 +452,7 @@ int amqp_send_frame(amqp_connection_state_t state,
   }
 
   if (res < 0)
-    return -encoded_socket_errno();
+    return -amqp_socket_error();
   else
     return 0;
 }

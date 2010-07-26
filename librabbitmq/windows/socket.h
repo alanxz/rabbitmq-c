@@ -53,12 +53,12 @@
 
 #include <winsock2.h>
 
-extern int socket_init(void);
+extern int amqp_socket_init(void);
 
-#define socket_socket socket
-#define socket_close closesocket
+#define amqp_socket_socket socket
+#define amqp_socket_close closesocket
 
-static inline int socket_setsockopt(int sock, int level, int optname,
+static inline int amqp_socket_setsockopt(int sock, int level, int optname,
                                     const void *optval, size_t optlen)
 {
         /* the winsock setsockopt function has its 4th argument as a
@@ -72,7 +72,7 @@ struct iovec {
 	char *iov_base;
 };
 
-static inline int socket_writev(int sock, struct iovec *iov, int nvecs)
+static inline int amqp_socket_writev(int sock, struct iovec *iov, int nvecs)
 {
 	DWORD ret;
 	if (WSASend(sock, (LPWSABUF)iov, nvecs, &ret, 0, NULL, NULL) == 0)
@@ -81,7 +81,7 @@ static inline int socket_writev(int sock, struct iovec *iov, int nvecs)
 		return -1;
 }
 
-static inline int encoded_socket_errno()
+static inline int amqp_socket_error()
 {
 	return WSAGetLastError() | ERROR_CATEGORY_OS;
 }

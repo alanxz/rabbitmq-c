@@ -58,7 +58,7 @@
 #include "amqp_private.h"
 #include "socket.h"
 
-int socket_socket(int domain, int type, int proto)
+int amqp_socket_socket(int domain, int type, int proto)
 {
 	int flags;
 

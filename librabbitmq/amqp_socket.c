@@ -70,7 +70,7 @@ int amqp_open_socket(char const *hostname,
   struct hostent *he;
   int one = 1; /* used as a buffer by setsockopt below */
 
-  res = socket_init();
+  res = amqp_socket_init();
   if (res)
     return res;
 
@@ -84,13 +84,14 @@ int amqp_open_socket(char const *hostname,
 
   sockfd = socket(PF_INET, SOCK_STREAM, 0);
   if (sockfd == -1)
-    return -encoded_socket_errno();
+    return -amqp_socket_error();
 
-  if (socket_setsockopt(sockfd, IPPROTO_TCP, TCP_NODELAY, &one, sizeof(one)) < 0
+  if (amqp_socket_setsockopt(sockfd, IPPROTO_TCP, TCP_NODELAY, &one,
+			     sizeof(one)) < 0
       || connect(sockfd, (struct sockaddr *) &addr, sizeof(addr)) < 0)
   {
-    res = -encoded_socket_errno();
-    socket_close(sockfd);
+    res = -amqp_socket_error();
+    amqp_socket_close(sockfd);
     return res;
   }
 
@@ -200,7 +201,7 @@ static int wait_frame_inner(amqp_connection_state_t state,
       if (result == 0)
 	return -ERROR_CONNECTION_CLOSED;
       else
-	return -encoded_socket_errno();
+	return -amqp_socket_error();
     }
 
     state->sock_inbound_limit = result;

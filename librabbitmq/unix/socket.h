@@ -60,18 +60,18 @@
 #include <netinet/in.h>
 #include <netinet/tcp.h>
 
-static inline int socket_init(void)
+static inline int amqp_socket_init(void)
 {
 	return 0;
 }
 
-extern int socket_socket(int domain, int type, int proto);
+extern int amqp_socket_socket(int domain, int type, int proto);
 
-#define socket_setsockopt setsockopt
-#define socket_close close
-#define socket_writev writev
+#define amqp_socket_setsockopt setsockopt
+#define amqp_socket_close close
+#define amqp_socket_writev writev
 
-static inline int encoded_socket_errno()
+static inline int amqp_socket_error()
 {
 	return errno | ERROR_CATEGORY_OS;
 }
