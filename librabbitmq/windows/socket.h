@@ -67,16 +67,6 @@ static inline int socket_setsockopt(int sock, int level, int optname,
         return setsockopt(sock, level, optname, (const char *)optval, optlen);
 }
 
-static inline int socket_read(int sock, void *buf, size_t count)
-{
-	return recv(sock, buf, count, 0);
-}
-
-static inline int socket_write(int sock, void *buf, size_t count)
-{
-	return send(sock, buf, count, 0);
-}
-
 /* same as WSABUF */
 struct iovec {
 	u_long iov_len;

@@ -111,7 +111,7 @@ static char *header() {
 }
 
 int amqp_send_header(amqp_connection_state_t state) {
-  return socket_write(state->sockfd, header(), 8);
+  return send(state->sockfd, header(), 8, 0);
 }
 
 int amqp_send_header_to(amqp_connection_state_t state,
@@ -194,9 +194,8 @@ static int wait_frame_inner(amqp_connection_state_t state,
       assert(result != 0);
     }	
 
-    result = socket_read(state->sockfd,
-			 state->sock_inbound_buffer.bytes,
-			 state->sock_inbound_buffer.len);
+    result = recv(state->sockfd, state->sock_inbound_buffer.bytes,
+		  state->sock_inbound_buffer.len, 0);
     if (result <= 0) {
       if (result == 0)
 	return -ERROR_CONNECTION_CLOSED;

@@ -429,8 +429,8 @@ int amqp_send_frame(amqp_connection_state_t state,
   res = inner_send_frame(state, frame, &encoded, &payload_len);
   switch (res) {
     case 0:
-      res = socket_write(state->sockfd, state->outbound_buffer.bytes,
-			 payload_len + (HEADER_SIZE + FOOTER_SIZE));
+      res = send(state->sockfd, state->outbound_buffer.bytes,
+		 payload_len + (HEADER_SIZE + FOOTER_SIZE), 0);
       break;
 
     case 1: {
