@@ -59,6 +59,14 @@ extern int socket_init(void);
 #define socket_connect connect
 #define socket_close closesocket
 
+static inline int socket_setsockopt(int sock, int level, int optname,
+                                    const void *optval, size_t optlen)
+{
+        /* the winsock setsockopt function has its 4th argument as a
+           const char * */
+        return setsockopt(sock, level, optname, (const char *)optval, optlen);
+}
+
 static inline int socket_read(int sock, void *buf, size_t count)
 {
 	return recv(sock, buf, count, 0);

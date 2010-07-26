@@ -58,6 +58,7 @@
 #include <sys/socket.h>
 #include <netdb.h>
 #include <netinet/in.h>
+#include <netinet/tcp.h>
 
 static inline int socket_init(void)
 {
@@ -67,6 +68,7 @@ static inline int socket_init(void)
 extern int socket_socket(int domain, int type, int proto);
 
 #define socket_connect connect
+#define socket_setsockopt setsockopt
 #define socket_close close
 #define socket_read read
 #define socket_write write

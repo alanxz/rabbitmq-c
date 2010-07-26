@@ -68,6 +68,7 @@ int amqp_open_socket(char const *hostname,
   int sockfd, res;
   struct sockaddr_in addr;
   struct hostent *he;
+  int one = 1; /* used as a buffer by setsockopt below */
 
   res = socket_init();
   if (res)
@@ -81,8 +82,13 @@ int amqp_open_socket(char const *hostname,
   addr.sin_port = htons(portnumber);
   addr.sin_addr.s_addr = * (uint32_t *) he->h_addr_list[0];
 
-  sockfd = socket_socket(PF_INET, SOCK_STREAM, 0);
-  if (socket_connect(sockfd, (struct sockaddr *) &addr, sizeof(addr)) < 0) {
+  sockfd = socket(PF_INET, SOCK_STREAM, 0);
+  if (sockfd == -1)
+    return -encoded_socket_errno();
+
+  if (socket_setsockopt(sockfd, IPPROTO_TCP, TCP_NODELAY, &one, sizeof(one)) < 0
+      || socket_connect(sockfd, (struct sockaddr *) &addr, sizeof(addr)) < 0)
+  {
     res = -encoded_socket_errno();
     socket_close(sockfd);
     return res;
