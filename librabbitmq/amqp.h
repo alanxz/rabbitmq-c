@@ -308,9 +308,8 @@ extern int amqp_tune_connection(amqp_connection_state_t state,
 				int channel_max,
 				int frame_max,
 				int heartbeat);
-int amqp_get_channel_max(amqp_connection_state_t state);
-extern void amqp_destroy_connection(amqp_connection_state_t state);
-extern int amqp_end_connection(amqp_connection_state_t state);
+extern int amqp_get_channel_max(amqp_connection_state_t state);
+extern int amqp_destroy_connection(amqp_connection_state_t state);
 
 extern int amqp_handle_input(amqp_connection_state_t state,
 			     amqp_bytes_t received_data,

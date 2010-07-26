@@ -184,7 +184,7 @@ int main(int argc, char const * const *argv) {
 
   die_on_amqp_error(amqp_channel_close(conn, 1, AMQP_REPLY_SUCCESS), "Closing channel");
   die_on_amqp_error(amqp_connection_close(conn, AMQP_REPLY_SUCCESS), "Closing connection");
-  die_on_error(amqp_end_connection(conn), "Ending connection");
+  die_on_error(amqp_destroy_connection(conn), "Ending connection");
 
   return 0;
 }

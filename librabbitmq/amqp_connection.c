@@ -158,22 +158,20 @@ int amqp_get_channel_max(amqp_connection_state_t state) {
   return state->channel_max;
 }
 
-void amqp_destroy_connection(amqp_connection_state_t state) {
+int amqp_destroy_connection(amqp_connection_state_t state) {
+  int s = state->sockfd;
+
   empty_amqp_pool(&state->frame_pool);
   empty_amqp_pool(&state->decoding_pool);
   free(state->outbound_buffer.bytes);
   free(state->sock_inbound_buffer.bytes);
   free(state);
-}
 
-int amqp_end_connection(amqp_connection_state_t state) {
-  int s = state->sockfd;
-  amqp_destroy_connection(state);
-  if (amqp_socket_close(s) < 0)
+  if (s >= 0 && amqp_socket_close(s) < 0)
     return -amqp_socket_error();
   else
     return 0;
-} 
+}
 
 static void return_to_idle(amqp_connection_state_t state) {
   state->inbound_buffer.bytes = NULL;

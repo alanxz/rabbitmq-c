@@ -236,7 +236,7 @@ void close_connection(amqp_connection_state_t conn)
 	die_rpc(amqp_connection_close(conn, AMQP_REPLY_SUCCESS),
 		"closing connection");
 	
-	res = amqp_end_connection(conn);
+	res = amqp_destroy_connection(conn);
 	die_amqp_error(-res, "closing connection");
 }
 
