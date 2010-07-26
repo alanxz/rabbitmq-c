@@ -76,7 +76,7 @@ int amqp_open_socket(char const *hostname,
 
   he = gethostbyname(hostname);
   if (he == NULL)
-    return -ERROR_HOST_NOT_FOUND;
+    return -ERROR_GETHOSTBYNAME_FAILED;
 
   addr.sin_family = AF_INET;
   addr.sin_port = htons(portnumber);

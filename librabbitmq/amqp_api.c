@@ -64,7 +64,7 @@ static const char *client_error_strings[ERROR_MAX] = {
   "received bad AMQP data", /* ERROR_BAD_AQMP_DATA */
   "unknown AMQP class id", /* ERROR_UNKOWN_CLASS */
   "unknown AMQP method id", /* ERROR_UNKOWN_METHOD */
-  "unknown host", /* ERROR_HOST_NOT_FOUND */
+  "unknown host", /* ERROR_GETHOSTBYNAME_FAILED */
   "incompatible AMQP version", /* ERROR_INCOMPATIBLE_AMQP_VERSION */
   "connection closed unexpectedly", /* ERROR_CONNECTION_CLOSED */
 };
