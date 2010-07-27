@@ -101,7 +101,8 @@ int main(int argc, char const * const *argv) {
     die_on_amqp_error(amqp_get_rpc_reply(conn), "Declaring queue");
     queuename = amqp_bytes_malloc_dup(r->queue);
     if (queuename.bytes == NULL) {
-      die_on_error(-ENOMEM, "Copying queue name");
+      fprintf(stderr, "Out of memory while copying queue name");
+      return 1;
     }
   }
 
