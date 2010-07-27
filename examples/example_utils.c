@@ -61,7 +61,9 @@
 
 void die_on_error(int x, char const *context) {
   if (x < 0) {
-    fprintf(stderr, "%s: %s\n", context, amqp_error_string(-x));
+    char *errstr = amqp_error_string(-x);
+    fprintf(stderr, "%s: %s\n", context, errstr);
+    free(errstr);
     exit(1);
   }
 }

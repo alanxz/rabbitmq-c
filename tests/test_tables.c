@@ -210,8 +210,9 @@ static void test_table_codec(void) {
     int decoding_offset = 0;
     result = amqp_decode_table(decoding_bytes, &pool, &decoded, &decoding_offset);
     if (result < 0) {
-      printf("Table decoding failed: %d (%s)\n", result,
-	     amqp_error_string(-result));
+      char *errstr = amqp_error_string(-result);
+      printf("Table decoding failed: %d (%s)\n", result, errstr);
+      free(errstr);
       abort();
     }
     printf("BBBBBBBBBB\n");
@@ -229,8 +230,9 @@ static void test_table_codec(void) {
 
     result = amqp_encode_table(encoding_result, &table, &offset);
     if (result < 0) {
-      printf("Table encoding failed: %d (%s)\n", result, 
-	     amqp_error_string(-result));
+      char *errstr = amqp_error_string(-result);
+      printf("Table encoding failed: %d (%s)\n", result, errstr);
+      free(errstr);
       abort();
     }
 

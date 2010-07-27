@@ -77,10 +77,11 @@ void die(const char *fmt, ...)
 
 void die_errno(int err, const char *fmt, ...)
 {
+	va_list ap;
+
 	if (err == 0)
 		return;
 
-	va_list ap;
 	va_start(ap, fmt);
 	vfprintf(stderr, fmt, ap);
 	va_end(ap);
@@ -90,14 +91,17 @@ void die_errno(int err, const char *fmt, ...)
 
 void die_amqp_error(int err, const char *fmt, ...)
 {
+	va_list ap;
+	char *errstr;
+
 	if (err <= 0)
 		return;
-	
-	va_list ap;
+
 	va_start(ap, fmt);
 	vfprintf(stderr, fmt, ap);
 	va_end(ap);
-	fprintf(stderr, ": %s\n", amqp_error_string(err));
+	fprintf(stderr, ": %s\n", errstr = amqp_error_string(err));
+	free(errstr);
 	exit(1);
 }
 
@@ -158,14 +162,17 @@ const char *amqp_rpc_reply_string(amqp_rpc_reply_t r)
 
 void die_rpc(amqp_rpc_reply_t r, const char *fmt, ...)
 {
+	va_list ap;
+	char *errstr;
+
 	if (r.reply_type == AMQP_RESPONSE_NORMAL)
 		return;
 	
-	va_list ap;
 	va_start(ap, fmt);
 	vfprintf(stderr, fmt, ap);
 	va_end(ap);
-	fprintf(stderr, ": %s\n", amqp_rpc_reply_string(r));
+	fprintf(stderr, ": %s\n", errstr = amqp_rpc_reply_string(r));
+	free(errstr);
 	exit(1);
 }
 
