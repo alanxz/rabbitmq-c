@@ -69,7 +69,7 @@ void die_windows_error(const char *fmt, ...)
 			   NULL, GetLastError(), 
 			   MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT),
 			   (LPSTR)&msg, 0, NULL))
-		msg = "(failed to retrieving Windows error message)";
+		msg = "(failed to retrieve Windows error message)";
 
 	fprintf(stderr, ": %s\n", msg);
 	exit(1);
@@ -169,6 +169,8 @@ void pipeline(const char *const *argv, struct pipeline *pl)
 	if (!CreateProcess(NULL, cmdline, NULL, NULL, TRUE, 0,
 			   NULL, NULL, &start_info, &proc_info))
 		die_windows_error("CreateProcess");
+
+	free(cmdline);
 
 	if (!CloseHandle(proc_info.hThread))
 		die_windows_error("CloseHandle for thread");
