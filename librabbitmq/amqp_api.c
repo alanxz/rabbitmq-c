@@ -69,7 +69,7 @@ static const char *client_error_strings[ERROR_MAX] = {
   "connection closed unexpectedly", /* ERROR_CONNECTION_CLOSED */
 };
 
-const char *amqp_error_string(int err)
+char *amqp_error_string(int err)
 {
   const char *str;
   int category = (err & ERROR_CATEGORY_MASK);

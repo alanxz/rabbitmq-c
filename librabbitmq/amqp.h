@@ -506,7 +506,7 @@ extern amqp_rpc_reply_t amqp_get_rpc_reply(amqp_connection_state_t state);
  * The returned string resides on the heap; the caller is responsible
  * for freeing it.
  */
-extern const char *amqp_error_string(int err);
+extern char *amqp_error_string(int err);
 
 #ifdef __cplusplus
 }

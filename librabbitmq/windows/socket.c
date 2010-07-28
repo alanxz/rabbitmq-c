@@ -71,7 +71,7 @@ int amqp_socket_init(void)
 	return 0;
 }
 
-const char *amqp_os_error_string(int err)
+char *amqp_os_error_string(int err)
 {
 	char *msg, *copy;
 

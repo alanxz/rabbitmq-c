@@ -105,7 +105,7 @@ void die_amqp_error(int err, const char *fmt, ...)
 	exit(1);
 }
 
-const char *amqp_server_exception_string(amqp_rpc_reply_t r)
+char *amqp_server_exception_string(amqp_rpc_reply_t r)
 {
 	int res;
 	char *s;
@@ -140,7 +140,7 @@ const char *amqp_server_exception_string(amqp_rpc_reply_t r)
 	return res >= 0 ? s : NULL;
 }
 
-const char *amqp_rpc_reply_string(amqp_rpc_reply_t r)
+char *amqp_rpc_reply_string(amqp_rpc_reply_t r)
 {
 	switch (r.reply_type) {
 	case AMQP_RESPONSE_NORMAL:

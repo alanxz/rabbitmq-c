@@ -55,8 +55,8 @@
 #include <amqp.h>
 #include <amqp_framing.h>
 
-extern const char *amqp_server_exception_string(amqp_rpc_reply_t r);
-extern const char *amqp_rpc_reply_string(amqp_rpc_reply_t r);
+extern char *amqp_server_exception_string(amqp_rpc_reply_t r);
+extern char *amqp_rpc_reply_string(amqp_rpc_reply_t r);
 
 extern void die(const char *fmt, ...)
 	__attribute__ ((format (printf, 1, 2)));

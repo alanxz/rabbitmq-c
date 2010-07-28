@@ -79,7 +79,7 @@ int amqp_socket_socket(int domain, int type, int proto)
 	return s;
 }	
 
-const char *amqp_os_error_string(int err)
+char *amqp_os_error_string(int err)
 {
 	return strdup(strerror(err));
 }
