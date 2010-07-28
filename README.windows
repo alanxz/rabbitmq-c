@@ -21,13 +21,13 @@ build native Windows applications and DLLs, which do not depend on
 MinGW/MSYS to run.
 
 So to build rabbitmq-c on Windows, you need to download and install
-the relevant parts of MinGW/MSYS.  This can be a fairly time consuming
-process - there are about 20 files to be downloaded and unpacked.  To
-make it easier, we provide a bash script that automates this process,
-in rabbitmq-c/etc/install-mingw.sh.  You can run this cygwin, or under
-Linux and copy the results over or put them on a shared drive.  Some
-MinGW packages are .tar.lzma files, so it requires a system with xz
-and a tar that supports the -J option, which probably rules out OSX.
+the relevant parts of MinGW/MSYS.  This can be fairly time consuming -
+there are dozens of files to be downloaded and unpacked.  To make it
+easier, we provide a bash script that automates this process, in
+rabbitmq-c/etc/install-mingw.sh.  You can run this under cygwin, or
+under Linux and copy the results over or put them on a shared drive.
+Some MinGW packages are .tar.lzma files, so it requires a system with
+the xz compression utility and a tar that supports the -J option.
 
 Run install-mingw.sh specifying the destination directory, e.g.
 
