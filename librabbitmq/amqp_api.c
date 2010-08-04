@@ -253,13 +253,13 @@ amqp_queue_unbind_ok_t *amqp_queue_unbind(amqp_connection_state_t state,
 					  amqp_channel_t channel,
 					  amqp_bytes_t queue,
 					  amqp_bytes_t exchange,
-					  amqp_bytes_t binding_key,
+					  amqp_bytes_t routing_key,
 					  amqp_table_t arguments)
 {
   state->most_recent_api_result =
     AMQP_SIMPLE_RPC(state, channel, QUEUE, UNBIND, UNBIND_OK,
 		    amqp_queue_unbind_t,
-		    0, queue, exchange, binding_key, arguments);
+		    0, queue, exchange, routing_key, arguments);
   return RPC_REPLY(amqp_queue_unbind_ok_t);
 }
 
