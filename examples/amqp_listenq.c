@@ -90,7 +90,7 @@ int main(int argc, char const * const *argv) {
   amqp_channel_open(conn, 1);
   die_on_amqp_error(amqp_get_rpc_reply(conn), "Opening channel");
 
-  amqp_basic_consume(conn, 1, amqp_cstring_bytes(queuename), AMQP_EMPTY_BYTES, 0, 0, 0);
+  amqp_basic_consume(conn, 1, amqp_cstring_bytes(queuename), AMQP_EMPTY_BYTES, 0, 0, 0, AMQP_EMPTY_TABLE);
   die_on_amqp_error(amqp_get_rpc_reply(conn), "Consuming");
 
   {
