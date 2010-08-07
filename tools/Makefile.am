@@ -2,7 +2,7 @@ SUBDIRS=doc
 
 bin_PROGRAMS = amqp-publish amqp-get amqp-consume amqp-declare-queue amqp-delete-queue
 
-AM_CFLAGS = -I$(top_srcdir)/librabbitmq -I$(PLATFORM_DIR)
+AM_CFLAGS = -I$(top_srcdir)/librabbitmq -I$(srcdir)/$(PLATFORM_DIR)
 AM_LDFLAGS = $(top_builddir)/librabbitmq/librabbitmq.la
 
 LDADD=$(LIBPOPT)
