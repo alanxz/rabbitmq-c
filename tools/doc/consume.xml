@@ -50,8 +50,7 @@
         <para>
             <command>amqp-consume</command> can consume from an
             existing queue, or it can create a new queue.  It can
-            optionally bind the queue to an existing exchange, or to a
-            newly created exchange.
+            optionally bind the queue to an existing exchange.
         </para>
         <para>
             By default, messages will be consumed with explicit
@@ -72,13 +71,16 @@
                 <listitem>
                     <para>
                         The name of the queue to consume messages
-                        from.  If the specified queue does not exist,
-                        an auto-delete queue is created with the given
-                        name.  If this option is omitted, a new
-                        auto-delete queue will be created, with a
-                        unique name assigned to the queue by the AMQP
-                        server; that unique name will be displayed on
-                        stderr.
+                        from.
+                    </para>
+                        
+                    <para>
+                        If the <option>--queue</option> option is
+                        omitted, the AMQP server will assign a unique
+                        name to the queue, and that server-assigned
+                        name will be dixsplayed on stderr; this case
+                        implies that an exclusive queue should be
+                        declared.
                     </para>
                 </listitem>
             </varlistentry>
@@ -87,24 +89,12 @@
                 <term><option>--exchange</option>=<replaceable class="parameter">exchange name</replaceable></term>
                 <listitem>
                     <para>
-                        The name of the exchange to bind the queue to.
-                        If omitted, binding is not performed.  The
-                        specified exchange should already exist unless
-                        the <option>--exchange-type</option> option is
-                        used to request the creation of an exchange.
-                    </para>
-                </listitem>
-            </varlistentry>
-            <varlistentry>
-                <term><option>-t</option></term>
-                <term><option>--exchange-type</option>=<replaceable class="parameter">type</replaceable></term>
-                <listitem>
-                    <para>
-                        This option indicates that an auto-delete
-                        exchange of the specified type should be
-                        created.  The name of the exchange should be
-                        given by the <option>--exchange</option>
-                        option.
+                        Specifies that an exclusive queue should
+                        be declared, and bound to the given exchange.
+                        The specified exchange should already exist
+                        unless the <option>--exchange-type</option>
+                        option is used to request the creation of an
+                        exchange.
                     </para>
                 </listitem>
             </varlistentry>
@@ -113,8 +103,22 @@
                 <term><option>--routing-key</option>=<replaceable class="parameter">routing key</replaceable></term>
                 <listitem>
                     <para>
-                        The routing key for the binding.  If omitted,
-                        an empty routing key is assumed.
+                        The routing key for binding.  If omitted, an
+                        empty routing key is assumed.
+                    </para>
+                </listitem>
+            </varlistentry>
+            <varlistentry>
+                <term><option>-d</option></term>
+                <term><option>--declare</option></term>
+                <listitem>
+                    <para>
+                        Forces an exclusive queue to be declared,
+                        even when it otherwise would not.  That is,
+                        when a queue name is specified with the
+                        <option>--queue</option> option, but no
+                        binding to an exchange is requested with the
+                        <option>--exchange</option> option.
                     </para>
                 </listitem>
             </varlistentry>
@@ -138,7 +142,7 @@
         <title>Examples</title>
         <variablelist>
             <varlistentry>
-                <term>Consume messages from the queue
+                <term>Consume messages from an existing queue
                 <quote><systemitem
                 class="resource">myqueue</systemitem></quote>, and
                 output the message bodies on standard output via
@@ -149,7 +153,7 @@
             </varlistentry>
 
             <varlistentry>
-                <term>Bind a newly created auto-delete queue to an
+                <term>Bind a new exclusive queue to an
                 exchange <quote><systemitem
                 class="resource">myexch</systemitem></quote>, and send
                 each message body to the script
