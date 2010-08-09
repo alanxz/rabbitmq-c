@@ -170,8 +170,8 @@ int main(int argc, const char **argv)
 	char *queue = NULL;
 	char *exchange = NULL;
 	char *routing_key = NULL;
-	int declare;
-	int no_ack;
+	int declare = 0;
+	int no_ack = 0;
 	amqp_bytes_t queue_bytes;
 
 	struct poptOption options[] = {
