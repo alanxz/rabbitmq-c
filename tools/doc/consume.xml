@@ -114,7 +114,7 @@
                 <listitem>
                     <para>
                         Forces an exclusive queue to be declared,
-                        even when it otherwise would not.  That is,
+                        even when it otherwise would not be.  That is,
                         when a queue name is specified with the
                         <option>--queue</option> option, but no
                         binding to an exchange is requested with the
