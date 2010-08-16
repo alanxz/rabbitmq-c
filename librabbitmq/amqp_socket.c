@@ -104,17 +104,10 @@ static char *header() {
   header[1] = 'M';
   header[2] = 'Q';
   header[3] = 'P';
-#ifndef USE_MODERN_AMQP_PROTOCOL_HEADER
-  header[4] = 1;
-  header[5] = 1;
-  header[6] = AMQP_PROTOCOL_VERSION_MAJOR;
-  header[7] = AMQP_PROTOCOL_VERSION_MINOR;
-#else
   header[4] = 0;
   header[5] = AMQP_PROTOCOL_VERSION_MAJOR;
   header[6] = AMQP_PROTOCOL_VERSION_MINOR;
   header[7] = AMQP_PROTOCOL_VERSION_REVISION;
-#endif
   return header;
 }
 
