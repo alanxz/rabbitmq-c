@@ -131,7 +131,7 @@ static amqp_bytes_t setup_queue(amqp_connection_state_t conn,
 			/* we should create the exchange */
 			if (!amqp_exchange_declare(conn, 1, eb, 
 					     amqp_cstring_bytes(exchange_type),
-					     0, 0, 1, AMQP_EMPTY_TABLE))
+					     0, 0, AMQP_EMPTY_TABLE))
 			die_rpc(amqp_get_rpc_reply(conn), "exchange.declare");
 		}
 		

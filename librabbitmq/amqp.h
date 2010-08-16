@@ -412,7 +412,6 @@ extern struct amqp_exchange_declare_ok_t_ *amqp_exchange_declare(amqp_connection
 								 amqp_bytes_t type,
 								 amqp_boolean_t passive,
 								 amqp_boolean_t durable,
-								 amqp_boolean_t auto_delete,
 								 amqp_table_t arguments);
 
 extern struct amqp_queue_declare_ok_t_ *amqp_queue_declare(amqp_connection_state_t state,

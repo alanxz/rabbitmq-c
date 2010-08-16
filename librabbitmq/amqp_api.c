@@ -196,13 +196,12 @@ amqp_exchange_declare_ok_t *amqp_exchange_declare(amqp_connection_state_t state,
 						  amqp_bytes_t type,
 						  amqp_boolean_t passive,
 						  amqp_boolean_t durable,
-						  amqp_boolean_t auto_delete,
 						  amqp_table_t arguments)
 {
   state->most_recent_api_result =
     AMQP_SIMPLE_RPC(state, channel, EXCHANGE, DECLARE, DECLARE_OK,
 		    amqp_exchange_declare_t,
-		    0, exchange, type, passive, durable, auto_delete, 0, 0, arguments);
+		    0, exchange, type, passive, durable, 0, 0, 0, arguments);
   return RPC_REPLY(amqp_exchange_declare_ok_t);
 }
 
