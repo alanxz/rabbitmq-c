@@ -1,6 +1,6 @@
 lib_LTLIBRARIES = librabbitmq.la
 
-AM_CFLAGS = -I$(PLATFORM_DIR)
+AM_CFLAGS = -I$(srcdir)/$(PLATFORM_DIR)
 librabbitmq_la_SOURCES = amqp_mem.c amqp_table.c amqp_connection.c amqp_socket.c amqp_debug.c amqp_api.c $(PLATFORM_DIR)/socket.c
 librabbitmq_la_LDFLAGS = -no-undefined
 librabbitmq_la_LIBADD = $(EXTRA_LIBS)
