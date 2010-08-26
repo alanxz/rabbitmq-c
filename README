@@ -3,22 +3,17 @@
 ## Introduction
 
 This is a C-language AMQP client library for use with AMQP servers
-speaking protocol versions 0-8 and 0-9-1.
+speaking protocol versions 0-9-1.
 
  - <http://www.rabbitmq.com/>
  - <http://www.amqp.org/>
  - <http://hg.rabbitmq.com/rabbitmq-c>
 
-*NB*: This library's source code supports *either* 0-8 *or* 0-9-1, not
-both simultaneously. Please check carefully that you have the variant
-you require.
-
 Announcements regarding the library are periodically made on the
-RabbitMQ mailing list and on LShift's blog.
+RabbitMQ mailing list and on the RabbitMQ blog.
 
  - <http://lists.rabbitmq.com/cgi-bin/mailman/listinfo/rabbitmq-discuss>
- - <http://www.lshift.net/blog/>
- - <http://www.lshift.net/blog/category/lshift-sw/rabbitmq/>
+ - <http://www.rabbitmq.com/blog/>
 
 ## Retrieving the code
 
@@ -91,25 +86,3 @@ access an AMQP connection or any of its channels from more than one
 thread, it is entirely responsible for designing and implementing an
 appropriate locking scheme. It will generally be much simpler to have
 a connection exclusive to each thread that needs AMQP service.
-
-### Switching the codebase to the 0-9-1 protocol version
-
-In current releases, the default (trunk) branch of the mercurial
-repository hosting the `rabbitmq-c` code is set up for AMQP 0-8
-support, with AMQP 0-9-1 support living on a separate mercurial
-branch.
-
-NOTE: Protocol versions 0-8 and 0-9-1 are incompatible on the
-wire. You cannot use a client library that speaks one protocol version
-to communication with a server that speaks the other.
-
-To switch your checked-out copy of the source code to 0-9-1
-support,
-
-    (cd rabbitmq-codegen; hg up amqp_0_9_1)
-    (cd rabbitmq-c; hg up amqp_0_9_1)
-
-before building the code. If you switch branches after having compiled
-the code, make sure to rerun `autoreconf`, `configure`, `make clean`
-and `make` after switching branches.
-
