@@ -54,8 +54,6 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include <popt.h>
-
 #include "common.h"
 
 static void do_publish(amqp_connection_state_t conn,
@@ -66,8 +64,7 @@ static void do_publish(amqp_connection_state_t conn,
 				     cstring_bytes(exchange),
 				     cstring_bytes(routing_key),
 				     0, 0, props, body);
-	if (res != 0)
-		die_errno(-res, "basic.publish");
+	die_amqp_error(res, "basic.publish");
 }
 
 int main(int argc, const char **argv)

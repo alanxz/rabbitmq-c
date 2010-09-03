@@ -1,12 +1,18 @@
 lib_LTLIBRARIES = librabbitmq.la
 
-librabbitmq_la_SOURCES = amqp_mem.c amqp_table.c amqp_connection.c amqp_socket.c amqp_debug.c amqp_api.c
+AM_CFLAGS = -I$(srcdir)/$(PLATFORM_DIR)
+librabbitmq_la_SOURCES = amqp_mem.c amqp_table.c amqp_connection.c amqp_socket.c amqp_debug.c amqp_api.c $(PLATFORM_DIR)/socket.c
+librabbitmq_la_LDFLAGS = -no-undefined
+librabbitmq_la_LIBADD = $(EXTRA_LIBS)
 nodist_librabbitmq_la_SOURCES = amqp_framing.c
 include_HEADERS = amqp_framing.h amqp.h
-noinst_HEADERS = amqp_private.h
+noinst_HEADERS = amqp_private.h $(PLATFORM_DIR)/socket.h
 BUILT_SOURCES = amqp_framing.h amqp_framing.c
 CLEANFILES = amqp_framing.h amqp_framing.c
-EXTRA_DIST = codegen.py
+EXTRA_DIST = \
+	codegen.py \
+	unix/socket.c unix/socket.h \
+	windows/socket.c windows/socket.h
 
 CODEGEN_PY=$(srcdir)/codegen.py
 

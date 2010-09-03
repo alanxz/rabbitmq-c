@@ -58,14 +58,12 @@
 #include <unistd.h>
 #include <fcntl.h>
 #include <errno.h>
-#include <spawn.h>
-#include <sys/wait.h>
-
-#include <popt.h>
 
 #include "common.h"
 
-extern char **environ;
+#ifdef WINDOWS
+#include "compat.h"
+#endif
 
 void die(const char *fmt, ...)
 {
@@ -79,14 +77,31 @@ void die(const char *fmt, ...)
 
 void die_errno(int err, const char *fmt, ...)
 {
+	va_list ap;
+
 	if (err == 0)
 		return;
 
-	va_list ap;
 	va_start(ap, fmt);
 	vfprintf(stderr, fmt, ap);
 	va_end(ap);
-	fprintf(stderr, ": %s\n", strerror(err));
+	fprintf(stderr, ": %s\n", strerror(errno));
+	exit(1);
+}
+
+void die_amqp_error(int err, const char *fmt, ...)
+{
+	va_list ap;
+	char *errstr;
+
+	if (err <= 0)
+		return;
+
+	va_start(ap, fmt);
+	vfprintf(stderr, fmt, ap);
+	va_end(ap);
+	fprintf(stderr, ": %s\n", errstr = amqp_error_string(err));
+	free(errstr);
 	exit(1);
 }
 
@@ -127,24 +142,15 @@ char *amqp_server_exception_string(amqp_rpc_reply_t r)
 
 char *amqp_rpc_reply_string(amqp_rpc_reply_t r)
 {
-	const char *s;
-
 	switch (r.reply_type) {
 	case AMQP_RESPONSE_NORMAL:
-		s = "normal response";
-		break;
+		return strdup("normal response");
 		
 	case AMQP_RESPONSE_NONE:
-		s = "missing RPC reply type";
-		break;
+		return strdup("missing RPC reply type");
 
 	case AMQP_RESPONSE_LIBRARY_EXCEPTION:
-		if (r.library_errno)
-			s = strerror(r.library_errno);
-		else
-			s = "end of stream";
-
-		break;
+		return amqp_error_string(r.library_error);
 
 	case AMQP_RESPONSE_SERVER_EXCEPTION:
 		return amqp_server_exception_string(r);
@@ -152,31 +158,22 @@ char *amqp_rpc_reply_string(amqp_rpc_reply_t r)
 	default:
 		abort();
 	}
-
-	return strdup(s);
 }
 
 void die_rpc(amqp_rpc_reply_t r, const char *fmt, ...)
 {
+	va_list ap;
+	char *errstr;
+
 	if (r.reply_type == AMQP_RESPONSE_NORMAL)
 		return;
 	
-	va_list ap;
 	va_start(ap, fmt);
 	vfprintf(stderr, fmt, ap);
 	va_end(ap);
-	fprintf(stderr, ": %s\n", amqp_rpc_reply_string(r));
+	fprintf(stderr, ": %s\n", errstr = amqp_rpc_reply_string(r));
+	free(errstr);
 	exit(1);
-}
-
-void set_cloexec(int fd)
-{
-	int flags;
-
-	flags = fcntl(fd, F_GETFD);
-	if (flags == -1
-	    || fcntl(fd, F_SETFD, (long)(flags | FD_CLOEXEC)) == -1)
-		die_errno(errno, "set_cloexec");
 }
 
 static char *amqp_server = "localhost";
@@ -222,14 +219,7 @@ amqp_connection_state_t make_connection(void)
 	}
 
 	s = amqp_open_socket(host, port ? port : 5672);
-	if (s < 0) {
-		if (s == -ENOENT)
-			die("unknown host %s", host);
-		else
-			die_errno(-s, "opening socket to %s", amqp_server);
-	}
-
-	set_cloexec(s);
+	die_amqp_error(-s, "opening socket to %s", amqp_server);
 	
 	conn = amqp_new_connection();
 	amqp_set_sockfd(conn, s);
@@ -247,16 +237,14 @@ amqp_connection_state_t make_connection(void)
 
 void close_connection(amqp_connection_state_t conn)
 {
-	int s = amqp_get_sockfd(conn);
-
+	int res;
 	die_rpc(amqp_channel_close(conn, 1, AMQP_REPLY_SUCCESS),
 		"closing channel");
 	die_rpc(amqp_connection_close(conn, AMQP_REPLY_SUCCESS),
 		"closing connection");
-	amqp_destroy_connection(conn);
-
-	if (close(s) < 0)
-		die_errno(errno, "closing socket");
+	
+	res = amqp_destroy_connection(conn);
+	die_amqp_error(-res, "closing connection");
 }
 
 amqp_bytes_t read_all(int fd)
@@ -307,8 +295,7 @@ void copy_body(amqp_connection_state_t conn, int fd)
 	amqp_frame_t frame;
 		
 	int res = amqp_simple_wait_frame(conn, &frame);
-	if (res < 0)
-		die_errno(-res, "waiting for header frame");
+	die_amqp_error(-res, "waiting for header frame");
 	if (frame.frame_type != AMQP_FRAME_HEADER)
 		die("expected header, got frame type 0x%X",
 		    frame.frame_type);
@@ -316,8 +303,7 @@ void copy_body(amqp_connection_state_t conn, int fd)
 	body_remaining = frame.payload.properties.body_size;
 	while (body_remaining) {
 		res = amqp_simple_wait_frame(conn, &frame);
-		if (res < 0)
-			die_errno(-res, "waiting for body frame");
+		die_amqp_error(-res, "waiting for body frame");
 		if (frame.frame_type != AMQP_FRAME_BODY)
 			die("expected body, got frame type 0x%X",
 			    frame.frame_type);
@@ -325,47 +311,6 @@ void copy_body(amqp_connection_state_t conn, int fd)
 		write_all(fd, frame.payload.body_fragment);
 		body_remaining -= frame.payload.body_fragment.len;
 	}
-}
-
-void pipeline(const char * const *argv, struct pipeline *pl)
-{
-	posix_spawn_file_actions_t file_acts;
-
-	int pipefds[2];
-	if (pipe(pipefds))
-		die_errno(errno, "pipe");
-
-	die_errno(posix_spawn_file_actions_init(&file_acts),
-		  "posix_spawn_file_actions_init");
-	die_errno(posix_spawn_file_actions_adddup2(&file_acts, pipefds[0], 0),
-		  "posix_spawn_file_actions_adddup2");
-	die_errno(posix_spawn_file_actions_addclose(&file_acts, pipefds[0]),
-		  "posix_spawn_file_actions_addclose");
-	die_errno(posix_spawn_file_actions_addclose(&file_acts, pipefds[1]),
-		  "posix_spawn_file_actions_addclose");
-
-	die_errno(posix_spawnp(&pl->pid, argv[0], &file_acts, NULL,
-			       (char * const *)argv, environ),
-		  "posix_spawnp: %s", argv[0]);
-
-	die_errno(posix_spawn_file_actions_destroy(&file_acts),
-		  "posix_spawn_file_actions_destroy");
-	
-	if (close(pipefds[0]))
-		die_errno(errno, "close");
-
-	pl->infd = pipefds[1];
-}
-
-int finish_pipeline(struct pipeline *pl)
-{
-	int status;
-
-	if (close(pl->infd))
-		die_errno(errno, "close");
-	if (waitpid(pl->pid, &status, 0) < 0)
-		die_errno(errno, "waitpid");
-	return WIFEXITED(status) && WEXITSTATUS(status) == 0;
 }
 
 poptContext process_options(int argc, const char **argv,

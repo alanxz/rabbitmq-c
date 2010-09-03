@@ -89,12 +89,11 @@ int main(int argc, char const * const *argv) {
   die_on_amqp_error(amqp_get_rpc_reply(conn), "Opening channel");
 
   amqp_exchange_declare(conn, 1, amqp_cstring_bytes(exchange), amqp_cstring_bytes(exchangetype),
-			0, 0, 0, AMQP_EMPTY_TABLE);
+			0, 0, AMQP_EMPTY_TABLE);
   die_on_amqp_error(amqp_get_rpc_reply(conn), "Declaring exchange");
 
   die_on_amqp_error(amqp_channel_close(conn, 1, AMQP_REPLY_SUCCESS), "Closing channel");
   die_on_amqp_error(amqp_connection_close(conn, AMQP_REPLY_SUCCESS), "Closing connection");
-  amqp_destroy_connection(conn);
-  die_on_error(close(sockfd), "Closing socket");
+  die_on_error(amqp_destroy_connection(conn), "Ending connection");
   return 0;
 }

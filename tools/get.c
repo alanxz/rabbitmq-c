@@ -52,8 +52,6 @@
 
 #include <stdio.h>
 
-#include <popt.h>
-
 #include "common.h"
 
 static int do_get(amqp_connection_state_t conn, char *queue)

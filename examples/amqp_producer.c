@@ -95,8 +95,8 @@ static void send_batch(amqp_connection_state_t conn,
     if (now > next_summary_time) {
       int countOverInterval = sent - previous_sent;
       double intervalRate = countOverInterval / ((now - previous_report_time) / 1000000.0);
-      printf("%lld ms: Sent %d - %d since last report (%d Hz)\n",
-	     (now - start_time) / 1000, sent, countOverInterval, (int) intervalRate);
+      printf("%d ms: Sent %d - %d since last report (%d Hz)\n",
+	     (int)(now - start_time) / 1000, sent, countOverInterval, (int) intervalRate);
 
       previous_sent = sent;
       previous_report_time = now;
@@ -111,10 +111,10 @@ static void send_batch(amqp_connection_state_t conn,
 
   {
     long long stop_time = now_microseconds();
-    long long total_delta = stop_time - start_time;
+    int total_delta = stop_time - start_time;
 
     printf("PRODUCER - Message count: %d\n", message_count);
-    printf("Total time, milliseconds: %lld\n", total_delta / 1000);
+    printf("Total time, milliseconds: %d\n", total_delta / 1000);
     printf("Overall messages-per-second: %g\n", (message_count / (total_delta / 1000000.0)));
   }
 }
@@ -151,7 +151,6 @@ int main(int argc, char const * const *argv) {
 
   die_on_amqp_error(amqp_channel_close(conn, 1, AMQP_REPLY_SUCCESS), "Closing channel");
   die_on_amqp_error(amqp_connection_close(conn, AMQP_REPLY_SUCCESS), "Closing connection");
-  amqp_destroy_connection(conn);
-  die_on_error(close(sockfd), "Closing socket");
+  die_on_error(amqp_destroy_connection(conn), "Ending connection");
   return 0;
 }

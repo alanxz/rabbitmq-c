@@ -170,7 +170,7 @@ def genErl(spec):
         if m.arguments:
             print "      %s *m = (%s *) amqp_pool_alloc(pool, sizeof(%s));" % \
                 (m.structName(), m.structName(), m.structName())
-            print "      if (m == NULL) { return -ENOMEM; }"
+            print "      if (m == NULL) { return -ERROR_NO_MEMORY; }"
         else:
             print "      %s *m = NULL; /* no fields */" % (m.structName(),)
         bitindex = None
@@ -197,7 +197,7 @@ def genErl(spec):
         print "    case %d: {" % (c.index,)
         print "      %s *p = (%s *) amqp_pool_alloc(pool, sizeof(%s));" % \
               (c.structName(), c.structName(), c.structName())
-        print "      if (p == NULL) { return -ENOMEM; }"
+        print "      if (p == NULL) { return -ERROR_NO_MEMORY; }"
         print "      p->_flags = flags;"
         for f in c.fields:
             if spec.resolveDomain(f.domain) == 'bit':
@@ -261,12 +261,11 @@ def genErl(spec):
     print '#include <stdint.h>'
     print '#include <string.h>'
     print '#include <stdio.h>'
-    print '#include <errno.h>'
-    print '#include <arpa/inet.h> /* ntohl, htonl, ntohs, htons */'
     print
     print '#include "amqp.h"'
     print '#include "amqp_framing.h"'
     print '#include "amqp_private.h"'
+    print '#include "socket.h"'
 
     print """
 char const *amqp_constant_name(int constantNumber) {
@@ -317,7 +316,7 @@ int amqp_decode_method(amqp_method_number_t methodNumber,
 
   switch (methodNumber) {"""
     for m in methods: genDecodeMethodFields(m)
-    print """    default: return -ENOENT;
+    print """    default: return -ERROR_UNKNOWN_METHOD;
   }
 }"""
 
@@ -343,7 +342,7 @@ int amqp_decode_properties(uint16_t class_id,
 
   switch (class_id) {"""
     for c in spec.allClasses(): genDecodeProperties(c)
-    print """    default: return -ENOENT;
+    print """    default: return -ERROR_UNKNOWN_CLASS;
   }
 }"""
 
@@ -358,7 +357,7 @@ int amqp_encode_method(amqp_method_number_t methodNumber,
 
   switch (methodNumber) {"""
     for m in methods: genEncodeMethodFields(m)
-    print """    default: return -ENOENT;
+    print """    default: return -ERROR_UNKNOWN_METHOD;
   }
 }"""
 
@@ -390,7 +389,7 @@ int amqp_encode_properties(uint16_t class_id,
   
   switch (class_id) {"""
     for c in spec.allClasses(): genEncodeProperties(c)
-    print """    default: return -ENOENT;
+    print """    default: return -ERROR_UNKNOWN_CLASS;
   }
 }"""
 

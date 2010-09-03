@@ -52,13 +52,46 @@
 #include <stdio.h>
 #include <string.h>
 #include <stdint.h>
-#include <errno.h>
 
 #include "amqp.h"
 #include "amqp_framing.h"
 #include "amqp_private.h"
 
 #include <assert.h>
+
+static const char *client_error_strings[ERROR_MAX] = {
+  "could not allocate memory", /* ERROR_NO_MEMORY */
+  "received bad AMQP data", /* ERROR_BAD_AQMP_DATA */
+  "unknown AMQP class id", /* ERROR_UNKOWN_CLASS */
+  "unknown AMQP method id", /* ERROR_UNKOWN_METHOD */
+  "unknown host", /* ERROR_GETHOSTBYNAME_FAILED */
+  "incompatible AMQP version", /* ERROR_INCOMPATIBLE_AMQP_VERSION */
+  "connection closed unexpectedly", /* ERROR_CONNECTION_CLOSED */
+};
+
+char *amqp_error_string(int err)
+{
+  const char *str;
+  int category = (err & ERROR_CATEGORY_MASK);
+  err = (err & ~ERROR_CATEGORY_MASK);
+
+  switch (category) {
+  case ERROR_CATEGORY_CLIENT:
+    if (err < 1 || err > ERROR_MAX)
+      str = "(undefined librabbitmq error)";
+    else
+      str = client_error_strings[err - 1];
+    break;
+
+  case ERROR_CATEGORY_OS:
+    return amqp_os_error_string(err);
+    
+  default:
+    str = "(undefined error category)";
+  }
+
+  return strdup(str);
+}
 
 #define RPC_REPLY(replytype)						\
   (state->most_recent_api_result.reply_type == AMQP_RESPONSE_NORMAL	\
@@ -163,13 +196,12 @@ amqp_exchange_declare_ok_t *amqp_exchange_declare(amqp_connection_state_t state,
 						  amqp_bytes_t type,
 						  amqp_boolean_t passive,
 						  amqp_boolean_t durable,
-						  amqp_boolean_t auto_delete,
 						  amqp_table_t arguments)
 {
   state->most_recent_api_result =
     AMQP_SIMPLE_RPC(state, channel, EXCHANGE, DECLARE, DECLARE_OK,
 		    amqp_exchange_declare_t,
-		    0, exchange, type, passive, durable, auto_delete, 0, 0, arguments);
+		    0, exchange, type, passive, durable, 0, 0, 0, arguments);
   return RPC_REPLY(amqp_exchange_declare_ok_t);
 }
 
@@ -220,13 +252,13 @@ amqp_queue_unbind_ok_t *amqp_queue_unbind(amqp_connection_state_t state,
 					  amqp_channel_t channel,
 					  amqp_bytes_t queue,
 					  amqp_bytes_t exchange,
-					  amqp_bytes_t binding_key,
+					  amqp_bytes_t routing_key,
 					  amqp_table_t arguments)
 {
   state->most_recent_api_result =
     AMQP_SIMPLE_RPC(state, channel, QUEUE, UNBIND, UNBIND_OK,
 		    amqp_queue_unbind_t,
-		    0, queue, exchange, binding_key, arguments);
+		    0, queue, exchange, routing_key, arguments);
   return RPC_REPLY(amqp_queue_unbind_ok_t);
 }
 

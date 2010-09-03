@@ -21,11 +21,11 @@
  * (C) 2007-2008 LShift Ltd, Cohesive Financial Technologies LLC, and
  * Rabbit Technologies Ltd.
  *
- * Portions created by LShift Ltd are Copyright (C) 2007-2009 LShift
+ * Portions created by LShift Ltd are Copyright (C) 2007-2010 LShift
  * Ltd. Portions created by Cohesive Financial Technologies LLC are
- * Copyright (C) 2007-2009 Cohesive Financial Technologies
+ * Copyright (C) 2007-2010 Cohesive Financial Technologies
  * LLC. Portions created by Rabbit Technologies Ltd are Copyright (C)
- * 2007-2009 Rabbit Technologies Ltd.
+ * 2007-2010 Rabbit Technologies Ltd.
  *
  * Portions created by Tony Garnock-Jones are Copyright (C) 2009-2010
  * LShift Ltd and Tony Garnock-Jones.
@@ -48,57 +48,53 @@
  * ***** END LICENSE BLOCK *****
  */
 
-#include <stdlib.h>
-#include <stdio.h>
-#include <string.h>
-
-#include <stdint.h>
-#include <amqp.h>
-#include <amqp_framing.h>
-
 #include <unistd.h>
+#include <errno.h>
+#include <spawn.h>
+#include <sys/wait.h>
 
-#include "example_utils.h"
+#include "common.h"
+#include "process.h"
 
-int main(int argc, char const * const *argv) {
-  char const *hostname;
-  int port;
-  char const *exchange;
-  char const *bindingkey;
-  char const *queue;
+extern char **environ;
 
-  int sockfd;
-  amqp_connection_state_t conn;
+void pipeline(const char *const *argv, struct pipeline *pl)
+{
+	posix_spawn_file_actions_t file_acts;
 
-  if (argc < 6) {
-    fprintf(stderr, "Usage: amqp_bind host port exchange bindingkey queue\n");
-    return 1;
-  }
+	int pipefds[2];
+	if (pipe(pipefds))
+		die_errno(errno, "pipe");
 
-  hostname = argv[1];
-  port = atoi(argv[2]);
-  exchange = argv[3];
-  bindingkey = argv[4];
-  queue = argv[5];
+	die_errno(posix_spawn_file_actions_init(&file_acts),
+		  "posix_spawn_file_actions_init");
+	die_errno(posix_spawn_file_actions_adddup2(&file_acts, pipefds[0], 0),
+		  "posix_spawn_file_actions_adddup2");
+	die_errno(posix_spawn_file_actions_addclose(&file_acts, pipefds[0]),
+		  "posix_spawn_file_actions_addclose");
+	die_errno(posix_spawn_file_actions_addclose(&file_acts, pipefds[1]),
+		  "posix_spawn_file_actions_addclose");
 
-  conn = amqp_new_connection();
+	die_errno(posix_spawnp(&pl->pid, argv[0], &file_acts, NULL,
+			       (char * const *)argv, environ),
+		  "posix_spawnp: %s", argv[0]);
 
-  die_on_error(sockfd = amqp_open_socket(hostname, port), "Opening socket");
-  amqp_set_sockfd(conn, sockfd);
-  die_on_amqp_error(amqp_login(conn, "/", 0, 131072, 0, AMQP_SASL_METHOD_PLAIN, "guest", "guest"),
-		    "Logging in");
-  amqp_channel_open(conn, 1);
-  die_on_amqp_error(amqp_get_rpc_reply(conn), "Opening channel");
+	die_errno(posix_spawn_file_actions_destroy(&file_acts),
+		  "posix_spawn_file_actions_destroy");
+	
+	if (close(pipefds[0]))
+		die_errno(errno, "close");
 
-  amqp_queue_bind(conn, 1,
-		  amqp_cstring_bytes(queue),
-		  amqp_cstring_bytes(exchange),
-		  amqp_cstring_bytes(bindingkey),
-		  AMQP_EMPTY_TABLE);
-  die_on_amqp_error(amqp_get_rpc_reply(conn), "Unbinding");
+	pl->infd = pipefds[1];
+}
 
-  die_on_amqp_error(amqp_channel_close(conn, 1, AMQP_REPLY_SUCCESS), "Closing channel");
-  die_on_amqp_error(amqp_connection_close(conn, AMQP_REPLY_SUCCESS), "Closing connection");
-  die_on_error(amqp_destroy_connection(conn), "Ending connection");
-  return 0;
+int finish_pipeline(struct pipeline *pl)
+{
+	int status;
+
+	if (close(pl->infd))
+		die_errno(errno, "close");
+	if (waitpid(pl->pid, &status, 0) < 0)
+		die_errno(errno, "waitpid");
+	return WIFEXITED(status) && WEXITSTATUS(status) == 0;
 }

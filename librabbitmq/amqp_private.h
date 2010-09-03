@@ -55,7 +55,28 @@
 extern "C" {
 #endif
 
-#include <arpa/inet.h> /* ntohl, htonl, ntohs, htons */
+/* Error numbering: Because of differences in error numbering on
+ * different platforms, we want to keep error numbers opaque for
+ * client code.  Internally, we encode the category of an error
+ * (i.e. where its number comes from) in the top bits of the number
+ * (assuming that an int has at least 32 bits).
+ */
+#define ERROR_CATEGORY_MASK (1 << 29)
+
+#define ERROR_CATEGORY_CLIENT (0 << 29) /* librabbitmq error codes */
+#define ERROR_CATEGORY_OS (1 << 29) /* OS-specific error codes */
+
+/* librabbitmq error codes */
+#define ERROR_NO_MEMORY 1
+#define ERROR_BAD_AMQP_DATA 2
+#define ERROR_UNKNOWN_CLASS 3
+#define ERROR_UNKNOWN_METHOD 4
+#define ERROR_GETHOSTBYNAME_FAILED 5
+#define ERROR_INCOMPATIBLE_AMQP_VERSION 6
+#define ERROR_CONNECTION_CLOSED 7
+#define ERROR_MAX 7
+
+extern char *amqp_os_error_string(int err);
 
 /*
  * Connection states:
@@ -125,7 +146,7 @@ struct amqp_connection_state_t_ {
   amqp_rpc_reply_t most_recent_api_result;
 };
 
-#define CHECK_LIMIT(b, o, l, v) ({ if ((o + l) > (b).len) { return -EFAULT; } (v); })
+#define CHECK_LIMIT(b, o, l, v) ({ if ((o + l) > (b).len) { return -ERROR_BAD_AMQP_DATA; } (v); })
 #define BUF_AT(b, o) (&(((uint8_t *) (b).bytes)[o]))
 
 #define D_8(b, o) CHECK_LIMIT(b, o, 1, * (uint8_t *) BUF_AT(b, o))
@@ -175,13 +196,6 @@ extern int amqp_encode_table(amqp_bytes_t encoded,
   })
 
 #define AMQP_CHECK_RESULT(expr) AMQP_CHECK_RESULT_CLEANUP(expr, )
-
-#define AMQP_CHECK_EOF_RESULT(expr)		\
-  ({						\
-    int _result = (expr);			\
-    if (_result <= 0) return _result;		\
-    _result;					\
-  })
 
 #ifndef NDEBUG
 extern void amqp_dump(void const *buffer, size_t len);

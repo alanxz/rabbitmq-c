@@ -263,7 +263,7 @@ typedef enum amqp_response_type_enum_ {
 typedef struct amqp_rpc_reply_t_ {
   amqp_response_type_enum reply_type;
   amqp_method_t reply;
-  int library_errno; /* if AMQP_RESPONSE_LIBRARY_EXCEPTION, then 0 here means socket EOF */
+  int library_error; /* if AMQP_RESPONSE_LIBRARY_EXCEPTION, then 0 here means socket EOF */
 } amqp_rpc_reply_t;
 
 typedef enum amqp_sasl_method_enum_ {
@@ -308,8 +308,8 @@ extern int amqp_tune_connection(amqp_connection_state_t state,
 				int channel_max,
 				int frame_max,
 				int heartbeat);
-int amqp_get_channel_max(amqp_connection_state_t state);
-extern void amqp_destroy_connection(amqp_connection_state_t state);
+extern int amqp_get_channel_max(amqp_connection_state_t state);
+extern int amqp_destroy_connection(amqp_connection_state_t state);
 
 extern int amqp_handle_input(amqp_connection_state_t state,
 			     amqp_bytes_t received_data,
@@ -412,7 +412,6 @@ extern struct amqp_exchange_declare_ok_t_ *amqp_exchange_declare(amqp_connection
 								 amqp_bytes_t type,
 								 amqp_boolean_t passive,
 								 amqp_boolean_t durable,
-								 amqp_boolean_t auto_delete,
 								 amqp_table_t arguments);
 
 extern struct amqp_queue_declare_ok_t_ *amqp_queue_declare(amqp_connection_state_t state,
@@ -441,7 +440,7 @@ extern struct amqp_queue_unbind_ok_t_ *amqp_queue_unbind(amqp_connection_state_t
 							 amqp_channel_t channel,
 							 amqp_bytes_t queue,
 							 amqp_bytes_t exchange,
-							 amqp_bytes_t binding_key,
+							 amqp_bytes_t routing_key,
 							 amqp_table_t arguments);
 
 extern struct amqp_basic_consume_ok_t_ *amqp_basic_consume(amqp_connection_state_t state,
@@ -500,6 +499,14 @@ extern amqp_boolean_t amqp_data_in_buffer(amqp_connection_state_t state);
  * instance.
  */
 extern amqp_rpc_reply_t amqp_get_rpc_reply(amqp_connection_state_t state);
+
+/*
+ * Get the error string for the given error code.
+ *
+ * The returned string resides on the heap; the caller is responsible
+ * for freeing it.
+ */
+extern char *amqp_error_string(int err);
 
 #ifdef __cplusplus
 }
