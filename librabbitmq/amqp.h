@@ -412,7 +412,6 @@ extern struct amqp_exchange_declare_ok_t_ *amqp_exchange_declare(amqp_connection
 								 amqp_bytes_t type,
 								 amqp_boolean_t passive,
 								 amqp_boolean_t durable,
-								 amqp_boolean_t auto_delete,
 								 amqp_table_t arguments);
 
 extern struct amqp_queue_declare_ok_t_ *amqp_queue_declare(amqp_connection_state_t state,
@@ -441,7 +440,7 @@ extern struct amqp_queue_unbind_ok_t_ *amqp_queue_unbind(amqp_connection_state_t
 							 amqp_channel_t channel,
 							 amqp_bytes_t queue,
 							 amqp_bytes_t exchange,
-							 amqp_bytes_t binding_key,
+							 amqp_bytes_t routing_key,
 							 amqp_table_t arguments);
 
 extern struct amqp_basic_consume_ok_t_ *amqp_basic_consume(amqp_connection_state_t state,
@@ -450,7 +449,8 @@ extern struct amqp_basic_consume_ok_t_ *amqp_basic_consume(amqp_connection_state
 							   amqp_bytes_t consumer_tag,
 							   amqp_boolean_t no_local,
 							   amqp_boolean_t no_ack,
-							   amqp_boolean_t exclusive);
+							   amqp_boolean_t exclusive,
+							   amqp_table_t filter);
 
 extern int amqp_basic_ack(amqp_connection_state_t state,
 			  amqp_channel_t channel,

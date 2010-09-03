@@ -196,13 +196,12 @@ amqp_exchange_declare_ok_t *amqp_exchange_declare(amqp_connection_state_t state,
 						  amqp_bytes_t type,
 						  amqp_boolean_t passive,
 						  amqp_boolean_t durable,
-						  amqp_boolean_t auto_delete,
 						  amqp_table_t arguments)
 {
   state->most_recent_api_result =
     AMQP_SIMPLE_RPC(state, channel, EXCHANGE, DECLARE, DECLARE_OK,
 		    amqp_exchange_declare_t,
-		    0, exchange, type, passive, durable, auto_delete, 0, 0, arguments);
+		    0, exchange, type, passive, durable, 0, 0, 0, arguments);
   return RPC_REPLY(amqp_exchange_declare_ok_t);
 }
 
@@ -253,13 +252,13 @@ amqp_queue_unbind_ok_t *amqp_queue_unbind(amqp_connection_state_t state,
 					  amqp_channel_t channel,
 					  amqp_bytes_t queue,
 					  amqp_bytes_t exchange,
-					  amqp_bytes_t binding_key,
+					  amqp_bytes_t routing_key,
 					  amqp_table_t arguments)
 {
   state->most_recent_api_result =
     AMQP_SIMPLE_RPC(state, channel, QUEUE, UNBIND, UNBIND_OK,
 		    amqp_queue_unbind_t,
-		    0, queue, exchange, binding_key, arguments);
+		    0, queue, exchange, routing_key, arguments);
   return RPC_REPLY(amqp_queue_unbind_ok_t);
 }
 
@@ -269,12 +268,13 @@ amqp_basic_consume_ok_t *amqp_basic_consume(amqp_connection_state_t state,
 					    amqp_bytes_t consumer_tag,
 					    amqp_boolean_t no_local,
 					    amqp_boolean_t no_ack,
-					    amqp_boolean_t exclusive)
+					    amqp_boolean_t exclusive,
+					    amqp_table_t filter)
 {
   state->most_recent_api_result =
     AMQP_SIMPLE_RPC(state, channel, BASIC, CONSUME, CONSUME_OK,
 		    amqp_basic_consume_t,
-		    0, queue, consumer_tag, no_local, no_ack, exclusive, 0);
+		    0, queue, consumer_tag, no_local, no_ack, exclusive, 0, filter);
   return RPC_REPLY(amqp_basic_consume_ok_t);
 }
 
