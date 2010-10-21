@@ -246,15 +246,6 @@ static inline int amqp_decode_bytes(amqp_bytes_t encoded, size_t *offset,
   }
 }
 
-extern int amqp_decode_table(amqp_bytes_t encoded,
-			     amqp_pool_t *pool,
-			     amqp_table_t *output,
-			     size_t *offset);
-
-extern int amqp_encode_table(amqp_bytes_t encoded,
-			     amqp_table_t *input,
-			     size_t *offset);
-
 extern void amqp_abort(const char *fmt, ...);
 
 #ifndef NDEBUG

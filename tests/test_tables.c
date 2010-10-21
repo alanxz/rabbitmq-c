@@ -51,18 +51,14 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
-#include <time.h>
 
 #include <inttypes.h>
 
 #include <amqp.h>
-#include <amqp_framing.h>
-#include <amqp_private.h>
-
-#include <unistd.h>
-#include <assert.h>
 
 #include <math.h>
+
+#define M_PI 3.14159265358979323846264338327
 
 static void dump_indent(int indent) {
   int i;
@@ -127,86 +123,152 @@ static void dump_value(int indent, amqp_field_value_t v) {
   }
 }
 
+static uint8_t pre_encoded_table[] = {
+  0x00, 0x00, 0x00, 0xff, 0x07, 0x6c, 0x6f, 0x6e,
+  0x67, 0x73, 0x74, 0x72, 0x53, 0x00, 0x00, 0x00,
+  0x15, 0x48, 0x65, 0x72, 0x65, 0x20, 0x69, 0x73,
+  0x20, 0x61, 0x20, 0x6c, 0x6f, 0x6e, 0x67, 0x20,
+  0x73, 0x74, 0x72, 0x69, 0x6e, 0x67, 0x09, 0x73,
+  0x69, 0x67, 0x6e, 0x65, 0x64, 0x69, 0x6e, 0x74,
+  0x49, 0x00, 0x00, 0x30, 0x39, 0x07, 0x64, 0x65,
+  0x63, 0x69, 0x6d, 0x61, 0x6c, 0x44, 0x03, 0x00,
+  0x01, 0xe2, 0x40, 0x09, 0x74, 0x69, 0x6d, 0x65,
+  0x73, 0x74, 0x61, 0x6d, 0x70, 0x54, 0x00, 0x00,
+  0x63, 0xee, 0xa0, 0x53, 0xc1, 0x94, 0x05, 0x74,
+  0x61, 0x62, 0x6c, 0x65, 0x46, 0x00, 0x00, 0x00,
+  0x1f, 0x03, 0x6f, 0x6e, 0x65, 0x49, 0x00, 0x00,
+  0xd4, 0x31, 0x03, 0x74, 0x77, 0x6f, 0x53, 0x00,
+  0x00, 0x00, 0x0d, 0x41, 0x20, 0x6c, 0x6f, 0x6e,
+  0x67, 0x20, 0x73, 0x74, 0x72, 0x69, 0x6e, 0x67,
+  0x04, 0x62, 0x79, 0x74, 0x65, 0x62, 0xff, 0x04,
+  0x6c, 0x6f, 0x6e, 0x67, 0x6c, 0x00, 0x00, 0x00,
+  0x00, 0x49, 0x96, 0x02, 0xd2, 0x05, 0x73, 0x68,
+  0x6f, 0x72, 0x74, 0x73, 0x02, 0x8f, 0x04, 0x62,
+  0x6f, 0x6f, 0x6c, 0x74, 0x01, 0x06, 0x62, 0x69,
+  0x6e, 0x61, 0x72, 0x79, 0x78, 0x00, 0x00, 0x00,
+  0x0f, 0x61, 0x20, 0x62, 0x69, 0x6e, 0x61, 0x72,
+  0x79, 0x20, 0x73, 0x74, 0x72, 0x69, 0x6e, 0x67,
+  0x04, 0x76, 0x6f, 0x69, 0x64, 0x56, 0x05, 0x61,
+  0x72, 0x72, 0x61, 0x79, 0x41, 0x00, 0x00, 0x00,
+  0x17, 0x49, 0x00, 0x00, 0xd4, 0x31, 0x53, 0x00,
+  0x00, 0x00, 0x0d, 0x41, 0x20, 0x6c, 0x6f, 0x6e,
+  0x67, 0x20, 0x73, 0x74, 0x72, 0x69, 0x6e, 0x67,
+  0x05, 0x66, 0x6c, 0x6f, 0x61, 0x74, 0x66, 0x40,
+  0x49, 0x0f, 0xdb, 0x06, 0x64, 0x6f, 0x75, 0x62,
+  0x6c, 0x65, 0x64, 0x40, 0x09, 0x21, 0xfb, 0x54,
+  0x44, 0x2d, 0x18
+};
+
 static void test_table_codec(void) {
-  amqp_table_entry_t inner_entries[2] =
-    { AMQP_TABLE_ENTRY_I32("one", 54321),
-      AMQP_TABLE_ENTRY_UTF8("two", amqp_cstring_bytes("A long string")) };
-  amqp_table_t inner_table = { .num_entries = sizeof(inner_entries) / sizeof(inner_entries[0]),
-			       .entries = &inner_entries[0] };
-
-  amqp_field_value_t inner_values[2] =
-    { AMQP_FIELD_VALUE_I32(54321),
-      AMQP_FIELD_VALUE_UTF8(amqp_cstring_bytes("A long string")) };
-  amqp_array_t inner_array = { .num_entries = sizeof(inner_values) / sizeof(inner_values[0]),
-			       .entries = &inner_values[0] };
-
-  amqp_table_entry_t entries[14] =
-    { AMQP_TABLE_ENTRY_UTF8("longstr", amqp_cstring_bytes("Here is a long string")),
-      AMQP_TABLE_ENTRY_I32("signedint", 12345),
-      AMQP_TABLE_ENTRY_DECIMAL("decimal", AMQP_DECIMAL(3, 123456)),
-      AMQP_TABLE_ENTRY_TIMESTAMP("timestamp", 109876543209876),
-      AMQP_TABLE_ENTRY_TABLE("table", inner_table),
-      AMQP_TABLE_ENTRY_I8("byte", 255),
-      AMQP_TABLE_ENTRY_I64("long", 1234567890),
-      AMQP_TABLE_ENTRY_I16("short", 655),
-      AMQP_TABLE_ENTRY_BOOLEAN("bool", 1),
-      AMQP_TABLE_ENTRY_BYTES("binary", amqp_cstring_bytes("a binary string")),
-      AMQP_TABLE_ENTRY_VOID("void"),
-      AMQP_TABLE_ENTRY_ARRAY("array", inner_array),
-      AMQP_TABLE_ENTRY_F32("float", M_PI),
-      AMQP_TABLE_ENTRY_F64("double", M_PI) };
-  amqp_table_t table = { .num_entries = sizeof(entries) / sizeof(entries[0]),
-			 .entries = &entries[0] };
-
-  uint8_t pre_encoded_table[] = {
-    0x00, 0x00, 0x00, 0xff, 0x07, 0x6c, 0x6f, 0x6e,
-    0x67, 0x73, 0x74, 0x72, 0x53, 0x00, 0x00, 0x00,
-    0x15, 0x48, 0x65, 0x72, 0x65, 0x20, 0x69, 0x73,
-    0x20, 0x61, 0x20, 0x6c, 0x6f, 0x6e, 0x67, 0x20,
-    0x73, 0x74, 0x72, 0x69, 0x6e, 0x67, 0x09, 0x73,
-    0x69, 0x67, 0x6e, 0x65, 0x64, 0x69, 0x6e, 0x74,
-    0x49, 0x00, 0x00, 0x30, 0x39, 0x07, 0x64, 0x65,
-    0x63, 0x69, 0x6d, 0x61, 0x6c, 0x44, 0x03, 0x00,
-    0x01, 0xe2, 0x40, 0x09, 0x74, 0x69, 0x6d, 0x65,
-    0x73, 0x74, 0x61, 0x6d, 0x70, 0x54, 0x00, 0x00,
-    0x63, 0xee, 0xa0, 0x53, 0xc1, 0x94, 0x05, 0x74,
-    0x61, 0x62, 0x6c, 0x65, 0x46, 0x00, 0x00, 0x00,
-    0x1f, 0x03, 0x6f, 0x6e, 0x65, 0x49, 0x00, 0x00,
-    0xd4, 0x31, 0x03, 0x74, 0x77, 0x6f, 0x53, 0x00,
-    0x00, 0x00, 0x0d, 0x41, 0x20, 0x6c, 0x6f, 0x6e,
-    0x67, 0x20, 0x73, 0x74, 0x72, 0x69, 0x6e, 0x67,
-    0x04, 0x62, 0x79, 0x74, 0x65, 0x62, 0xff, 0x04,
-    0x6c, 0x6f, 0x6e, 0x67, 0x6c, 0x00, 0x00, 0x00,
-    0x00, 0x49, 0x96, 0x02, 0xd2, 0x05, 0x73, 0x68,
-    0x6f, 0x72, 0x74, 0x73, 0x02, 0x8f, 0x04, 0x62,
-    0x6f, 0x6f, 0x6c, 0x74, 0x01, 0x06, 0x62, 0x69,
-    0x6e, 0x61, 0x72, 0x79, 0x78, 0x00, 0x00, 0x00,
-    0x0f, 0x61, 0x20, 0x62, 0x69, 0x6e, 0x61, 0x72,
-    0x79, 0x20, 0x73, 0x74, 0x72, 0x69, 0x6e, 0x67,
-    0x04, 0x76, 0x6f, 0x69, 0x64, 0x56, 0x05, 0x61,
-    0x72, 0x72, 0x61, 0x79, 0x41, 0x00, 0x00, 0x00,
-    0x17, 0x49, 0x00, 0x00, 0xd4, 0x31, 0x53, 0x00,
-    0x00, 0x00, 0x0d, 0x41, 0x20, 0x6c, 0x6f, 0x6e,
-    0x67, 0x20, 0x73, 0x74, 0x72, 0x69, 0x6e, 0x67,
-    0x05, 0x66, 0x6c, 0x6f, 0x61, 0x74, 0x66, 0x40,
-    0x49, 0x0f, 0xdb, 0x06, 0x64, 0x6f, 0x75, 0x62,
-    0x6c, 0x65, 0x64, 0x40, 0x09, 0x21, 0xfb, 0x54,
-    0x44, 0x2d, 0x18
-  };
-
   amqp_pool_t pool;
   int result;
 
+  amqp_table_entry_t inner_entries[2];
+  amqp_table_t inner_table;
+
+  amqp_field_value_t inner_values[2];
+  amqp_array_t inner_array;
+
+  amqp_table_entry_t entries[14];
+  amqp_table_t table;
+
+  inner_entries[0].key = amqp_cstring_bytes("one");
+  inner_entries[0].value.kind = AMQP_FIELD_KIND_I32;
+  inner_entries[0].value.value.i32 = 54321;
+
+  inner_entries[1].key = amqp_cstring_bytes("two");
+  inner_entries[1].value.kind = AMQP_FIELD_KIND_UTF8;
+  inner_entries[1].value.value.bytes = amqp_cstring_bytes("A long string");
+
+  inner_table.num_entries = 2;
+  inner_table.entries = inner_entries;
+
+  inner_values[0].kind = AMQP_FIELD_KIND_I32;
+  inner_values[0].value.i32 = 54321;
+
+  inner_values[1].kind = AMQP_FIELD_KIND_UTF8;
+  inner_values[1].value.bytes = amqp_cstring_bytes("A long string");
+
+  inner_array.num_entries = 2;
+  inner_array.entries = inner_values;
+
+  entries[0].key = amqp_cstring_bytes("longstr");
+  entries[0].value.kind = AMQP_FIELD_KIND_UTF8;
+  entries[0].value.value.bytes = amqp_cstring_bytes("Here is a long string");
+
+  entries[1].key = amqp_cstring_bytes("signedint");
+  entries[1].value.kind = AMQP_FIELD_KIND_I32;
+  entries[1].value.value.i32 = 12345;
+
+  entries[2].key = amqp_cstring_bytes("decimal");
+  entries[2].value.kind = AMQP_FIELD_KIND_DECIMAL;
+  entries[2].value.value.decimal.decimals = 3;
+  entries[2].value.value.decimal.value = 123456;
+
+  entries[3].key = amqp_cstring_bytes("timestamp");
+  entries[3].value.kind = AMQP_FIELD_KIND_TIMESTAMP;
+  entries[3].value.value.u64 = 109876543209876;
+
+  entries[4].key = amqp_cstring_bytes("table");
+  entries[4].value.kind = AMQP_FIELD_KIND_TABLE;
+  entries[4].value.value.table = inner_table;
+
+  entries[5].key = amqp_cstring_bytes("byte");
+  entries[5].value.kind = AMQP_FIELD_KIND_I8;
+  entries[5].value.value.i8 = (int8_t)255;
+
+  entries[6].key = amqp_cstring_bytes("long");
+  entries[6].value.kind = AMQP_FIELD_KIND_I64;
+  entries[6].value.value.i64 = 1234567890;
+
+  entries[7].key = amqp_cstring_bytes("short");
+  entries[7].value.kind = AMQP_FIELD_KIND_I16;
+  entries[7].value.value.i16 = 655;
+
+  entries[8].key = amqp_cstring_bytes("bool");
+  entries[8].value.kind = AMQP_FIELD_KIND_BOOLEAN;
+  entries[8].value.value.boolean = 1;
+
+  entries[9].key = amqp_cstring_bytes("binary");
+  entries[9].value.kind = AMQP_FIELD_KIND_BYTES;
+  entries[9].value.value.bytes = amqp_cstring_bytes("a binary string");
+
+  entries[10].key = amqp_cstring_bytes("void");
+  entries[10].value.kind = AMQP_FIELD_KIND_VOID;
+
+  entries[11].key = amqp_cstring_bytes("array");
+  entries[11].value.kind = AMQP_FIELD_KIND_ARRAY;
+  entries[11].value.value.array = inner_array;
+
+  entries[12].key = amqp_cstring_bytes("float");
+  entries[12].value.kind = AMQP_FIELD_KIND_F32;
+  entries[12].value.value.f32 = M_PI;
+
+  entries[13].key = amqp_cstring_bytes("double");
+  entries[13].value.kind = AMQP_FIELD_KIND_F64;
+  entries[13].value.value.f64 = M_PI;
+
+  table.num_entries = 14;
+  table.entries = entries;
+
   printf("AAAAAAAAAA\n");
-  dump_value(0, (amqp_field_value_t) AMQP_FIELD_VALUE_TABLE(table));
+
+  {
+    amqp_field_value_t val;
+    val.kind = AMQP_FIELD_KIND_TABLE;
+    val.value.table = table;
+    dump_value(0, val);
+  }
 
   init_amqp_pool(&pool, 4096);
 
   {
-    amqp_bytes_t decoding_bytes = { .len = sizeof(pre_encoded_table),
-				    .bytes = pre_encoded_table };
     amqp_table_t decoded;
-    int decoding_offset = 0;
+    size_t decoding_offset = 0;
+    amqp_bytes_t decoding_bytes;
+    decoding_bytes.len = sizeof(pre_encoded_table);
+    decoding_bytes.bytes = pre_encoded_table;
+
     result = amqp_decode_table(decoding_bytes, &pool, &decoded, &decoding_offset);
     if (result < 0) {
       char *errstr = amqp_error_string(-result);
@@ -215,13 +277,20 @@ static void test_table_codec(void) {
       abort();
     }
     printf("BBBBBBBBBB\n");
-    dump_value(0, (amqp_field_value_t) AMQP_FIELD_VALUE_TABLE(decoded));
+
+    {
+      amqp_field_value_t val;
+      val.kind = AMQP_FIELD_KIND_TABLE;
+      val.value.table = decoded;
+
+      dump_value(0, val);
+    }
   }
 
   {
     uint8_t encoding_buffer[4096];
     amqp_bytes_t encoding_result;
-    int offset = 0;
+    size_t offset = 0;
 
     memset(&encoding_buffer[0], 0, sizeof(encoding_buffer));
     encoding_result.len = sizeof(encoding_buffer);
@@ -236,7 +305,7 @@ static void test_table_codec(void) {
     }
 
     if (offset != sizeof(pre_encoded_table)) {
-      printf("Offset should be %d, was %d\n", (int) sizeof(pre_encoded_table), offset);
+      printf("Offset should be %d, was %d\n", (int) sizeof(pre_encoded_table), (int)offset);
       abort();
     }
 
@@ -251,17 +320,8 @@ static void test_table_codec(void) {
 }
 
 int main(int argc, char const * const *argv) {
-  amqp_table_entry_t entries[8] =
-    { AMQP_TABLE_ENTRY_UTF8("zebra", amqp_cstring_bytes("last")),
-      AMQP_TABLE_ENTRY_UTF8("aardvark", amqp_cstring_bytes("first")),
-      AMQP_TABLE_ENTRY_UTF8("middle", amqp_cstring_bytes("third")),
-      AMQP_TABLE_ENTRY_I32("number", 1234),
-      AMQP_TABLE_ENTRY_DECIMAL("decimal", AMQP_DECIMAL(2, 1234)),
-      AMQP_TABLE_ENTRY_TIMESTAMP("time", (uint64_t) 1234123412341234LL),
-      AMQP_TABLE_ENTRY_UTF8("beta", amqp_cstring_bytes("second")),
-      AMQP_TABLE_ENTRY_UTF8("wombat", amqp_cstring_bytes("fourth")) };
-  amqp_table_t table = { .num_entries = sizeof(entries) / sizeof(entries[0]),
-			 .entries = &entries[0] };
+  amqp_table_entry_t entries[8];
+  amqp_table_t table;
 
   union {
     uint32_t i;
@@ -271,6 +331,42 @@ int main(int argc, char const * const *argv) {
     uint64_t l;
     double d;
   } vl;
+
+  entries[0].key = amqp_cstring_bytes("zebra");
+  entries[0].value.kind = AMQP_FIELD_KIND_UTF8;
+  entries[0].value.value.bytes = amqp_cstring_bytes("last");
+
+  entries[1].key = amqp_cstring_bytes("aardvark");
+  entries[1].value.kind = AMQP_FIELD_KIND_UTF8;
+  entries[1].value.value.bytes = amqp_cstring_bytes("first");
+
+  entries[2].key = amqp_cstring_bytes("middle");
+  entries[2].value.kind = AMQP_FIELD_KIND_UTF8;
+  entries[2].value.value.bytes = amqp_cstring_bytes("third");
+
+  entries[3].key = amqp_cstring_bytes("number");
+  entries[3].value.kind = AMQP_FIELD_KIND_I32;
+  entries[3].value.value.i32 = 1234;
+
+  entries[4].key = amqp_cstring_bytes("decimal");
+  entries[4].value.kind = AMQP_FIELD_KIND_DECIMAL;
+  entries[4].value.value.decimal.decimals = 2;
+  entries[4].value.value.decimal.value = 1234;
+
+  entries[5].key = amqp_cstring_bytes("time");
+  entries[5].value.kind = AMQP_FIELD_KIND_TIMESTAMP;
+  entries[5].value.value.u64 = 1234123412341234;
+
+  entries[6].key = amqp_cstring_bytes("beta");
+  entries[6].value.kind = AMQP_FIELD_KIND_UTF8;
+  entries[6].value.value.bytes = amqp_cstring_bytes("second");
+
+  entries[7].key = amqp_cstring_bytes("wombat");
+  entries[7].value.kind = AMQP_FIELD_KIND_UTF8;
+  entries[7].value.value.bytes = amqp_cstring_bytes("fourth");
+
+  table.num_entries = 8;
+  table.entries = entries;
 
   vi.f = M_PI;
   if ((sizeof(float) != 4) || (vi.i != 0x40490fdb)) {
@@ -294,7 +390,14 @@ int main(int argc, char const * const *argv) {
   qsort(table.entries, table.num_entries, sizeof(amqp_table_entry_t), &amqp_table_entry_cmp);
 
   printf("----------\n");
-  dump_value(0, (amqp_field_value_t) AMQP_FIELD_VALUE_TABLE(table));
+
+  {
+    amqp_field_value_t val;
+    val.kind = AMQP_FIELD_KIND_TABLE;
+    val.value.table = table;
+
+    dump_value(0, val);
+  }
 
   return 0;
 }
