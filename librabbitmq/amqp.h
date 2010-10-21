@@ -292,14 +292,6 @@ extern amqp_bytes_t amqp_bytes_malloc_dup(amqp_bytes_t src);
 extern amqp_bytes_t amqp_bytes_malloc(size_t amount);
 extern void amqp_bytes_free(amqp_bytes_t bytes);
 
-#define AMQP_BYTES_FREE(b)			\
-  ({						\
-    if ((b).bytes != NULL) {			\
-      free((b).bytes);				\
-      (b).bytes = NULL;				\
-    }						\
-  })
-
 extern amqp_connection_state_t amqp_new_connection(void);
 extern int amqp_get_sockfd(amqp_connection_state_t state);
 extern void amqp_set_sockfd(amqp_connection_state_t state,
