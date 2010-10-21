@@ -150,8 +150,8 @@ int main(int argc, char const * const *argv) {
 
   hostname = argv[1];
   port = atoi(argv[2]);
-  exchange = "amq.direct"; //argv[3];
-  bindingkey = "test queue"; //argv[4];
+  exchange = "amq.direct"; /* argv[3]; */
+  bindingkey = "test queue"; /* argv[4]; */
 
   conn = amqp_new_connection();
 
