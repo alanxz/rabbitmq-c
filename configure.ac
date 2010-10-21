@@ -91,7 +91,10 @@ AC_SUBST(PYTHON)
 
 dnl Decide which extra win32 libs we need
 EXTRA_LIBS=
-AS_IF([test "x$windows" = xyes], [EXTRA_LIBS="-lws2_32 $EXTRA_LIBS"])
+AS_IF([test "x$windows" = xyes],
+      [AS_IF([test "x$GCC" = xyes],
+             [EXTRA_LIBS="-lws2_32 $EXTRA_LIBS"],
+             [EXTRA_LIBS="ws2_32.lib $EXTRA_LIBS"])])
 AC_SUBST(EXTRA_LIBS)
 
 dnl Check for libpopt, which we need to build the tools
