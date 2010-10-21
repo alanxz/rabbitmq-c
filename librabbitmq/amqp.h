@@ -339,28 +339,6 @@ extern amqp_rpc_reply_t amqp_simple_rpc(amqp_connection_state_t state,
 					amqp_method_number_t *expected_reply_ids,
 					void *decoded_request_method);
 
-#define AMQP_EXPAND_METHOD(classname, methodname) (AMQP_ ## classname ## _ ## methodname ## _METHOD)
-
-#define AMQP_SIMPLE_RPC(state, channel, classname, requestname, replyname, structname, ...) \
-  ({									\
-    structname _simple_rpc_request___ = (structname) { __VA_ARGS__ };	\
-    amqp_method_number_t _replies__[2] = { AMQP_EXPAND_METHOD(classname, replyname), 0}; \
-    amqp_simple_rpc(state, channel,					\
-		    AMQP_EXPAND_METHOD(classname, requestname),	\
-		    (amqp_method_number_t *)&_replies__,	\
-		    &_simple_rpc_request___);				\
-  })
-
-#define AMQP_MULTIPLE_RESPONSE_RPC(state, channel, classname, requestname, replynames, structname, ...) \
-  ({									\
-    structname _simple_rpc_request___ = (structname) { __VA_ARGS__ };	\
-    amqp_simple_rpc(state, channel,					\
-		    AMQP_EXPAND_METHOD(classname, requestname),	\
-		    replynames,	\
-		    &_simple_rpc_request___);				\
-  })
-
-
 extern amqp_rpc_reply_t amqp_login(amqp_connection_state_t state,
 				   char const *vhost,
 				   int channel_max,
