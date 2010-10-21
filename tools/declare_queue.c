@@ -89,11 +89,10 @@ int main(int argc, const char **argv)
 							      0,
 							      0,
 							      amqp_empty_table);
-	  if (reply == NULL) {
+	  if (reply == NULL)
 	    die_rpc(amqp_get_rpc_reply(conn), "queue.declare");
-	  }
-	  write(1, reply->queue.bytes, reply->queue.len);
-	  write(1, "\n", strlen("\n"));
+
+	  printf("%.*s\n", (int)reply->queue.len, (char *)reply->queue.bytes);
 	}
 	close_connection(conn);
 	return 0;
