@@ -97,13 +97,22 @@ AC_SUBST(AMQP_CODEGEN_DIR)
 AC_SUBST(AMQP_SPEC_JSON_PATH)
 AC_SUBST(PYTHON)
 
-dnl Decide which extra win32 libs we need
+dnl Decide which extra win32 libs we need, and handle other special
+dnl cases when building with the Microsoft compiler
 EXTRA_LIBS=
+USE_MISINTTYPES=
 AS_IF([test "x$windows" = xyes],
-      [AS_IF([test "x$GCC" = xyes],
-             [EXTRA_LIBS="-lws2_32 $EXTRA_LIBS"],
-             [EXTRA_LIBS="ws2_32.lib $EXTRA_LIBS"])])
+  [
+    AS_IF([test "x$GCC" = xyes],
+          [EXTRA_LIBS="-lws2_32 $EXTRA_LIBS"],
+          [
+            EXTRA_LIBS="ws2_32.lib $EXTRA_LIBS"
+            USE_MSINTTYPES=yes
+          ])
+  ])
+
 AC_SUBST(EXTRA_LIBS)
+AM_CONDITIONAL(USE_MSINTTYPES, test "x$USE_MSINTTYPES" != "x")
 
 dnl Check for libpopt, which we need to build the tools
 AC_ARG_WITH([popt],

@@ -9,4 +9,8 @@ if GCC
 AM_CFLAGS += -ansi -pedantic
 endif
 
+if USE_MSINTTYPES
+AM_CFLAGS += -I$(top_srcdir)/msinttypes
+endif
+
 AM_LDFLAGS = $(top_builddir)/librabbitmq/librabbitmq.la
