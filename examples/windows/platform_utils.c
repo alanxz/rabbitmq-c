@@ -1,6 +1,3 @@
-#ifndef librabbitmq_examples_example_utils_h
-#define librabbitmq_examples_example_utils_h
-
 /*
  * ***** BEGIN LICENSE BLOCK *****
  * Version: MPL 1.1/GPL 2.0
@@ -51,9 +48,19 @@
  * ***** END LICENSE BLOCK *****
  */
 
-extern void die_on_error(int x, char const *context);
-extern void die_on_amqp_error(amqp_rpc_reply_t x, char const *context);
+#include <stdint.h>
 
-extern long long now_microseconds(void);
+#include <windows.h>
 
-#endif
+uint64_t now_microseconds(void)
+{
+  FILETIME ft;
+  GetSystemTimeAsFileTime(&ft);
+  return (((uint64_t)ft.dwHighDateTime << 32) | (uint64_t)ft.dwLowDateTime)
+                                                                   / 10;
+}
+
+void microsleep(int usec)
+{
+  Sleep(usec / 1000);
+}

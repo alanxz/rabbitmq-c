@@ -56,27 +56,26 @@
 #include <amqp.h>
 #include <amqp_framing.h>
 
-#include <unistd.h>
 #include <assert.h>
 
-#include "example_utils.h"
+#include "utils.h"
 
 #define SUMMARY_EVERY_US 1000000
 
 static void run(amqp_connection_state_t conn)
 {
-  long long start_time = now_microseconds();
+  uint64_t start_time = now_microseconds();
   int received = 0;
   int previous_received = 0;
-  long long previous_report_time = start_time;
-  long long next_summary_time = start_time + SUMMARY_EVERY_US;
+  uint64_t previous_report_time = start_time;
+  uint64_t next_summary_time = start_time + SUMMARY_EVERY_US;
 
   amqp_frame_t frame;
   int result;
   size_t body_received;
   size_t body_target;
 
-  long long now;
+  uint64_t now;
 
   while (1) {
     now = now_microseconds();

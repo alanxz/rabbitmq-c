@@ -467,7 +467,7 @@ extern "C" {
     print """/* Function prototypes. */
 extern char const *amqp_constant_name(int constantNumber);
 extern amqp_boolean_t amqp_constant_is_hard_error(int constantNumber);
-extern char const *amqp_method_name(amqp_method_number_t methodNumber);
+RABBITMQ_EXPORT char const *amqp_method_name(amqp_method_number_t methodNumber);
 extern amqp_boolean_t amqp_method_has_content(amqp_method_number_t methodNumber);
 extern int amqp_decode_method(amqp_method_number_t methodNumber,
                               amqp_pool_t *pool,

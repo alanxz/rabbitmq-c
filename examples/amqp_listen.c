@@ -56,13 +56,9 @@
 #include <amqp.h>
 #include <amqp_framing.h>
 
-#include <unistd.h>
 #include <assert.h>
 
-#include "example_utils.h"
-
-/* Private: compiled out in NDEBUG mode */
-extern void amqp_dump(void const *buffer, size_t len);
+#include "utils.h"
 
 int main(int argc, char const * const *argv) {
   char const *hostname;

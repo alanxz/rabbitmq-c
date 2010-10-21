@@ -56,9 +56,7 @@
 #include <amqp.h>
 #include <amqp_framing.h>
 
-#include <unistd.h>
-
-#include "example_utils.h"
+#include "utils.h"
 
 int main(int argc, char const * const *argv) {
   char const *hostname;

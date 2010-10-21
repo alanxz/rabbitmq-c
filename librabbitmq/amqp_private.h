@@ -248,10 +248,4 @@ static inline int amqp_decode_bytes(amqp_bytes_t encoded, size_t *offset,
 
 extern void amqp_abort(const char *fmt, ...);
 
-#ifndef NDEBUG
-extern void amqp_dump(void const *buffer, size_t len);
-#else
-#define amqp_dump(buffer, len) ((void) 0)
-#endif
-
 #endif
