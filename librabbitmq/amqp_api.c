@@ -203,10 +203,9 @@ amqp_rpc_reply_t amqp_channel_close(amqp_connection_state_t state,
   amqp_method_number_t replies[2] = { AMQP_CHANNEL_CLOSE_OK_METHOD, 0};
   amqp_channel_close_t req;
 
-  snprintf(codestr, sizeof(codestr), "%d", code);
-
   req.reply_code = code;
-  req.reply_text = amqp_cstring_bytes(codestr);
+  req.reply_text.bytes = codestr;
+  req.reply_text.len = sprintf(codestr, "%d", code);
   req.class_id = 0;
   req.method_id = 0;
 
@@ -221,10 +220,9 @@ amqp_rpc_reply_t amqp_connection_close(amqp_connection_state_t state,
   amqp_method_number_t replies[2] = { AMQP_CONNECTION_CLOSE_OK_METHOD, 0};
   amqp_channel_close_t req;
 
-  snprintf(codestr, sizeof(codestr), "%d", code);
-
   req.reply_code = code;
-  req.reply_text = amqp_cstring_bytes(codestr);
+  req.reply_text.bytes = codestr;
+  req.reply_text.len = sprintf(codestr, "%d", code);
   req.class_id = 0;
   req.method_id = 0;
 
