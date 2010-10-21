@@ -135,15 +135,13 @@ int amqp_basic_publish(amqp_connection_state_t state,
   size_t usable_body_payload_size = state->frame_max - (HEADER_SIZE + FOOTER_SIZE);
   int res;
 
-  amqp_basic_publish_t m =
-    (amqp_basic_publish_t) {
-      .exchange = exchange,
-      .routing_key = routing_key,
-      .mandatory = mandatory,
-      .immediate = immediate
-    };
-
+  amqp_basic_publish_t m;
   amqp_basic_properties_t default_properties;
+
+  m.exchange = exchange;
+  m.routing_key = routing_key;
+  m.mandatory = mandatory;
+  m.immediate = immediate;
 
   res = amqp_send_method(state, channel, AMQP_BASIC_PUBLISH_METHOD, &m);
   if (res < 0)
