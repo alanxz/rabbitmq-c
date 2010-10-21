@@ -52,6 +52,7 @@
 #include <stdio.h>
 #include <string.h>
 #include <stdint.h>
+#include <stdarg.h>
 
 #include "amqp.h"
 #include "amqp_framing.h"
@@ -92,6 +93,18 @@ char *amqp_error_string(int err)
 
   return strdup(str);
 }
+
+void amqp_abort(const char *fmt, ...)
+{
+	va_list ap;
+	va_start(ap, fmt);
+	vfprintf(stderr, fmt, ap);
+	va_end(ap);
+	fputc('\n', stderr);
+	abort();
+}
+
+
 
 #define RPC_REPLY(replytype)						\
   (state->most_recent_api_result.reply_type == AMQP_RESPONSE_NORMAL	\

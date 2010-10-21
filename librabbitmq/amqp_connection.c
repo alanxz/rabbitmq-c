@@ -62,14 +62,14 @@
 #define INITIAL_DECODING_POOL_PAGE_SIZE 131072
 #define INITIAL_INBOUND_SOCK_BUFFER_SIZE 131072
 
-#define ENFORCE_STATE(statevec, statenum)				\
-  {									\
-    amqp_connection_state_t _check_state = (statevec);			\
-    int _wanted_state = (statenum);					\
-    amqp_assert(_check_state->state == _wanted_state,			\
-		"Programming error: invalid AMQP connection state: expected %d, got %d", \
-		_wanted_state,						\
-		_check_state->state);					\
+#define ENFORCE_STATE(statevec, statenum)                               \
+  {                                                                     \
+    amqp_connection_state_t _check_state = (statevec);                  \
+    int _wanted_state = (statenum);                                     \
+    if (_check_state->state != _wanted_state)                           \
+      amqp_abort("Programming error: invalid AMQP connection state: expected %d, got %d", \
+                _wanted_state,                                          \
+                _check_state->state);                                   \
   }
 
 amqp_connection_state_t amqp_new_connection(void) {
@@ -313,8 +313,9 @@ int amqp_handle_input(amqp_connection_state_t state,
     case CONNECTION_STATE_WAITING_FOR_PROTOCOL_HEADER:
       decoded_frame->frame_type = AMQP_PSEUDOFRAME_PROTOCOL_HEADER;
       decoded_frame->channel = AMQP_PSEUDOFRAME_PROTOCOL_CHANNEL;
-      amqp_assert(D_8(state->inbound_buffer, 3) == (uint8_t) 'P',
-		  "Invalid protocol header received");
+      if (D_8(state->inbound_buffer, 3) != (uint8_t) 'P')
+	amqp_abort("Invalid protocol header received");
+
       decoded_frame->payload.protocol_header.transport_high = D_8(state->inbound_buffer, 4);
       decoded_frame->payload.protocol_header.transport_low = D_8(state->inbound_buffer, 5);
       decoded_frame->payload.protocol_header.protocol_version_major = D_8(state->inbound_buffer, 6);
@@ -324,7 +325,7 @@ int amqp_handle_input(amqp_connection_state_t state,
       return total_bytes_consumed;
 
     default:
-      amqp_assert(0, "Internal error: invalid amqp_connection_state_t->state %d", state->state);
+      amqp_abort("Internal error: invalid amqp_connection_state_t->state %d", state->state);
   }
 }
 
@@ -335,8 +336,8 @@ amqp_boolean_t amqp_release_buffers_ok(amqp_connection_state_t state) {
 void amqp_release_buffers(amqp_connection_state_t state) {
   ENFORCE_STATE(state, CONNECTION_STATE_IDLE);
 
-  amqp_assert(state->first_queued_frame == NULL,
-	      "Programming error: attempt to amqp_release_buffers while waiting events enqueued");
+  if (state->first_queued_frame)
+    amqp_abort("Programming error: attempt to amqp_release_buffers while waiting events enqueued");
 
   recycle_amqp_pool(&state->frame_pool);
   recycle_amqp_pool(&state->decoding_pool);

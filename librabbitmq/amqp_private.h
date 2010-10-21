@@ -279,14 +279,7 @@ extern int amqp_encode_table(amqp_bytes_t encoded,
 			     amqp_table_t *input,
 			     size_t *offset);
 
-#define amqp_assert(condition, ...)		\
-  ({						\
-    if (!(condition)) {				\
-      fprintf(stderr, __VA_ARGS__);		\
-      fputc('\n', stderr);			\
-      abort();					\
-    }						\
-  })
+extern void amqp_abort(const char *fmt, ...);
 
 #define AMQP_CHECK_RESULT_CLEANUP(expr, stmts)	\
   ({						\

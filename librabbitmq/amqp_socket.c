@@ -124,7 +124,7 @@ static amqp_bytes_t sasl_method_name(amqp_sasl_method_enum method) {
   switch (method) {
     case AMQP_SASL_METHOD_PLAIN: return (amqp_bytes_t) {.len = 5, .bytes = "PLAIN"};
     default:
-      amqp_assert(0, "Invalid SASL method: %d", (int) method);
+      amqp_abort("Invalid SASL method: %d", (int) method);
   }
   abort(); /* unreachable */
 }
@@ -154,7 +154,7 @@ static amqp_bytes_t sasl_response(amqp_pool_t *pool,
       break;
     }
     default:
-      amqp_assert(0, "Invalid SASL method: %d", (int) method);
+      amqp_abort("Invalid SASL method: %d", (int) method);
   }
 
   return response;
@@ -232,22 +232,22 @@ int amqp_simple_wait_method(amqp_connection_state_t state,
   int res = amqp_simple_wait_frame(state, &frame);
   if (res < 0)
     return res;
-  
-  amqp_assert(frame.channel == expected_channel,
-	      "Expected 0x%08X method frame on channel %d, got frame on channel %d",
-	      expected_method,
-	      expected_channel,
-	      frame.channel);
-  amqp_assert(frame.frame_type == AMQP_FRAME_METHOD,
-	      "Expected 0x%08X method frame on channel %d, got frame type %d",
-	      expected_method,
-	      expected_channel,
-	      frame.frame_type);
-  amqp_assert(frame.payload.method.id == expected_method,
-	      "Expected method ID 0x%08X on channel %d, got ID 0x%08X",
-	      expected_method,
-	      expected_channel,
-	      frame.payload.method.id);
+
+  if (frame.channel != expected_channel)
+    amqp_abort("Expected 0x%08X method frame on channel %d, got frame on channel %d",
+	       expected_method,
+	       expected_channel,
+	       frame.channel);
+  if (frame.frame_type != AMQP_FRAME_METHOD)
+    amqp_abort("Expected 0x%08X method frame on channel %d, got frame type %d",
+	       expected_method,
+	       expected_channel,
+	       frame.frame_type);
+  if (frame.payload.method.id != expected_method)
+    amqp_abort("Expected method ID 0x%08X on channel %d, got ID 0x%08X",
+	       expected_method,
+	       expected_channel,
+	       frame.payload.method.id);
   *output = frame.payload.method;
   return 0;
 }
