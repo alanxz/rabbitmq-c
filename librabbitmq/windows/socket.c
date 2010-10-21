@@ -48,6 +48,9 @@
  * ***** END LICENSE BLOCK *****
  */
 
+/* See http://msdn.microsoft.com/en-us/library/ms737629%28VS.85%29.aspx */
+#define WIN32_LEAN_AND_MEAN
+
 #include <windows.h>
 #include <stdint.h>
 
