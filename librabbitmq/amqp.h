@@ -181,7 +181,7 @@ typedef enum {
   AMQP_FIELD_KIND_TIMESTAMP = 'T',
   AMQP_FIELD_KIND_TABLE = 'F',
   AMQP_FIELD_KIND_VOID = 'V',
-  AMQP_FIELD_KIND_BYTES = 'x',
+  AMQP_FIELD_KIND_BYTES = 'x'
 } amqp_field_value_kind_t;
 
 #define _AMQP_TEINIT(ke,ki,v) {.key = (ke), .value = {.kind = AMQP_FIELD_KIND_##ki, .value = {v}}}

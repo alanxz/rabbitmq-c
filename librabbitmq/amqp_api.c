@@ -70,6 +70,12 @@ static const char *client_error_strings[ERROR_MAX] = {
   "connection closed unexpectedly", /* ERROR_CONNECTION_CLOSED */
 };
 
+/* strdup is not in ISO C90! */
+static inline char *strdup(const char *str)
+{
+  return strcpy(malloc(strlen(str) + 1),str);
+}
+
 char *amqp_error_string(int err)
 {
   const char *str;

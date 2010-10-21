@@ -15,9 +15,9 @@ AM_PROG_LIBTOOL
 dnl Header-file checks
 AC_HEADER_STDC
 
-dnl Only use -Wall if we have gcc
 if test "x$GCC" = "xyes"; then
-  if test -z "`echo "$CFLAGS" | grep "\-Wall" 2> /dev/null`" ; then
+  dnl Only use -Wall if we have gcc
+  if ! echo "$CFLAGS" | grep "\-Wall" 2> /dev/null ; then
     CFLAGS="$CFLAGS -Wall"
   fi
 fi
@@ -35,7 +35,15 @@ AS_IF([test "x$windows" = xyes],
   [AC_DEFINE([WINDOWS], [1], [Define to 1 if on Windows.])]
 )
 
+AM_CONDITIONAL(GCC, test "x$GCC" = xyes)
+
+# Detect how to declare inline functions.  Because we will sometimes
+# use "-ansi -pedantic" with gcc, we need to make sure the result will
+# work in that context.
+orig_cflags="$CFLAGS"
+AS_IF([test "x$GCC" = "xyes"], [CFLAGS="$CFLAGS -ansi -pedantic"])
 AC_C_INLINE
+CFLAGS="$orig_cflags"
 
 dnl Decide which API abstraction layer to use
 PLATFORM_DIR=unix

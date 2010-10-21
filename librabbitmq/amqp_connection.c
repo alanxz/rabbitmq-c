@@ -366,7 +366,7 @@ int amqp_send_frame(amqp_connection_state_t state,
     /* For a body frame, rather than copying data around, we use
        writev to compose the frame */
     struct iovec iov[3];
-    char frame_end_byte = AMQP_FRAME_END;
+    uint8_t frame_end_byte = AMQP_FRAME_END;
     const amqp_bytes_t *body = &frame->payload.body_fragment;
 
     amqp_e32(out_frame, 3, body->len);

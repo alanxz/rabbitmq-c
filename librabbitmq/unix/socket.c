@@ -53,6 +53,7 @@
 #include <fcntl.h>
 #include <stdint.h>
 #include <string.h>
+#include <stdlib.h>
 
 #include "amqp.h"
 #include "amqp_private.h"
@@ -77,7 +78,13 @@ int amqp_socket_socket(int domain, int type, int proto)
 	}
 
 	return s;
-}	
+}
+
+/* strdup is not in ISO C90! */
+static inline char *strdup(const char *str)
+{
+  return strcpy(malloc(strlen(str) + 1),str);
+}
 
 char *amqp_os_error_string(int err)
 {

@@ -104,7 +104,7 @@ typedef enum amqp_connection_state_enum_ {
   CONNECTION_STATE_IDLE = 0,
   CONNECTION_STATE_INITIAL,
   CONNECTION_STATE_HEADER,
-  CONNECTION_STATE_BODY,
+  CONNECTION_STATE_BODY
 } amqp_connection_state_enum;
 
 /* 7 bytes up front, then payload, then 1 byte footer */
@@ -202,8 +202,10 @@ static inline uint64_t func##ll(uint64_t val)     \
   union {                                         \
     uint64_t whole;                               \
     uint32_t halves[2];                           \
-  } u = { val };                                  \
-  uint32_t t = u.halves[0];                       \
+  } u;                                            \
+  uint32_t t;                                     \
+  u.whole = val;                                  \
+  t = u.halves[0];                                \
   u.halves[0] = func##l(u.halves[1]);             \
   u.halves[1] = func##l(t);                       \
   return u.whole;                                 \
@@ -212,7 +214,7 @@ static inline uint64_t func##ll(uint64_t val)     \
 DECLARE_XTOXLL(hton)
 DECLARE_XTOXLL(ntoh)
 
-DECLARE_CODEC_BASE_TYPE(8,,)
+DECLARE_CODEC_BASE_TYPE(8, (uint8_t), (uint8_t))
 DECLARE_CODEC_BASE_TYPE(16, htons, ntohs)
 DECLARE_CODEC_BASE_TYPE(32, htonl, ntohl)
 DECLARE_CODEC_BASE_TYPE(64, htonll, ntohll)
