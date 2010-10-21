@@ -75,8 +75,6 @@ typedef struct amqp_bytes_t_ {
   void *bytes;
 } amqp_bytes_t;
 
-#define AMQP_EMPTY_BYTES ((amqp_bytes_t) { .len = 0, .bytes = NULL })
-
 typedef struct amqp_decimal_t_ {
   uint8_t decimals;
   uint32_t value;
@@ -87,14 +85,10 @@ typedef struct amqp_table_t_ {
   struct amqp_table_entry_t_ *entries;
 } amqp_table_t;
 
-#define AMQP_EMPTY_TABLE ((amqp_table_t) { .num_entries = 0, .entries = NULL })
-
 typedef struct amqp_array_t_ {
   int num_entries;
   struct amqp_field_value_t_ *entries;
 } amqp_array_t;
-
-#define AMQP_EMPTY_ARRAY ((amqp_array_t) { .num_entries = 0, .entries = NULL })
 
 /*
   0-9   0-9-1   Qpid/Rabbit  Type               Remarks
@@ -245,6 +239,11 @@ typedef enum amqp_sasl_method_enum_ {
 typedef struct amqp_connection_state_t_ *amqp_connection_state_t;
 
 RABBITMQ_EXPORT char const *amqp_version(void);
+
+/* Exported empty data structures */
+RABBITMQ_EXPORT const amqp_bytes_t amqp_empty_bytes;
+RABBITMQ_EXPORT const amqp_table_t amqp_empty_table;
+RABBITMQ_EXPORT const amqp_array_t amqp_empty_array;
 
 RABBITMQ_EXPORT void init_amqp_pool(amqp_pool_t *pool, size_t pagesize);
 RABBITMQ_EXPORT void recycle_amqp_pool(amqp_pool_t *pool);

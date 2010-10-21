@@ -88,7 +88,7 @@ int main(int argc, const char **argv)
 							      durable,
 							      0,
 							      0,
-							      AMQP_EMPTY_TABLE);
+							      amqp_empty_table);
 	  if (reply == NULL) {
 	    die_rpc(amqp_get_rpc_reply(conn), "queue.declare");
 	  }

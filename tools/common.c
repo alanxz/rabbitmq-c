@@ -354,5 +354,5 @@ void process_all_options(int argc, const char **argv,
 
 amqp_bytes_t cstring_bytes(const char *str)
 {
-	return str ? amqp_cstring_bytes(str) : AMQP_EMPTY_BYTES;
+	return str ? amqp_cstring_bytes(str) : amqp_empty_bytes;
 }

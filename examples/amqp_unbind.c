@@ -94,7 +94,7 @@ int main(int argc, char const * const *argv) {
 		    amqp_cstring_bytes(queue),
 		    amqp_cstring_bytes(exchange),
 		    amqp_cstring_bytes(bindingkey),
-		    AMQP_EMPTY_TABLE);
+		    amqp_empty_table);
   die_on_amqp_error(amqp_get_rpc_reply(conn), "Unbinding");
 
   die_on_amqp_error(amqp_channel_close(conn, 1, AMQP_REPLY_SUCCESS), "Closing channel");

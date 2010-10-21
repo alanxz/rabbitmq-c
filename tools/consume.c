@@ -100,7 +100,7 @@ static amqp_bytes_t setup_queue(amqp_connection_state_t conn,
 		/* Declare the queue as auto-delete.  */
 		amqp_queue_declare_ok_t *res = amqp_queue_declare(conn, 1,
 						    queue_bytes, 0, 0, 1, 1,
-						    AMQP_EMPTY_TABLE);
+						    amqp_empty_table);
 		if (!res)
 			die_rpc(amqp_get_rpc_reply(conn), "queue.declare");
 
@@ -119,7 +119,7 @@ static amqp_bytes_t setup_queue(amqp_connection_state_t conn,
 			amqp_bytes_t eb = amqp_cstring_bytes(exchange);
 			if (!amqp_queue_bind(conn, 1, queue_bytes, eb,
 					     cstring_bytes(routing_key),
-					     AMQP_EMPTY_TABLE))
+					     amqp_empty_table))
 				die_rpc(amqp_get_rpc_reply(conn),
 					"queue.bind");
 		}
@@ -131,8 +131,8 @@ static amqp_bytes_t setup_queue(amqp_connection_state_t conn,
 static void do_consume(amqp_connection_state_t conn, amqp_bytes_t queue,
 		       int no_ack, const char * const *argv)
 {
-	if (!amqp_basic_consume(conn, 1, queue, AMQP_EMPTY_BYTES, 0, no_ack,
-				0, AMQP_EMPTY_TABLE))
+	if (!amqp_basic_consume(conn, 1, queue, amqp_empty_bytes, 0, no_ack,
+				0, amqp_empty_table))
 		die_rpc(amqp_get_rpc_reply(conn), "basic.consume");
 
 	for (;;) {
