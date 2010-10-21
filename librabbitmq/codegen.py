@@ -398,8 +398,11 @@ def genHrl(spec):
         return cTypeMap[spec.resolveDomain(domain)]
 
     def fieldDeclList(fields):
-        return ''.join(["  %s %s;\n" % (cType(f.domain), c_ize(f.name)) for f in fields])
-
+        if fields:
+            return ''.join(["  %s %s;\n" % (cType(f.domain), c_ize(f.name)) for f in fields])
+        else:
+            return "  char dummy; /* Dummy field to avoid empty struct */\n"
+    
     def propDeclList(fields):
         return ''.join(["  %s %s;\n" % (cType(f.domain), c_ize(f.name))
                         for f in fields
