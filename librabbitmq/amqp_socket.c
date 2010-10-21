@@ -172,33 +172,37 @@ static int wait_frame_inner(amqp_connection_state_t state,
 			    amqp_frame_t *decoded_frame)
 {
   while (1) {
-    int result;
+    int res;
 
     while (amqp_data_in_buffer(state)) {
       amqp_bytes_t buffer;
       buffer.len = state->sock_inbound_limit - state->sock_inbound_offset;
       buffer.bytes = ((char *) state->sock_inbound_buffer.bytes) + state->sock_inbound_offset;
-      AMQP_CHECK_RESULT((result = amqp_handle_input(state, buffer, decoded_frame)));
-      state->sock_inbound_offset += result;
+
+      res = amqp_handle_input(state, buffer, decoded_frame);
+      if (res < 0)
+	return res;
+
+      state->sock_inbound_offset += res;
 
       if (decoded_frame->frame_type != 0)
 	/* Complete frame was read. Return it. */
 	return 0;
 
       /* Incomplete or ignored frame. Keep processing input. */
-      assert(result != 0);
-    }	
+      assert(res != 0);
+    }
 
-    result = recv(state->sockfd, state->sock_inbound_buffer.bytes,
+    res = recv(state->sockfd, state->sock_inbound_buffer.bytes,
 		  state->sock_inbound_buffer.len, 0);
-    if (result <= 0) {
-      if (result == 0)
+    if (res <= 0) {
+      if (res == 0)
 	return -ERROR_CONNECTION_CLOSED;
       else
 	return -amqp_socket_error();
     }
 
-    state->sock_inbound_limit = result;
+    state->sock_inbound_limit = res;
     state->sock_inbound_offset = 0;
   }
 }
@@ -394,7 +398,9 @@ static int amqp_login_inner(amqp_connection_state_t state,
 	.response = response_bytes,
 	.locale = {.len = 5, .bytes = "en_US"}
       };
-    AMQP_CHECK_RESULT(amqp_send_method(state, 0, AMQP_CONNECTION_START_OK_METHOD, &s));
+    res = amqp_send_method(state, 0, AMQP_CONNECTION_START_OK_METHOD, &s);
+    if (res < 0)
+      return res;
   }
 
   amqp_release_buffers(state);
@@ -411,19 +417,18 @@ static int amqp_login_inner(amqp_connection_state_t state,
     server_heartbeat = s->heartbeat;
   }
 
-  if (server_channel_max != 0 && server_channel_max < channel_max) {
+  if (server_channel_max != 0 && server_channel_max < channel_max)
     channel_max = server_channel_max;
-  }
 
-  if (server_frame_max != 0 && server_frame_max < frame_max) {
+  if (server_frame_max != 0 && server_frame_max < frame_max)
     frame_max = server_frame_max;
-  }
 
-  if (server_heartbeat != 0 && server_heartbeat < heartbeat) {
+  if (server_heartbeat != 0 && server_heartbeat < heartbeat)
     heartbeat = server_heartbeat;
-  }
 
-  AMQP_CHECK_RESULT(amqp_tune_connection(state, channel_max, frame_max, heartbeat));
+  res = amqp_tune_connection(state, channel_max, frame_max, heartbeat);
+  if (res < 0)
+    return res;
 
   {
     amqp_connection_tune_ok_t s =
@@ -432,7 +437,9 @@ static int amqp_login_inner(amqp_connection_state_t state,
 	.frame_max = frame_max,
 	.heartbeat = heartbeat
       };
-    AMQP_CHECK_RESULT(amqp_send_method(state, 0, AMQP_CONNECTION_TUNE_OK_METHOD, &s));
+    res = amqp_send_method(state, 0, AMQP_CONNECTION_TUNE_OK_METHOD, &s);
+    if (res < 0)
+      return res;
   }
 
   amqp_release_buffers(state);

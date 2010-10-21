@@ -255,15 +255,6 @@ extern int amqp_encode_table(amqp_bytes_t encoded,
 
 extern void amqp_abort(const char *fmt, ...);
 
-#define AMQP_CHECK_RESULT_CLEANUP(expr, stmts)	\
-  ({						\
-    int _result = (expr);			\
-    if (_result < 0) { stmts; return _result; }	\
-    _result;					\
-  })
-
-#define AMQP_CHECK_RESULT(expr) AMQP_CHECK_RESULT_CLEANUP(expr, )
-
 #ifndef NDEBUG
 extern void amqp_dump(void const *buffer, size_t len);
 #else
