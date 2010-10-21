@@ -113,13 +113,6 @@ int amqp_send_header(amqp_connection_state_t state) {
   return send(state->sockfd, header(), 8, 0);
 }
 
-int amqp_send_header_to(amqp_connection_state_t state,
-			amqp_output_fn_t fn,
-			void *context)
-{
-  return fn(context, header(), 8);
-}
-
 static amqp_bytes_t sasl_method_name(amqp_sasl_method_enum method) {
   switch (method) {
     case AMQP_SASL_METHOD_PLAIN: return (amqp_bytes_t) {.len = 5, .bytes = "PLAIN"};

@@ -79,40 +79,39 @@ extern char *amqp_os_error_string(int err);
 #include "socket.h"
 
 /*
- * Connection states:
+ * Connection states: XXX FIX THIS
  *
- * - CONNECTION_STATE_IDLE: initial state, and entered again after
- *   each frame is completed. Means that no bytes of the next frame
- *   have been seen yet. Connections may only be reconfigured, and the
+ * - CONNECTION_STATE_INITIAL: The initial state, when we cannot be
+ *   sure if the next thing we will get is the first AMQP frame, or a
+ *   protocol header from the server.
+ *
+ * - CONNECTION_STATE_IDLE: The normal state between
+ *   frames. Connections may only be reconfigured, and the
  *   connection's pools recycled, when in this state. Whenever we're
  *   in this state, the inbound_buffer's bytes pointer must be NULL;
  *   any other state, and it must point to a block of memory allocated
  *   from the frame_pool.
  *
- * - CONNECTION_STATE_WAITING_FOR_HEADER: Some bytes of an incoming
- *   frame have been seen, but not a complete frame header's worth.
+ * - CONNECTION_STATE_HEADER: Some bytes of an incoming frame have
+ *   been seen, but not a complete frame header's worth.
  *
- * - CONNECTION_STATE_WAITING_FOR_BODY: A complete frame header has
- *   been seen, but the frame is not yet complete. When it is
- *   completed, it will be returned, and the connection will return to
- *   IDLE state.
- *
- * - CONNECTION_STATE_WAITING_FOR_PROTOCOL_HEADER: The beginning of a
- *   protocol version header has been seen, but the full eight bytes
- *   hasn't yet been received. When it is completed, it will be
+ * - CONNECTION_STATE_BODY: A complete frame header has been seen, but
+ *   the frame is not yet complete. When it is completed, it will be
  *   returned, and the connection will return to IDLE state.
  *
  */
 typedef enum amqp_connection_state_enum_ {
   CONNECTION_STATE_IDLE = 0,
-  CONNECTION_STATE_WAITING_FOR_HEADER,
-  CONNECTION_STATE_WAITING_FOR_BODY,
-  CONNECTION_STATE_WAITING_FOR_PROTOCOL_HEADER
+  CONNECTION_STATE_INITIAL,
+  CONNECTION_STATE_HEADER,
+  CONNECTION_STATE_BODY,
 } amqp_connection_state_enum;
 
 /* 7 bytes up front, then payload, then 1 byte footer */
 #define HEADER_SIZE 7
 #define FOOTER_SIZE 1
+
+#define AMQP_PSEUDOFRAME_PROTOCOL_HEADER 'A'
 
 typedef struct amqp_link_t_ {
   struct amqp_link_t_ *next;
