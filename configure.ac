@@ -35,6 +35,8 @@ AS_IF([test "x$windows" = xyes],
   [AC_DEFINE([WINDOWS], [1], [Define to 1 if on Windows.])]
 )
 
+AC_C_INLINE
+
 dnl Decide which API abstraction layer to use
 PLATFORM_DIR=unix
 if test "x$windows" = xyes ; then

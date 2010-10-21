@@ -56,7 +56,7 @@
 #include <assert.h>
 
 #include "amqp.h"
-#include "../config.h"
+#include "config.h"
 
 char const *amqp_version(void) {
   return VERSION; /* defined in config.h */
