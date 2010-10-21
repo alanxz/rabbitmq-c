@@ -68,7 +68,7 @@ typedef struct amqp_bytes_t_ {
 #define AMQP_EMPTY_BYTES ((amqp_bytes_t) { .len = 0, .bytes = NULL })
 
 typedef struct amqp_decimal_t_ {
-  int decimals;
+  uint8_t decimals;
   uint32_t value;
 } amqp_decimal_t;
 
@@ -128,7 +128,7 @@ the code.
 */
 
 typedef struct amqp_field_value_t_ {
-  char kind;
+  uint8_t kind;
   union {
     amqp_boolean_t boolean;
     int8_t i8;
@@ -162,6 +162,7 @@ typedef enum {
   AMQP_FIELD_KIND_I32 = 'I',
   AMQP_FIELD_KIND_U32 = 'i',
   AMQP_FIELD_KIND_I64 = 'l',
+  AMQP_FIELD_KIND_U64 = 'L',
   AMQP_FIELD_KIND_F32 = 'f',
   AMQP_FIELD_KIND_F64 = 'd',
   AMQP_FIELD_KIND_DECIMAL = 'D',

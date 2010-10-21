@@ -59,8 +59,6 @@
 #include "amqp_framing.h"
 #include "amqp_private.h"
 
-#include "socket.h"
-
 
 int amqp_open_socket(char const *hostname,
 		     int portnumber)
