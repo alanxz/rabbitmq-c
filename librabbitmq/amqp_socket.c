@@ -134,16 +134,19 @@ static amqp_bytes_t sasl_response(amqp_pool_t *pool,
       size_t username_len = strlen(username);
       char *password = va_arg(args, char *);
       size_t password_len = strlen(password);
+      char *response_buf;
+
       amqp_pool_alloc_bytes(pool, strlen(username) + strlen(password) + 2, &response);
-      if (response.bytes == NULL) {
+      if (response.bytes == NULL)
 	/* We never request a zero-length block, because of the +2
 	   above, so a NULL here really is ENOMEM. */
 	return response;
-      }
-      *BUF_AT(response, 0) = 0;
-      memcpy(((char *) response.bytes) + 1, username, username_len);
-      *BUF_AT(response, username_len + 1) = 0;
-      memcpy(((char *) response.bytes) + username_len + 2, password, password_len);
+
+      response_buf = response.bytes;
+      response_buf[0] = 0;
+      memcpy(response_buf + 1, username, username_len);
+      response_buf[username_len + 1] = 0;
+      memcpy(response_buf + username_len + 2, password, password_len);
       break;
     }
     default:
@@ -400,7 +403,7 @@ static int amqp_login_inner(amqp_connection_state_t state,
 				&method);
   if (res < 0)
     return res;
-  
+
   {
     amqp_connection_tune_t *s = (amqp_connection_tune_t *) method.decoded;
     server_channel_max = s->channel_max;

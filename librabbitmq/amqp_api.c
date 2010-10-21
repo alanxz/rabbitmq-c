@@ -168,7 +168,7 @@ int amqp_basic_publish(amqp_connection_state_t state,
 
     f.frame_type = AMQP_FRAME_BODY;
     f.channel = channel;
-    f.payload.body_fragment.bytes = BUF_AT(body, body_offset);
+    f.payload.body_fragment.bytes = amqp_offset(body.bytes, body_offset);
     if (remaining >= usable_body_payload_size) {
       f.payload.body_fragment.len = usable_body_payload_size;
     } else {
