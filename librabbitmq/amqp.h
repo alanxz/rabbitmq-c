@@ -245,6 +245,12 @@ RABBITMQ_EXPORT const amqp_bytes_t amqp_empty_bytes;
 RABBITMQ_EXPORT const amqp_table_t amqp_empty_table;
 RABBITMQ_EXPORT const amqp_array_t amqp_empty_array;
 
+/* Compatibility macros for the above, to avoid the need to update
+   code written against earlier versions of librabbitmq. */
+#define AMQP_EMPTY_BYTES amqp_empty_bytes
+#define AMQP_EMPTY_TABLE amqp_empty_table
+#define AMQP_EMPTY_ARRAY amqp_empty_array
+
 RABBITMQ_EXPORT void init_amqp_pool(amqp_pool_t *pool, size_t pagesize);
 RABBITMQ_EXPORT void recycle_amqp_pool(amqp_pool_t *pool);
 RABBITMQ_EXPORT void empty_amqp_pool(amqp_pool_t *pool);
