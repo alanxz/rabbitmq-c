@@ -74,7 +74,7 @@ void die_on_amqp_error(amqp_rpc_reply_t x, char const *context) {
       return;
 
     case AMQP_RESPONSE_NONE:
-      fprintf(stderr, "%s: missing RPC reply type!", context);
+      fprintf(stderr, "%s: missing RPC reply type!\n", context);
       break;
 
     case AMQP_RESPONSE_LIBRARY_EXCEPTION:
@@ -85,7 +85,7 @@ void die_on_amqp_error(amqp_rpc_reply_t x, char const *context) {
       switch (x.reply.id) {
 	case AMQP_CONNECTION_CLOSE_METHOD: {
 	  amqp_connection_close_t *m = (amqp_connection_close_t *) x.reply.decoded;
-	  fprintf(stderr, "%s: server connection error %d, message: %.*s",
+	  fprintf(stderr, "%s: server connection error %d, message: %.*s\n",
 		  context,
 		  m->reply_code,
 		  (int) m->reply_text.len, (char *) m->reply_text.bytes);
@@ -93,14 +93,14 @@ void die_on_amqp_error(amqp_rpc_reply_t x, char const *context) {
 	}
 	case AMQP_CHANNEL_CLOSE_METHOD: {
 	  amqp_channel_close_t *m = (amqp_channel_close_t *) x.reply.decoded;
-	  fprintf(stderr, "%s: server channel error %d, message: %.*s",
+	  fprintf(stderr, "%s: server channel error %d, message: %.*s\n",
 		  context,
 		  m->reply_code,
 		  (int) m->reply_text.len, (char *) m->reply_text.bytes);
 	  break;
 	}
 	default:
-	  fprintf(stderr, "%s: unknown server error, method id 0x%08X", context, x.reply.id);
+	  fprintf(stderr, "%s: unknown server error, method id 0x%08X\n", context, x.reply.id);
 	  break;
       }
       break;
