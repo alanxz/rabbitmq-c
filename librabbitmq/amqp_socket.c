@@ -101,7 +101,7 @@ int amqp_send_header(amqp_connection_state_t state) {
 				     AMQP_PROTOCOL_VERSION_MAJOR,
 				     AMQP_PROTOCOL_VERSION_MINOR,
 				     AMQP_PROTOCOL_VERSION_REVISION };
-  return send(state->sockfd, header, 8, 0);
+  return send(state->sockfd, (void *)header, 8, 0);
 }
 
 static amqp_bytes_t sasl_method_name(amqp_sasl_method_enum method) {
