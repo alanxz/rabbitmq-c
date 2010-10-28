@@ -1,76 +1,97 @@
-# rabbitmq-c and Windows
+# Using rabbitmq-c on Windows
 
-rabbitmq-c can now be built on Windows using the MinGW/MSYS ports of
-the GNU toolchain and miscellaneous utilities.  This includes the
-example programs and tools.
+There are two approaches to building rabbitmq-c under Windows:
 
-The results are native Windows DLLs and EXEs, and can be used without
-having MinGW installed.  But the librabbitmq header files currently
-use GCC extensions, and for this reason it is still not possible to
-use Microsoft's C/C++ to build applications against the librabbitmq
-DLL.  Hopefully this will get fixed before long.
+- Build using the MinGW/MSYS (MinGW/MSYS is a port of the GNU
+  toolchain and utilities to Windows, including the gcc compiler).
+  The results of building in this way are native Windows DLLs and
+  EXEs, and can be used without having MinGW installed.  The drawback
+  to this approach is that you cannot safely call the resulting
+  librabbitmq DLL from code compiled with Microsoft's C compiler.  The
+  advantage is that the whole of rabbitmq-c can be built under
+  Windows, including the tools.
+
+- Build using Microsoft's C compiler.  You still need to install
+  MinGW/MSYS in order to run the rabbitmq-c build scripts, but
+  Microsoft's compiler is will be used to compile the code.  The
+  resulting librabbitmq DLL can be used from code compiled with
+  Microsoft's C compiler (i.e. code developed in Visual Studio).
+  However, the rabbitmq-c tools cannot be built in this way, due to
+  dependencies on other libraries.
 
 
-# Building rabbitmq-c
+## Common steps
 
-rabbitmq-c is built on Windows using MinGW and MSYS.  In brief, MinGW
-is a native port of the GNU toolchain to Windows; MSYS is a set of
-ports of common GNU utilities to run under Windows, so that typical
-autotools-based builds will work there.  MinGW/MSYS can be used to
-build native Windows applications and DLLs, which do not depend on
-MinGW/MSYS to run.
+With either of the approaches, the initial steps are the same: You
+should download and install MinGW/MSYS and Python.
 
-So to build rabbitmq-c on Windows, you need to download and install
-the relevant parts of MinGW/MSYS.  This can be fairly time consuming -
-there are dozens of files to be downloaded and unpacked.  To make it
-easier, we provide a bash script that automates this process, in
-rabbitmq-c/etc/install-mingw.sh.  You can run this under cygwin, or
-under Linux and copy the results over or put them on a shared drive.
-Some MinGW packages are .tar.lzma files, so it requires a system with
-the xz compression utility and a tar that supports the -J option.
+Installing installing the relevant parts of MinGW/MSYS can be fairly
+time consuming - there are dozens of files to be downloaded and
+unpacked.  To make it easier, we provide a bash script that automates
+this process, in `rabbitmq-c/etc/install-mingw.sh`.  You can run this
+script under cygwin or Linux (obviously if you use Linux you'll need
+to transfer the resulting files over to the Windows machine).
 
-Run install-mingw.sh specifying the destination directory, e.g.
+Note that some MinGW packages are .tar.lzma files, so it requires a
+system with the xz compression utility and a tar that supports the -J
+option.  Recent cygwin and Linux distros should be fine here.
+
+Run the install-mingw.sh script specifying the destination directory,
+e.g.
 
   $ etc/install-mingw.sh mingw
 
-Python is needed for the rabbitmq-c build, so you will also need to
-install python under Windows.  The Windows installer from python.org
+This will download all the required MinGW/MSYS packages, and unpack
+them into the `mingw` directory.
+
+The other prerequisite for the rabbitmq-c build is Python.  The
+Windows installer from python.org for the latest 2.x version of Python
 will do fine.
 
-You will need to copy the source code for rabbitmq-c and
-rabbitmq-codegen somewhere under your mingw directory.
+You will also need to copy the source code for rabbitmq-c and
+rabbitmq-codegen somewhere under your `mingw` directory.
 
-Open a cmd window, and ensure that both the MinGW bin directory and
-the python install directory are in the path, e.g.
+Then to start the MSYS bash shell, open a `cmd` window, and ensure
+that both the MinGW bin directory and the python install directory are
+in the path, e.g.
 
-  C:\>set PATH=%PATH%;C:\mingw\bin;C:\Python26
+  C:\>set PATH=%PATH%;C:\mingw\bin;C:\Python27
 
 Then start bash, and run the following mount command (substituting the
-Windows path of your MinGW install):
+Windows path of your MinGW install if it isn't `C:\mingw`):
 
   C:\>bash
   bash-3.1$ mount 'C:\mingw' /mingw
 
-Then go to the rabbitmq-c directory.  If you got the rabbitmq-c
-directory from Mercurial (which is the only way to get it at the
-moment), you will need to run autoreconf to produce the configuration
-scripts:
+Finally, go to wherever you copied the rabbitmq-c source.
 
-  bash-3.1$ autoreconf -i
-
-This will produce a few lines of informational output while it runs,
-but as long as it doesn't mention any errors, you are ok.
-
-Finally, configure and make:
-
-  bash-3.1$ ./configure && make
-  [...]
+  bash-3.1$ cd /rabbitmq-c
 
 
-# Running the tools without mingw
+## Building rabbitmq-c with Microsoft's C compiler
 
-You can run the resulting tools EXEs without the rest of MinGW.  To do
-this, copy the following files into a directory:
+The Microsoft C/C++ compiler is part of MS Visual Studio, including
+the gratis Visual Studio Express.  Visual Studio 2005 and higher are
+known to work.
+
+After following the steps in the previous section, build rabbitmq-c by
+running the script in `rabbitmq-c/etc/build-ms.sh`:
+
+  bash-3.1$ etc/build-ms.sh
+
+You should end up with a directory `build` containing the built
+artifacts.
+
+
+## Building rabbitmq-c with gcc
+
+There is no script to build rabbitmq-c with gcc, but it is as
+documented in the README file:
+
+  bash-3.1$ autoreconf -i && ./configure && make
+
+You can run the resulting tool EXEs without needing the rest of MinGW.  To do
+this, copy the following files into a single directory:
 
 - rabbitmq-c/tools/.libs/*.exe
 
