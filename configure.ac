@@ -49,8 +49,10 @@ AC_ARG_ENABLE(64-bit,
 )
 
 AC_MSG_CHECKING(location of AMQP codegen directory)
-sibling_codegen_dir="$ac_abs_confdir/../rabbitmq-codegen"
-AMQP_CODEGEN_DIR=$(test -d "$sibling_codegen_dir" && echo "$sibling_codegen_dir" || echo "$ac_abs_confdir/codegen")
+for d in ../rabbitmq-codegen codegen ; do
+  AMQP_CODEGEN_DIR="$d"
+  test -d "$srcdir/$AMQP_CODEGEN_DIR" && break
+done
 AMQP_SPEC_JSON_PATH="$AMQP_CODEGEN_DIR/amqp-rabbitmq-0.9.1.json"
 
 if test -f "$AMQP_SPEC_JSON_PATH"

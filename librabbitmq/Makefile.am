@@ -16,8 +16,8 @@ EXTRA_DIST = \
 
 CODEGEN_PY=$(srcdir)/codegen.py
 
-amqp_framing.h: $(AMQP_SPEC_JSON_PATH) $(CODEGEN_PY)
-	PYTHONPATH=$(AMQP_CODEGEN_DIR) $(PYTHON) $(CODEGEN_PY) header $< $@
+amqp_framing.h: $(top_srcdir)/$(AMQP_SPEC_JSON_PATH) $(CODEGEN_PY)
+	PYTHONPATH=$(top_srcdir)/$(AMQP_CODEGEN_DIR) $(PYTHON) $(CODEGEN_PY) header $< $@
 
-amqp_framing.c: $(AMQP_SPEC_JSON_PATH) $(CODEGEN_PY)
-	PYTHONPATH=$(AMQP_CODEGEN_DIR) $(PYTHON) $(CODEGEN_PY) body $< $@
+amqp_framing.c: $(top_srcdir)/$(AMQP_SPEC_JSON_PATH) $(CODEGEN_PY)
+	PYTHONPATH=$(top_srcdir)/$(AMQP_CODEGEN_DIR) $(PYTHON) $(CODEGEN_PY) body $< $@
