@@ -11,12 +11,12 @@ There are two approaches to building rabbitmq-c under Windows:
   advantage is that the whole of rabbitmq-c can be built under
   Windows, including the tools.
 
-- Build using Microsoft's C compiler.  You still need to install
+- Build using Microsoft's C compiler.  You will still need to install
   MinGW/MSYS in order to run the rabbitmq-c build scripts, but
-  Microsoft's compiler is will be used to compile the code.  The
-  resulting librabbitmq DLL can be used from code compiled with
-  Microsoft's C compiler (i.e. code developed in Visual Studio).
-  However, the rabbitmq-c tools cannot be built in this way, due to
+  Microsoft's compiler is used to compile the code.  The resulting
+  librabbitmq DLL can be used from code compiled with Microsoft's C
+  compiler (i.e. code developed in Visual Studio).  The downside to
+  this approach is that the rabbitmq-c tools cannot be built, due to
   dependencies on other libraries.
 
 
@@ -74,13 +74,22 @@ The Microsoft C/C++ compiler is part of MS Visual Studio, including
 the gratis Visual Studio Express.  Visual Studio 2005 and higher are
 known to work.
 
-After following the steps in the previous section, build rabbitmq-c by
-running the script in `rabbitmq-c/etc/build-ms.sh`:
+Start by following the steps in the previous section.  The GNU build
+tools have limited support for Microsoft toolchain, but the
+install-mingw.sh script will install versions of the packages that are
+known to be suitable.  In particular, only libtool version 2.2.7a is
+known to work; later versions have been reported to introduce
+problems.
+
+Once you are at the bash prompt, build rabbitmq-c by running the
+script in `rabbitmq-c/etc/build-ms.sh`:
 
   bash-3.1$ etc/build-ms.sh
 
-You should end up with a directory `build` containing the built
-artifacts.
+You should end up with a directory `build` containing the librabbitmq
+DLL, the corresponding .lib file, and header files.  These are
+sufficient to create applications using librabbitmq within Visual
+Studio.
 
 
 ## Building rabbitmq-c with gcc
