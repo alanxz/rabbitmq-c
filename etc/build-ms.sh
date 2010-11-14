@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 
 # Build rabbitmq-c using Microsoft's C compiler
 
@@ -25,11 +25,11 @@ fi
 
 echo "Using Visual Studio install at $vsdir"
 
-for sdkvers in v7.0A v6.0A v5.0 ; do
-  sdkdir="$drive/Program Files/Microsoft SDKs/Windows/$sdkvers"
+for sdkpath in "Microsoft SDKs/Windows/"{v7.0A,v6.0A} "Microsoft Visual Studio 8/VC/PlatformSDK" ; do
+  sdkdir="$drive/Program Files/$sdkpath"
   [ -d "$sdkdir/lib" -a -d "$sdkdir/include" ] && break
 
-  sdkdir="$drive/Program Files (x86)/Microsoft SDKs/Windows/$sdkvers"
+  sdkdir="$drive/Program Files (x86)/$sdkpath"
   [ -d "$sdkdir/lib" -a -d "$sdkdir/include" ] && break
 
   sdkdir=
