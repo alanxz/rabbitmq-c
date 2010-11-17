@@ -69,7 +69,7 @@ static inline int amqp_socket_setsockopt(int sock, int level, int optname,
 /* same as WSABUF */
 struct iovec {
 	u_long iov_len;
-	char *iov_base;
+	void *iov_base;
 };
 
 static inline int amqp_socket_writev(int sock, struct iovec *iov, int nvecs)

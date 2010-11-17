@@ -98,37 +98,57 @@ static char *make_command_line(const char *const *argv)
 	dest = buf = malloc(len);
 	if (!buf)
 		die("allocating memory for subprocess command line");
-	
-	*dest++ = '\"';
+
+	/* Here we perform the inverse of the CommandLineToArgvW
+	   function.  Note that it's rules are slightly crazy: A
+	   sequence of backslashes only act to escape if followed by
+	   double quotes.  A seuqence of backslashes not followed by
+	   double quotes is unaffected. */
 
 	for (i = 0;;) {
 		const char *src = argv[i];
+		int backslashes = 0;
+
+		*dest++ = '\"';
+
 		for (;;) {
 			switch (*src) {
 			case 0:
 				goto done;
 
 			case '\"':
-			case '\\':
+				for (; backslashes; backslashes--)
+					*dest++ = '\\';
+
 				*dest++ = '\\';
-				/* fall through */
+				*dest++ = '\"';
+				break;
+
+			case '\\':
+				backslashes++;
+				*dest++ = '\\';
+				break;
 
 			default:
-				*dest++ = *src++;
+				backslashes = 0;
+				*dest++ = *src;
 				break;
 			}
+
+			src++;
 		}
-		done:
+	done:
+		for (; backslashes; backslashes--)
+			*dest++ = '\\';
+
+		*dest++ = '\"';
 
 		if (!argv[++i])
 			break;
 
-		*dest++ = '\"';
 		*dest++ = ' ';
-		*dest++ = '\"';
 	}
 
-	*dest++ = '\"';
 	*dest++ = 0;
 	return buf;
 }

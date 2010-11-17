@@ -56,7 +56,7 @@
 #include <assert.h>
 
 #include "amqp.h"
-#include "../config.h"
+#include "config.h"
 
 char const *amqp_version(void) {
   return VERSION; /* defined in config.h */
@@ -196,5 +196,5 @@ amqp_bytes_t amqp_bytes_malloc(size_t amount) {
 }
 
 void amqp_bytes_free(amqp_bytes_t bytes) {
-  AMQP_BYTES_FREE(bytes);
+  free(bytes.bytes);
 }

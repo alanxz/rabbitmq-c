@@ -15,9 +15,9 @@ AM_PROG_LIBTOOL
 dnl Header-file checks
 AC_HEADER_STDC
 
-dnl Only use -Wall if we have gcc
 if test "x$GCC" = "xyes"; then
-  if test -z "`echo "$CFLAGS" | grep "\-Wall" 2> /dev/null`" ; then
+  dnl Only use -Wall if we have gcc
+  if ! echo "$CFLAGS" | grep "\-Wall" 2> /dev/null ; then
     CFLAGS="$CFLAGS -Wall"
   fi
 fi
@@ -34,6 +34,16 @@ AM_CONDITIONAL(WINDOWS, test "x$windows" = xyes)
 AS_IF([test "x$windows" = xyes],
   [AC_DEFINE([WINDOWS], [1], [Define to 1 if on Windows.])]
 )
+
+AM_CONDITIONAL(GCC, test "x$GCC" = xyes)
+
+# Detect how to declare inline functions.  Because we will sometimes
+# use "-ansi -pedantic" with gcc, we need to make sure the result will
+# work in that context.
+orig_cflags="$CFLAGS"
+AS_IF([test "x$GCC" = "xyes"], [CFLAGS="$CFLAGS -ansi -pedantic"])
+AC_C_INLINE
+CFLAGS="$orig_cflags"
 
 dnl Decide which API abstraction layer to use
 PLATFORM_DIR=unix
@@ -87,10 +97,22 @@ AC_SUBST(AMQP_CODEGEN_DIR)
 AC_SUBST(AMQP_SPEC_JSON_PATH)
 AC_SUBST(PYTHON)
 
-dnl Decide which extra win32 libs we need
+dnl Decide which extra win32 libs we need, and handle other special
+dnl cases when building with the Microsoft compiler
 EXTRA_LIBS=
-AS_IF([test "x$windows" = xyes], [EXTRA_LIBS="-lws2_32 $EXTRA_LIBS"])
+USE_MISINTTYPES=
+AS_IF([test "x$windows" = xyes],
+  [
+    AS_IF([test "x$GCC" = xyes],
+          [EXTRA_LIBS="-lws2_32 $EXTRA_LIBS"],
+          [
+            EXTRA_LIBS="ws2_32.lib $EXTRA_LIBS"
+            USE_MSINTTYPES=yes
+          ])
+  ])
+
 AC_SUBST(EXTRA_LIBS)
+AM_CONDITIONAL(USE_MSINTTYPES, test "x$USE_MSINTTYPES" != "x")
 
 dnl Check for libpopt, which we need to build the tools
 AC_ARG_WITH([popt],

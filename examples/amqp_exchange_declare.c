@@ -56,9 +56,7 @@
 #include <amqp.h>
 #include <amqp_framing.h>
 
-#include <unistd.h>
-
-#include "example_utils.h"
+#include "utils.h"
 
 int main(int argc, char const * const *argv) {
   char const *hostname;
@@ -89,7 +87,7 @@ int main(int argc, char const * const *argv) {
   die_on_amqp_error(amqp_get_rpc_reply(conn), "Opening channel");
 
   amqp_exchange_declare(conn, 1, amqp_cstring_bytes(exchange), amqp_cstring_bytes(exchangetype),
-			0, 0, AMQP_EMPTY_TABLE);
+			0, 0, amqp_empty_table);
   die_on_amqp_error(amqp_get_rpc_reply(conn), "Declaring exchange");
 
   die_on_amqp_error(amqp_channel_close(conn, 1, AMQP_REPLY_SUCCESS), "Closing channel");

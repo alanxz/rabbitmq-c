@@ -56,27 +56,26 @@
 #include <amqp.h>
 #include <amqp_framing.h>
 
-#include <unistd.h>
 #include <assert.h>
 
-#include "example_utils.h"
+#include "utils.h"
 
 #define SUMMARY_EVERY_US 1000000
 
 static void run(amqp_connection_state_t conn)
 {
-  long long start_time = now_microseconds();
+  uint64_t start_time = now_microseconds();
   int received = 0;
   int previous_received = 0;
-  long long previous_report_time = start_time;
-  long long next_summary_time = start_time + SUMMARY_EVERY_US;
+  uint64_t previous_report_time = start_time;
+  uint64_t next_summary_time = start_time + SUMMARY_EVERY_US;
 
   amqp_frame_t frame;
   int result;
   size_t body_received;
   size_t body_target;
 
-  long long now;
+  uint64_t now;
 
   while (1) {
     now = now_microseconds();
@@ -150,8 +149,8 @@ int main(int argc, char const * const *argv) {
 
   hostname = argv[1];
   port = atoi(argv[2]);
-  exchange = "amq.direct"; //argv[3];
-  bindingkey = "test queue"; //argv[4];
+  exchange = "amq.direct"; /* argv[3]; */
+  bindingkey = "test queue"; /* argv[4]; */
 
   conn = amqp_new_connection();
 
@@ -163,8 +162,8 @@ int main(int argc, char const * const *argv) {
   die_on_amqp_error(amqp_get_rpc_reply(conn), "Opening channel");
 
   {
-    amqp_queue_declare_ok_t *r = amqp_queue_declare(conn, 1, AMQP_EMPTY_BYTES, 0, 0, 0, 1,
-						    AMQP_EMPTY_TABLE);
+    amqp_queue_declare_ok_t *r = amqp_queue_declare(conn, 1, amqp_empty_bytes, 0, 0, 0, 1,
+						    amqp_empty_table);
     die_on_amqp_error(amqp_get_rpc_reply(conn), "Declaring queue");
     queuename = amqp_bytes_malloc_dup(r->queue);
     if (queuename.bytes == NULL) {
@@ -174,10 +173,10 @@ int main(int argc, char const * const *argv) {
   }
 
   amqp_queue_bind(conn, 1, queuename, amqp_cstring_bytes(exchange), amqp_cstring_bytes(bindingkey),
-		  AMQP_EMPTY_TABLE);
+		  amqp_empty_table);
   die_on_amqp_error(amqp_get_rpc_reply(conn), "Binding queue");
 
-  amqp_basic_consume(conn, 1, queuename, AMQP_EMPTY_BYTES, 0, 1, 0, AMQP_EMPTY_TABLE);
+  amqp_basic_consume(conn, 1, queuename, amqp_empty_bytes, 0, 1, 0, amqp_empty_table);
   die_on_amqp_error(amqp_get_rpc_reply(conn), "Consuming");
 
   run(conn);

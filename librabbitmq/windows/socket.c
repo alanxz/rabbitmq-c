@@ -48,8 +48,12 @@
  * ***** END LICENSE BLOCK *****
  */
 
+/* See http://msdn.microsoft.com/en-us/library/ms737629%28VS.85%29.aspx */
+#define WIN32_LEAN_AND_MEAN
+
 #include <windows.h>
 #include <stdint.h>
+#include <stdlib.h>
 
 #include "amqp.h"
 #include "amqp_private.h"
@@ -64,11 +68,17 @@ int amqp_socket_init(void)
 		int res = WSAStartup(0x0202, &data);
 		if (res)
 			return -res;
-		
+
 		called_wsastartup = 1;
 	}
 
 	return 0;
+}
+
+/* strdup is not in ISO C90! */
+static inline char *strdup(const char *str)
+{
+  return strcpy(malloc(strlen(str) + 1),str);
 }
 
 char *amqp_os_error_string(int err)

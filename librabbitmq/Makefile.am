@@ -1,7 +1,19 @@
 lib_LTLIBRARIES = librabbitmq.la
 
-AM_CFLAGS = -I$(srcdir)/$(PLATFORM_DIR)
-librabbitmq_la_SOURCES = amqp_mem.c amqp_table.c amqp_connection.c amqp_socket.c amqp_debug.c amqp_api.c $(PLATFORM_DIR)/socket.c
+AM_CFLAGS = -I$(srcdir)/$(PLATFORM_DIR) -DBUILDING_LIBRABBITMQ
+
+if GCC
+# Because we want to build under Microsoft's C compiler (for which
+# there is apparently no demand for C99 support), it's a good idea
+# to have gcc tell us when we stray from the old standard.
+AM_CFLAGS += -ansi -pedantic
+endif
+
+if USE_MSINTTYPES
+AM_CFLAGS += -I$(top_srcdir)/msinttypes
+endif
+
+librabbitmq_la_SOURCES = amqp_mem.c amqp_table.c amqp_connection.c amqp_socket.c amqp_api.c $(PLATFORM_DIR)/socket.c
 librabbitmq_la_LDFLAGS = -no-undefined
 librabbitmq_la_LIBADD = $(EXTRA_LIBS)
 nodist_librabbitmq_la_SOURCES = amqp_framing.c
