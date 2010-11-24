@@ -85,6 +85,7 @@ static char *make_command_line(const char *const *argv)
 	/* calculate the length of the required buffer, making worst
 	   case assumptions for simplicity */
 	for (i = 0;;) {
+		/* each character could need escaping */
 		len += strlen(argv[i]) * 2;
 
 		if (!argv[++i])
@@ -100,10 +101,10 @@ static char *make_command_line(const char *const *argv)
 		die("allocating memory for subprocess command line");
 
 	/* Here we perform the inverse of the CommandLineToArgvW
-	   function.  Note that it's rules are slightly crazy: A
+	   function.  Note that its rules are slightly crazy: A
 	   sequence of backslashes only act to escape if followed by
-	   double quotes.  A seuqence of backslashes not followed by
-	   double quotes is unaffected. */
+	   double quotes.  A sequence of backslashes not followed by
+	   double quotes is untouched. */
 
 	for (i = 0;;) {
 		const char *src = argv[i];
