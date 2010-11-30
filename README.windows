@@ -91,6 +91,12 @@ DLL, the corresponding .lib file, and header files.  These are
 sufficient to create applications using librabbitmq within Visual
 Studio.
 
+build-ms.sh produces 32-bit binaries by default.  If you have an
+appropriate version of Visual Studio (e.g. VS2010), you can build
+64-bit binaries with:
+
+  bash-3.1$ etc/build-ms.sh --enable-64-bit
+
 
 ## Building rabbitmq-c with gcc
 
