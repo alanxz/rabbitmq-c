@@ -65,7 +65,7 @@ for d in ../rabbitmq-codegen codegen ; do
 done
 AMQP_SPEC_JSON_PATH="$AMQP_CODEGEN_DIR/amqp-rabbitmq-0.9.1.json"
 
-if test -f "$AMQP_SPEC_JSON_PATH"
+if test -f "$srcdir/$AMQP_SPEC_JSON_PATH"
 then
   AC_MSG_RESULT($AMQP_CODEGEN_DIR)
 else
