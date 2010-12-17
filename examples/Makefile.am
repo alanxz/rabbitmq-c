@@ -1,6 +1,10 @@
 noinst_PROGRAMS = amqp_sendstring amqp_exchange_declare amqp_listen amqp_producer amqp_consumer amqp_unbind amqp_bind amqp_listenq
 
-AM_CFLAGS = -I$(top_srcdir)/librabbitmq
+# The -I to srcdir's librabbitmq is for the main amqp header
+# files. The -I to builddir's librabbitmq is less obvious; it's for
+# VPATH-based builds: the amqp_framing.h gets generated into the
+# *build* directory, not the source directory.
+AM_CFLAGS = -I$(top_srcdir)/librabbitmq -I$(top_builddir)/librabbitmq
 
 if GCC
 # Because we want to build under Microsoft's C compiler (for which

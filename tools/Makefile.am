@@ -2,7 +2,11 @@ SUBDIRS=doc
 
 bin_PROGRAMS = amqp-publish amqp-get amqp-consume amqp-declare-queue amqp-delete-queue
 
-AM_CFLAGS = -I$(top_srcdir)/librabbitmq -I$(srcdir)/$(PLATFORM_DIR)
+# The -I to srcdir's librabbitmq is for the main amqp header
+# files. The -I to builddir's librabbitmq is less obvious; it's for
+# VPATH-based builds: the amqp_framing.h gets generated into the
+# *build* directory, not the source directory.
+AM_CFLAGS = -I$(top_srcdir)/librabbitmq -I$(srcdir)/$(PLATFORM_DIR) -I$(top_builddir)/librabbitmq
 AM_LDFLAGS = $(top_builddir)/librabbitmq/librabbitmq.la
 
 LDADD=$(LIBPOPT)
