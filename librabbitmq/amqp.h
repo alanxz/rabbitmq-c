@@ -326,10 +326,6 @@ RABBITMQ_EXPORT amqp_rpc_reply_t amqp_login(amqp_connection_state_t state,
                                         int heartbeat,
                                         amqp_sasl_method_enum sasl_method, ...);
 
-RABBITMQ_EXPORT struct amqp_channel_open_ok_t_ *amqp_channel_open(
-                                                 amqp_connection_state_t state,
-                                                 amqp_channel_t channel);
-
 struct amqp_basic_properties_t_;
 RABBITMQ_EXPORT int amqp_basic_publish(amqp_connection_state_t state,
                               amqp_channel_t channel,
@@ -348,58 +344,6 @@ RABBITMQ_EXPORT amqp_rpc_reply_t amqp_connection_close(
                                                  amqp_connection_state_t state,
                                                  int code);
 
-RABBITMQ_EXPORT struct amqp_exchange_declare_ok_t_ *amqp_exchange_declare(
-                                                 amqp_connection_state_t state,
-                                                 amqp_channel_t channel,
-                                                 amqp_bytes_t exchange,
-                                                 amqp_bytes_t type,
-                                                 amqp_boolean_t passive,
-                                                 amqp_boolean_t durable,
-                                                 amqp_table_t arguments);
-
-RABBITMQ_EXPORT struct amqp_queue_declare_ok_t_ *amqp_queue_declare(
-                                                amqp_connection_state_t state,
-                                                amqp_channel_t channel,
-                                                amqp_bytes_t queue,
-                                                amqp_boolean_t passive,
-                                                amqp_boolean_t durable,
-                                                amqp_boolean_t exclusive,
-                                                amqp_boolean_t auto_delete,
-                                                amqp_table_t arguments);
-
-RABBITMQ_EXPORT struct amqp_queue_delete_ok_t_ *amqp_queue_delete(
-                                                amqp_connection_state_t state,
-                                                amqp_channel_t channel,
-                                                amqp_bytes_t queue,
-                                                amqp_boolean_t if_unused,
-                                                amqp_boolean_t if_empty);
-
-RABBITMQ_EXPORT struct amqp_queue_bind_ok_t_ *amqp_queue_bind(
-                                                amqp_connection_state_t state,
-                                                amqp_channel_t channel,
-                                                amqp_bytes_t queue,
-                                                amqp_bytes_t exchange,
-                                                amqp_bytes_t routing_key,
-                                                amqp_table_t arguments);
-
-RABBITMQ_EXPORT struct amqp_queue_unbind_ok_t_ *amqp_queue_unbind(
-                                                amqp_connection_state_t state,
-                                                amqp_channel_t channel,
-                                                amqp_bytes_t queue,
-                                                amqp_bytes_t exchange,
-                                                amqp_bytes_t routing_key,
-                                                amqp_table_t arguments);
-
-RABBITMQ_EXPORT struct amqp_basic_consume_ok_t_ *amqp_basic_consume(
-                                                amqp_connection_state_t state,
-                                                amqp_channel_t channel,
-                                                amqp_bytes_t queue,
-                                                amqp_bytes_t consumer_tag,
-                                                amqp_boolean_t no_local,
-                                                amqp_boolean_t no_ack,
-                                                amqp_boolean_t exclusive,
-                                                amqp_table_t filter);
-
 RABBITMQ_EXPORT int amqp_basic_ack(amqp_connection_state_t state,
 				   amqp_channel_t channel,
 				   uint64_t delivery_tag,
@@ -409,12 +353,6 @@ RABBITMQ_EXPORT amqp_rpc_reply_t amqp_basic_get(amqp_connection_state_t state,
                                                 amqp_channel_t channel,
                                                 amqp_bytes_t queue,
                                                 amqp_boolean_t no_ack);
-
-RABBITMQ_EXPORT struct amqp_queue_purge_ok_t_ *amqp_queue_purge(
-                                                amqp_connection_state_t state,
-                                                amqp_channel_t channel,
-                                                amqp_bytes_t queue,
-                                                amqp_boolean_t no_wait);
 
 RABBITMQ_EXPORT struct amqp_tx_select_ok_t_ *amqp_tx_select(
                                                 amqp_connection_state_t state,

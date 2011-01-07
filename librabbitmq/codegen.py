@@ -112,7 +112,7 @@ class BitEncoder(object):
         self.emitter.emit(line)
 
     def encode_bit(self, value):
-        """Generate code to ebcode a value of the AMQP bit type from
+        """Generate code to encode a value of the AMQP bit type from
         the given value."""
         if self.bit == 0:
             self.emitter.emit("bit_buffer = 0;")
@@ -138,6 +138,8 @@ class SimpleType(object):
     def encode(self, emitter, value):
         emitter.emit("if (!amqp_encode_%d(encoded, &offset, %s)) return -ERROR_BAD_AMQP_DATA;" % (self.bits, value))
 
+    def literal(self, value):
+        return value
 
 class StrType(object):
     """The AMQP shortstr or longstr types."""
@@ -159,6 +161,11 @@ class StrType(object):
         emitter.emit("    || !amqp_encode_bytes(encoded, &offset, %s))" % (value,))
         emitter.emit("  return -ERROR_BAD_AMQP_DATA;")
 
+    def literal(self, value):
+        if value != '':
+            raise NotImplementedError()
+
+        return "amqp_empty_bytes"
 
 class BitType(object):
     """The AMQP bit type."""
@@ -172,6 +179,8 @@ class BitType(object):
     def encode(self, emitter, value):
         emitter.encode_bit(value)
 
+    def literal(self, value):
+        return {True: 1, False: 0}[value]
 
 class TableType(object):
     """The AMQP table type."""
@@ -191,6 +200,8 @@ class TableType(object):
         emitter.emit("  if (res < 0) return res;")
         emitter.emit("}")
 
+    def literal(self, value):
+        raise NotImplementedError()
 
 types = {
     'octet': SimpleType(8),
@@ -213,10 +224,53 @@ def c_ize(s):
     s = s.replace(' ', '_')
     return s
 
+# When generating API functions corresponding to synchronous methods,
+# we need some information that isn't in the protocol def: Some
+# methods should not be exposed, indicated here by a False value.
+# Some methods should be exposed but certain fields should not be
+# exposed as parameters.
+apiMethodInfo  = {
+    "amqp_connection_start": False, # application code should not use this
+    "amqp_connection_secure": False, # application code should not use this
+    "amqp_connection_tune": False, # application code should not use this
+    "amqp_connection_open": False, # application code should not use this
+    "amqp_connection_close": False, # needs special handling
+    "amqp_channel_open": ["out_of_band"],
+    "amqp_channel_close": False, # needs special handling
+    "amqp_access_request": False, # huh?
+    "amqp_exchange_declare": ["auto_delete", "internal"],
+    "amqp_basic_get": False, # get-ok has content
+}
+
+# When generating API functions corresponding to synchronous methods,
+# some fields should be suppressed everywhere.  This dict names those
+# fields, and the fixed values to use for them.
+apiMethodsSuppressArgs = {"ticket": 0, "nowait": False}
+
 AmqpMethod.defName = lambda m: cConstantName(c_ize(m.klass.name) + '_' + c_ize(m.name) + "_method")
-AmqpMethod.structName = lambda m: "amqp_" + c_ize(m.klass.name) + '_' + c_ize(m.name) + "_t"
+AmqpMethod.fullName = lambda m: "amqp_%s_%s" % (c_ize(m.klass.name), c_ize(m.name))
+AmqpMethod.structName = lambda m: m.fullName() + "_t"
 
 AmqpClass.structName = lambda c: "amqp_" + c_ize(c.name) + "_properties_t"
+
+def methodApiPrototype(m):
+    fn = m.fullName()
+    info = apiMethodInfo.get(fn, [])
+
+    args = []
+    for f in m.arguments:
+        n = c_ize(f.name)
+        if n in apiMethodsSuppressArgs or n in info:
+            continue
+
+        args.append(", ")
+        args.append(typeFor(m.klass.spec, f).ctype)
+        args.append(" ")
+        args.append(n)
+
+    return "%s_ok_t *%s(amqp_connection_state_t state, amqp_channel_t channel%s)" % (fn, fn, ''.join(args))
+
+AmqpMethod.apiPrototype = methodApiPrototype
 
 def cConstantName(s):
     return 'AMQP_' + '_'.join(re.split('[- ]', s.upper()))
@@ -424,12 +478,55 @@ int amqp_encode_properties(uint16_t class_id,
       remaining_flags = remainder;
     } while (remaining_flags != 0);
   }
-  
+
   switch (class_id) {"""
     for c in spec.allClasses(): genEncodeProperties(c)
     print """    default: return -ERROR_UNKNOWN_CLASS;
   }
 }"""
+
+    for m in methods:
+        if not m.isSynchronous:
+            continue
+
+        info = apiMethodInfo.get(m.fullName(), [])
+        if info is False:
+            continue
+
+        reply = cConstantName(c_ize(m.klass.name) + '_' + c_ize(m.name) 
+                              + "_ok_method")
+
+        print
+        print m.apiPrototype()
+        print "{"
+        print "  amqp_method_number_t replies[2] = { %s, 0};" % (reply,)
+        print "  %s req;" % (m.structName(),)
+
+        for f in m.arguments:
+            n = c_ize(f.name)
+
+            val = apiMethodsSuppressArgs.get(n)
+            if val is None and n in info:
+                val = f.defaultvalue
+
+            if val is None:
+                val = n
+            else:
+                val = typeFor(spec, f).literal(val)
+
+
+            print "  req.%s = %s;" % (n, val)
+
+        print """
+  state->most_recent_api_result = amqp_simple_rpc(state, channel,
+						  %s,
+						  replies, &req);
+  if (state->most_recent_api_result.reply_type == AMQP_RESPONSE_NORMAL)
+    return state->most_recent_api_result.reply.decoded;
+  else
+    return NULL;
+}
+""" % (m.defName(),)
 
 def genHrl(spec):
     def fieldDeclList(fields):
@@ -439,7 +536,7 @@ def genHrl(spec):
                             for f in fields])
         else:
             return "  char dummy; /* Dummy field to avoid empty struct */\n"
-    
+
     def propDeclList(fields):
         return ''.join(["  %s %s;\n" % (typeFor(spec, f).ctype, c_ize(f.name))
                         for f in fields
@@ -465,6 +562,7 @@ extern "C" {
     print
 
     print """/* Function prototypes. */
+
 extern char const *amqp_constant_name(int constantNumber);
 extern amqp_boolean_t amqp_constant_is_hard_error(int constantNumber);
 RABBITMQ_EXPORT char const *amqp_method_name(amqp_method_number_t methodNumber);
@@ -485,7 +583,7 @@ extern int amqp_encode_properties(uint16_t class_id,
                                   amqp_bytes_t encoded);
 """
 
-    print "/* Method field records. */"
+    print "/* Method field records. */\n"
     for m in methods:
         methodid = m.klass.index << 16 | m.index
         print "#define %s ((amqp_method_number_t) 0x%.08X) /* %d, %d; %d */" % \
@@ -515,7 +613,14 @@ extern int amqp_encode_properties(uint16_t class_id,
                fieldDeclList(c.fields),
                c.structName())
 
-    print """#ifdef __cplusplus
+    print "/* API functions for methods */\n"
+
+    for m in methods:
+        if m.isSynchronous and apiMethodInfo.get(m.fullName()) is not False:
+            print "RABBITMQ_EXPORT %s;" % (m.apiPrototype(),)
+
+    print """
+#ifdef __cplusplus
 }
 #endif
 
@@ -526,6 +631,6 @@ def generateErl(specPath):
 
 def generateHrl(specPath):
     genHrl(AmqpSpec(specPath))
-    
+
 if __name__ == "__main__":
     do_main(generateHrl, generateErl)
