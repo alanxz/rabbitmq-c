@@ -319,6 +319,28 @@ RABBITMQ_EXPORT amqp_rpc_reply_t amqp_simple_rpc(amqp_connection_state_t state,
                                       amqp_method_number_t *expected_reply_ids,
                                       void *decoded_request_method);
 
+RABBITMQ_EXPORT void *amqp_simple_rpc_decoded(amqp_connection_state_t state,
+					      amqp_channel_t channel,
+					      amqp_method_number_t request_id,
+					      amqp_method_number_t reply_id,
+					      void *decoded_request_method);
+
+/*
+ * The API methods corresponding to most synchronous AMQP methods
+ * return a pointer to the decoded method result.  Upon error, they
+ * return NULL, and we need some way of discovering what, if anything,
+ * went wrong. amqp_get_rpc_reply() returns the most recent
+ * amqp_rpc_reply_t instance corresponding to such an API operation
+ * for the given connection.
+ *
+ * Only use it for operations that do not themselves return
+ * amqp_rpc_reply_t; operations that do return amqp_rpc_reply_t
+ * generally do NOT update this per-connection-global amqp_rpc_reply_t
+ * instance.
+ */
+RABBITMQ_EXPORT amqp_rpc_reply_t amqp_get_rpc_reply(
+                                                amqp_connection_state_t state);
+
 RABBITMQ_EXPORT amqp_rpc_reply_t amqp_login(amqp_connection_state_t state,
                                         char const *vhost,
                                         int channel_max,
@@ -367,22 +389,6 @@ RABBITMQ_EXPORT int amqp_basic_reject(amqp_connection_state_t state,
  * Possibly amqp_frames_enqueued should be used for this?
  */
 RABBITMQ_EXPORT amqp_boolean_t amqp_data_in_buffer(
-                                                amqp_connection_state_t state);
-
-/*
- * For those API operations (such as amqp_basic_ack,
- * amqp_queue_declare, and so on) that do not themselves return
- * amqp_rpc_reply_t instances, we need some way of discovering what,
- * if anything, went wrong. amqp_get_rpc_reply() returns the most
- * recent amqp_rpc_reply_t instance corresponding to such an API
- * operation for the given connection.
- *
- * Only use it for operations that do not themselves return
- * amqp_rpc_reply_t; operations that do return amqp_rpc_reply_t
- * generally do NOT update this per-connection-global amqp_rpc_reply_t
- * instance.
- */
-RABBITMQ_EXPORT amqp_rpc_reply_t amqp_get_rpc_reply(
                                                 amqp_connection_state_t state);
 
 /*

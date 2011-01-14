@@ -261,8 +261,3 @@ int amqp_basic_reject(amqp_connection_state_t state,
   req.requeue = requeue;
   return amqp_send_method(state, channel, AMQP_BASIC_REJECT_METHOD, &req);
 }
-
-amqp_rpc_reply_t amqp_get_rpc_reply(amqp_connection_state_t state)
-{
-  return state->most_recent_api_result;
-}

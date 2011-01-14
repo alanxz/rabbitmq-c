@@ -493,13 +493,9 @@ int amqp_encode_properties(uint16_t class_id,
         if info is False:
             continue
 
-        reply = cConstantName(c_ize(m.klass.name) + '_' + c_ize(m.name) 
-                              + "_ok_method")
-
         print
         print m.apiPrototype()
         print "{"
-        print "  amqp_method_number_t replies[2] = { %s, 0};" % (reply,)
         print "  %s req;" % (m.structName(),)
 
         for f in m.arguments:
@@ -517,16 +513,12 @@ int amqp_encode_properties(uint16_t class_id,
 
             print "  req.%s = %s;" % (n, val)
 
+        reply = cConstantName(c_ize(m.klass.name) + '_' + c_ize(m.name) 
+                              + "_ok_method")
         print """
-  state->most_recent_api_result = amqp_simple_rpc(state, channel,
-						  %s,
-						  replies, &req);
-  if (state->most_recent_api_result.reply_type == AMQP_RESPONSE_NORMAL)
-    return state->most_recent_api_result.reply.decoded;
-  else
-    return NULL;
+  return amqp_simple_rpc_decoded(state, channel, %s, %s, &req);
 }
-""" % (m.defName(),)
+""" % (m.defName(), reply)
 
 def genHrl(spec):
     def fieldDeclList(fields):

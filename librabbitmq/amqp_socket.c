@@ -351,6 +351,32 @@ amqp_rpc_reply_t amqp_simple_rpc(amqp_connection_state_t state,
   }
 }
 
+void *amqp_simple_rpc_decoded(amqp_connection_state_t state,
+			      amqp_channel_t channel,
+			      amqp_method_number_t request_id,
+			      amqp_method_number_t reply_id,
+			      void *decoded_request_method)
+{
+  amqp_method_number_t replies[2];
+
+  replies[0] = reply_id;
+  replies[1] = 0;
+
+  state->most_recent_api_result = amqp_simple_rpc(state, channel,
+						  request_id, replies,
+						  decoded_request_method);
+  if (state->most_recent_api_result.reply_type == AMQP_RESPONSE_NORMAL)
+    return state->most_recent_api_result.reply.decoded;
+  else
+    return NULL;
+}
+
+amqp_rpc_reply_t amqp_get_rpc_reply(amqp_connection_state_t state)
+{
+  return state->most_recent_api_result;
+}
+
+
 static int amqp_login_inner(amqp_connection_state_t state,
 			    int channel_max,
 			    int frame_max,
