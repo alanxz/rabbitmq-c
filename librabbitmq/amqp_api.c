@@ -251,6 +251,17 @@ amqp_rpc_reply_t amqp_basic_get(amqp_connection_state_t state,
   return state->most_recent_api_result;
 }
 
+int amqp_basic_reject(amqp_connection_state_t state,
+		      amqp_channel_t channel,
+		      uint64_t delivery_tag,
+		      amqp_boolean_t requeue)
+{
+  amqp_basic_reject_t req;
+  req.delivery_tag = delivery_tag;
+  req.requeue = requeue;
+  return amqp_send_method(state, channel, AMQP_BASIC_REJECT_METHOD, &req);
+}
+
 amqp_rpc_reply_t amqp_get_rpc_reply(amqp_connection_state_t state)
 {
   return state->most_recent_api_result;

@@ -354,6 +354,11 @@ RABBITMQ_EXPORT amqp_rpc_reply_t amqp_basic_get(amqp_connection_state_t state,
                                                 amqp_bytes_t queue,
                                                 amqp_boolean_t no_ack);
 
+RABBITMQ_EXPORT int amqp_basic_reject(amqp_connection_state_t state,
+				      amqp_channel_t channel,
+				      uint64_t delivery_tag,
+				      amqp_boolean_t requeue);
+
 RABBITMQ_EXPORT struct amqp_tx_select_ok_t_ *amqp_tx_select(
                                                 amqp_connection_state_t state,
                                                 amqp_channel_t channel);
