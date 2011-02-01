@@ -58,6 +58,10 @@
 #include "amqp_framing.h"
 #include "amqp_private.h"
 
+#ifndef _GNU_SOURCE
+#include "utils/strdup.h"
+#endif
+
 #include <assert.h>
 
 static const char *client_error_strings[ERROR_MAX] = {
@@ -69,12 +73,6 @@ static const char *client_error_strings[ERROR_MAX] = {
   "incompatible AMQP version", /* ERROR_INCOMPATIBLE_AMQP_VERSION */
   "connection closed unexpectedly", /* ERROR_CONNECTION_CLOSED */
 };
-
-/* strdup is not in ISO C90! */
-static inline char *strdup(const char *str)
-{
-  return strcpy(malloc(strlen(str) + 1),str);
-}
 
 char *amqp_error_string(int err)
 {
@@ -92,7 +90,7 @@ char *amqp_error_string(int err)
 
   case ERROR_CATEGORY_OS:
     return amqp_os_error_string(err);
-    
+
   default:
     str = "(undefined error category)";
   }

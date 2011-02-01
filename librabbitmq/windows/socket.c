@@ -59,6 +59,10 @@
 #include "amqp_private.h"
 #include "socket.h"
 
+#ifndef _GNU_SOURCE
+#include "utils/strdup.h"
+#endif
+
 static int called_wsastartup;
 
 int amqp_socket_init(void)
@@ -75,19 +79,13 @@ int amqp_socket_init(void)
 	return 0;
 }
 
-/* strdup is not in ISO C90! */
-static inline char *strdup(const char *str)
-{
-  return strcpy(malloc(strlen(str) + 1),str);
-}
-
 char *amqp_os_error_string(int err)
 {
 	char *msg, *copy;
 
 	if (!FormatMessage(FORMAT_MESSAGE_FROM_SYSTEM
 			       | FORMAT_MESSAGE_ALLOCATE_BUFFER,
-			   NULL, err, 
+			   NULL, err,
 			   MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT),
 			   (LPSTR)&msg, 0, NULL))
 		return strdup("(error retrieving Windows error message)");
