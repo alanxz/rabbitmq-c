@@ -1,5 +1,5 @@
-#ifndef LIBRABBITMQ_STRDUP_H_
-#define LIBRABBITMQ_STRDUP_H_
+#ifndef librabbitmq_strdup_h
+#define librabbitmq_strdup_h
 /* strdup is not in ISO C90!
  * we define it here for easy inclusion
  */
