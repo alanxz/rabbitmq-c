@@ -48,6 +48,8 @@
  * ***** END LICENSE BLOCK *****
  */
 
+#include "config.h"
+
 #include <sys/socket.h>
 #include <unistd.h>
 #include <fcntl.h>
@@ -58,10 +60,6 @@
 #include "amqp.h"
 #include "amqp_private.h"
 #include "socket.h"
-
-#ifndef _GNU_SOURCE
-#include "utils/strdup.h"
-#endif
 
 int amqp_socket_socket(int domain, int type, int proto)
 {

@@ -48,6 +48,8 @@
  * ***** END LICENSE BLOCK *****
  */
 
+#include "config.h"
+
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
@@ -57,10 +59,6 @@
 #include "amqp.h"
 #include "amqp_framing.h"
 #include "amqp_private.h"
-
-#ifndef _GNU_SOURCE
-#include "utils/strdup.h"
-#endif
 
 #include <assert.h>
 

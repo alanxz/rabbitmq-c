@@ -51,6 +51,8 @@
 /* See http://msdn.microsoft.com/en-us/library/ms737629%28VS.85%29.aspx */
 #define WIN32_LEAN_AND_MEAN
 
+#include "config.h"
+
 #include <windows.h>
 #include <stdint.h>
 #include <stdlib.h>
@@ -58,10 +60,6 @@
 #include "amqp.h"
 #include "amqp_private.h"
 #include "socket.h"
-
-#ifndef _GNU_SOURCE
-#include "utils/strdup.h"
-#endif
 
 static int called_wsastartup;
 
