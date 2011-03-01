@@ -7,8 +7,8 @@
  *
  * The contents of this file are subject to the Mozilla Public License
  * Version 1.1 (the "License"); you may not use this file except in
- * compliance with the License. You may obtain a copy of the License at
- * http://www.mozilla.org/MPL/
+ * compliance with the License. You may obtain a copy of the License
+ * at http://www.mozilla.org/MPL/
  *
  * Software distributed under the License is distributed on an "AS IS"
  * basis, WITHOUT WARRANTY OF ANY KIND, either express or implied. See
@@ -17,25 +17,13 @@
  *
  * The Original Code is librabbitmq.
  *
- * The Initial Developers of the Original Code are LShift Ltd, Cohesive
- * Financial Technologies LLC, and Rabbit Technologies Ltd.  Portions
- * created before 22-Nov-2008 00:00:00 GMT by LShift Ltd, Cohesive
- * Financial Technologies LLC, or Rabbit Technologies Ltd are Copyright
- * (C) 2007-2008 LShift Ltd, Cohesive Financial Technologies LLC, and
- * Rabbit Technologies Ltd.
+ * The Initial Developer of the Original Code is VMware, Inc.
+ * Portions created by VMware are Copyright (c) 2007-2011 VMware, Inc.
  *
- * Portions created by LShift Ltd are Copyright (C) 2007-2009 LShift
- * Ltd. Portions created by Cohesive Financial Technologies LLC are
- * Copyright (C) 2007-2009 Cohesive Financial Technologies
- * LLC. Portions created by Rabbit Technologies Ltd are Copyright (C)
- * 2007-2009 Rabbit Technologies Ltd.
+ * Portions created by Tony Garnock-Jones are Copyright (c) 2009-2010
+ * VMware, Inc. and Tony Garnock-Jones.
  *
- * Portions created by Tony Garnock-Jones are Copyright (C) 2009-2010
- * LShift Ltd and Tony Garnock-Jones.
- *
- * All Rights Reserved.
- *
- * Contributor(s): ______________________________________.
+ * All rights reserved.
  *
  * Alternatively, the contents of this file may be used under the terms
  * of the GNU General Public License Version 2 or later (the "GPL"), in
