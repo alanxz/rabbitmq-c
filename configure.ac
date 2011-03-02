@@ -1,4 +1,4 @@
-AC_INIT([librabbitmq],[0.0.1],[tonyg@rabbitmq.com])
+AC_INIT([librabbitmq],[0.0.1],[support@rabbitmq.com])
 AC_CONFIG_SRCDIR(librabbitmq/codegen.py)
 AM_INIT_AUTOMAKE
 
