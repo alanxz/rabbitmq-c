@@ -19,7 +19,7 @@ add_custom_command(
   VERBATIM)
 
 #prepare config.h
-file(WRITE "config.h" "#define VERSION \"0.0.1\"")
+file(WRITE "${CMAKE_CURRENT_BINARY_DIR}/config.h" "#define VERSION \"0.0.1\"")
 
 include_directories("unix")
 
