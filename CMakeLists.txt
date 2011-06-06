@@ -1,4 +1,5 @@
 cmake_minimum_required(VERSION 2.6)
+project(rabbitmq-c)
 
 #detect amqp_codegen directory
 find_path(AMQP_CODEGEN_DIR "amqp-rabbitmq-0.9.1.json"
@@ -25,6 +26,9 @@ execute_process(COMMAND ${PYTHON_EXECUTABLE} -c "import simplejson"
 if(CHECK_PYTHON_JSON_FAILED AND CHECK_PYTHON_SIMPLEJSON_FAILED)
   message(FATAL_ERROR "could not find a python that can 'import simplejson")
 endif()
+
+set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} ${CMAKE_CURRENT_SOURCE_DIR})
+include(TestCInline)
 
 add_subdirectory(librabbitmq)
 add_subdirectory(examples)
