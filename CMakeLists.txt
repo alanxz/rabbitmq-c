@@ -9,7 +9,7 @@ find_path(AMQP_CODEGEN_DIR "amqp-rabbitmq-0.9.1.json"
 if(NOT AMQP_CODEGEN_DIR)
   message(FATAL_ERROR "rabbitmq-codegen not found")
 else()
-  message("rabbitmq-codegen found at ${AMQP_CODEGEN_DIR}")
+  message(STATUS "rabbitmq-codegen found at ${AMQP_CODEGEN_DIR}")
   set(AMQP_SPEC_JSON_PATH "${AMQP_CODEGEN_DIR}/amqp-rabbitmq-0.9.1.json")
 endif()
 
@@ -32,3 +32,4 @@ include(TestCInline)
 
 add_subdirectory(librabbitmq)
 add_subdirectory(examples)
+
