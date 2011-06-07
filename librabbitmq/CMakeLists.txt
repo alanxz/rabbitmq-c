@@ -55,3 +55,14 @@ add_library(rabbitmq SHARED ${RABBITMQ_SOURCES})
 if(WIN32)
   target_link_libraries(rabbitmq ws2_32)
 endif(WIN32)
+
+install(TARGETS rabbitmq
+	RUNTIME DESTINATION bin
+	LIBRARY DESTINATION lib
+	ARCHIVE DESTINATION lib
+	PUBLIC_HEADER DESTINATION include)
+
+install(FILES amqp.h ${CMAKE_CURRENT_BINARY_DIR}/amqp_framing.h
+	DESTINATION include)
+
+
