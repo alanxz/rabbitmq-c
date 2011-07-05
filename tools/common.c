@@ -73,7 +73,7 @@ void die_errno(int err, const char *fmt, ...)
 	va_start(ap, fmt);
 	vfprintf(stderr, fmt, ap);
 	va_end(ap);
-	fprintf(stderr, ": %s\n", strerror(errno));
+	fprintf(stderr, ": %s\n", strerror(err));
 	exit(1);
 }
 
