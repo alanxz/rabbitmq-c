@@ -56,25 +56,25 @@ static void dump_indent(int indent) {
 static void dump_value(int indent, amqp_field_value_t v) {
   dump_indent(indent);
   putchar(v.kind);
-  putchar(' ');
   switch (v.kind) {
-    case AMQP_FIELD_KIND_BOOLEAN: puts(v.value.boolean ? "true" : "false"); break;
-    case AMQP_FIELD_KIND_I8: printf("%"PRId8"\n", v.value.i8); break;
-    case AMQP_FIELD_KIND_U8: printf("%"PRIu8"\n", v.value.u8); break;
-    case AMQP_FIELD_KIND_I16: printf("%"PRId16"\n", v.value.i16); break;
-    case AMQP_FIELD_KIND_U16: printf("%"PRIu16"\n", v.value.u16); break;
-    case AMQP_FIELD_KIND_I32: printf("%"PRId32"\n", v.value.i32); break;
-    case AMQP_FIELD_KIND_U32: printf("%"PRIu32"\n", v.value.u32); break;
-    case AMQP_FIELD_KIND_I64: printf("%"PRId64"\n", v.value.i64); break;
-    case AMQP_FIELD_KIND_F32: printf("%g\n", (double) v.value.f32); break;
-    case AMQP_FIELD_KIND_F64: printf("%g\n", v.value.f64); break;
+    case AMQP_FIELD_KIND_BOOLEAN: puts(v.value.boolean ? " true" : " false"); break;
+    case AMQP_FIELD_KIND_I8: printf(" %"PRId8"\n", v.value.i8); break;
+    case AMQP_FIELD_KIND_U8: printf(" %"PRIu8"\n", v.value.u8); break;
+    case AMQP_FIELD_KIND_I16: printf(" %"PRId16"\n", v.value.i16); break;
+    case AMQP_FIELD_KIND_U16: printf(" %"PRIu16"\n", v.value.u16); break;
+    case AMQP_FIELD_KIND_I32: printf(" %"PRId32"\n", v.value.i32); break;
+    case AMQP_FIELD_KIND_U32: printf(" %"PRIu32"\n", v.value.u32); break;
+    case AMQP_FIELD_KIND_I64: printf(" %"PRId64"\n", v.value.i64); break;
+    case AMQP_FIELD_KIND_F32: printf(" %g\n", (double) v.value.f32); break;
+    case AMQP_FIELD_KIND_F64: printf(" %g\n", v.value.f64); break;
     case AMQP_FIELD_KIND_DECIMAL:
-      printf("%d:::%u\n", v.value.decimal.decimals, v.value.decimal.value); break;
+      printf(" %d:::%u\n", v.value.decimal.decimals, v.value.decimal.value); break;
     case AMQP_FIELD_KIND_UTF8:
-      printf("%.*s\n", (int) v.value.bytes.len, (char *) v.value.bytes.bytes); break;
+      printf(" %.*s\n", (int) v.value.bytes.len, (char *) v.value.bytes.bytes); break;
     case AMQP_FIELD_KIND_BYTES:
       {
 	int i;
+	putchar(' ');
 	for (i = 0; i < v.value.bytes.len; i++) {
 	  printf("%02x", ((char *) v.value.bytes.bytes)[i]);
 	}
@@ -90,7 +90,7 @@ static void dump_value(int indent, amqp_field_value_t v) {
 	}
       }
       break;
-    case AMQP_FIELD_KIND_TIMESTAMP: printf("%"PRIu64"\n", v.value.u64); break;
+    case AMQP_FIELD_KIND_TIMESTAMP: printf(" %"PRIu64"\n", v.value.u64); break;
     case AMQP_FIELD_KIND_TABLE:
       putchar('\n');
       {
