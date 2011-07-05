@@ -69,7 +69,7 @@ void pipeline(const char *const *argv, struct pipeline *pl)
 
 	die_errno(posix_spawn_file_actions_destroy(&file_acts),
 		  "posix_spawn_file_actions_destroy");
-	
+
 	if (close(pipefds[0]))
 		die_errno(errno, "close");
 

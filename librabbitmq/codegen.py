@@ -539,7 +539,7 @@ int amqp_encode_properties(uint16_t class_id,
 
             print "  req.%s = %s;" % (n, val)
 
-        reply = cConstantName(c_ize(m.klass.name) + '_' + c_ize(m.name) 
+        reply = cConstantName(c_ize(m.klass.name) + '_' + c_ize(m.name)
                               + "_ok_method")
         print """
   return amqp_simple_rpc_decoded(state, channel, %s, %s, &req);

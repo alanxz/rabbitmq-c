@@ -11,7 +11,7 @@ Package: librabbitmq
 Architecture: any
 Section: libs
 Priority: extra
-Depends: 
+Depends:
 Description: An AMQP client library written in C
 
 Package: librabbitmq-dev

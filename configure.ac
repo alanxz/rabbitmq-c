@@ -25,7 +25,7 @@ fi
 dnl Detect the kind of host we're building for
 AC_CANONICAL_HOST
 windows=no
-case "${host}" in 
+case "${host}" in
 *-*-mingw*)
         windows=yes
         ;;

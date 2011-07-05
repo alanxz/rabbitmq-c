@@ -47,7 +47,7 @@ static int do_get(amqp_connection_state_t conn, char *queue)
 	amqp_rpc_reply_t r
 		= amqp_basic_get(conn, 1, cstring_bytes(queue), 1);
 	die_rpc(r, "basic.get");
-	
+
 	if (r.reply.id == AMQP_BASIC_GET_EMPTY_METHOD)
 		return 0;
 
@@ -68,14 +68,14 @@ int main(int argc, const char **argv)
 		POPT_AUTOHELP
 		{ NULL, 0, 0, NULL, 0 }
 	};
-	
+
 	process_all_options(argc, argv, options);
 
 	if (!queue) {
 		fprintf(stderr, "queue not specified\n");
 		return 1;
 	}
-	
+
 	conn = make_connection();
 	got_something = do_get(conn, queue);
 	close_connection(conn);

@@ -80,14 +80,14 @@ int main(int argc, const char **argv)
 		{"content-encoding", 'E', POPT_ARG_STRING,
 		 &content_encoding, 0,
 		 "the content-encoding for the message", "content encoding"},
-		{"body", 'b', POPT_ARG_STRING, &body, 0,          
-                 "specify the message body", "body"}, 
+		{"body", 'b', POPT_ARG_STRING, &body, 0,
+                 "specify the message body", "body"},
 		POPT_AUTOHELP
 		{ NULL, 0, 0, NULL, 0 }
 	};
 
 	process_all_options(argc, argv, options);
-	
+
 	if (!exchange && !routing_key) {
 		fprintf(stderr,
 			"neither exchange nor routing key specified\n");
@@ -114,12 +114,12 @@ int main(int argc, const char **argv)
 		body_bytes = amqp_cstring_bytes(body);
 	else
 		body_bytes = read_all(0);
-	
+
 	do_publish(conn, exchange, routing_key, &props, body_bytes);
 
 	if (!body)
 		free(body_bytes.bytes);
-	
+
 	close_connection(conn);
 	return 0;
 }

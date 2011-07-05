@@ -133,7 +133,7 @@ char *amqp_rpc_reply_string(amqp_rpc_reply_t r)
 	switch (r.reply_type) {
 	case AMQP_RESPONSE_NORMAL:
 		return strdup("normal response");
-		
+
 	case AMQP_RESPONSE_NONE:
 		return strdup("missing RPC reply type");
 
@@ -155,7 +155,7 @@ void die_rpc(amqp_rpc_reply_t r, const char *fmt, ...)
 
 	if (r.reply_type == AMQP_RESPONSE_NORMAL)
 		return;
-	
+
 	va_start(ap, fmt);
 	vfprintf(stderr, fmt, ap);
 	va_end(ap);
@@ -188,7 +188,7 @@ amqp_connection_state_t make_connection(void)
 	amqp_connection_state_t conn;
 	char *host = amqp_server;
 	int port = 0;
-	
+
 	/* parse the server string into a hostname and a port */
 	char *colon = strchr(amqp_server, ':');
 	if (colon) {
@@ -199,7 +199,7 @@ amqp_connection_state_t make_connection(void)
 		host[host_len] = 0;
 
 		port = strtol(colon+1, &port_end, 10);
-		if (port < 0 
+		if (port < 0
 		    || port > 65535
 		    || port_end == colon+1
 		    || *port_end != 0)
@@ -208,10 +208,10 @@ amqp_connection_state_t make_connection(void)
 
 	s = amqp_open_socket(host, port ? port : 5672);
 	die_amqp_error(s, "opening socket to %s", amqp_server);
-	
+
 	conn = amqp_new_connection();
 	amqp_set_sockfd(conn, s);
-	
+
 	die_rpc(amqp_login(conn, amqp_vhost, 0, 131072, 0,
 			   AMQP_SASL_METHOD_PLAIN,
 			   amqp_username, amqp_password),
@@ -219,7 +219,7 @@ amqp_connection_state_t make_connection(void)
 
 	if (!amqp_channel_open(conn, 1))
 		die_rpc(amqp_get_rpc_reply(conn), "opening channel");
-		
+
 	return conn;
 }
 
@@ -230,7 +230,7 @@ void close_connection(amqp_connection_state_t conn)
 		"closing channel");
 	die_rpc(amqp_connection_close(conn, AMQP_REPLY_SUCCESS),
 		"closing connection");
-	
+
 	res = amqp_destroy_connection(conn);
 	die_amqp_error(res, "closing connection");
 }
@@ -271,7 +271,7 @@ void write_all(int fd, amqp_bytes_t data)
 		ssize_t res = write(fd, data.bytes, data.len);
 		if (res < 0)
 			die_errno(errno, "write");
-		
+
 		data.len -= res;
 		data.bytes += res;
 	}
@@ -281,13 +281,13 @@ void copy_body(amqp_connection_state_t conn, int fd)
 {
 	size_t body_remaining;
 	amqp_frame_t frame;
-		
+
 	int res = amqp_simple_wait_frame(conn, &frame);
 	die_amqp_error(res, "waiting for header frame");
 	if (frame.frame_type != AMQP_FRAME_HEADER)
 		die("expected header, got frame type 0x%X",
 		    frame.frame_type);
-	
+
 	body_remaining = frame.payload.properties.body_size;
 	while (body_remaining) {
 		res = amqp_simple_wait_frame(conn, &frame);
@@ -295,7 +295,7 @@ void copy_body(amqp_connection_state_t conn, int fd)
 		if (frame.frame_type != AMQP_FRAME_BODY)
 			die("expected body, got frame type 0x%X",
 			    frame.frame_type);
-		
+
 		write_all(fd, frame.payload.body_fragment);
 		body_remaining -= frame.payload.body_fragment.len;
 	}
@@ -330,13 +330,13 @@ void process_all_options(int argc, const char **argv,
 	poptContext opts = process_options(argc, argv, options,
 					   "[OPTIONS]...");
         const char *opt = poptPeekArg(opts);
-	
+
 	if (opt) {
 		fprintf(stderr, "unexpected operand: %s\n", opt);
 		poptPrintUsage(opts, stderr, 0);
 		exit(1);
 	}
-	
+
 	poptFreeContext(opts);
 }
 

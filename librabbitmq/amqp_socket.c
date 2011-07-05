@@ -305,7 +305,7 @@ amqp_rpc_reply_t amqp_simple_rpc(amqp_connection_state_t state,
 	    ||
 	       ((frame.channel == 0) &&
 		(frame.payload.method.id == AMQP_CONNECTION_CLOSE_METHOD))   ) ))
-    {	     
+    {
       amqp_frame_t *frame_copy = amqp_pool_alloc(&state->decoding_pool, sizeof(amqp_frame_t));
       amqp_link_t *link = amqp_pool_alloc(&state->decoding_pool, sizeof(amqp_link_t));
 

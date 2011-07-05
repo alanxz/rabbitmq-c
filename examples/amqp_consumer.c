@@ -92,7 +92,7 @@ static void run(amqp_connection_state_t conn)
     result = amqp_simple_wait_frame(conn, &frame);
     if (result < 0)
       return;
-    
+
     if (frame.frame_type != AMQP_FRAME_HEADER) {
       fprintf(stderr, "Expected header!");
       abort();

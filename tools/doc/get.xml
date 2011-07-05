@@ -33,7 +33,7 @@
             <arg choice="req">-q <replaceable>queue name</replaceable></arg>
         </cmdsynopsis>
     </refsynopsisdiv>
-    
+
     <refsect1>
         <title>Description</title>
         <para>

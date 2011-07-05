@@ -38,7 +38,7 @@
             </arg>
         </cmdsynopsis>
     </refsynopsisdiv>
-    
+
     <refsect1>
         <title>Description</title>
         <para>
@@ -73,7 +73,7 @@
                         The name of the queue to consume messages
                         from.
                     </para>
-                        
+
                     <para>
                         If the <option>--queue</option> option is
                         omitted, the AMQP server will assign a unique

@@ -53,7 +53,7 @@ static char *stringify_bytes(amqp_bytes_t bytes)
 	uint8_t *data = bytes.bytes;
 	char *p = res;
 	size_t i;
-	
+
 	for (i = 0; i < bytes.len; i++) {
 		if (data[i] >= 32 && data[i] != 127) {
 			*p++ = data[i];
@@ -61,7 +61,7 @@ static char *stringify_bytes(amqp_bytes_t bytes)
 		else {
 			*p++ = '\\';
 			*p++ = '0' + (data[i] >> 6);
-			*p++ = '0' + (data[i] >> 3 & 0x7); 
+			*p++ = '0' + (data[i] >> 3 & 0x7);
 			*p++ = '0' + (data[i] & 0x7);
 		}
 	}
@@ -112,7 +112,7 @@ static amqp_bytes_t setup_queue(amqp_connection_state_t conn,
 					"queue.bind");
 		}
 	}
-	
+
 	return queue_bytes;
 }
 
@@ -137,7 +137,7 @@ static void do_consume(amqp_connection_state_t conn, amqp_bytes_t queue,
 		amqp_basic_deliver_t *deliver
 			= (amqp_basic_deliver_t *)frame.payload.method.decoded;
 		delivery_tag = deliver->delivery_tag;
-		
+
 		pipeline(argv, &pl);
 		copy_body(conn, pl.infd);
 
@@ -177,10 +177,10 @@ int main(int argc, const char **argv)
 		POPT_AUTOHELP
 		{ NULL, 0, 0, NULL, 0 }
 	};
-	
+
 	opts = process_options(argc, argv, options,
 			       "[OPTIONS]... <command> <args>");
-	
+
 	cmd_argv = poptGetArgs(opts);
 	if (!cmd_argv || !cmd_argv[0]) {
 		fprintf(stderr, "consuming command not specified\n");

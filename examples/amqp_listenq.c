@@ -133,7 +133,7 @@ int main(int argc, char const * const *argv) {
 	if (frame.frame_type != AMQP_FRAME_BODY) {
 	  fprintf(stderr, "Expected body!");
 	  abort();
-	}	  
+	}
 
 	body_received += frame.payload.body_fragment.len;
 	assert(body_received <= body_target);

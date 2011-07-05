@@ -3,7 +3,7 @@
 if [ $# -ne 1 ] ; then
     echo "usage: install-mingw.sh <destination directory>" 1>&2
     exit 1
-fi    
+fi
 
 unpack_dir=$1
 
@@ -67,7 +67,7 @@ for f in $download_dir/* ; do
     *.tar.lzma)
             tar -C $unpack_dir -xJf $f
             ;;
-        
+
     *)
             echo "Don't know how to unpack $f" 1>&2
             exit 1
