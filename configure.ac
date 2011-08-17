@@ -45,6 +45,8 @@ AS_IF([test "x$GCC" = "xyes"], [CFLAGS="$CFLAGS -ansi -pedantic"])
 AC_C_INLINE
 CFLAGS="$orig_cflags"
 
+AC_C_BIGENDIAN
+
 dnl Decide which API abstraction layer to use
 PLATFORM_DIR=unix
 if test "x$windows" = xyes ; then
