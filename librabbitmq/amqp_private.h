@@ -146,12 +146,16 @@ static inline void *amqp_offset(void *data, size_t offset)
 static inline void amqp_e##bits(void *data, size_t offset,                  \
                                 uint##bits##_t val)                         \
 {									    \
-  uint##bits##_t res = htonx(val);					    \
+  /* The AMQP data might be unaligned. So we encode and then copy the       \
+     result into place. */		   				    \
+  uint##bits##_t res = htonx(val);	   				    \
   memcpy(amqp_offset(data, offset), &res, bits/8);                          \
 }                                                                           \
                                                                             \
 static inline uint##bits##_t amqp_d##bits(void *data, size_t offset)        \
-{			      						    \
+{			      		   				    \
+  /* The AMQP data might be unaligned.  So we copy the source value	    \
+     into a variable and then decode it. */				    \
   uint##bits##_t val;	      						    \
   memcpy(&val, amqp_offset(data, offset), bits/8);                          \
   return ntohx(val);							    \
