@@ -138,19 +138,27 @@ static inline void *amqp_offset(void *data, size_t offset)
   return (char *)data + offset;
 }
 
-/* assuming a machine that supports unaligned accesses (for now) */
+/* This macro defines the encoding and decoding functions associated with a
+   simple type. */
 
 #define DECLARE_CODEC_BASE_TYPE(bits, htonx, ntohx)                         \
                                                                             \
 static inline void amqp_e##bits(void *data, size_t offset,                  \
                                 uint##bits##_t val)                         \
-{                                                                           \
-  *(uint##bits##_t *)amqp_offset(data, offset) = htonx(val);                \
+{									    \
+  /* The AMQP data might be unaligned. So we encode and then copy the       \
+     result into place. */		   				    \
+  uint##bits##_t res = htonx(val);	   				    \
+  memcpy(amqp_offset(data, offset), &res, bits/8);                          \
 }                                                                           \
                                                                             \
 static inline uint##bits##_t amqp_d##bits(void *data, size_t offset)        \
-{                                                                           \
-  return ntohx(*(uint##bits##_t *)amqp_offset(data, offset));               \
+{			      		   				    \
+  /* The AMQP data might be unaligned.  So we copy the source value	    \
+     into a variable and then decode it. */				    \
+  uint##bits##_t val;	      						    \
+  memcpy(&val, amqp_offset(data, offset), bits/8);                          \
+  return ntohx(val);							    \
 }                                                                           \
                                                                             \
 static inline int amqp_encode_##bits(amqp_bytes_t encoded, size_t *offset,  \
@@ -174,7 +182,6 @@ static inline int amqp_decode_##bits(amqp_bytes_t encoded, size_t *offset,  \
   size_t o = *offset;                                                       \
   if ((*offset = o + bits / 8) <= encoded.len) {                            \
     *output = amqp_d##bits(encoded.bytes, o);                               \
-    *output = ntohx(*(uint##bits##_t *)((char *)encoded.bytes + o));        \
     return 1;                                                               \
   }                                                                         \
   else {                                                                    \
@@ -182,7 +189,7 @@ static inline int amqp_decode_##bits(amqp_bytes_t encoded, size_t *offset,  \
   }                                                                         \
 }
 
-/* assuming little endian (for now) */
+#ifndef WORDS_BIGENDIAN
 
 #define DECLARE_XTOXLL(func)                      \
 static inline uint64_t func##ll(uint64_t val)     \
@@ -198,6 +205,23 @@ static inline uint64_t func##ll(uint64_t val)     \
   u.halves[1] = func##l(t);                       \
   return u.whole;                                 \
 }
+
+#else
+
+#define DECLARE_XTOXLL(func)                      \
+static inline uint64_t func##ll(uint64_t val)     \
+{                                                 \
+  union {                                         \
+    uint64_t whole;                               \
+    uint32_t halves[2];                           \
+  } u;                                            \
+  u.whole = val;                                  \
+  u.halves[0] = func##l(u.halves[0]);             \
+  u.halves[1] = func##l(u.halves[1]);             \
+  return u.whole;                                 \
+}
+
+#endif
 
 DECLARE_XTOXLL(hton)
 DECLARE_XTOXLL(ntoh)
