@@ -1,4 +1,6 @@
-noinst_PROGRAMS = test_tables
+check_PROGRAMS = test_tables
+TESTS = $(check_PROGRAMS)
+EXTRA_DIST = test_tables.expected
 
 AM_CFLAGS = -I$(top_srcdir)/librabbitmq
 
