@@ -311,15 +311,6 @@ int main(int argc, char const * const *argv) {
   amqp_table_entry_t entries[8];
   amqp_table_t table;
 
-  union {
-    uint32_t i;
-    float f;
-  } vi;
-  union {
-    uint64_t l;
-    double d;
-  } vl;
-
   entries[0].key = amqp_cstring_bytes("zebra");
   entries[0].value.kind = AMQP_FIELD_KIND_UTF8;
   entries[0].value.value.bytes = amqp_cstring_bytes("last");
@@ -355,23 +346,6 @@ int main(int argc, char const * const *argv) {
 
   table.num_entries = 8;
   table.entries = entries;
-
-  vi.f = M_PI;
-  if ((sizeof(float) != 4) || (vi.i != 0x40490fdb)) {
-    printf("*** ERROR: single floating point encoding does not work as expected\n");
-    printf("sizeof float is %lu, float is %g, u32 is 0x%08lx\n",
-	   (unsigned long)sizeof(float),
-	   vi.f,
-	   (unsigned long) vi.i);
-  }
-
-  vl.d = M_PI;
-  if ((sizeof(double) != 8) || (vl.l != 0x400921fb54442d18L)) {
-    printf("*** ERROR: double floating point encoding does not work as expected\n");
-    printf("sizeof double is %lu, double is %g, u64 is 0x%16"PRIx64"\n",
-	   (unsigned long)sizeof(double),
-	   vl.d, vl.l);
-  }
 
   test_table_codec();
 
