@@ -39,6 +39,8 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
+#include <stdarg.h>
+#include <errno.h>
 
 #include <inttypes.h>
 
@@ -46,69 +48,173 @@
 
 #include <math.h>
 
-#define M_PI 3.14159265358979323846264338327
-
-static void dump_indent(int indent) {
-  int i;
-  for (i = 0; i < indent; i++) { putchar(' '); }
+void die(const char *fmt, ...)
+{
+	va_list ap;
+	va_start(ap, fmt);
+	vfprintf(stderr, fmt, ap);
+	va_end(ap);
+	fprintf(stderr, "\n");
+	abort();
 }
 
-static void dump_value(int indent, amqp_field_value_t v) {
-  dump_indent(indent);
-  putchar(v.kind);
+#define M_PI 3.14159265358979323846264338327
+
+static void dump_indent(int indent, FILE *out)
+{
+  int i;
+
+  for (i = 0; i < indent; i++)
+    fputc(' ', out);
+}
+
+static void dump_value(int indent, amqp_field_value_t v, FILE *out)
+{
+  int i;
+
+  dump_indent(indent, out);
+  fputc(v.kind, out);
+
   switch (v.kind) {
-    case AMQP_FIELD_KIND_BOOLEAN: puts(v.value.boolean ? " true" : " false"); break;
-    case AMQP_FIELD_KIND_I8: printf(" %"PRId8"\n", v.value.i8); break;
-    case AMQP_FIELD_KIND_U8: printf(" %"PRIu8"\n", v.value.u8); break;
-    case AMQP_FIELD_KIND_I16: printf(" %"PRId16"\n", v.value.i16); break;
-    case AMQP_FIELD_KIND_U16: printf(" %"PRIu16"\n", v.value.u16); break;
-    case AMQP_FIELD_KIND_I32: printf(" %"PRId32"\n", v.value.i32); break;
-    case AMQP_FIELD_KIND_U32: printf(" %"PRIu32"\n", v.value.u32); break;
-    case AMQP_FIELD_KIND_I64: printf(" %"PRId64"\n", v.value.i64); break;
-    case AMQP_FIELD_KIND_F32: printf(" %g\n", (double) v.value.f32); break;
-    case AMQP_FIELD_KIND_F64: printf(" %g\n", v.value.f64); break;
-    case AMQP_FIELD_KIND_DECIMAL:
-      printf(" %d:::%u\n", v.value.decimal.decimals, v.value.decimal.value); break;
-    case AMQP_FIELD_KIND_UTF8:
-      printf(" %.*s\n", (int) v.value.bytes.len, (char *) v.value.bytes.bytes); break;
-    case AMQP_FIELD_KIND_BYTES:
-      {
-	int i;
-	putchar(' ');
-	for (i = 0; i < v.value.bytes.len; i++) {
-	  printf("%02x", ((char *) v.value.bytes.bytes)[i]);
-	}
-	putchar('\n');
-      }
-      break;
-    case AMQP_FIELD_KIND_ARRAY:
-      putchar('\n');
-      {
-	int i;
-	for (i = 0; i < v.value.array.num_entries; i++) {
-	  dump_value(indent + 2, v.value.array.entries[i]);
-	}
-      }
-      break;
-    case AMQP_FIELD_KIND_TIMESTAMP: printf(" %"PRIu64"\n", v.value.u64); break;
-    case AMQP_FIELD_KIND_TABLE:
-      putchar('\n');
-      {
-	int i;
-	for (i = 0; i < v.value.table.num_entries; i++) {
-	  dump_indent(indent + 2);
-	  printf("%.*s ->\n",
-		 (int) v.value.table.entries[i].key.len,
-		 (char *) v.value.table.entries[i].key.bytes);
-	  dump_value(indent + 4, v.value.table.entries[i].value);
-	}
-      }
-      break;
-    case AMQP_FIELD_KIND_VOID: putchar('\n'); break;
-    default:
-      printf("???\n");
-      break;
+  case AMQP_FIELD_KIND_BOOLEAN:
+    fputs(v.value.boolean ? " true\n" : " false\n", out);
+    break;
+
+  case AMQP_FIELD_KIND_I8:
+    fprintf(out, " %"PRId8"\n", v.value.i8);
+    break;
+
+  case AMQP_FIELD_KIND_U8:
+    fprintf(out, " %"PRIu8"\n", v.value.u8);
+    break;
+
+  case AMQP_FIELD_KIND_I16:
+    fprintf(out, " %"PRId16"\n", v.value.i16);
+    break;
+
+  case AMQP_FIELD_KIND_U16:
+    fprintf(out, " %"PRIu16"\n", v.value.u16);
+    break;
+
+  case AMQP_FIELD_KIND_I32:
+    fprintf(out, " %"PRId32"\n", v.value.i32);
+    break;
+
+  case AMQP_FIELD_KIND_U32:
+    fprintf(out, " %"PRIu32"\n", v.value.u32);
+    break;
+
+  case AMQP_FIELD_KIND_I64:
+    fprintf(out, " %"PRId64"\n", v.value.i64);
+    break;
+
+  case AMQP_FIELD_KIND_F32:
+    fprintf(out, " %g\n", (double) v.value.f32);
+    break;
+
+  case AMQP_FIELD_KIND_F64:
+    fprintf(out, " %g\n", v.value.f64);
+    break;
+
+  case AMQP_FIELD_KIND_DECIMAL:
+    fprintf(out, " %d:::%u\n", v.value.decimal.decimals,
+	    v.value.decimal.value);
+    break;
+
+  case AMQP_FIELD_KIND_UTF8:
+    fprintf(out, " %.*s\n", (int)v.value.bytes.len,
+	    (char *)v.value.bytes.bytes);
+    break;
+
+  case AMQP_FIELD_KIND_BYTES:
+    fputc(' ', out);
+    for (i = 0; i < v.value.bytes.len; i++)
+      fprintf(out, "%02x", ((char *) v.value.bytes.bytes)[i]);
+
+    fputc('\n', out);
+    break;
+
+  case AMQP_FIELD_KIND_ARRAY:
+    fputc('\n', out);
+    for (i = 0; i < v.value.array.num_entries; i++)
+      dump_value(indent + 2, v.value.array.entries[i], out);
+
+    break;
+
+  case AMQP_FIELD_KIND_TIMESTAMP:
+    fprintf(out, " %"PRIu64"\n", v.value.u64);
+    break;
+
+  case AMQP_FIELD_KIND_TABLE:
+    fputc('\n', out);
+    for (i = 0; i < v.value.table.num_entries; i++) {
+      dump_indent(indent + 2, out);
+      fprintf(out, "%.*s ->\n",
+	      (int)v.value.table.entries[i].key.len,
+	      (char *)v.value.table.entries[i].key.bytes);
+      dump_value(indent + 4, v.value.table.entries[i].value, out);
+    }
+
+    break;
+
+  case AMQP_FIELD_KIND_VOID:
+    fputc('\n', out);
+    break;
+
+  default:
+    fprintf(out, "???\n");
+    break;
   }
+}
+
+static void test_dump_value(FILE *out)
+{
+  amqp_table_entry_t entries[8];
+  amqp_table_t table;
+  amqp_field_value_t val;
+
+  entries[0].key = amqp_cstring_bytes("zebra");
+  entries[0].value.kind = AMQP_FIELD_KIND_UTF8;
+  entries[0].value.value.bytes = amqp_cstring_bytes("last");
+
+  entries[1].key = amqp_cstring_bytes("aardvark");
+  entries[1].value.kind = AMQP_FIELD_KIND_UTF8;
+  entries[1].value.value.bytes = amqp_cstring_bytes("first");
+
+  entries[2].key = amqp_cstring_bytes("middle");
+  entries[2].value.kind = AMQP_FIELD_KIND_UTF8;
+  entries[2].value.value.bytes = amqp_cstring_bytes("third");
+
+  entries[3].key = amqp_cstring_bytes("number");
+  entries[3].value.kind = AMQP_FIELD_KIND_I32;
+  entries[3].value.value.i32 = 1234;
+
+  entries[4].key = amqp_cstring_bytes("decimal");
+  entries[4].value.kind = AMQP_FIELD_KIND_DECIMAL;
+  entries[4].value.value.decimal.decimals = 2;
+  entries[4].value.value.decimal.value = 1234;
+
+  entries[5].key = amqp_cstring_bytes("time");
+  entries[5].value.kind = AMQP_FIELD_KIND_TIMESTAMP;
+  entries[5].value.value.u64 = 1234123412341234;
+
+  entries[6].key = amqp_cstring_bytes("beta");
+  entries[6].value.kind = AMQP_FIELD_KIND_UTF8;
+  entries[6].value.value.bytes = amqp_cstring_bytes("second");
+
+  entries[7].key = amqp_cstring_bytes("wombat");
+  entries[7].value.kind = AMQP_FIELD_KIND_UTF8;
+  entries[7].value.value.bytes = amqp_cstring_bytes("fourth");
+
+  table.num_entries = 8;
+  table.entries = entries;
+
+  qsort(table.entries, table.num_entries, sizeof(amqp_table_entry_t), &amqp_table_entry_cmp);
+
+  val.kind = AMQP_FIELD_KIND_TABLE;
+  val.value.table = table;
+
+  dump_value(0, val, out);
 }
 
 static uint8_t pre_encoded_table[] = {
@@ -147,7 +253,8 @@ static uint8_t pre_encoded_table[] = {
   0x44, 0x2d, 0x18
 };
 
-static void test_table_codec(void) {
+static void test_table_codec(FILE *out)
+{
   amqp_pool_t pool;
   int result;
 
@@ -239,13 +346,13 @@ static void test_table_codec(void) {
   table.num_entries = 14;
   table.entries = entries;
 
-  printf("AAAAAAAAAA\n");
+  fprintf(out, "AAAAAAAAAA\n");
 
   {
     amqp_field_value_t val;
     val.kind = AMQP_FIELD_KIND_TABLE;
     val.value.table = table;
-    dump_value(0, val);
+    dump_value(0, val, out);
   }
 
   init_amqp_pool(&pool, 4096);
@@ -257,21 +364,19 @@ static void test_table_codec(void) {
     decoding_bytes.len = sizeof(pre_encoded_table);
     decoding_bytes.bytes = pre_encoded_table;
 
-    result = amqp_decode_table(decoding_bytes, &pool, &decoded, &decoding_offset);
-    if (result < 0) {
-      char *errstr = amqp_error_string(-result);
-      printf("Table decoding failed: %d (%s)\n", result, errstr);
-      free(errstr);
-      abort();
-    }
-    printf("BBBBBBBBBB\n");
+    result = amqp_decode_table(decoding_bytes, &pool, &decoded,
+			       &decoding_offset);
+    if (result < 0)
+      die("Table decoding failed: %s", amqp_error_string(-result));
+
+    fprintf(out, "BBBBBBBBBB\n");
 
     {
       amqp_field_value_t val;
       val.kind = AMQP_FIELD_KIND_TABLE;
       val.value.table = decoded;
 
-      dump_value(0, val);
+      dump_value(0, val, out);
     }
   }
 
@@ -285,107 +390,88 @@ static void test_table_codec(void) {
     encoding_result.bytes = &encoding_buffer[0];
 
     result = amqp_encode_table(encoding_result, &table, &offset);
-    if (result < 0) {
-      char *errstr = amqp_error_string(-result);
-      printf("Table encoding failed: %d (%s)\n", result, errstr);
-      free(errstr);
-      abort();
-    }
+    if (result < 0)
+      die("Table encoding failed: %s", amqp_error_string(-result));
 
-    if (offset != sizeof(pre_encoded_table)) {
-      printf("Offset should be %d, was %d\n", (int) sizeof(pre_encoded_table), (int)offset);
-      abort();
-    }
+    if (offset != sizeof(pre_encoded_table))
+      die("Offset should be %ld, was %ld", (long)sizeof(pre_encoded_table),
+	  (long)offset);
 
     result = memcmp(pre_encoded_table, encoding_buffer, offset);
-    if (result != 0) {
-      printf("Table encoding differed, result = %d\n", result);
-      abort();
-    }
+    if (result != 0)
+      die("Table encoding differed", result);
   }
 
   empty_amqp_pool(&pool);
 }
 
-int main(int argc, char const * const *argv) {
-  amqp_table_entry_t entries[8];
-  amqp_table_t table;
+#define CHUNK_SIZE 4096
 
-  union {
-    uint32_t i;
-    float f;
-  } vi;
-  union {
-    uint64_t l;
-    double d;
-  } vl;
+static int compare_files(const char *f1, const char *f2)
+{
+  FILE *f1_in;
+  FILE *f2_in;
+  char f1_buf[CHUNK_SIZE];
+  char f2_buf[CHUNK_SIZE];
+  int res;
 
-  entries[0].key = amqp_cstring_bytes("zebra");
-  entries[0].value.kind = AMQP_FIELD_KIND_UTF8;
-  entries[0].value.value.bytes = amqp_cstring_bytes("last");
+  f1_in = fopen(f1, "r");
+  if (f1_in == NULL)
+    die("opening %s: %s", f1, strerror(errno));
 
-  entries[1].key = amqp_cstring_bytes("aardvark");
-  entries[1].value.kind = AMQP_FIELD_KIND_UTF8;
-  entries[1].value.value.bytes = amqp_cstring_bytes("first");
+  f2_in = fopen(f2, "r");
+  if (f2_in == NULL)
+    die("opening %s: %s", f2, strerror(errno));
 
-  entries[2].key = amqp_cstring_bytes("middle");
-  entries[2].value.kind = AMQP_FIELD_KIND_UTF8;
-  entries[2].value.value.bytes = amqp_cstring_bytes("third");
+  for (;;) {
+    size_t f1_got = fread(f1_buf, 1, CHUNK_SIZE, f1_in);
+    size_t f2_got = fread(f2_buf, 1, CHUNK_SIZE, f2_in);
+    res = memcmp(f1_buf, f2_buf, f1_got < f2_got ? f1_got : f2_got);
 
-  entries[3].key = amqp_cstring_bytes("number");
-  entries[3].value.kind = AMQP_FIELD_KIND_I32;
-  entries[3].value.value.i32 = 1234;
+    if (res)
+      break;
 
-  entries[4].key = amqp_cstring_bytes("decimal");
-  entries[4].value.kind = AMQP_FIELD_KIND_DECIMAL;
-  entries[4].value.value.decimal.decimals = 2;
-  entries[4].value.value.decimal.value = 1234;
-
-  entries[5].key = amqp_cstring_bytes("time");
-  entries[5].value.kind = AMQP_FIELD_KIND_TIMESTAMP;
-  entries[5].value.value.u64 = 1234123412341234;
-
-  entries[6].key = amqp_cstring_bytes("beta");
-  entries[6].value.kind = AMQP_FIELD_KIND_UTF8;
-  entries[6].value.value.bytes = amqp_cstring_bytes("second");
-
-  entries[7].key = amqp_cstring_bytes("wombat");
-  entries[7].value.kind = AMQP_FIELD_KIND_UTF8;
-  entries[7].value.value.bytes = amqp_cstring_bytes("fourth");
-
-  table.num_entries = 8;
-  table.entries = entries;
-
-  vi.f = M_PI;
-  if ((sizeof(float) != 4) || (vi.i != 0x40490fdb)) {
-    printf("*** ERROR: single floating point encoding does not work as expected\n");
-    printf("sizeof float is %lu, float is %g, u32 is 0x%08lx\n",
-	   (unsigned long)sizeof(float),
-	   vi.f,
-	   (unsigned long) vi.i);
+    if (f1_got < CHUNK_SIZE || f2_got < CHUNK_SIZE) {
+      if (f1_got != f2_got)
+	res = (f1_got < f2_got ? -1 : 1);
+      break;
+    }
   }
 
-  vl.d = M_PI;
-  if ((sizeof(double) != 8) || (vl.l != 0x400921fb54442d18L)) {
-    printf("*** ERROR: double floating point encoding does not work as expected\n");
-    printf("sizeof double is %lu, double is %g, u64 is 0x%16"PRIx64"\n",
-	   (unsigned long)sizeof(double),
-	   vl.d, vl.l);
-  }
+  fclose(f1_in);
+  fclose(f2_in);
 
-  test_table_codec();
+  return res;
+}
 
-  qsort(table.entries, table.num_entries, sizeof(amqp_table_entry_t), &amqp_table_entry_cmp);
+const char *expected_file_name = "test_tables.expected";
 
-  printf("----------\n");
+int main(int argc, char **argv)
+{
+  char *srcdir = getenv("srcdir");
+  char out_path[L_tmpnam];
+  FILE *out = fopen(tmpnam(out_path), "w");
+  char *expected_path;
 
-  {
-    amqp_field_value_t val;
-    val.kind = AMQP_FIELD_KIND_TABLE;
-    val.value.table = table;
+  if (out == NULL)
+    die("opening %s: %s", out_path, strerror(errno));
 
-    dump_value(0, val);
-  }
+  test_table_codec(out);
+  fprintf(out, "----------\n");
+  test_dump_value(out);
+
+  fclose(out);
+
+  if (srcdir == NULL)
+    die("'srcdir' environment variable not defined");
+
+  expected_path = malloc(strlen(srcdir) + strlen(expected_file_name) + 2);
+  sprintf(expected_path, "%s/%s", srcdir, expected_file_name);
+  if (compare_files(expected_path, out_path))
+    die("output file did not have expected contents; see %s", out_path);
+
+  if (remove(out_path))
+    die("deleting %s: %s", out_path, strerror(errno));
 
   return 0;
 }

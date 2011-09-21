@@ -396,6 +396,19 @@ RABBITMQ_EXPORT int amqp_encode_table(amqp_bytes_t encoded,
                                       amqp_table_t *input,
                                       size_t *offset);
 
+struct amqp_connection_info {
+  char *user;
+  char *password;
+  char *host;
+  char *vhost;
+  int port;
+};
+
+RABBITMQ_EXPORT void amqp_default_connection_info(
+					  struct amqp_connection_info *parsed);
+RABBITMQ_EXPORT int amqp_parse_url(char *url,
+				   struct amqp_connection_info *parsed);
+
 #ifdef __cplusplus
 }
 #endif

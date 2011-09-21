@@ -20,6 +20,7 @@
 
 ^(|librabbitmq/|tests/|examples/|tools/|tools/doc/)Makefile(\.in)?$
 ^tests/test_tables$
+^tests/test_parse_url$
 ^examples/amqp_sendstring$
 ^examples/amqp_exchange_declare$
 ^examples/amqp_listen$
