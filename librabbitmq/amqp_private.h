@@ -60,7 +60,8 @@
 #define ERROR_GETHOSTBYNAME_FAILED 5
 #define ERROR_INCOMPATIBLE_AMQP_VERSION 6
 #define ERROR_CONNECTION_CLOSED 7
-#define ERROR_MAX 7
+#define ERROR_BAD_AMQP_URL 8
+#define ERROR_MAX 8
 
 extern char *amqp_os_error_string(int err);
 

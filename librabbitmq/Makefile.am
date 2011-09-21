@@ -13,7 +13,7 @@ if USE_MSINTTYPES
 AM_CFLAGS += -I$(top_srcdir)/msinttypes
 endif
 
-librabbitmq_la_SOURCES = amqp_mem.c amqp_table.c amqp_connection.c amqp_socket.c amqp_api.c $(PLATFORM_DIR)/socket.c
+librabbitmq_la_SOURCES = amqp_mem.c amqp_table.c amqp_connection.c amqp_socket.c amqp_api.c amqp_url.c $(PLATFORM_DIR)/socket.c
 librabbitmq_la_LDFLAGS = -no-undefined
 librabbitmq_la_LIBADD = $(EXTRA_LIBS)
 nodist_librabbitmq_la_SOURCES = amqp_framing.c

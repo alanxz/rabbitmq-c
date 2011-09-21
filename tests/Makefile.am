@@ -1,4 +1,4 @@
-check_PROGRAMS = test_tables
+check_PROGRAMS = test_tables test_parse_url
 TESTS = $(check_PROGRAMS)
 EXTRA_DIST = test_tables.expected
 
