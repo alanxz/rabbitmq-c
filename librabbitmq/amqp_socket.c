@@ -398,6 +398,7 @@ static int amqp_login_inner(amqp_connection_state_t state,
   }
 
   {
+    amqp_table_entry_t properties[2];
     amqp_connection_start_ok_t s;
     amqp_bytes_t response_bytes = sasl_response(&state->decoding_pool,
 						sasl_method, vl);
@@ -405,8 +406,18 @@ static int amqp_login_inner(amqp_connection_state_t state,
     if (response_bytes.bytes == NULL)
       return -ERROR_NO_MEMORY;
 
-    s.client_properties.num_entries = 0;
-    s.client_properties.entries = NULL;
+    properties[0].key = amqp_cstring_bytes("product");
+    properties[0].value.kind = AMQP_FIELD_KIND_UTF8;
+    properties[0].value.value.bytes
+      = amqp_cstring_bytes("rabbitmq-c");
+
+    properties[1].key = amqp_cstring_bytes("information");
+    properties[1].value.kind = AMQP_FIELD_KIND_UTF8;
+    properties[1].value.value.bytes
+      = amqp_cstring_bytes("See http://hg.rabbitmq.com/rabbitmq-c/");
+
+    s.client_properties.num_entries = 2;
+    s.client_properties.entries = properties;
     s.mechanism = sasl_method_name(sasl_method);
     s.response = response_bytes;
     s.locale.bytes = "en_US";
