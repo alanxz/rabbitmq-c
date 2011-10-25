@@ -25,9 +25,12 @@ the necessary pieces:
     hg clone http://hg.rabbitmq.com/rabbitmq-c/
 
 You will also need a recent python with the simplejson module
-installed, and the GNU autotools (autoconf, automake, libtool etc).
+installed, and the GNU autotools (autoconf, automake, libtool etc)
+or as an alternative CMake
 
 ## Building the code
+
+# Using autoconf
 
 Once you have all the prerequisites, change to the `rabbitmq-c`
 directory and run
@@ -41,6 +44,23 @@ by
     make
 
 to build the `librabbitmq` library and the example programs.
+
+# Using cmake
+
+You will not need to clone the codegen repository, the build system
+will do it for you. You will however need a working python install,
+you will also need git installed
+
+Create a binary directory in a sibling directory from the directory
+you cloned the rabbitmq-c repository
+    mkdir bin-rabbitmq-c
+
+Run CMake in the binary directory
+    cmake /path/to/source/directory
+
+Build it
+    On linux: make
+    On win32: nmake or msbuild, or open it in visual studio and build from there
 
 ## Running the examples
 

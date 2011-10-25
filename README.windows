@@ -1,6 +1,6 @@
 # Using rabbitmq-c on Windows
 
-There are two approaches to building rabbitmq-c under Windows:
+There are three approaches to building rabbitmq-c under Windows:
 
 - Build using the MinGW/MSYS (MinGW/MSYS is a port of the GNU
   toolchain and utilities to Windows, including the gcc compiler).
@@ -18,6 +18,9 @@ There are two approaches to building rabbitmq-c under Windows:
   compiler (i.e. code developed in Visual Studio).  The downside to
   this approach is that the rabbitmq-c tools cannot be built, due to
   dependencies on other libraries.
+
+- Build using CMake, which will cover building with MSVC or MinGW
+  See the README file for details on how to build with cmake.
 
 
 ## Common steps
