@@ -15,13 +15,13 @@ add_custom_command(
   VERBATIM)
 
 add_custom_command(
-  OUTPUT "amqp_framing.h"
+    OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/amqp_framing.h
   COMMAND ${PYTHON_EXECUTABLE} ARGS ${CODEGEN_PY} header ${AMQP_SPEC_JSON_PATH} ${CMAKE_CURRENT_BINARY_DIR}/amqp_framing.h
   DEPENDS ${AMQP_SPEC_JSON_PATH} ${CODEGEN_PY} ${AMQP_CODEGEN_PY}
   VERBATIM)
 
 add_custom_command(
-  OUTPUT "amqp_framing.c"
+    OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/amqp_framing.c
   COMMAND ${PYTHON_EXECUTABLE} ARGS ${CODEGEN_PY} body ${AMQP_SPEC_JSON_PATH} ${CMAKE_CURRENT_BINARY_DIR}/amqp_framing.c
   DEPENDS ${AMQP_SPEC_JSON_PATH} ${CODEGEN_PY} ${AMQP_CODEGEN_PY}
   VERBATIM)
