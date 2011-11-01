@@ -47,9 +47,11 @@ to build the `librabbitmq` library and the example programs.
 
 # Using cmake
 
-You will not need to clone the codegen repository, the build system
-will do it for you. You will however need a working python install,
-you will also need git installed
+You will need CMake http://cmake.org/
+You will need a working python install in your path.
+If you would like the build system to fetch the rabbitmq-codegen automatically
+you will need to have a working git install in your path. Otherwise you will 
+need to checkout the rabbitmq-codegen as stated above.
 
 Create a binary directory in a sibling directory from the directory
 you cloned the rabbitmq-c repository
@@ -61,6 +63,22 @@ Run CMake in the binary directory
 Build it
     On linux: make
     On win32: nmake or msbuild, or open it in visual studio and build from there
+
+Things you can pass to cmake to change the build:
+
+ -DRABBITMQ_CODEGEN_DIR=/path/to/rabbitmq-codegen/checkout - if you have your codegen
+   directory in a different place [Default is sibiling directory to source]
+ -DFETCH_CODEGEN_FROM_GIT=ON - if you want cmake to fetch the rabbitmq-codegen from
+   https://github.com/rabbitmq/rabbitmq-c at build time. If this option is selected
+   -DRABBITMQ_CODEGEN_DIR will be ignored [Default is off]
+ -DCODEGEN_GIT_TAG=rabbitmq_v2_5_1 - specifies the tag to check out if using the
+   -DFETCH_CODEGEN_FROM_GIT option above. [Default is rabbitmq_v2_5_1]
+ -DBUILD_TOOLS=OFF build the programs in the tools directory 
+    [Default is ON if the POPT library can be found]
+ 
+Other interesting flags to pass to CMake (see cmake docs for more info)
+ -DCMAKE_BUILD_TYPE - specify the type of build (Debug or Release)
+ -DCMAKE_INSTALL_PREFIX - specify where the install target puts files
 
 ## Running the examples
 
