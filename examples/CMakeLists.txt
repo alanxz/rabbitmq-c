@@ -1,7 +1,7 @@
 include_directories(${librabbitmq_SOURCE_DIR} ${librabbitmq_BINARY_DIR})
 
 if (WIN32)
-    set(PLATFORM_DIR win32)
+    set(PLATFORM_DIR windows)
 else (WIN32)
     set(PLATFORM_DIR unix)
 endif (WIN32)
