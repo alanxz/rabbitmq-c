@@ -1,4 +1,4 @@
-include_directories(${librabbitmq_SOURCE_DIR} ${librabbitmq_BINARY_DIR} ${POPT_INCLUDE_DIRS})
+include_directories(${CMAKE_CURRENT_SOURCE_DIR} ${librabbitmq_SOURCE_DIR} ${librabbitmq_BINARY_DIR} ${POPT_INCLUDE_DIRS})
 
 if (WIN32)
     set(PLATFORM_DIR win32)
