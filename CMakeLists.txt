@@ -31,8 +31,8 @@ if (FETCH_CODEGEN_FROM_GIT)
         amqp_codegen
         GIT_REPOSITORY https://github.com/rabbitmq/rabbitmq-codegen.git
         GIT_TAG ${CODEGEN_GIT_TAG}
-        SOURCE_DIR amqp_codegen
         CONFIGURE_COMMAND ""
+        UPDATE_COMMAND ""
         BUILD_COMMAND ""
         INSTALL_COMMAND ""
         TEST_COMMAND "")

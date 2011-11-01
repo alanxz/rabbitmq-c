@@ -11,7 +11,7 @@ set(AMQP_SPEC_JSON_PATH "${AMQP_CODEGEN_DIR}/amqp-rabbitmq-0.9.1.json")
 add_custom_command(
   OUTPUT ${CODEGEN_PY}
   COMMAND ${CMAKE_COMMAND} ARGS -E copy ${CMAKE_CURRENT_SOURCE_DIR}/codegen.py ${CODEGEN_PY}
-  DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/codegen.py
+  DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/codegen.py ${AMQP_CODEGEN_DIR} amqp_codegen
   VERBATIM)
 
 add_custom_command(
