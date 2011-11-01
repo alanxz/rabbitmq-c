@@ -60,7 +60,14 @@ endif (FETCH_CODEGEN_FROM_GIT)
 
 mark_as_advanced(AMQP_CODEGEN_DIR)
 
+set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} ${CMAKE_SOURCE_DIR}/cmake)
+
+find_package(POPT)
 
 add_subdirectory(librabbitmq)
 add_subdirectory(examples)
+
+if (POPT_FOUND)
+    add_subdirectory(tools)
+endif (POPT_FOUND)
 
