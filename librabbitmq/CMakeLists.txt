@@ -44,10 +44,13 @@ file(WRITE "${CMAKE_CURRENT_BINARY_DIR}/config.h" ${CONFIG_CONTENTS})
 
 if(WIN32)
   set(SOCKET_IMPL "windows")
-  set(MSINTTYPES_INCLUDE "${CMAKE_CURRENT_SOURCE_DIR}/../msinttypes")
 else(WIN32)
   set(SOCKET_IMPL "unix")
 endif(WIN32)
+
+if(MSVC)
+  set(MSINTTYPES_INCLUDE "${CMAKE_CURRENT_SOURCE_DIR}/../msinttypes")
+endif(MSVC)
 
 include_directories(${SOCKET_IMPL} ${MSINTTYPES_INCLUDE})
 add_definitions(-DBUILDING_LIBRABBITMQ)
