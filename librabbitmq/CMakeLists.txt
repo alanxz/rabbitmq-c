@@ -3,25 +3,31 @@ project(librabbitmq "C")
 set(CMAKE_INCLUDE_CURRENT_DIR ON)
 
 # Stuff dealing with code generation
-set(AMQP_CODEGEN_PY "${AMQP_CODEGEN_DIR}/amqp_codegen.py")
-set(CODEGEN_PY "${AMQP_CODEGEN_DIR}/codegen.py")
+set(AMQP_CODEGEN_PY "${CMAKE_CURRENT_BINARY_DIR}/amqp_codegen.py")
+set(CODEGEN_PY "${CMAKE_CURRENT_BINARY_DIR}/codegen.py")
 set(AMQP_SPEC_JSON_PATH "${AMQP_CODEGEN_DIR}/amqp-rabbitmq-0.9.1.json")
 
 #generate amqp_framing.h/amqp_framing.c
 add_custom_command(
   OUTPUT ${CODEGEN_PY}
   COMMAND ${CMAKE_COMMAND} ARGS -E copy ${CMAKE_CURRENT_SOURCE_DIR}/codegen.py ${CODEGEN_PY}
-  DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/codegen.py ${AMQP_CODEGEN_DIR} amqp_codegen
+  DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/codegen.py
   VERBATIM)
 
 add_custom_command(
-    OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/amqp_framing.h
+  OUTPUT ${AMQP_CODEGEN_PY}
+  COMMAND ${CMAKE_COMMAND} ARGS -E copy ${AMQP_CODEGEN_DIR}/amqp_codegen.py ${AMQP_CODEGEN_PY}
+  DEPENDS ${AMQP_CODEGEN_DIR}/amqp_codegen.py ${AMQP_CODEGEN_TARGET}
+  VERBATIM)
+
+add_custom_command(
+  OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/amqp_framing.h
   COMMAND ${PYTHON_EXECUTABLE} ARGS ${CODEGEN_PY} header ${AMQP_SPEC_JSON_PATH} ${CMAKE_CURRENT_BINARY_DIR}/amqp_framing.h
   DEPENDS ${AMQP_SPEC_JSON_PATH} ${CODEGEN_PY} ${AMQP_CODEGEN_PY}
   VERBATIM)
 
 add_custom_command(
-    OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/amqp_framing.c
+  OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/amqp_framing.c
   COMMAND ${PYTHON_EXECUTABLE} ARGS ${CODEGEN_PY} body ${AMQP_SPEC_JSON_PATH} ${CMAKE_CURRENT_BINARY_DIR}/amqp_framing.c
   DEPENDS ${AMQP_SPEC_JSON_PATH} ${CODEGEN_PY} ${AMQP_CODEGEN_PY}
   VERBATIM)

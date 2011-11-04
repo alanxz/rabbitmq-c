@@ -39,6 +39,7 @@ if (FETCH_CODEGEN_FROM_GIT)
 
     ExternalProject_Get_Property(amqp_codegen SOURCE_DIR)
     set(AMQP_CODEGEN_DIR ${SOURCE_DIR} CACHE PATH "Path to rabbitmq-codegen" FORCE)
+    SET(AMQP_CODEGEN_TARGET amqp_codegen)
     message(STATUS "Using amqp_codegen.py in ${AMQP_CODEGEN_DIR}")
 else (FETCH_CODEGEN_FROM_GIT)
     find_path(RABBITMQ_CODEGEN_DIR
