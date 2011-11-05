@@ -77,9 +77,9 @@ Things you can pass to cmake to change the build:
    have your codegen directory in a different place [Default is
    sibiling directory to source]
 * `-DFETCH_CODEGEN_FROM_GIT=ON` - if you want cmake to fetch the
-   rabbitmq-codegen from https://github.com/rabbitmq/rabbitmq-c at
-   build time. If this option is selected `-DRABBITMQ_CODEGEN_DIR` will
-   be ignored [Default is off]
+   rabbitmq-codegen from https://github.com/rabbitmq/rabbitmq-codegen
+   at build time. If this option is selected `-DRABBITMQ_CODEGEN_DIR`
+   will be ignored [Default is off]
 * `-DCODEGEN_GIT_TAG=rabbitmq_v2_5_1` - specifies the tag to check out
    if using the `-DFETCH_CODEGEN_FROM_GIT` option above. [Default is
    `rabbitmq_v2_5_1`]
