@@ -135,6 +135,16 @@
                     </para>
                 </listitem>
             </varlistentry>
+            <varlistentry>
+                <term><option>-c</option></term>
+                <term><option>--count</option>=<replaceable class="parameter">limit</replaceable></term>
+                <listitem>
+                    <para>
+                        Stop consuming after the given number of
+                        messages have been received.
+                    </para>
+                </listitem>
+            </varlistentry>
         </variablelist>
     </refsect1>
 
