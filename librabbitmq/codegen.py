@@ -14,7 +14,7 @@
 # The Original Code is librabbitmq.
 #
 # The Initial Developer of the Original Code is VMware, Inc.
-# Portions created by VMware are Copyright (c) 2007-2011 VMware, Inc.
+# Portions created by VMware are Copyright (c) 2007-2012 VMware, Inc.
 #
 # Portions created by Tony Garnock-Jones are Copyright (c) 2009-2010
 # VMware, Inc. and Tony Garnock-Jones.
@@ -357,7 +357,7 @@ def genErl(spec):
  * The Original Code is librabbitmq.
  *
  * The Initial Developer of the Original Code is VMware, Inc.
- * Portions created by VMware are Copyright (c) 2007-2011 VMware, Inc.
+ * Portions created by VMware are Copyright (c) 2007-2012 VMware, Inc.
  *
  * Portions created by Tony Garnock-Jones are Copyright (c) 2009-2010
  * VMware, Inc. and Tony Garnock-Jones.
