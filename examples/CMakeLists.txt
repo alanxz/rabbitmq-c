@@ -1,4 +1,4 @@
-include_directories(${librabbitmq_SOURCE_DIR} ${librabbitmq_BINARY_DIR})
+include_directories(${LIBRABBITMQ_INCLUDE_DIRS})
 
 if (WIN32)
     set(PLATFORM_DIR windows)
