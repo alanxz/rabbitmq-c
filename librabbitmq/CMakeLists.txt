@@ -49,7 +49,10 @@ else(WIN32)
 endif(WIN32)
 
 if(MSVC)
-  set(MSINTTYPES_INCLUDE "${CMAKE_CURRENT_SOURCE_DIR}/../msinttypes")
+  if(MSVC_VERSION LESS 1600)
+    set(MSINTTYPES_INCLUDE "${CMAKE_CURRENT_SOURCE_DIR}/../msinttypes")
+    set(STDINT_H_INSTALL_FILE "${CMAKE_CURRENT_SOURCE_DIR}/../msinttypes/stdint.h")
+  endif(MSVC_VERSION LESS 1600)
 endif(MSVC)
 
 include_directories(${SOCKET_IMPL} ${MSINTTYPES_INCLUDE})
@@ -76,7 +79,7 @@ install(TARGETS rabbitmq
 	ARCHIVE DESTINATION lib
 	PUBLIC_HEADER DESTINATION include)
 
-install(FILES amqp.h ${CMAKE_CURRENT_BINARY_DIR}/amqp_framing.h
+install(FILES amqp.h ${CMAKE_CURRENT_BINARY_DIR}/amqp_framing.h ${STDINT_H_INSTALL_FILE}
 	DESTINATION include)
 
 
