@@ -39,6 +39,8 @@
  * ***** END LICENSE BLOCK *****
  */
 
+#include <stdint.h>
+
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -412,5 +414,7 @@ RABBITMQ_EXPORT int amqp_parse_url(char *url,
 #ifdef __cplusplus
 }
 #endif
+
+#include <amqp_framing.h>
 
 #endif
