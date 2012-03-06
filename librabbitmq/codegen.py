@@ -566,6 +566,8 @@ def genHrl(spec):
 #ifndef librabbitmq_amqp_framing_h
 #define librabbitmq_amqp_framing_h
 
+#include <amqp.h>
+
 #ifdef __cplusplus
 extern "C" {
 #endif
