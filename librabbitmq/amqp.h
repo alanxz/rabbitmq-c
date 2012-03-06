@@ -415,4 +415,6 @@ RABBITMQ_EXPORT int amqp_parse_url(char *url,
 }
 #endif
 
+#include <amqp_framing.h>
+
 #endif
