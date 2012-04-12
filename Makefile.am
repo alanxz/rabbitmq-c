@@ -18,4 +18,4 @@ codegen:
 	cp -r "$(top_srcdir)/$(AMQP_CODEGEN_DIR)"/* $@
 	$(MAKE) -C $@ clean
 
-EXTRA_DIST=codegen debian LICENSE-MPL-RabbitMQ LICENSE-GPL-2.0
+EXTRA_DIST=codegen debian LICENSE-MIT
