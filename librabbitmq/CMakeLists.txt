@@ -33,7 +33,7 @@ add_custom_command(
   VERBATIM)
 
 
-SET(CONFIG_CONTENTS "#define VERSION \"0.0.1\"
+SET(CONFIG_CONTENTS "#define VERSION \"0.2\"
 #ifndef __cplusplus
 # define inline ${C_INLINE}
 #endif // __cplusplus
