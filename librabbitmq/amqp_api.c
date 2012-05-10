@@ -119,6 +119,7 @@ int amqp_basic_publish(amqp_connection_state_t state,
   m.routing_key = routing_key;
   m.mandatory = mandatory;
   m.immediate = immediate;
+  m.ticket = 0;
 
   res = amqp_send_method(state, channel, AMQP_BASIC_PUBLISH_METHOD, &m);
   if (res < 0)
