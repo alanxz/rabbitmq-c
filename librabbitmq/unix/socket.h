@@ -44,7 +44,6 @@
 #include <sys/socket.h>
 #include <netdb.h>
 #include <sys/uio.h>
-#include <unistd.h>
 
 int
 amqp_socket_init(void);
@@ -53,11 +52,19 @@ int
 amqp_socket_socket(int domain, int type, int proto);
 
 int
-amqp_socket_error(void);
+amqp_socket_error(void *user_data);
+
+int
+amqp_socket_socket(int domain, int type, int proto);
+
+int
+amqp_socket_close(int sockfd, void *user_data);
+
+int
+amqp_socket_writev(int sockfd, const struct iovec *iov, int iovcnt,
+		   void *user_data);
 
 #define amqp_socket_setsockopt setsockopt
-#define amqp_socket_close close
-#define amqp_socket_writev writev
 
 #if defined(SO_NOSIGPIPE) && !defined(MSG_NOSIGNAL)
 # define DISABLE_SIGPIPE_WITH_SETSOCKOPT

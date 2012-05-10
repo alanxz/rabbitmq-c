@@ -52,6 +52,7 @@
   */
 
 #if defined(_WIN32) && defined(_MSC_VER)
+struct iovec;
 # if defined(AMQP_BUILD) && !defined(AMQP_STATIC)
 #  define AMQP_PUBLIC_FUNCTION __declspec(dllexport)
 #  define AMQP_PUBLIC_VARIABLE __declspec(dllexport) extern
@@ -66,6 +67,7 @@
 # define AMQP_CALL __cdecl
 
 #elif defined(_WIN32) && defined(__BORLANDC__)
+struct iovec;
 # if defined(AMQP_BUILD) && !defined(AMQP_STATIC)
 #  define AMQP_PUBLIC_FUNCTION __declspec(dllexport)
 #  define AMQP_PUBLIC_VARIABLE __declspec(dllexport) extern
@@ -80,6 +82,7 @@
 # define AMQP_CALL __cdecl
 
 #elif defined(_WIN32) && defined(__MINGW32__)
+struct iovec;
 # if defined(AMQP_BUILD) && !defined(AMQP_STATIC)
 #  define AMQP_PUBLIC_FUNCTION __declspec(dllexport)
 #  define AMQP_PUBLIC_VARIABLE __declspec(dllexport)
@@ -94,6 +97,7 @@
 # define AMQP_CALL __cdecl
 
 #elif defined(_WIN32) && defined(__CYGWIN__)
+struct iovec;
 # if defined(AMQP_BUILD) && !defined(AMQP_STATIC)
 #  define AMQP_PUBLIC_FUNCTION __declspec(dllexport)
 #  define AMQP_PUBLIC_VARIABLE __declspec(dllexport)
@@ -108,6 +112,7 @@
 # define AMQP_CALL __cdecl
 
 #elif defined(__GNUC__) && __GNUC__ >= 4
+# include <sys/uio.h>
 # define AMQP_PUBLIC_FUNCTION \
   __attribute__ ((visibility ("default")))
 # define AMQP_PUBLIC_VARIABLE \
@@ -297,6 +302,13 @@ typedef enum amqp_sasl_method_enum_ {
 /* Opaque struct. */
 typedef struct amqp_connection_state_t_ *amqp_connection_state_t;
 
+/* Socket callbacks. */
+typedef ssize_t (*amqp_socket_writev_fn)(int, const struct iovec *, int, void *);
+typedef ssize_t (*amqp_socket_send_fn)(int, const void *, size_t, int, void *);
+typedef ssize_t (*amqp_socket_recv_fn)(int, void *, size_t, int, void *);
+typedef int (*amqp_socket_close_fn)(int, void *);
+typedef int (*amqp_socket_error_fn)(void *);
+
 AMQP_PUBLIC_FUNCTION
 char const *
 AMQP_CALL amqp_version(void);
@@ -359,6 +371,16 @@ AMQP_CALL amqp_get_sockfd(amqp_connection_state_t state);
 AMQP_PUBLIC_FUNCTION
 void
 AMQP_CALL amqp_set_sockfd(amqp_connection_state_t state, int sockfd);
+
+AMQP_PUBLIC_FUNCTION
+void
+amqp_set_sockfd_full(amqp_connection_state_t state, int sockfd,
+		     amqp_socket_writev_fn writev_fn,
+		     amqp_socket_send_fn send_fn,
+		     amqp_socket_recv_fn recv_fn,
+		     amqp_socket_close_fn close_fn,
+		     amqp_socket_error_fn error_fn,
+		     void *user_data);
 
 AMQP_PUBLIC_FUNCTION
 int

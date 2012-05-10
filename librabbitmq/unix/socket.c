@@ -40,6 +40,7 @@
 
 #include "amqp_private.h"
 #include "socket.h"
+#include <errno.h>
 #include <fcntl.h>
 #include <stdint.h>
 #include <stdlib.h>
@@ -52,12 +53,7 @@ amqp_socket_init(void)
 }
 
 int
-amqp_socket_error(void)
-{
-  return errno | ERROR_CATEGORY_OS;
-}
-
-int amqp_socket_socket(int domain, int type, int proto)
+amqp_socket_socket(int domain, int type, int proto)
 {
   int flags;
 
@@ -79,7 +75,27 @@ int amqp_socket_socket(int domain, int type, int proto)
   return s;
 }
 
-char *amqp_os_error_string(int err)
+char *
+amqp_os_error_string(int err)
 {
   return strdup(strerror(err));
+}
+
+int
+amqp_socket_close(int sockfd, AMQP_UNUSED void *user_data)
+{
+	return close(sockfd);
+}
+
+int
+amqp_socket_writev(int sockfd, const struct iovec *iov,
+		   int iovcnt, AMQP_UNUSED void *user_data)
+{
+	return writev(sockfd, iov, iovcnt);
+}
+
+int
+amqp_socket_error(AMQP_UNUSED void *user_data)
+{
+	return errno | ERROR_CATEGORY_OS;
 }

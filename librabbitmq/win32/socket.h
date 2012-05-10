@@ -37,6 +37,7 @@
  * ***** END LICENSE BLOCK *****
  */
 
+#include "amqp_private.h"
 #include <winsock2.h>
 #include <WS2tcpip.h>
 
@@ -50,7 +51,8 @@ int
 amqp_socket_init(void);
 
 #define amqp_socket_socket socket
-#define amqp_socket_close closesocket
+int
+amqp_socket_close(int sockfd, AMQP_UNUSED void *user_data);
 
 int
 amqp_socket_setsockopt(int sock, int level, int optname, const void *optval,

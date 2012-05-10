@@ -43,6 +43,7 @@
 
 #include "amqp.h"
 #include "amqp_framing.h"
+#include <arpa/inet.h>
 #include <string.h>
 
 /* Error numbering: Because of differences in error numbering on
@@ -71,8 +72,11 @@
 #if __GNUC__ > 2 | (__GNUC__ == 2 && __GNUC_MINOR__ > 4)
 #define AMQP_NORETURN \
   __attribute__ ((__noreturn__))
+#define AMQP_UNUSED \
+  __attribute__ ((__unused__))
 #else
 #define AMQP_NORETURN
+#define AMQP_UNUSED
 #endif
 
 #if __GNUC__ >= 4
@@ -144,6 +148,13 @@ struct amqp_connection_state_t_ {
   amqp_bytes_t outbound_buffer;
 
   int sockfd;
+  amqp_socket_writev_fn writev;
+  amqp_socket_send_fn send;
+  amqp_socket_recv_fn recv;
+  amqp_socket_close_fn close;
+  amqp_socket_error_fn error;
+  void *user_data;
+
   amqp_bytes_t sock_inbound_buffer;
   size_t sock_inbound_offset;
   size_t sock_inbound_limit;

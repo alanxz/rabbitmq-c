@@ -39,12 +39,16 @@
 #endif
 
 #include "amqp_private.h"
-#include <stdlib.h>
-#include <stdio.h>
-#include <string.h>
-#include <stdint.h>
-#include <stdarg.h>
 #include <assert.h>
+#include <netdb.h>
+#include <netinet/in.h>
+#include <netinet/tcp.h>
+#include <stdarg.h>
+#include <stdint.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <sys/socket.h>
 
 int amqp_open_socket(char const *hostname,
                      int portnumber)
@@ -117,7 +121,7 @@ int amqp_send_header(amqp_connection_state_t state)
                                      AMQP_PROTOCOL_VERSION_MINOR,
                                      AMQP_PROTOCOL_VERSION_REVISION
                                    };
-  return send(state->sockfd, (void *)header, 8, MSG_NOSIGNAL);
+  return state->send(state->sockfd, (void *)header, 8, 0, state->user_data);
 }
 
 static amqp_bytes_t sasl_method_name(amqp_sasl_method_enum method)
@@ -214,13 +218,13 @@ static int wait_frame_inner(amqp_connection_state_t state,
       assert(res != 0);
     }
 
-    res = recv(state->sockfd, state->sock_inbound_buffer.bytes,
-               state->sock_inbound_buffer.len, 0);
+    res = state->recv(state->sockfd, state->sock_inbound_buffer.bytes,
+                      state->sock_inbound_buffer.len, 0, state->user_data);
     if (res <= 0) {
       if (res == 0) {
         return -ERROR_CONNECTION_CLOSED;
       } else {
-        return -amqp_socket_error();
+        return -state->error(state->user_data);
       }
     }
 
