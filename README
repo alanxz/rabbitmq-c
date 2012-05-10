@@ -21,8 +21,8 @@ In addition to the source code for this library, you will require a
 copy of `rabbitmq-codegen`. Here is a short `sh` script for retrieving
 the necessary pieces:
 
-    hg clone http://hg.rabbitmq.com/rabbitmq-codegen/
-    hg clone http://hg.rabbitmq.com/rabbitmq-c/
+    git clone https://github.com/rabbitmq/rabbitmq-codegen/
+    git clone https://github.com/alanxz/rabbitmq-c
 
 You will also need a recent python with the simplejson module
 installed, and the GNU autotools (autoconf, automake, libtool etc)
