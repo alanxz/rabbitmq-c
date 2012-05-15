@@ -121,7 +121,10 @@ AS_IF([test "x$enable_docs" != "xno"],
 AM_CONDITIONAL([DOCS], [test "x$enable_docs" = "xyes"])
 
 AC_CONFIG_HEADERS([config.h])
-AC_CONFIG_FILES([Makefile])
+AC_CONFIG_FILES([
+	librabbitmq.pc
+	Makefile
+])
 AC_OUTPUT
 AC_MSG_RESULT([
 $PACKAGE_NAME build options:

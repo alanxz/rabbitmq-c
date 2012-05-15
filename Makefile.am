@@ -258,6 +258,9 @@ MOSTLYCLEANFILES = \
 	$(man_MANS) \
 	tools/doc/man-date.ent
 
+pkgconfigdir = $(libdir)/pkgconfig
+pkgconfig_DATA = librabbitmq.pc
+
 clean-local:
 	-$(MAKE) -C codegen clean
 
