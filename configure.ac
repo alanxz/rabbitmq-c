@@ -1,18 +1,37 @@
+# Library versioning
+# Making releases:
+#       micro_version += 1
+#       interface_age += 1
+# If functions have been added or backward-compatibility has been broken:
+#       interface_age = 0
+m4_define([major_version], [0])
+m4_define([minor_version], [0])
+m4_define([micro_version], [1])
+m4_define([interface_age], [0])
+
 AC_INIT([librabbitmq],[0.0.1],[support@rabbitmq.com])
 AC_CONFIG_MACRO_DIR([m4])
 AC_CONFIG_SRCDIR(librabbitmq/codegen.py)
 AM_INIT_AUTOMAKE([1.9 subdir-objects foreign -Wno-portability])
 m4_ifdef([AM_SILENT_RULES], [AM_SILENT_RULES([yes])])
+AC_GNU_SOURCE
 
-AC_CONFIG_HEADER([config.h])
+# Initialize Libtool
+LT_PREREQ([2.2])
+LT_INIT([disable-static win32-dll])
+
+# Libtool versioning
+LT_CURRENT=m4_eval(minor_version + micro_version - interface_age)
+LT_REVISION=interface_age
+LT_AGE=m4_eval(m4_eval(minor_version + micro_version) - interface_age)
+AC_SUBST([LT_CURRENT])
+AC_SUBST([LT_REVISION])
+AC_SUBST([LT_AGE])
 
 dnl Program checks
-AC_GNU_SOURCE
 AC_PROG_CC
 
-dnl Library checks
-AC_LIBTOOL_WIN32_DLL
-AM_PROG_LIBTOOL
+AC_CONFIG_HEADER([config.h])
 
 dnl Header-file checks
 AC_HEADER_STDC
