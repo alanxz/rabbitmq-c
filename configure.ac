@@ -133,48 +133,30 @@ AS_IF([test "x$windows" = xyes],
 AC_SUBST(EXTRA_LIBS)
 AM_CONDITIONAL(USE_MSINTTYPES, test "x$USE_MSINTTYPES" != "x")
 
-dnl Check for libpopt, which we need to build the tools
-AC_ARG_WITH([popt],
-  [AS_HELP_STRING([--with-popt], [use the popt library.  Needed for tools.])],
-  [],
-  [with_popt=check])
+# Configure AMQP command-line tools
+AC_ARG_ENABLE([tools],
+	      [AS_HELP_STRING([--enable-tools],
+			      [build AMQP command-line tools @<:@auto@:>@])],,
+	      [enable_tools=auto])
+AS_IF([test "x$enable_tools" != "xno"],
+      [AX_LIB_POPT([enable_tools=yes], [enable_tools=no])])
+AM_CONDITIONAL([TOOLS], [test "x$enable_tools" = "xyes"])
 
-LIBPOPT=
-AS_IF([test "x$with_popt" != xno],
-  [AC_CHECK_LIB([popt], [poptGetContext],
-    [AC_SUBST([LIBPOPT], ["-lpopt"])
-     AC_DEFINE([HAVE_LIBPOPT], [1], [Define if you have libpopt])
-    ],
-    [if test "x$with_popt" != xcheck; then
-       AC_MSG_FAILURE([--with-popt was given, but test for libpopt failed])
-     fi
-    ])])
-
-AS_IF([test "x$LIBPOPT" != "x"],
-  [AC_CHECK_HEADER([popt.h], [],
-     [AC_MSG_FAILURE([You have libpopt, but could not find the popt.h header])])
-  ])
-
-POPT_CFLAGS=
-POPT_LIBS=-lpopt
-AC_SUBST([POPT_CFLAGS])
-AC_SUBST([POPT_LIBS])
-
-AM_CONDITIONAL(TOOLS, test "x$LIBPOPT" != "x")
-
-AC_ARG_WITH([xmlto],
-  [AS_HELP_STRING([--with-xmlto], [use the xmlto toolchain.  Needed for tools man pages.])],
-  [],
-  [with_xmlto=check])
-
-XMLTO=
-AS_IF([test "x$with_xmlto" != xno],
-    [AC_CHECK_PROG([XMLTO], [xmlto], [xmlto])
-     if test "x$with_xmlto" != xcheck; then
-       AC_MSG_FAILURE([--with-xmlto was given, but xmlto not found])
-     fi])
-
-AM_CONDITIONAL(DOCS, test "x$XMLTO" != "x")
+# Configure command-line tool documentation
+AC_ARG_ENABLE([docs],
+	      [AS_HELP_STRING([--enable-docs],
+			[build command-line tool documentation @<:@auto@:>@])],,
+	       [AS_IF([test "x$enable_tools" = "xno"],
+		      [enable_docs=no],
+		      [enable_docs=auto])])
+AC_ARG_VAR([XMLTO], [xmlto command])
+AS_IF([test "x$enable_docs" != "xno"],
+      [AS_IF([test "x$XMLTO" = "x"],
+	     [AC_CHECK_PROGS([XMLTO], [xmlto])])
+       AS_IF([test "x$XMLTO" != "x"],
+	     [enable_docs=yes],
+	     [enable_docs=no])])
+AM_CONDITIONAL([DOCS], [test "x$enable_docs" = "xyes"])
 
 AC_CONFIG_HEADERS([config.h])
 AC_CONFIG_FILES([Makefile])
@@ -183,4 +165,6 @@ AC_MSG_RESULT([
 $PACKAGE_NAME build options:
 	Host: $host
 	Version: $VERSION
+	Tools: $enable_tools
+	Documentation: $enable_docs
 ])
