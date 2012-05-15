@@ -1,3 +1,5 @@
+AC_PREREQ([2.68])
+
 # Library versioning
 # Making releases:
 #       micro_version += 1
@@ -9,16 +11,26 @@ m4_define([minor_version], [0])
 m4_define([micro_version], [1])
 m4_define([interface_age], [0])
 
-AC_INIT([librabbitmq],[0.0.1],[support@rabbitmq.com])
+AC_INIT([rabbitmq-c], [major_version.minor_version.micro_version],
+	[https://github.com/rabbitmq/rabbitmq-c/issues], [librabbitmq],
+	[http://www.rabbitmq.com/])
 AC_CONFIG_MACRO_DIR([m4])
-AC_CONFIG_SRCDIR(librabbitmq/codegen.py)
 AM_INIT_AUTOMAKE([1.9 subdir-objects foreign -Wno-portability])
 m4_ifdef([AM_SILENT_RULES], [AM_SILENT_RULES([yes])])
+AC_CONFIG_SRCDIR([librabbitmq/amqp.h])
 AC_GNU_SOURCE
 
 # Initialize Libtool
 LT_PREREQ([2.2])
 LT_INIT([disable-static win32-dll])
+
+# Program checks
+AC_PROG_CC_C99
+
+# Environment setup
+AC_CANONICAL_HOST
+AC_C_BIGENDIAN
+AC_C_INLINE
 
 # Set compiler flags
 AX_TRY_CFLAGS([-Wall], [AX_CFLAGS([-Wall])])
@@ -35,14 +47,6 @@ AC_SUBST([LT_CURRENT])
 AC_SUBST([LT_REVISION])
 AC_SUBST([LT_AGE])
 
-dnl Program checks
-AC_PROG_CC
-
-AC_CONFIG_HEADER([config.h])
-
-dnl Header-file checks
-AC_HEADER_STDC
-
 if test "x$GCC" = "xyes"; then
   dnl Only use -Wall if we have gcc
   if ! echo "$CFLAGS" | grep "\-Wall" 2> /dev/null ; then
@@ -51,7 +55,6 @@ if test "x$GCC" = "xyes"; then
 fi
 
 dnl Detect the kind of host we're building for
-AC_CANONICAL_HOST
 windows=no
 case "${host}" in
 *-*-mingw*)
@@ -70,10 +73,7 @@ AM_CONDITIONAL(GCC, test "x$GCC" = xyes)
 # work in that context.
 orig_cflags="$CFLAGS"
 AS_IF([test "x$GCC" = "xyes"], [CFLAGS="$CFLAGS -ansi -pedantic"])
-AC_C_INLINE
 CFLAGS="$orig_cflags"
-
-AC_C_BIGENDIAN
 
 dnl Decide which API abstraction layer to use
 PLATFORM_DIR=unix
@@ -90,20 +90,6 @@ AC_ARG_ENABLE(64-bit,
 [  --enable-64-bit         produce 64-bit library],
 [CFLAGS="$CFLAGS -m64"; LDFLAGS="$LDFLAGS -m64"],
 )
-
-AC_MSG_CHECKING(location of AMQP codegen directory)
-for d in ../rabbitmq-codegen codegen ; do
-  AMQP_CODEGEN_DIR="$d"
-  test -d "$srcdir/$AMQP_CODEGEN_DIR" && break
-done
-AMQP_SPEC_JSON_PATH="$AMQP_CODEGEN_DIR/amqp-rabbitmq-0.9.1.json"
-
-if test -f "$srcdir/$AMQP_SPEC_JSON_PATH"
-then
-  AC_MSG_RESULT($AMQP_CODEGEN_DIR)
-else
-  AC_MSG_ERROR(could not find AMQP spec file at "'$AMQP_SPEC_JSON_PATH'")
-fi
 
 AC_MSG_CHECKING(finding a python with simplejson installed)
 found_python=no
@@ -128,8 +114,6 @@ then
   AC_MSG_ERROR(could not find a python that can 'import simplejson')
 fi
 
-AC_SUBST(AMQP_CODEGEN_DIR)
-AC_SUBST(AMQP_SPEC_JSON_PATH)
 AC_SUBST(PYTHON)
 
 dnl Decide which extra win32 libs we need, and handle other special
@@ -192,6 +176,11 @@ AS_IF([test "x$with_xmlto" != xno],
 
 AM_CONDITIONAL(DOCS, test "x$XMLTO" != "x")
 
-AC_OUTPUT(
-Makefile
-)
+AC_CONFIG_HEADERS([config.h])
+AC_CONFIG_FILES([Makefile])
+AC_OUTPUT
+AC_MSG_RESULT([
+$PACKAGE_NAME build options:
+	Host: $host
+	Version: $VERSION
+])
