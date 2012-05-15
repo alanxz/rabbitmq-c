@@ -1,6 +1,6 @@
 AC_INIT([librabbitmq],[0.0.1],[support@rabbitmq.com])
 AC_CONFIG_SRCDIR(librabbitmq/codegen.py)
-AM_INIT_AUTOMAKE
+AM_INIT_AUTOMAKE([1.9 subdir-objects foreign -Wno-portability])
 
 AC_CONFIG_HEADER([config.h])
 
@@ -53,6 +53,9 @@ if test "x$windows" = xyes ; then
    PLATFORM_DIR=windows
 fi
 AC_SUBST(PLATFORM_DIR)
+
+AM_CONDITIONAL([OS_UNIX], [test "x$windows" = "xno"])
+AM_CONDITIONAL([OS_WIN32], [test "x$windows" = "xyes"])
 
 dnl Enable -m64 if we were asked to do so
 AC_ARG_ENABLE(64-bit,
@@ -140,6 +143,11 @@ AS_IF([test "x$LIBPOPT" != "x"],
      [AC_MSG_FAILURE([You have libpopt, but could not find the popt.h header])])
   ])
 
+POPT_CFLAGS=
+POPT_LIBS=-lpopt
+AC_SUBST([POPT_CFLAGS])
+AC_SUBST([POPT_LIBS])
+
 AM_CONDITIONAL(TOOLS, test "x$LIBPOPT" != "x")
 
 AC_ARG_WITH([xmlto],
@@ -154,13 +162,8 @@ AS_IF([test "x$with_xmlto" != xno],
        AC_MSG_FAILURE([--with-xmlto was given, but xmlto not found])
      fi])
 
-AM_CONDITIONAL(TOOLS_DOC, test "x$XMLTO" != "x")
+AM_CONDITIONAL(DOCS, test "x$XMLTO" != "x")
 
 AC_OUTPUT(
 Makefile
-librabbitmq/Makefile
-tests/Makefile
-examples/Makefile
-tools/Makefile
-tools/doc/Makefile
 )

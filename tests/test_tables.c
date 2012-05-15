@@ -438,7 +438,7 @@ static int compare_files(const char *f1, const char *f2)
   return res;
 }
 
-const char *expected_file_name = "test_tables.expected";
+const char *expected_file_name = "tests/test_tables.expected";
 
 int main(int argc, char **argv)
 {
