@@ -71,11 +71,13 @@ AC_SUBST(PLATFORM_DIR)
 AM_CONDITIONAL([OS_UNIX], [test "x$windows" = "xno"])
 AM_CONDITIONAL([OS_WIN32], [test "x$windows" = "xyes"])
 
-dnl Enable -m64 if we were asked to do so
-AC_ARG_ENABLE(64-bit,
-[  --enable-64-bit         produce 64-bit library],
-[CFLAGS="$CFLAGS -m64"; LDFLAGS="$LDFLAGS -m64"],
-)
+# 64-bit option
+AC_ARG_ENABLE([64-bit],
+              [AS_HELP_STRING([--enable-64-bit],
+                              [produce 64-bit library @<:@no@:>@])],
+              [AX_TRY_CFLAGS([-m64], AX_CFLAGS([-m64]))
+               AX_TRY_LDFLAGS([-m64], [AX_LDFLAGS([-m64])])],
+              [enable_64_bit=no])
 
 # Configure python
 pythons="python python2.6 python2.5"
@@ -147,6 +149,7 @@ AC_MSG_RESULT([
 $PACKAGE_NAME build options:
 	Host: $host
 	Version: $VERSION
+	64-bit: $enable_64_bit
 	Tools: $enable_tools
 	Documentation: $enable_docs
 ])
