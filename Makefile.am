@@ -40,10 +40,10 @@ codegen_py = $(top_srcdir)/librabbitmq/codegen.py
 amqp_codegen_json = $(top_srcdir)/codegen/amqp-rabbitmq-0.9.1.json
 
 librabbitmq/amqp_framing.h: $(amqp_codegen_json) $(codegen_py)
-	PYTHONPATH=$(top_srcdir)/codegen $(PYTHON) $(codegen_py) header $< $@
+	$(AM_V_GEN)PYTHONPATH=$(top_srcdir)/codegen $(PYTHON) $(codegen_py) header $< $@
 
 librabbitmq/amqp_framing.c: $(amqp_codegen_json) $(codegen_py)
-	PYTHONPATH=$(top_srcdir)/codegen $(PYTHON) $(codegen_py) body $< $@
+	$(AM_V_GEN)PYTHONPATH=$(top_srcdir)/codegen $(PYTHON) $(codegen_py) body $< $@
 
 AM_CFLAGS = -I$(top_srcdir)/librabbitmq
 
@@ -224,14 +224,14 @@ XMLTO_FLAGS = \
 	--skip-validation
 
 %.1: %.xml tools/doc/man-date.ent
-	$(XMLTO) $(XMLTO_FLAGS) -o $(top_srcdir)/tools/doc man $<
+	$(AM_V_GEN)$(XMLTO) $(XMLTO_FLAGS) -o $(top_srcdir)/tools/doc man $<
 
 %.7: %.xml tools/doc/man-date.ent
-	$(XMLTO) $(XMLTO_FLAGS) -o $(top_srcdir)/tools/doc man $<
+	$(AM_V_GEN)$(XMLTO) $(XMLTO_FLAGS) -o $(top_srcdir)/tools/doc man $<
 
 $(top_srcdir)/tools/doc/man-date.ent:
-	$(MKDIR_P) tools/doc
-	date +'%Y-%m-%d' > $@
+	$(AM_V_at)$(MKDIR_P) tools/doc
+	$(AM_V_GEN)date +'%Y-%m-%d' > $@
 endif # DOCS
 endif # TOOLS
 
