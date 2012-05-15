@@ -47,29 +47,24 @@ AC_SUBST([LT_CURRENT])
 AC_SUBST([LT_REVISION])
 AC_SUBST([LT_AGE])
 
-dnl Detect the kind of host we're building for
-windows=no
-case "${host}" in
-*-*-mingw*)
-        windows=yes
-        ;;
-esac
-AM_CONDITIONAL(WINDOWS, test "x$windows" = xyes)
-AS_IF([test "x$windows" = xyes],
-  [AC_DEFINE([WINDOWS], [1], [Define to 1 if on Windows.])]
-)
+# OS setup
+os_unix=no
+os_win32=no
+AS_CASE([$host],
+        [*-*-mingw*],
+                [os_win32=yes],
+        [*],
+                [os_unix=yes])
+AM_CONDITIONAL([OS_UNIX], [test "x$os_unix" = xyes])
+AM_CONDITIONAL([OS_WIN32], [test "x$os_win32" = xyes])
 
-AM_CONDITIONAL(GCC, test "x$GCC" = xyes)
-
-dnl Decide which API abstraction layer to use
-PLATFORM_DIR=unix
-if test "x$windows" = xyes ; then
-   PLATFORM_DIR=windows
-fi
-AC_SUBST(PLATFORM_DIR)
-
-AM_CONDITIONAL([OS_UNIX], [test "x$windows" = "xno"])
-AM_CONDITIONAL([OS_WIN32], [test "x$windows" = "xyes"])
+# Extra Win32 setup
+AS_IF([test "x$os_win32" = xyes],
+      [AC_DEFINE([OS_WIN32], [1], [Define to 1 for Win32.])
+       AS_IF([test "x$GCC" = xyes],
+             [AX_LDFLAGS([-lws2_32])],
+             [AX_CFLAGS([-I$top_srcdir/msinttypes])
+              AX_LDFLAGS([ws2_32.lib])])])
 
 # 64-bit option
 AC_ARG_ENABLE([64-bit],
@@ -99,23 +94,6 @@ AS_IF([test "x$ac_cv_path_PYTHON" = "x"],
       [ac_cv_path_PYTHON=:
        AC_MSG_WARN([unable to rebuild AMQP framing])])
 AC_SUBST([PYTHON], [$ac_cv_path_PYTHON])
-
-dnl Decide which extra win32 libs we need, and handle other special
-dnl cases when building with the Microsoft compiler
-EXTRA_LIBS=
-USE_MISINTTYPES=
-AS_IF([test "x$windows" = xyes],
-  [
-    AS_IF([test "x$GCC" = xyes],
-          [EXTRA_LIBS="-lws2_32 $EXTRA_LIBS"],
-          [
-            EXTRA_LIBS="ws2_32.lib $EXTRA_LIBS"
-            USE_MSINTTYPES=yes
-          ])
-  ])
-
-AC_SUBST(EXTRA_LIBS)
-AM_CONDITIONAL(USE_MSINTTYPES, test "x$USE_MSINTTYPES" != "x")
 
 # Configure AMQP command-line tools
 AC_ARG_ENABLE([tools],
