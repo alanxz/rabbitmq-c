@@ -17,7 +17,8 @@ librabbitmq_librabbitmq_la_CFLAGS = \
 	-DBUILDING_LIBRABBITMQ
 
 librabbitmq_librabbitmq_la_LDFLAGS = \
-	-version-info $(LT_CURRENT):$(LT_REVISION):$(LT_AGE)
+	-version-info $(LT_CURRENT):$(LT_REVISION):$(LT_AGE) \
+	$(NO_UNDEFINED)
 
 if OS_UNIX
 librabbitmq_librabbitmq_la_SOURCES += librabbitmq/unix/socket.c

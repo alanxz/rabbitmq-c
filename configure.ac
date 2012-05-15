@@ -20,6 +20,13 @@ AC_GNU_SOURCE
 LT_PREREQ([2.2])
 LT_INIT([disable-static win32-dll])
 
+# Set compiler flags
+AX_TRY_CFLAGS([-Wall], [AX_CFLAGS([-Wall])])
+AX_TRY_CFLAGS([-Wextra], [AX_CFLAGS([-Wextra])])
+AX_TRY_CFLAGS([-pedantic], [AX_CFLAGS([-pedantic])])
+AX_TRY_LDFLAGS([-no-undefined], [NO_UNDEFINED=-no-undefined])
+AC_SUBST([NO_UNDEFINED])
+
 # Libtool versioning
 LT_CURRENT=m4_eval(minor_version + micro_version - interface_age)
 LT_REVISION=interface_age
