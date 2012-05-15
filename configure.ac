@@ -47,13 +47,6 @@ AC_SUBST([LT_CURRENT])
 AC_SUBST([LT_REVISION])
 AC_SUBST([LT_AGE])
 
-if test "x$GCC" = "xyes"; then
-  dnl Only use -Wall if we have gcc
-  if ! echo "$CFLAGS" | grep "\-Wall" 2> /dev/null ; then
-    CFLAGS="$CFLAGS -Wall"
-  fi
-fi
-
 dnl Detect the kind of host we're building for
 windows=no
 case "${host}" in
@@ -67,13 +60,6 @@ AS_IF([test "x$windows" = xyes],
 )
 
 AM_CONDITIONAL(GCC, test "x$GCC" = xyes)
-
-# Detect how to declare inline functions.  Because we will sometimes
-# use "-ansi -pedantic" with gcc, we need to make sure the result will
-# work in that context.
-orig_cflags="$CFLAGS"
-AS_IF([test "x$GCC" = "xyes"], [CFLAGS="$CFLAGS -ansi -pedantic"])
-CFLAGS="$orig_cflags"
 
 dnl Decide which API abstraction layer to use
 PLATFORM_DIR=unix
@@ -91,30 +77,26 @@ AC_ARG_ENABLE(64-bit,
 [CFLAGS="$CFLAGS -m64"; LDFLAGS="$LDFLAGS -m64"],
 )
 
-AC_MSG_CHECKING(finding a python with simplejson installed)
-found_python=no
-checkPython() {
-    if test "$found_python" = "yes"
-    then
-      return
-    fi
-    PYTHON=$1
-    if $PYTHON -c 'import json' 2>/dev/null \
-       || $PYTHON -c 'import simplejson' 2>/dev/null
-    then
-      found_python=yes
-      AC_MSG_RESULT($PYTHON)
-    fi
-}
-checkPython python
-checkPython python2.6
-checkPython python2.5
-if test "$found_python" = "no"
-then
-  AC_MSG_ERROR(could not find a python that can 'import simplejson')
-fi
-
-AC_SUBST(PYTHON)
+# Configure python
+pythons="python python2.6 python2.5"
+AC_CACHE_CHECK([for Python with 'json'], [ac_cv_path_PYTHON],
+        [AC_PATH_PROGS_FEATURE_CHECK([PYTHON], [$pythons],
+                [$ac_path_PYTHON -c 'import json' 2>/dev/null
+                 AS_IF([test "x$?" = "x0"],
+                       [ac_cv_path_PYTHON=$ac_path_PYTHON
+                        ac_path_PYTHON_found=:])],
+                [AC_MSG_RESULT([not found])])])
+AC_CACHE_CHECK([for Python with 'simplejson'], [ac_cv_path_PYTHON],
+        [AC_PATH_PROGS_FEATURE_CHECK([PYTHON], [$pythons],
+                [$ac_path_PYTHON -c 'import simplejson' 2>/dev/null
+                 AS_IF([test "x$?" = "x0"],
+                       [ac_cv_path_PYTHON=$ac_path_PYTHON
+                        ac_path_PYTHON_found=:])],
+                [AC_MSG_RESULT([not found])])])
+AS_IF([test "x$ac_cv_path_PYTHON" = "x"],
+      [ac_cv_path_PYTHON=:
+       AC_MSG_WARN([unable to rebuild AMQP framing])])
+AC_SUBST([PYTHON], [$ac_cv_path_PYTHON])
 
 dnl Decide which extra win32 libs we need, and handle other special
 dnl cases when building with the Microsoft compiler
