@@ -7,8 +7,8 @@ AC_PREREQ([2.68])
 # If functions have been added or backward-compatibility has been broken:
 #       interface_age = 0
 m4_define([major_version], [0])
-m4_define([minor_version], [0])
-m4_define([micro_version], [1])
+m4_define([minor_version], [2])
+m4_define([micro_version], [0])
 m4_define([interface_age], [0])
 
 AC_INIT([rabbitmq-c], [major_version.minor_version.micro_version],
