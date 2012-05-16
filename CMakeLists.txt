@@ -1,6 +1,8 @@
 cmake_minimum_required(VERSION 2.8)
 project(rabbitmq-c "C")
 
+set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} ${CMAKE_SOURCE_DIR}/cmake)
+
 #find python
 find_package(PythonInterp REQUIRED)
 
@@ -19,7 +21,6 @@ if (CHECK_PYTHON_JSON_FAILED)
   endif (CHECK_PYTHON_SIMPLEJSON_FAILED)
 endif (CHECK_PYTHON_JSON_FAILED)
 
-set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} ${CMAKE_CURRENT_SOURCE_DIR})
 include(TestCInline)
 
 option(FETCH_CODEGEN_FROM_GIT "Fetch codegen directly from the git repository" OFF)
@@ -61,8 +62,6 @@ else (FETCH_CODEGEN_FROM_GIT)
 endif (FETCH_CODEGEN_FROM_GIT)
 
 mark_as_advanced(AMQP_CODEGEN_DIR)
-
-set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} ${CMAKE_SOURCE_DIR}/cmake)
 
 find_package(POPT)
 
