@@ -81,11 +81,14 @@ set(RABBITMQ_SOURCES
 
 add_library(rabbitmq SHARED ${RABBITMQ_SOURCES})
 
+add_library(rabbitmq-static STATIC ${RABBITMQ_SOURCES})
+set_target_properties(rabbitmq-static PROPERTIES OUTPUT_NAME rabbitmq)
+
 if(WIN32)
   target_link_libraries(rabbitmq ws2_32)
 endif(WIN32)
 
-install(TARGETS rabbitmq
+install(TARGETS rabbitmq rabbitmq-static
 	RUNTIME DESTINATION bin
 	LIBRARY DESTINATION lib
 	ARCHIVE DESTINATION lib
