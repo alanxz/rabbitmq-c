@@ -34,17 +34,13 @@
 #include "config.h"
 #endif
 
+#include "amqp_private.h"
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
 #include <stdint.h>
 #include <stdarg.h>
 #include <assert.h>
-
-#include "amqp.h"
-#include "amqp_framing.h"
-#include "amqp_private.h"
-
 
 int amqp_open_socket(char const *hostname,
 		     int portnumber)

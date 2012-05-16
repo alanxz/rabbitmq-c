@@ -34,15 +34,12 @@
 #include "config.h"
 #endif
 
-#include <stdlib.h>
-#include <stdio.h>
-#include <string.h>
-#include <stdint.h>
-#include <assert.h>
-
-#include "amqp.h"
-#include "amqp_framing.h"
 #include "amqp_private.h"
+#include <assert.h>
+#include <stdint.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
 
 #define INITIAL_FRAME_POOL_PAGE_SIZE 65536
 #define INITIAL_DECODING_POOL_PAGE_SIZE 131072

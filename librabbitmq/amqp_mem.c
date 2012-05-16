@@ -34,14 +34,13 @@
 #include "config.h"
 #endif
 
-#include <stdlib.h>
-#include <stdio.h>
-#include <string.h>
-#include <stdint.h>
-#include <sys/types.h>
+#include "amqp_private.h"
 #include <assert.h>
-
-#include "amqp.h"
+#include <stdint.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <sys/types.h>
 
 char const *amqp_version(void) {
   return VERSION; /* defined in config.h */

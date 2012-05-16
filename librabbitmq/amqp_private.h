@@ -33,7 +33,13 @@
  * ***** END LICENSE BLOCK *****
  */
 
+#ifdef HAVE_CONFIG_H
 #include "config.h"
+#endif
+
+#include "amqp.h"
+#include "amqp_framing.h"
+#include <string.h>
 
 /* Error numbering: Because of differences in error numbering on
  * different platforms, we want to keep error numbers opaque for
@@ -60,12 +66,23 @@
 /* GCC attributes */
 #if __GNUC__ > 2 | (__GNUC__ == 2 && __GNUC_MINOR__ > 4)
 #define AMQP_NORETURN \
-	__attribute__ ((__noreturn__))
+  __attribute__ ((__noreturn__))
 #else
 #define AMQP_NORETURN
 #endif
 
-extern char *amqp_os_error_string(int err);
+#if __GNUC__ >= 4
+#define AMQP_PUBLIC \
+  __attribute__ ((visibility ("default")))
+#define AMQP_PRIVATE \
+  __attribute__ ((visibility ("hidden")))
+#else
+#define AMQP_PUBLIC
+#define AMQP_PRIVATE
+#endif
+
+char *
+amqp_os_error_string(int err);
 
 #include "socket.h"
 
@@ -262,6 +279,7 @@ static inline int amqp_decode_bytes(amqp_bytes_t encoded, size_t *offset,
 }
 
 AMQP_NORETURN
-extern void amqp_abort(const char *fmt, ...);
+void
+amqp_abort(const char *fmt, ...);
 
 #endif

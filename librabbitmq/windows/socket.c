@@ -37,13 +37,11 @@
 #include "config.h"
 #endif
 
-#include <windows.h>
-#include <stdint.h>
-#include <stdlib.h>
-
-#include "amqp.h"
 #include "amqp_private.h"
 #include "socket.h"
+#include <stdint.h>
+#include <stdlib.h>
+#include <windows.h>
 
 static int called_wsastartup;
 
@@ -75,4 +73,29 @@ char *amqp_os_error_string(int err)
 	copy = strdup(msg);
 	LocalFree(msg);
 	return copy;
+}
+
+int
+amqp_socket_setsockopt(int sock, int level, int optname,
+		       const void *optval, size_t optlen)
+{
+        /* the winsock setsockopt function has its 4th argument as a
+           const char * */
+        return setsockopt(sock, level, optname, (const char *)optval, optlen);
+}
+
+int
+amqp_socket_writev(int sock, struct iovec *iov, int nvecs)
+{
+	DWORD ret;
+	if (WSASend(sock, (LPWSABUF)iov, nvecs, &ret, 0, NULL, NULL) == 0)
+		return ret;
+	else
+		return -1;
+}
+
+int
+amqp_socket_error(void)
+{
+	return WSAGetLastError() | ERROR_CATEGORY_OS;
 }

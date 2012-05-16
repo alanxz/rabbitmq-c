@@ -40,6 +40,9 @@
 
 #include <amqp.h>
 
+#ifdef _MSC_VER
+#define _USE_MATH_DEFINES
+#endif
 #include <math.h>
 
 void die(const char *fmt, ...)
@@ -51,10 +54,6 @@ void die(const char *fmt, ...)
 	fprintf(stderr, "\n");
 	abort();
 }
-
-#ifndef M_PI
-#define M_PI 3.14159265358979323846264338327
-#endif
 
 static void dump_indent(int indent, FILE *out)
 {

@@ -36,6 +36,10 @@ AC_C_INLINE
 AX_TRY_CFLAGS([-Wall], [AX_CFLAGS([-Wall])])
 AX_TRY_CFLAGS([-Wextra], [AX_CFLAGS([-Wextra])])
 AX_TRY_CFLAGS([-pedantic], [AX_CFLAGS([-pedantic])])
+AX_TRY_CFLAGS([-Wstrict-prototypes], [AX_CFLAGS([-Wstrict-prototypes])])
+AX_TRY_CFLAGS([-Wcast-align], [AX_CFLAGS([-Wcast-align])])
+AX_TRY_CFLAGS([-fno-common], [AX_CFLAGS([-fno-common])])
+AX_TRY_CFLAGS([-fvisibility=hidden], [AX_CFLAGS([-fvisibility=hidden])])
 AX_TRY_LDFLAGS([-no-undefined], [NO_UNDEFINED=-no-undefined])
 AC_SUBST([NO_UNDEFINED])
 

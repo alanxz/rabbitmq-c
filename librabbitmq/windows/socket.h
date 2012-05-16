@@ -35,37 +35,26 @@
 
 #include <winsock2.h>
 
-extern int amqp_socket_init(void);
-
-#define amqp_socket_socket socket
-#define amqp_socket_close closesocket
-
-static inline int amqp_socket_setsockopt(int sock, int level, int optname,
-                                    const void *optval, size_t optlen)
-{
-        /* the winsock setsockopt function has its 4th argument as a
-           const char * */
-        return setsockopt(sock, level, optname, (const char *)optval, optlen);
-}
-
 /* same as WSABUF */
 struct iovec {
 	u_long iov_len;
 	void *iov_base;
 };
 
-static inline int amqp_socket_writev(int sock, struct iovec *iov, int nvecs)
-{
-	DWORD ret;
-	if (WSASend(sock, (LPWSABUF)iov, nvecs, &ret, 0, NULL, NULL) == 0)
-		return ret;
-	else
-		return -1;
-}
+int
+amqp_socket_init(void);
 
-static inline int amqp_socket_error()
-{
-	return WSAGetLastError() | ERROR_CATEGORY_OS;
-}
+#define amqp_socket_socket socket
+#define amqp_socket_close closesocket
+
+int
+amqp_socket_setsockopt(int sock, int level, int optname, const void *optval,
+		       size_t optlen);
+
+int
+amqp_socket_writev(int sock, struct iovec *iov, int nvecs);
+
+int
+amqp_socket_error(void);
 
 #endif

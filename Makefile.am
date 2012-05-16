@@ -13,8 +13,7 @@ librabbitmq_librabbitmq_la_SOURCES = \
 	librabbitmq/amqp_url.c
 
 librabbitmq_librabbitmq_la_CFLAGS = \
-	-I$(top_srcdir)/librabbitmq \
-	-DBUILDING_LIBRABBITMQ
+	-I$(top_srcdir)/librabbitmq
 
 librabbitmq_librabbitmq_la_LDFLAGS = \
 	-version-info $(LT_CURRENT):$(LT_REVISION):$(LT_AGE) \

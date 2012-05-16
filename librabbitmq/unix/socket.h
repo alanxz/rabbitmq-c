@@ -34,28 +34,25 @@
  */
 
 #include <errno.h>
-#include <sys/types.h>
-#include <unistd.h>
-#include <sys/uio.h>
-#include <sys/socket.h>
 #include <netdb.h>
 #include <netinet/in.h>
 #include <netinet/tcp.h>
+#include <sys/socket.h>
+#include <sys/types.h>
+#include <sys/uio.h>
+#include <unistd.h>
 
-static inline int amqp_socket_init(void)
-{
-	return 0;
-}
+int
+amqp_socket_init(void);
 
-extern int amqp_socket_socket(int domain, int type, int proto);
+int
+amqp_socket_socket(int domain, int type, int proto);
+
+int
+amqp_socket_error(void);
 
 #define amqp_socket_setsockopt setsockopt
 #define amqp_socket_close close
 #define amqp_socket_writev writev
-
-static inline int amqp_socket_error()
-{
-	return errno | ERROR_CATEGORY_OS;
-}
 
 #endif

@@ -34,15 +34,12 @@
 #include "config.h"
 #endif
 
-#include <stdlib.h>
-#include <stdio.h>
-#include <string.h>
-#include <stdint.h>
-
-#include "amqp.h"
 #include "amqp_private.h"
-
 #include <assert.h>
+#include <stdint.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
 
 #define INITIAL_ARRAY_SIZE 16
 #define INITIAL_TABLE_SIZE 16

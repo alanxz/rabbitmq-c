@@ -34,14 +34,11 @@
 #include "config.h"
 #endif
 
-#include <string.h>
+#include "amqp_private.h"
+#include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
-#include <stdint.h>
-
-#include "amqp.h"
-#include "amqp_framing.h"
-#include "amqp_private.h"
+#include <string.h>
 
 void amqp_default_connection_info(struct amqp_connection_info *ci)
 {
