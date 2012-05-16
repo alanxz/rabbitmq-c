@@ -7,7 +7,7 @@ speaking protocol versions 0-9-1.
 
  - <http://www.rabbitmq.com/>
  - <http://www.amqp.org/>
- - <http://hg.rabbitmq.com/rabbitmq-c>
+ - <http://github.com/alanxz/rabbitmq-c>
 
 Announcements regarding the library are periodically made on the
 RabbitMQ mailing list and on the RabbitMQ blog.
@@ -18,19 +18,21 @@ RabbitMQ mailing list and on the RabbitMQ blog.
 ## Retrieving the code
 
 In addition to the source code for this library, you will require a
-copy of `rabbitmq-codegen`. Here is a short `sh` script for retrieving
-the necessary pieces:
+copy of `rabbitmq-codegen`, which resides in the `codegen` directory
+as a git submodule. To update the submodule(s):
 
-    git clone https://github.com/rabbitmq/rabbitmq-codegen/
-    git clone https://github.com/alanxz/rabbitmq-c
+    git clone git://github.com/alanxz/rabbitmq-c.git
+    cd rabbitmq-c
+    git submodule init
+    git submodule update
 
 You will also need a recent python with the simplejson module
-installed, and the GNU autotools (autoconf, automake, libtool etc)
-or as an alternative CMake
+installed, and the GNU autotools (autoconf, automake, libtool etc.),
+or as an alternative CMake.
 
 ## Building the code
 
-# Using autoconf
+### Using autoconf
 
 Once you have all the prerequisites, change to the `rabbitmq-c`
 directory and run
@@ -45,7 +47,7 @@ by
 
 to build the `librabbitmq` library and the example programs.
 
-# Using cmake
+### Using cmake
 
 You will need CMake: http://cmake.org/
 
