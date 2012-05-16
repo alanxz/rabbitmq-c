@@ -244,7 +244,15 @@ endif # TOOLS
 EXTRA_DIST = \
 	$(man_MANS) \
 	LICENSE-MIT \
-	codegen \
+	codegen/LICENSE \
+	codegen/LICENSE-MPL-RabbitMQ \
+	codegen/Makefile \
+	codegen/README.extensions.md \
+	codegen/amqp-rabbitmq-0.8.json \
+	codegen/amqp-rabbitmq-0.9.1.json \
+	codegen/amqp_codegen.py \
+	codegen/demo_extension.json \
+	codegen/license_info \
 	debian \
 	librabbitmq/codegen.py \
 	tests/test_tables.expected \
