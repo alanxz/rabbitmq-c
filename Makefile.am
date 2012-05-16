@@ -26,9 +26,9 @@ librabbitmq_librabbitmq_la_CFLAGS += -I$(top_srcdir)/librabbitmq/unix
 endif
 
 if OS_WIN32
-librabbitmq_librabbitmq_la_SOURCES += librabbitmq/windows/socket.c
-librabbitmq_librabbitmq_la_SOURCES += librabbitmq/windows/socket.h
-librabbitmq_librabbitmq_la_CFLAGS += -I$(top_srcdir)/librabbitmq/windows
+librabbitmq_librabbitmq_la_SOURCES += librabbitmq/win32/socket.c
+librabbitmq_librabbitmq_la_SOURCES += librabbitmq/win32/socket.h
+librabbitmq_librabbitmq_la_CFLAGS += -I$(top_srcdir)/librabbitmq/win32
 endif
 
 include_HEADERS = \
@@ -73,7 +73,7 @@ examples_libutils_la_SOURCES += examples/unix/platform_utils.c
 endif
 
 if OS_WIN32
-examples_libutils_la_SOURCES += examples/windows/platform_utils.c
+examples_libutils_la_SOURCES += examples/win32/platform_utils.c
 endif
 
 noinst_PROGRAMS = \
@@ -136,18 +136,21 @@ tools_libcommon_la_CFLAGS = \
 	-I$(top_srcdir)/librabbitmq \
 	-I$(top_srcdir)/tools
 
+tools_platform_CFLAGS =
+
 if OS_UNIX
 tools_libcommon_la_SOURCES += tools/unix/process.c
 tools_libcommon_la_SOURCES += tools/unix/process.h
-tools_platform_CFLAGS = -I$(top_srcdir)/tools/unix
+tools_platform_CFLAGS += -I$(top_srcdir)/tools/unix
 endif
 
 if OS_WIN32
-tools_libcommon_la_SOURCES += tools/windows/compat.c
-tools_libcommon_la_SOURCES += tools/windows/compat.h
-tools_libcommon_la_SOURCES += tools/windows/process.c
-tools_libcommon_la_SOURCES += tools/windows/process.h
-tools_platform_CFLAGS = -I$(top_srcdir)/tools/windows
+tools_libcommon_la_SOURCES += tools/win32/compat.c
+tools_libcommon_la_SOURCES += tools/win32/compat.h
+tools_libcommon_la_SOURCES += tools/win32/process.c
+tools_libcommon_la_SOURCES += tools/win32/process.h
+tools_platform_CFLAGS += -I$(top_srcdir)/tools/win32
+tools_platform_CFLAGS += -I$(top_srcdir)/tools/win32/msinttypes
 endif
 
 bin_PROGRAMS = \

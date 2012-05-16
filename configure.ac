@@ -67,8 +67,7 @@ AS_IF([test "x$os_win32" = xyes],
       [AC_DEFINE([OS_WIN32], [1], [Define to 1 for Win32.])
        AS_IF([test "x$GCC" = xyes],
              [AX_LDFLAGS([-lws2_32])],
-             [AX_CFLAGS([-I$top_srcdir/msinttypes])
-              AX_LDFLAGS([ws2_32.lib])])])
+             [AX_LDFLAGS([ws2_32.lib])])])
 
 # 64-bit option
 AC_ARG_ENABLE([64-bit],
