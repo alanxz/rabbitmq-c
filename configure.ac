@@ -12,7 +12,7 @@ m4_define([micro_version], [0])
 m4_define([interface_age], [0])
 
 AC_INIT([rabbitmq-c], [major_version.minor_version.micro_version],
-	[https://github.com/rabbitmq/rabbitmq-c/issues], [librabbitmq],
+	[https://github.com/alanxz/rabbitmq-c/issues], [librabbitmq],
 	[http://www.rabbitmq.com/])
 AC_CONFIG_MACRO_DIR([m4])
 AM_INIT_AUTOMAKE([1.9 subdir-objects foreign -Wno-portability])
