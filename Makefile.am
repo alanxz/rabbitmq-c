@@ -29,6 +29,7 @@ if OS_WIN32
 librabbitmq_librabbitmq_la_SOURCES += librabbitmq/win32/socket.c
 librabbitmq_librabbitmq_la_SOURCES += librabbitmq/win32/socket.h
 librabbitmq_librabbitmq_la_CFLAGS += -I$(top_srcdir)/librabbitmq/win32
+librabbitmq_librabbitmq_la_CFLAGS += -I$(top_srcdir)/librabbitmq/win32/msinttypes
 endif
 
 include_HEADERS = \
@@ -68,12 +69,15 @@ examples_libutils_la_SOURCES = \
 	examples/utils.c \
 	examples/utils.h
 
+examples_libutils_la_CFLAGS =
+
 if OS_UNIX
 examples_libutils_la_SOURCES += examples/unix/platform_utils.c
 endif
 
 if OS_WIN32
 examples_libutils_la_SOURCES += examples/win32/platform_utils.c
+examples_libutils_la_CFLAGS += -I$(top_srcdir)/tools/win32/msinttypes
 endif
 
 noinst_PROGRAMS = \
