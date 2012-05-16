@@ -79,7 +79,7 @@ int main(int argc, const char **argv)
 		{"body", 'b', POPT_ARG_STRING, &body, 0,
                  "specify the message body", "body"},
 		POPT_AUTOHELP
-		{ NULL, 0, 0, NULL, 0 }
+		{ NULL, '\0', 0, NULL, 0, NULL, NULL }
 	};
 
 	process_all_options(argc, argv, options);

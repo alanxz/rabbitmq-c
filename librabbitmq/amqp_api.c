@@ -143,9 +143,8 @@ int amqp_basic_publish(amqp_connection_state_t state,
     return res;
 
   body_offset = 0;
-  while (1) {
-    int remaining = body.len - body_offset;
-    assert(remaining >= 0);
+  while (body_offset < body.len) {
+    size_t remaining = body.len - body_offset;
 
     if (remaining == 0)
       break;

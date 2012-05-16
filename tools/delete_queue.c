@@ -57,7 +57,7 @@ int main(int argc, const char **argv)
 		{"if-empty", 'e', POPT_ARG_VAL, &if_empty, 1,
 		 "do not delete unless queue is empty", NULL},
 		POPT_AUTOHELP
-		{ NULL, 0, 0, NULL, 0 }
+		{ NULL, '\0', 0, NULL, 0, NULL, NULL }
 	};
 
 	process_all_options(argc, argv, options);

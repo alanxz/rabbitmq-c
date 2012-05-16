@@ -30,7 +30,7 @@
  * ***** END LICENSE BLOCK *****
  */
 
-#ifndef HAVE_CONFIG_H
+#ifdef HAVE_CONFIG_H
 #include "config.h"
 #endif
 
@@ -181,7 +181,7 @@ struct poptOption connect_options[] = {
 	 "the username to login with", "username"},
 	{"password", 0, POPT_ARG_STRING, &amqp_password, 0,
 	 "the password to login with", "password"},
-	{ NULL, 0, 0, NULL, 0 }
+	{ NULL, '\0', 0, NULL, 0, NULL, NULL }
 };
 
 static void init_connection_info(struct amqp_connection_info *ci)
@@ -331,7 +331,8 @@ amqp_bytes_t read_all(int fd)
 	bytes.len = 0;
 
 	for (;;) {
-		ssize_t res = read(fd, bytes.bytes+bytes.len, space-bytes.len);
+		ssize_t res = read(fd, (char *)bytes.bytes + bytes.len,
+				   space-bytes.len);
 		if (res == 0)
 			break;
 
@@ -360,7 +361,7 @@ void write_all(int fd, amqp_bytes_t data)
 			die_errno(errno, "write");
 
 		data.len -= res;
-		data.bytes += res;
+		data.bytes = (char *)data.bytes + res;
 	}
 }
 

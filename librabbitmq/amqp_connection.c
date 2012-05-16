@@ -51,7 +51,7 @@
 #define ENFORCE_STATE(statevec, statenum)                               \
   {                                                                     \
     amqp_connection_state_t _check_state = (statevec);                  \
-    int _wanted_state = (statenum);                                     \
+    size_t _wanted_state = (statenum);                                  \
     if (_check_state->state != _wanted_state)                           \
       amqp_abort("Programming error: invalid AMQP connection state: expected %d, got %d", \
                 _wanted_state,                                          \

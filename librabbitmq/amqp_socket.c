@@ -372,7 +372,7 @@ static int amqp_login_inner(amqp_connection_state_t state,
 {
   int res;
   amqp_method_t method;
-  uint32_t server_frame_max;
+  int server_frame_max;
   uint16_t server_channel_max;
   uint16_t server_heartbeat;
 

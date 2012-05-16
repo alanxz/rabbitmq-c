@@ -54,7 +54,7 @@ int main(int argc, const char **argv)
 		{"durable", 'd', POPT_ARG_VAL, &durable, 1,
 		 "declare a durable queue", NULL},
 		POPT_AUTOHELP
-		{ NULL, 0, 0, NULL, 0 }
+		{ NULL, '\0', 0, NULL, 0, NULL, NULL }
 	};
 
 	process_all_options(argc, argv, options);

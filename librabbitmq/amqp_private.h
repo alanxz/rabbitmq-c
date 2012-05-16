@@ -57,6 +57,14 @@
 #define ERROR_BAD_AMQP_URL 8
 #define ERROR_MAX 8
 
+/* GCC attributes */
+#if __GNUC__ > 2 | (__GNUC__ == 2 && __GNUC_MINOR__ > 4)
+#define AMQP_NORETURN \
+	__attribute__ ((__noreturn__))
+#else
+#define AMQP_NORETURN
+#endif
+
 extern char *amqp_os_error_string(int err);
 
 #include "socket.h"
@@ -253,6 +261,7 @@ static inline int amqp_decode_bytes(amqp_bytes_t encoded, size_t *offset,
   }
 }
 
+AMQP_NORETURN
 extern void amqp_abort(const char *fmt, ...);
 
 #endif
