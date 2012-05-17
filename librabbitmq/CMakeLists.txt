@@ -79,7 +79,7 @@ set(RABBITMQ_SOURCES
     ${SOCKET_IMPL}/socket.h ${SOCKET_IMPL}/socket.c
 )
 
-add_library(rabbitmq SHARED ${RABBITMQ_SOURCES})
+add_library(rabbitmq ${RABBITMQ_SOURCES})
 
 if(WIN32)
   target_link_libraries(rabbitmq ws2_32)

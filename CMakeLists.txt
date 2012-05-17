@@ -65,6 +65,12 @@ set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} ${CMAKE_SOURCE_DIR}/cmake)
 
 find_package(POPT)
 
+option(BUILD_SHARED_LIBS "Build rabbitmq-c as a shared library" ON)
+
+if (WIN32 AND NOT BUILD_SHARED_LIBS)
+  message(FATAL_ERROR "The rabbitmq-c library cannot be built as a static library on Win32. Set BUILD_SHARED_LIBS=ON to get around this.")
+endif()
+
 add_subdirectory(librabbitmq)
 add_subdirectory(examples)
 
