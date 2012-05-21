@@ -250,7 +250,7 @@ def methodApiPrototype(m):
         args.append(" ")
         args.append(n)
 
-    return "%s_ok_t *%s(amqp_connection_state_t state, amqp_channel_t channel%s)" % (fn, fn, ''.join(args))
+    return "AMQP_PUBLIC_FUNCTION %s_ok_t * AMQP_CALL %s(amqp_connection_state_t state, amqp_channel_t channel%s)" % (fn, fn, ''.join(args))
 
 AmqpMethod.apiPrototype = methodApiPrototype
 
@@ -570,45 +570,45 @@ AMQP_BEGIN_DECLS
 
     print """/* Function prototypes. */
 
-AMQP_PUBLIC
+AMQP_PUBLIC_FUNCTION
 char const *
-amqp_constant_name(int constantNumber);
+AMQP_CALL amqp_constant_name(int constantNumber);
 
-AMQP_PUBLIC
+AMQP_PUBLIC_FUNCTION
 amqp_boolean_t
-amqp_constant_is_hard_error(int constantNumber);
+AMQP_CALL amqp_constant_is_hard_error(int constantNumber);
 
-AMQP_PUBLIC
+AMQP_PUBLIC_FUNCTION
 char const *
-amqp_method_name(amqp_method_number_t methodNumber);
+AMQP_CALL amqp_method_name(amqp_method_number_t methodNumber);
 
-AMQP_PUBLIC
+AMQP_PUBLIC_FUNCTION
 amqp_boolean_t
-amqp_method_has_content(amqp_method_number_t methodNumber);
+AMQP_CALL amqp_method_has_content(amqp_method_number_t methodNumber);
 
-AMQP_PUBLIC
+AMQP_PUBLIC_FUNCTION
 int
-amqp_decode_method(amqp_method_number_t methodNumber,
+AMQP_CALL amqp_decode_method(amqp_method_number_t methodNumber,
 		   amqp_pool_t *pool,
 		   amqp_bytes_t encoded,
 		   void **decoded);
 
-AMQP_PUBLIC
+AMQP_PUBLIC_FUNCTION
 int
-amqp_decode_properties(uint16_t class_id,
-		       amqp_pool_t *pool,
-		       amqp_bytes_t encoded,
-		       void **decoded);
+AMQP_CALL amqp_decode_properties(uint16_t class_id,
+            amqp_pool_t *pool,
+            amqp_bytes_t encoded,
+            void **decoded);
 
-AMQP_PUBLIC
+AMQP_PUBLIC_FUNCTION
 int
-amqp_encode_method(amqp_method_number_t methodNumber,
+AMQP_CALL amqp_encode_method(amqp_method_number_t methodNumber,
 		   void *decoded,
 		   amqp_bytes_t encoded);
 
-AMQP_PUBLIC
+AMQP_PUBLIC_FUNCTION
 int
-amqp_encode_properties(uint16_t class_id,
+AMQP_CALL amqp_encode_properties(uint16_t class_id,
 		       void *decoded,
 		       amqp_bytes_t encoded);
 """
@@ -647,7 +647,7 @@ amqp_encode_properties(uint16_t class_id,
 
     for m in methods:
         if m.isSynchronous and apiMethodInfo.get(m.fullName()) is not False:
-            print "AMQP_PUBLIC\n%s;" % (m.apiPrototype(),)
+            print "%s;" % (m.apiPrototype(),)
 
     print """
 AMQP_END_DECLS

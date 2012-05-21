@@ -41,23 +41,78 @@
 #define AMQP_END_DECLS
 #endif
 
-#if defined (_WIN32) || defined (__CYGWIN__)
-#ifndef AMQP_WIN32_BUILD
-#define AMQP_PUBLIC __declspec(dllimport)
-#else
-#define AMQP_PUBLIC __declspec(dllexport)
-#endif
-#define AMQP_PRIVATE
-#else
-#if __GNUC__ >= 4
-#define AMQP_PUBLIC \
+/** Important API Decorators
+  * AMQP_PUBLIC_FUNCTION - Declares an exportable function
+  * AMQP_PUBLIC_VARIABLE - Declares an exportable variable
+  * AMQP_CALL - Declares the calling convention
+  */
+
+#if defined(_WIN32) && defined(_MSC_VER)
+# if defined(AMQP_BUILD) && !defined(AMQP_STATIC)
+#  define AMQP_PUBLIC_FUNCTION __declspec(dllexport)
+#  define AMQP_PUBLIC_VARIABLE __declspec(dllexport) extern
+# else
+#  define AMQP_PUBLIC_FUNCTION
+#  if !defined(AMQP_STATIC)
+#   define AMQP_PUBLIC_VARIABLE __declspec(dllimport) extern
+#  else
+#   define AMQP_PUBLIC_VARIABLE extern
+#  endif
+# endif
+# define AMQP_CALL __cdecl
+
+#elif defined(_WIN32) && defined(__BORLANDC__)
+# if defined(AMQP_BUILD) && !defined(AMQP_STATIC)
+#  define AMQP_PUBLIC_FUNCTION __declspec(dllexport)
+#  define AMQP_PUBLIC_VARIABLE __declspec(dllexport) extern
+# else
+#  define AMQP_PUBLIC_FUNCTION
+#  if !defined(AMQP_STATIC)
+#   define AMQP_PUBLIC_VARIABLE __declspec(dllimport) extern
+#  else
+#   define AMQP_PUBLIC_VARIABLE extern
+#  endif
+# endif
+# define AMQP_CALL __cdecl
+
+#elif defined(_WIN32) && defined(__MINGW32__)
+# if defined(AMQP_BUILD) && !defined(AMQP_STATIC)
+#  define AMQP_PUBLIC_FUNCTION __declspec(dllexport)
+#  define AMQP_PUBLIC_VARIABLE __declspec(dllexport)
+# else
+#  define AMQP_PUBLIC_FUNCTION
+#  if !defined(AMQP_STATIC)
+#   define AMQP_PUBLIC_VARIABLE __declspec(dllimport) extern
+#  else
+#   define AMQP_PUBLIC_VARIABLE extern
+#  endif
+# endif
+# define AMQP_CALL __cdecl
+
+#elif defined(_WIN32) && defined(__CYGWIN__)
+# if defined(AMQP_BUILD) && !defined(AMQP_STATIC)
+#  define AMQP_PUBLIC_FUNCTION __declspec(dllexport)
+#  define AMQP_PUBLIC_VARIABLE __declspec(dllexport)
+# else
+#  define AMQP_PUBLIC_FUNCTION
+#  if !defined(AMQP_STATIC)
+#   define AMQP_PUBLIC_VARIABLE __declspec(dllimport) extern
+#  else
+#   define AMQP_PUBLIC_VARIABLE extern
+#  endif
+# endif
+# define AMQP_CALL __cdecl
+
+#elif defined(__GNUC__) && __GNUC__ >= 4
+# define AMQP_PUBLIC_FUNCTION \
   __attribute__ ((visibility ("default")))
-#define AMQP_PRIVATE \
-  __attribute__ ((visibility ("hidden")))
+# define AMQP_PUBLIC_VARIABLE \
+  __attribute__ ((visibility ("default")))
+# define AMQP_CALL
 #else
-#define AMQP_PUBLIC
-#define AMQP_PRIVATE
-#endif
+# define AMQP_PUBLIC_FUNCTION extern
+# define AMQP_PUBLIC_VARIABLE extern
+# define AMQP_CALL
 #endif
 
 #include <stddef.h>
@@ -238,14 +293,14 @@ typedef enum amqp_sasl_method_enum_ {
 /* Opaque struct. */
 typedef struct amqp_connection_state_t_ *amqp_connection_state_t;
 
-AMQP_PUBLIC
+AMQP_PUBLIC_FUNCTION
 char const *
-amqp_version(void);
+AMQP_CALL amqp_version(void);
 
 /* Exported empty data structures */
-AMQP_PUBLIC extern const amqp_bytes_t amqp_empty_bytes;
-AMQP_PUBLIC extern const amqp_table_t amqp_empty_table;
-AMQP_PUBLIC extern const amqp_array_t amqp_empty_array;
+AMQP_PUBLIC_VARIABLE const amqp_bytes_t amqp_empty_bytes;
+AMQP_PUBLIC_VARIABLE const amqp_table_t amqp_empty_table;
+AMQP_PUBLIC_VARIABLE const amqp_array_t amqp_empty_array;
 
 /* Compatibility macros for the above, to avoid the need to update
    code written against earlier versions of librabbitmq. */
@@ -253,141 +308,141 @@ AMQP_PUBLIC extern const amqp_array_t amqp_empty_array;
 #define AMQP_EMPTY_TABLE amqp_empty_table
 #define AMQP_EMPTY_ARRAY amqp_empty_array
 
-AMQP_PUBLIC
+AMQP_PUBLIC_FUNCTION
 void
-init_amqp_pool(amqp_pool_t *pool, size_t pagesize);
+AMQP_CALL init_amqp_pool(amqp_pool_t *pool, size_t pagesize);
 
-AMQP_PUBLIC
+AMQP_PUBLIC_FUNCTION
 void
-recycle_amqp_pool(amqp_pool_t *pool);
+AMQP_CALL recycle_amqp_pool(amqp_pool_t *pool);
 
-AMQP_PUBLIC
+AMQP_PUBLIC_FUNCTION
 void
-empty_amqp_pool(amqp_pool_t *pool);
+AMQP_CALL empty_amqp_pool(amqp_pool_t *pool);
 
-AMQP_PUBLIC
+AMQP_PUBLIC_FUNCTION
 void *
-amqp_pool_alloc(amqp_pool_t *pool, size_t amount);
+AMQP_CALL amqp_pool_alloc(amqp_pool_t *pool, size_t amount);
 
-AMQP_PUBLIC
+AMQP_PUBLIC_FUNCTION
 void
-amqp_pool_alloc_bytes(amqp_pool_t *pool, size_t amount, amqp_bytes_t *output);
+AMQP_CALL amqp_pool_alloc_bytes(amqp_pool_t *pool, size_t amount, amqp_bytes_t *output);
 
-AMQP_PUBLIC
+AMQP_PUBLIC_FUNCTION
 amqp_bytes_t
-amqp_cstring_bytes(char const *cstr);
+AMQP_CALL amqp_cstring_bytes(char const *cstr);
 
-AMQP_PUBLIC
+AMQP_PUBLIC_FUNCTION
 amqp_bytes_t
-amqp_bytes_malloc_dup(amqp_bytes_t src);
+AMQP_CALL amqp_bytes_malloc_dup(amqp_bytes_t src);
 
-AMQP_PUBLIC
+AMQP_PUBLIC_FUNCTION
 amqp_bytes_t
-amqp_bytes_malloc(size_t amount);
+AMQP_CALL amqp_bytes_malloc(size_t amount);
 
-AMQP_PUBLIC
+AMQP_PUBLIC_FUNCTION
 void
-amqp_bytes_free(amqp_bytes_t bytes);
+AMQP_CALL amqp_bytes_free(amqp_bytes_t bytes);
 
-AMQP_PUBLIC
+AMQP_PUBLIC_FUNCTION
 amqp_connection_state_t
-amqp_new_connection(void);
+AMQP_CALL amqp_new_connection(void);
 
-AMQP_PUBLIC
+AMQP_PUBLIC_FUNCTION
 int
-amqp_get_sockfd(amqp_connection_state_t state);
+AMQP_CALL amqp_get_sockfd(amqp_connection_state_t state);
 
-AMQP_PUBLIC
+AMQP_PUBLIC_FUNCTION
 void
-amqp_set_sockfd(amqp_connection_state_t state, int sockfd);
+AMQP_CALL amqp_set_sockfd(amqp_connection_state_t state, int sockfd);
 
-AMQP_PUBLIC
+AMQP_PUBLIC_FUNCTION
 int
-amqp_tune_connection(amqp_connection_state_t state,
-		     int channel_max,
-		     int frame_max,
-		     int heartbeat);
+AMQP_CALL amqp_tune_connection(amqp_connection_state_t state,
+            int channel_max,
+            int frame_max,
+            int heartbeat);
 
-AMQP_PUBLIC
+AMQP_PUBLIC_FUNCTION
 int
-amqp_get_channel_max(amqp_connection_state_t state);
+AMQP_CALL amqp_get_channel_max(amqp_connection_state_t state);
 
-AMQP_PUBLIC
+AMQP_PUBLIC_FUNCTION
 int
-amqp_destroy_connection(amqp_connection_state_t state);
+AMQP_CALL amqp_destroy_connection(amqp_connection_state_t state);
 
-AMQP_PUBLIC
+AMQP_PUBLIC_FUNCTION
 int
-amqp_handle_input(amqp_connection_state_t state,
-		  amqp_bytes_t received_data,
-		  amqp_frame_t *decoded_frame);
+AMQP_CALL amqp_handle_input(amqp_connection_state_t state,
+		        amqp_bytes_t received_data,
+		        amqp_frame_t *decoded_frame);
 
-AMQP_PUBLIC
+AMQP_PUBLIC_FUNCTION
 amqp_boolean_t
-amqp_release_buffers_ok(amqp_connection_state_t state);
+AMQP_CALL amqp_release_buffers_ok(amqp_connection_state_t state);
 
-AMQP_PUBLIC
+AMQP_PUBLIC_FUNCTION
 void
-amqp_release_buffers(amqp_connection_state_t state);
+AMQP_CALL amqp_release_buffers(amqp_connection_state_t state);
 
-AMQP_PUBLIC
+AMQP_PUBLIC_FUNCTION
 void
-amqp_maybe_release_buffers(amqp_connection_state_t state);
+AMQP_CALL amqp_maybe_release_buffers(amqp_connection_state_t state);
 
-AMQP_PUBLIC
+AMQP_PUBLIC_FUNCTION
 int
-amqp_send_frame(amqp_connection_state_t state, amqp_frame_t const *frame);
+AMQP_CALL amqp_send_frame(amqp_connection_state_t state, amqp_frame_t const *frame);
 
-AMQP_PUBLIC
+AMQP_PUBLIC_FUNCTION
 int
-amqp_table_entry_cmp(void const *entry1, void const *entry2);
+AMQP_CALL amqp_table_entry_cmp(void const *entry1, void const *entry2);
 
-AMQP_PUBLIC
+AMQP_PUBLIC_FUNCTION
 int
-amqp_open_socket(char const *hostname, int portnumber);
+AMQP_CALL amqp_open_socket(char const *hostname, int portnumber);
 
-AMQP_PUBLIC
+AMQP_PUBLIC_FUNCTION
 int
-amqp_send_header(amqp_connection_state_t state);
+AMQP_CALL amqp_send_header(amqp_connection_state_t state);
 
-AMQP_PUBLIC
+AMQP_PUBLIC_FUNCTION
 amqp_boolean_t
-amqp_frames_enqueued(amqp_connection_state_t state);
+AMQP_CALL amqp_frames_enqueued(amqp_connection_state_t state);
 
-AMQP_PUBLIC
+AMQP_PUBLIC_FUNCTION
 int
-amqp_simple_wait_frame(amqp_connection_state_t state,
+AMQP_CALL amqp_simple_wait_frame(amqp_connection_state_t state,
 		       amqp_frame_t *decoded_frame);
 
-AMQP_PUBLIC
+AMQP_PUBLIC_FUNCTION
 int
-amqp_simple_wait_method(amqp_connection_state_t state,
-			amqp_channel_t expected_channel,
-			amqp_method_number_t expected_method,
-			amqp_method_t *output);
+AMQP_CALL amqp_simple_wait_method(amqp_connection_state_t state,
+			      amqp_channel_t expected_channel,
+			      amqp_method_number_t expected_method,
+			      amqp_method_t *output);
 
-AMQP_PUBLIC
+AMQP_PUBLIC_FUNCTION
 int
-amqp_send_method(amqp_connection_state_t state,
-		 amqp_channel_t channel,
-		 amqp_method_number_t id,
-		 void *decoded);
-
-AMQP_PUBLIC
-amqp_rpc_reply_t
-amqp_simple_rpc(amqp_connection_state_t state,
-		amqp_channel_t channel,
-		amqp_method_number_t request_id,
-		amqp_method_number_t *expected_reply_ids,
-		void *decoded_request_method);
-
-AMQP_PUBLIC
-void *
-amqp_simple_rpc_decoded(amqp_connection_state_t state,
+AMQP_CALL amqp_send_method(amqp_connection_state_t state,
 		        amqp_channel_t channel,
-			amqp_method_number_t request_id,
-			amqp_method_number_t reply_id,
-			void *decoded_request_method);
+		        amqp_method_number_t id,
+		        void *decoded);
+
+AMQP_PUBLIC_FUNCTION
+amqp_rpc_reply_t
+AMQP_CALL amqp_simple_rpc(amqp_connection_state_t state,
+		        amqp_channel_t channel,
+		        amqp_method_number_t request_id,
+		        amqp_method_number_t *expected_reply_ids,
+		        void *decoded_request_method);
+
+AMQP_PUBLIC_FUNCTION
+void *
+AMQP_CALL amqp_simple_rpc_decoded(amqp_connection_state_t state,
+		        amqp_channel_t channel,
+			      amqp_method_number_t request_id,
+			      amqp_method_number_t reply_id,
+			      void *decoded_request_method);
 
 /*
  * The API methods corresponding to most synchronous AMQP methods
@@ -402,49 +457,49 @@ amqp_simple_rpc_decoded(amqp_connection_state_t state,
  * generally do NOT update this per-connection-global amqp_rpc_reply_t
  * instance.
  */
-AMQP_PUBLIC
+AMQP_PUBLIC_FUNCTION
 amqp_rpc_reply_t
-amqp_get_rpc_reply(amqp_connection_state_t state);
+AMQP_CALL amqp_get_rpc_reply(amqp_connection_state_t state);
 
-AMQP_PUBLIC
+AMQP_PUBLIC_FUNCTION
 amqp_rpc_reply_t
-amqp_login(amqp_connection_state_t state, char const *vhost,
-	   int channel_max, int frame_max, int heartbeat,
-	   amqp_sasl_method_enum sasl_method, ...);
+AMQP_CALL amqp_login(amqp_connection_state_t state, char const *vhost,
+            int channel_max, int frame_max, int heartbeat,
+	          amqp_sasl_method_enum sasl_method, ...);
 
 struct amqp_basic_properties_t_;
 
-AMQP_PUBLIC
+AMQP_PUBLIC_FUNCTION
 int
-amqp_basic_publish(amqp_connection_state_t state, amqp_channel_t channel,
-	           amqp_bytes_t exchange, amqp_bytes_t routing_key,
-		   amqp_boolean_t mandatory, amqp_boolean_t immediate,
-		   struct amqp_basic_properties_t_ const *properties,
-		   amqp_bytes_t body);
+AMQP_CALL amqp_basic_publish(amqp_connection_state_t state, amqp_channel_t channel,
+            amqp_bytes_t exchange, amqp_bytes_t routing_key,
+		        amqp_boolean_t mandatory, amqp_boolean_t immediate,
+		        struct amqp_basic_properties_t_ const *properties,
+		        amqp_bytes_t body);
 
-AMQP_PUBLIC
+AMQP_PUBLIC_FUNCTION
 amqp_rpc_reply_t
-amqp_channel_close(amqp_connection_state_t state, amqp_channel_t channel,
-		   int code);
+AMQP_CALL amqp_channel_close(amqp_connection_state_t state, amqp_channel_t channel,
+		        int code);
 
-AMQP_PUBLIC
+AMQP_PUBLIC_FUNCTION
 amqp_rpc_reply_t
-amqp_connection_close(amqp_connection_state_t state, int code);
+AMQP_CALL amqp_connection_close(amqp_connection_state_t state, int code);
 
-AMQP_PUBLIC
+AMQP_PUBLIC_FUNCTION
 int
-amqp_basic_ack(amqp_connection_state_t state, amqp_channel_t channel,
-	       uint64_t delivery_tag, amqp_boolean_t multiple);
+AMQP_CALL amqp_basic_ack(amqp_connection_state_t state, amqp_channel_t channel,
+	          uint64_t delivery_tag, amqp_boolean_t multiple);
 
-AMQP_PUBLIC
+AMQP_PUBLIC_FUNCTION
 amqp_rpc_reply_t
-amqp_basic_get(amqp_connection_state_t state, amqp_channel_t channel,
-	       amqp_bytes_t queue, amqp_boolean_t no_ack);
+AMQP_CALL amqp_basic_get(amqp_connection_state_t state, amqp_channel_t channel,
+	          amqp_bytes_t queue, amqp_boolean_t no_ack);
 
-AMQP_PUBLIC
+AMQP_PUBLIC_FUNCTION
 int
-amqp_basic_reject(amqp_connection_state_t state, amqp_channel_t channel,
-		  uint64_t delivery_tag, amqp_boolean_t requeue);
+AMQP_CALL amqp_basic_reject(amqp_connection_state_t state, amqp_channel_t channel,
+		        uint64_t delivery_tag, amqp_boolean_t requeue);
 
 /*
  * Can be used to see if there is data still in the buffer, if so
@@ -453,9 +508,9 @@ amqp_basic_reject(amqp_connection_state_t state, amqp_channel_t channel,
  *
  * Possibly amqp_frames_enqueued should be used for this?
  */
-AMQP_PUBLIC
+AMQP_PUBLIC_FUNCTION
 amqp_boolean_t
-amqp_data_in_buffer(amqp_connection_state_t state);
+AMQP_CALL amqp_data_in_buffer(amqp_connection_state_t state);
 
 /*
  * Get the error string for the given error code.
@@ -463,17 +518,18 @@ amqp_data_in_buffer(amqp_connection_state_t state);
  * The returned string resides on the heap; the caller is responsible
  * for freeing it.
  */
-AMQP_PUBLIC
-char *amqp_error_string(int err);
+AMQP_PUBLIC_FUNCTION
+char *
+AMQP_CALL amqp_error_string(int err);
 
-AMQP_PUBLIC
+AMQP_PUBLIC_FUNCTION
 int
-amqp_decode_table(amqp_bytes_t encoded, amqp_pool_t *pool,
-		  amqp_table_t *output, size_t *offset);
+AMQP_CALL amqp_decode_table(amqp_bytes_t encoded, amqp_pool_t *pool,
+		        amqp_table_t *output, size_t *offset);
 
-AMQP_PUBLIC
+AMQP_PUBLIC_FUNCTION
 int
-amqp_encode_table(amqp_bytes_t encoded, amqp_table_t *input, size_t *offset);
+AMQP_CALL amqp_encode_table(amqp_bytes_t encoded, amqp_table_t *input, size_t *offset);
 
 struct amqp_connection_info {
   char *user;
@@ -483,11 +539,13 @@ struct amqp_connection_info {
   int port;
 };
 
-AMQP_PUBLIC
-void amqp_default_connection_info(struct amqp_connection_info *parsed);
+AMQP_PUBLIC_FUNCTION
+void 
+AMQP_CALL amqp_default_connection_info(struct amqp_connection_info *parsed);
 
-AMQP_PUBLIC
-int amqp_parse_url(char *url, struct amqp_connection_info *parsed);
+AMQP_PUBLIC_FUNCTION
+int 
+AMQP_CALL amqp_parse_url(char *url, struct amqp_connection_info *parsed);
 
 AMQP_END_DECLS
 

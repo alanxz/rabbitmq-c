@@ -79,6 +79,12 @@ set(RABBITMQ_SOURCES
     ${SOCKET_IMPL}/socket.h ${SOCKET_IMPL}/socket.c
 )
 
+add_definitions(-DAMQP_BUILD)
+
+if (NOT BUILDING_SHARED_LIBS)
+  add_definitions(-DAMQP_STATIC)
+endif()
+
 add_library(rabbitmq ${RABBITMQ_SOURCES})
 
 if(WIN32)

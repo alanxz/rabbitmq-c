@@ -72,12 +72,9 @@
 #endif
 
 #if __GNUC__ >= 4
-#define AMQP_PUBLIC \
-  __attribute__ ((visibility ("default")))
 #define AMQP_PRIVATE \
   __attribute__ ((visibility ("hidden")))
 #else
-#define AMQP_PUBLIC
 #define AMQP_PRIVATE
 #endif
 
