@@ -56,17 +56,26 @@ mark_as_advanced(AMQP_CODEGEN_DIR)
 find_package(POPT)
 
 option(BUILD_SHARED_LIBS "Build rabbitmq-c as a shared library" ON)
+option(BUILD_TOOLS "Build Tools (requires POPT Library)" ${POPT_FOUND})
+option(BUILD_EXAMPLES "Build Examples" ON)
 
 if (WIN32 AND NOT BUILD_SHARED_LIBS)
   message(FATAL_ERROR "The rabbitmq-c library cannot be built as a static library on Win32. Set BUILD_SHARED_LIBS=ON to get around this.")
 endif()
 
 add_subdirectory(librabbitmq)
-add_subdirectory(examples)
 
-if (POPT_FOUND)
+if (BUILD_EXAMPLES)
+  add_subdirectory(examples)
+endif ()
+
+if (BUILD_TOOLS)
+  if (POPT_FOUND)
     add_subdirectory(tools)
-endif (POPT_FOUND)
+  else ()
+    message(WARNING "POpt library was not found. Tools will not be built")
+  endif ()
+endif ()
 
 set(prefix ${CMAKE_INSTALL_PREFIX})
 set(exec_prefix ${CMAKE_INSTALL_PREFIX}/bin)
