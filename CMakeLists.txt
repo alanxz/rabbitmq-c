@@ -54,10 +54,16 @@ set(AMQP_CODEGEN_DIR ${RABBITMQ_CODEGEN_DIR} CACHE PATH "Path to rabbitmq-codege
 mark_as_advanced(AMQP_CODEGEN_DIR)
 
 find_package(POPT)
+find_package(XmlTo)
+
+if (POPT_FOUND AND XmlTo_FOUND)
+  set(DO_DOCS ON)
+endif()
 
 option(BUILD_SHARED_LIBS "Build rabbitmq-c as a shared library" ON)
-option(BUILD_TOOLS "Build Tools (requires POPT Library)" ${POPT_FOUND})
 option(BUILD_EXAMPLES "Build Examples" ON)
+option(BUILD_TOOLS "Build Tools (requires POPT Library)" ${POPT_FOUND})
+option(BUILD_TOOLS_DOCS "Build man pages for Tools (requires xmlto)" ${DO_DOCS})
 
 if (WIN32 AND NOT BUILD_SHARED_LIBS)
   message(FATAL_ERROR "The rabbitmq-c library cannot be built as a static library on Win32. Set BUILD_SHARED_LIBS=ON to get around this.")
