@@ -32,3 +32,8 @@ target_link_libraries(amqp-declare-queue rabbitmq ${POPT_LIBRARY})
 add_executable(amqp-delete-queue delete_queue.c ${COMMON_SRCS})
 target_link_libraries(amqp-delete-queue rabbitmq ${POPT_LIBRARY})
 
+install(TARGETS amqp-publish amqp-get amqp-consume amqp-declare-queue amqp-delete-queue
+	RUNTIME DESTINATION bin
+	LIBRARY DESTINATION lib
+	ARCHIVE DESTINATION lib
+	PUBLIC_HEADER DESTINATION include)
