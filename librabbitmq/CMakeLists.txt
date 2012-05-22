@@ -81,7 +81,7 @@ set(RABBITMQ_SOURCES
 
 add_definitions(-DAMQP_BUILD)
 
-if (NOT BUILDING_SHARED_LIBS)
+if (NOT BUILD_SHARED_LIBS)
   add_definitions(-DAMQP_STATIC)
 endif()
 
