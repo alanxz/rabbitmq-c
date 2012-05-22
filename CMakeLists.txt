@@ -3,6 +3,8 @@ project(rabbitmq-c "C")
 
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} ${CMAKE_SOURCE_DIR}/cmake)
 
+set(VERSION "0.2")
+
 #find python
 find_package(PythonInterp REQUIRED)
 
@@ -56,3 +58,14 @@ if (POPT_FOUND)
     add_subdirectory(tools)
 endif (POPT_FOUND)
 
+set(prefix ${CMAKE_INSTALL_PREFIX})
+set(exec_prefix ${CMAKE_INSTALL_PREFIX}/bin)
+set(libdir ${CMAKE_INSTALL_PREFIX}/lib)
+set(includedir ${CMAKE_INSTALL_PREFIX}/include)
+
+configure_file(librabbitmq.pc.in ${CMAKE_CURRENT_BINARY_DIR}/librabbitmq.pc @ONLY)
+
+install(FILES
+  ${CMAKE_CURRENT_BINARY_DIR}/librabbitmq.pc
+  DESTINATION ${CMAKE_INSTALL_PREFIX}/lib/pkgconfig
+  )
