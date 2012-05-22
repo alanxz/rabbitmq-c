@@ -5,6 +5,12 @@ set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} ${CMAKE_SOURCE_DIR}/cmake)
 
 set(VERSION "0.2")
 
+if (MSVC)
+  set(CMAKE_C_FLAGS "/W4 /nologo ${CMAKE_C_FLAGS}")
+else ()
+  set(CMAKE_C_FLAGS "-Wall -Wextra -pedantic -Wstrict-prototypes -Wcast-align -Wno-unused-function -fno-common -fvisibility=hidden ${CMAKE_C_FLAGS}")
+endif ()
+
 if (NOT CMAKE_BUILD_TYPE)
   set(CMAKE_BUILD_TYPE "Release" CACHE STRING "Choose the type of build, options are: Debug Release RelWithDebInfo MinSizeRel." FORCE)
 endif()

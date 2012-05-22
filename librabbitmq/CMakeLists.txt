@@ -36,7 +36,7 @@ add_custom_command(
 SET(CONFIG_CONTENTS "#define VERSION \"${VERSION}\"
 #ifndef __cplusplus
 # define inline ${C_INLINE}
-#endif // __cplusplus
+#endif /* __cplusplus */
 ")
 
 #prepare config.h
