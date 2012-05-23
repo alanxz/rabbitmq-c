@@ -107,10 +107,10 @@
 # define AMQP_PUBLIC_FUNCTION \
   __attribute__ ((visibility ("default")))
 # define AMQP_PUBLIC_VARIABLE \
-  __attribute__ ((visibility ("default")))
+  __attribute__ ((visibility ("default"))) extern
 # define AMQP_CALL
 #else
-# define AMQP_PUBLIC_FUNCTION extern
+# define AMQP_PUBLIC_FUNCTION
 # define AMQP_PUBLIC_VARIABLE extern
 # define AMQP_CALL
 #endif
