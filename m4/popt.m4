@@ -38,9 +38,9 @@ AC_CHECK_HEADERS([popt.h],
 		 [_ax_popt_h=yes],,
 		 [$POPT_CFLAGS])
 AS_IF([test "x$POPT_LIBS" = "x"],
-      [AC_SEARCH_LIBS([poptGetContext], [popt],
-		      [POPT_LIBS=-lpopt
-		       _ax_popt_lib=yes])],
+      [AC_CHECK_LIB([popt], [poptGetContext],
+		    [POPT_LIBS=-lpopt
+		     _ax_popt_lib=yes])],
       [_ax_popt_cflags=$CFLAGS
        CFLAGS="$POPT_CFLAGS $CFLAGS"
        _ax_popt_ldflags=$LDFLAGS
