@@ -1,5 +1,7 @@
 # RabbitMQ C AMQP client library
 
+[![Build Status](https://secure.travis-ci.org/alanxz/rabbitmq-c.png?branch=master)](http://travis-ci.org/alanxz/rabbitmq-c)
+
 ## Introduction
 
 This is a C-language AMQP client library for use with AMQP servers
