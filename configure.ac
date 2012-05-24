@@ -68,9 +68,15 @@ AM_CONDITIONAL([OS_WIN32], [test "x$os_win32" = xyes])
 # Extra Win32 setup
 AS_IF([test "x$os_win32" = xyes],
       [AC_DEFINE([OS_WIN32], [1], [Define to 1 for Win32.])
+       AC_DEFINE([AMQP_BUILD], [1], [Define to 1 for a Win32 build.])
        AS_IF([test "x$GCC" = xyes],
              [AX_LDFLAGS([-lws2_32])],
-             [AX_LDFLAGS([ws2_32.lib])])])
+             [AX_LDFLAGS([ws2_32.lib])])
+       AS_IF([test "x$enable_static" = "xyes"],
+             [AS_IF([test "x$enable_shared" = "xyes"],
+                    [AC_MSG_ERROR([select one of shared @<:@--enable-shared@:>@ or static @<:@--enable-static@:>@.])],
+                    [AC_DEFINE([AMQP_STATIC], [1],
+                               [Define to 1 for a static Win32 build.])])])])
 
 # 64-bit option
 AC_ARG_ENABLE([64-bit],
