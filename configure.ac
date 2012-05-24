@@ -1,4 +1,4 @@
-AC_PREREQ([2.68])
+AC_PREREQ([2.63])
 
 # Library versioning
 # Making releases:
