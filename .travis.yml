@@ -1,0 +1,25 @@
+# Travis-CI Build for rabbitmq-c
+# see travis-ci.org for details
+
+# As CMake is not officially supported we use erlang VMs
+language: erlang
+
+# Settings to try
+env:
+  - OPTIONS="-DBUILD_SHARED_LIBS=ON"
+  - OPTIONS="-DBUILD_SHARED_LIBS=OFF"
+      
+# Make sure CMake is installed
+install:
+ - sudo apt-get install cmake libpopt-dev xmlto
+
+# Run the Build script
+script:
+ - mkdir _build
+ - cd _build
+ - cmake .. -DCMAKE_INSTALL_PREFIX=../_install -DBUILD_EXAMPLES=ON -DBUILD_TESTS=ON -DBUILD_TOOLS=ON -DBUILD_TOOLS_DOCS=ON $OPTIONS
+ - cmake --build . --target install
+
+# Run Tests
+after_script:
+ - ctest -V .
