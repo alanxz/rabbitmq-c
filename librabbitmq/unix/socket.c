@@ -30,19 +30,31 @@
  * ***** END LICENSE BLOCK *****
  */
 
+#ifdef HAVE_CONFIG_H
 #include "config.h"
+#endif
 
-#include <sys/types.h>
-#include <sys/socket.h>
-#include <unistd.h>
-#include <fcntl.h>
-#include <stdint.h>
-#include <string.h>
-#include <stdlib.h>
-
-#include "amqp.h"
 #include "amqp_private.h"
 #include "socket.h"
+#include <fcntl.h>
+#include <stdint.h>
+#include <stdlib.h>
+#include <string.h>
+#include <sys/socket.h>
+#include <sys/types.h>
+#include <unistd.h>
+
+int
+amqp_socket_init(void)
+{
+	return 0;
+}
+
+int
+amqp_socket_error(void)
+{
+	return errno | ERROR_CATEGORY_OS;
+}
 
 int amqp_socket_socket(int domain, int type, int proto)
 {

@@ -30,29 +30,72 @@
  * ***** END LICENSE BLOCK *****
  */
 
-#include <stdio.h>
-#include <stdarg.h>
+/* See http://msdn.microsoft.com/en-us/library/ms737629%28VS.85%29.aspx */
+#define WIN32_LEAN_AND_MEAN
+
+#ifdef HAVE_CONFIG_H
+#include "config.h"
+#endif
+
+#include "amqp_private.h"
+#include "socket.h"
+#include <stdint.h>
 #include <stdlib.h>
+#include <windows.h>
 
-#include "compat.h"
+static int called_wsastartup;
 
-int asprintf(char **strp, const char *fmt, ...)
+int amqp_socket_init(void)
 {
-	va_list ap;
-	int len;
+	if (!called_wsastartup) {
+		WSADATA data;
+		int res = WSAStartup(0x0202, &data);
+		if (res)
+			return -res;
 
-	va_start(ap, fmt);
-	len = _vscprintf(fmt, ap);
-	va_end(ap);
+		called_wsastartup = 1;
+	}
 
-	*strp = malloc(len+1);
-	if (!*strp)
+	return 0;
+}
+
+char *amqp_os_error_string(int err)
+{
+	char *msg, *copy;
+
+	if (!FormatMessage(FORMAT_MESSAGE_FROM_SYSTEM
+			       | FORMAT_MESSAGE_ALLOCATE_BUFFER,
+			   NULL, err,
+			   MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT),
+			   (LPSTR)&msg, 0, NULL))
+		return strdup("(error retrieving Windows error message)");
+
+	copy = strdup(msg);
+	LocalFree(msg);
+	return copy;
+}
+
+int
+amqp_socket_setsockopt(int sock, int level, int optname,
+		       const void *optval, size_t optlen)
+{
+        /* the winsock setsockopt function has its 4th argument as a
+           const char * */
+        return setsockopt(sock, level, optname, (const char *)optval, optlen);
+}
+
+int
+amqp_socket_writev(int sock, struct iovec *iov, int nvecs)
+{
+	DWORD ret;
+	if (WSASend(sock, (LPWSABUF)iov, nvecs, &ret, 0, NULL, NULL) == 0)
+		return ret;
+	else
 		return -1;
+}
 
-	va_start(ap, fmt);
-	_vsnprintf(*strp, len+1, fmt, ap);
-	va_end(ap);
-
-	(*strp)[len] = 0;
-	return len;
+int
+amqp_socket_error(void)
+{
+	return WSAGetLastError() | ERROR_CATEGORY_OS;
 }

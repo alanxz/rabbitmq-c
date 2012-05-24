@@ -40,6 +40,9 @@
 
 #include <amqp.h>
 
+#ifdef _MSC_VER
+#define _USE_MATH_DEFINES
+#endif
 #include <math.h>
 
 void die(const char *fmt, ...)
@@ -51,8 +54,6 @@ void die(const char *fmt, ...)
 	fprintf(stderr, "\n");
 	abort();
 }
-
-#define M_PI 3.14159265358979323846264338327
 
 static void dump_indent(int indent, FILE *out)
 {
@@ -122,7 +123,7 @@ static void dump_value(int indent, amqp_field_value_t v, FILE *out)
 
   case AMQP_FIELD_KIND_BYTES:
     fputc(' ', out);
-    for (i = 0; i < v.value.bytes.len; i++)
+    for (i = 0; i < (int)v.value.bytes.len; i++)
       fprintf(out, "%02x", ((char *) v.value.bytes.bytes)[i]);
 
     fputc('\n', out);
@@ -401,21 +402,14 @@ static void test_table_codec(FILE *out)
 
 #define CHUNK_SIZE 4096
 
-static int compare_files(const char *f1, const char *f2)
+static int compare_files(FILE *f1_in, FILE *f2_in)
 {
-  FILE *f1_in;
-  FILE *f2_in;
   char f1_buf[CHUNK_SIZE];
   char f2_buf[CHUNK_SIZE];
   int res;
 
-  f1_in = fopen(f1, "r");
-  if (f1_in == NULL)
-    die("opening %s: %s", f1, strerror(errno));
-
-  f2_in = fopen(f2, "r");
-  if (f2_in == NULL)
-    die("opening %s: %s", f2, strerror(errno));
+  rewind(f1_in);
+  rewind(f2_in);
 
   for (;;) {
     size_t f1_got = fread(f1_buf, 1, CHUNK_SIZE, f1_in);
@@ -427,45 +421,44 @@ static int compare_files(const char *f1, const char *f2)
 
     if (f1_got < CHUNK_SIZE || f2_got < CHUNK_SIZE) {
       if (f1_got != f2_got)
-	res = (f1_got < f2_got ? -1 : 1);
+        res = (f1_got < f2_got ? -1 : 1);
       break;
     }
   }
 
-  fclose(f1_in);
-  fclose(f2_in);
-
   return res;
 }
 
-const char *expected_file_name = "test_tables.expected";
+const char *expected_file_name = "tests/test_tables.expected";
 
-int main(int argc, char **argv)
+int main(void)
 {
   char *srcdir = getenv("srcdir");
-  char out_path[L_tmpnam];
-  FILE *out = fopen(tmpnam(out_path), "w");
+  FILE *out, *expected = NULL;
   char *expected_path;
 
+  out = tmpfile();
   if (out == NULL)
-    die("opening %s: %s", out_path, strerror(errno));
+    die("failed to create temporary file: %s", strerror(errno));
 
   test_table_codec(out);
   fprintf(out, "----------\n");
   test_dump_value(out);
 
-  fclose(out);
-
   if (srcdir == NULL)
-    die("'srcdir' environment variable not defined");
+    srcdir = "tests";
 
   expected_path = malloc(strlen(srcdir) + strlen(expected_file_name) + 2);
   sprintf(expected_path, "%s/%s", srcdir, expected_file_name);
-  if (compare_files(expected_path, out_path))
-    die("output file did not have expected contents; see %s", out_path);
+  expected = fopen(expected_path, "r");
+  if (!expected)
+    die("failed to open %s: %s", expected_path, strerror(errno));
 
-  if (remove(out_path))
-    die("deleting %s: %s", out_path, strerror(errno));
+  if (compare_files(expected, out))
+    die("output file did not have expected contents");
+
+  fclose(out);
+  fclose(expected);
 
   return 0;
 }

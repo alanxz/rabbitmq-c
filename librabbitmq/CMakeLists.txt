@@ -43,15 +43,15 @@ SET(CONFIG_CONTENTS "#define VERSION \"0.2\"
 file(WRITE "${CMAKE_CURRENT_BINARY_DIR}/config.h" ${CONFIG_CONTENTS})
 
 if(WIN32)
-  set(SOCKET_IMPL "windows")
+  set(SOCKET_IMPL "win32")
 else(WIN32)
   set(SOCKET_IMPL "unix")
 endif(WIN32)
 
 if(MSVC)
   if(MSVC_VERSION LESS 1600)
-    set(MSINTTYPES_INCLUDE "${CMAKE_CURRENT_SOURCE_DIR}/../msinttypes")
-    set(STDINT_H_INSTALL_FILE "${CMAKE_CURRENT_SOURCE_DIR}/../msinttypes/stdint.h")
+    set(MSINTTYPES_INCLUDE "${CMAKE_CURRENT_SOURCE_DIR}/win32/msinttypes")
+    set(STDINT_H_INSTALL_FILE "${CMAKE_CURRENT_SOURCE_DIR}/win32/msinttypes/stdint.h")
   endif(MSVC_VERSION LESS 1600)
 endif(MSVC)
 
@@ -68,7 +68,7 @@ set(LIBRABBITMQ_INCLUDE_DIRS
 	${LIBRABBITMQ_INCLUDE_DIRS}
 	PARENT_SCOPE)
 
-add_definitions(-DBUILDING_LIBRABBITMQ)
+add_definitions(-DHAVE_CONFIG_H)
 
 set(RABBITMQ_SOURCES
     ${CMAKE_CURRENT_BINARY_DIR}/amqp_framing.h
@@ -78,6 +78,12 @@ set(RABBITMQ_SOURCES
     amqp_url.c
     ${SOCKET_IMPL}/socket.h ${SOCKET_IMPL}/socket.c
 )
+
+add_definitions(-DAMQP_BUILD)
+
+if (NOT BUILD_SHARED_LIBS)
+  add_definitions(-DAMQP_STATIC)
+endif()
 
 add_library(rabbitmq ${RABBITMQ_SOURCES})
 

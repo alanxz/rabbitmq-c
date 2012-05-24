@@ -30,19 +30,17 @@
  * ***** END LICENSE BLOCK *****
  */
 
+#ifdef HAVE_CONFIG_H
 #include "config.h"
+#endif
 
-#include <stdlib.h>
-#include <stdio.h>
-#include <string.h>
-#include <stdint.h>
-#include <stdarg.h>
-
-#include "amqp.h"
-#include "amqp_framing.h"
 #include "amqp_private.h"
-
 #include <assert.h>
+#include <stdarg.h>
+#include <stdint.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
 
 static const char *client_error_strings[ERROR_MAX] = {
   "could not allocate memory", /* ERROR_NO_MEMORY */
@@ -141,9 +139,8 @@ int amqp_basic_publish(amqp_connection_state_t state,
     return res;
 
   body_offset = 0;
-  while (1) {
-    int remaining = body.len - body_offset;
-    assert(remaining >= 0);
+  while (body_offset < body.len) {
+    size_t remaining = body.len - body_offset;
 
     if (remaining == 0)
       break;

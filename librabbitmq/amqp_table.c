@@ -30,15 +30,16 @@
  * ***** END LICENSE BLOCK *****
  */
 
-#include <stdlib.h>
-#include <stdio.h>
-#include <string.h>
-#include <stdint.h>
+#ifdef HAVE_CONFIG_H
+#include "config.h"
+#endif
 
-#include "amqp.h"
 #include "amqp_private.h"
-
 #include <assert.h>
+#include <stdint.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
 
 #define INITIAL_ARRAY_SIZE 16
 #define INITIAL_TABLE_SIZE 16
@@ -409,7 +410,7 @@ int amqp_table_entry_cmp(void const *entry1, void const *entry2) {
   amqp_table_entry_t const *p2 = (amqp_table_entry_t const *) entry2;
 
   int d;
-  int minlen;
+  size_t minlen;
 
   minlen = p1->key.len;
   if (p2->key.len < minlen) minlen = p2->key.len;
