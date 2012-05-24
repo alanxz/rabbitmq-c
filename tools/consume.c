@@ -30,7 +30,9 @@
  * ***** END LICENSE BLOCK *****
  */
 
+#ifdef HAVE_CONFIG_H
 #include "config.h"
+#endif
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -180,7 +182,7 @@ int main(int argc, const char **argv)
 		 "stop consuming after this many messages are consumed",
 		 "limit"},
 		POPT_AUTOHELP
-		{ NULL, 0, 0, NULL, 0 }
+		{ NULL, '\0', 0, NULL, 0, NULL, NULL }
 	};
 
 	opts = process_options(argc, argv, options,

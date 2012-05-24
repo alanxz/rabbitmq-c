@@ -3,7 +3,7 @@ include_directories(${CMAKE_CURRENT_SOURCE_DIR} ${librabbitmq_SOURCE_DIR} ${libr
 if (WIN32)
     set(PLATFORM_DIR win32)
     set(PLATFORM_SRCS
-        windows/compat.c
+        win32/compat.c
         )
 else (WIN32)
     set(PLATFORM_DIR unix)

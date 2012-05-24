@@ -1,7 +1,7 @@
 include_directories(${LIBRABBITMQ_INCLUDE_DIRS})
 
 if (WIN32)
-    set(PLATFORM_DIR windows)
+    set(PLATFORM_DIR win32)
 else (WIN32)
     set(PLATFORM_DIR unix)
 endif (WIN32)

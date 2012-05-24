@@ -74,5 +74,5 @@ make
 # isn't too useful here.
 mkdir -p build/lib build/include build/bin
 cp -a librabbitmq/.libs/*.dll examples/.libs/*.exe build/bin
-cp -a msinttypes/*.h librabbitmq/amqp.h librabbitmq/amqp_framing.h build/include
+cp -a librabbitmq/win32/msinttypes/*.h librabbitmq/amqp.h librabbitmq/amqp_framing.h build/include
 cp -a librabbitmq/*.exp librabbitmq/*.lib build/lib

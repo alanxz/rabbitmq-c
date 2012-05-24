@@ -57,7 +57,7 @@ static void send_batch(amqp_connection_state_t conn,
   char message[256];
   amqp_bytes_t message_bytes;
 
-  for (i = 0; i < sizeof(message); i++) {
+  for (i = 0; i < (int)sizeof(message); i++) {
     message[i] = i & 0xff;
   }
 

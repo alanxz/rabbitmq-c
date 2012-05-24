@@ -1,6 +1,3 @@
-#ifndef librabbitmq_windows_socket_h
-#define librabbitmq_windows_socket_h
-
 /*
  * ***** BEGIN LICENSE BLOCK *****
  * Version: MIT
@@ -33,39 +30,33 @@
  * ***** END LICENSE BLOCK *****
  */
 
-#include <winsock2.h>
-
-extern int amqp_socket_init(void);
-
-#define amqp_socket_socket socket
-#define amqp_socket_close closesocket
-
-static inline int amqp_socket_setsockopt(int sock, int level, int optname,
-                                    const void *optval, size_t optlen)
-{
-        /* the winsock setsockopt function has its 4th argument as a
-           const char * */
-        return setsockopt(sock, level, optname, (const char *)optval, optlen);
-}
-
-/* same as WSABUF */
-struct iovec {
-	u_long iov_len;
-	void *iov_base;
-};
-
-static inline int amqp_socket_writev(int sock, struct iovec *iov, int nvecs)
-{
-	DWORD ret;
-	if (WSASend(sock, (LPWSABUF)iov, nvecs, &ret, 0, NULL, NULL) == 0)
-		return ret;
-	else
-		return -1;
-}
-
-static inline int amqp_socket_error()
-{
-	return WSAGetLastError() | ERROR_CATEGORY_OS;
-}
-
+#ifdef HAVE_CONFIG_H
+#include "config.h"
 #endif
+
+#include <stdio.h>
+#include <stdarg.h>
+#include <stdlib.h>
+
+#include "compat.h"
+
+int asprintf(char **strp, const char *fmt, ...)
+{
+	va_list ap;
+	int len;
+
+	va_start(ap, fmt);
+	len = _vscprintf(fmt, ap);
+	va_end(ap);
+
+	*strp = malloc(len+1);
+	if (!*strp)
+		return -1;
+
+	va_start(ap, fmt);
+	_vsnprintf(*strp, len+1, fmt, ap);
+	va_end(ap);
+
+	(*strp)[len] = 0;
+	return len;
+}

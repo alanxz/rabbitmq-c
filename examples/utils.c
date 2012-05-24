@@ -135,7 +135,7 @@ void amqp_dump(void const *buffer, size_t len) {
   int chs[16];
   int oldchs[16];
   int showed_dots = 0;
-  int i;
+  size_t i;
 
   for (i = 0; i < len; i++) {
     int ch = buf[i];

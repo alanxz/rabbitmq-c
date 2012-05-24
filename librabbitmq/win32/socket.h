@@ -1,3 +1,6 @@
+#ifndef librabbitmq_windows_socket_h
+#define librabbitmq_windows_socket_h
+
 /*
  * ***** BEGIN LICENSE BLOCK *****
  * Version: MIT
@@ -30,47 +33,28 @@
  * ***** END LICENSE BLOCK *****
  */
 
-/* See http://msdn.microsoft.com/en-us/library/ms737629%28VS.85%29.aspx */
-#define WIN32_LEAN_AND_MEAN
+#include <winsock2.h>
 
-#include "config.h"
+/* same as WSABUF */
+struct iovec {
+	u_long iov_len;
+	void *iov_base;
+};
 
-#include <windows.h>
-#include <stdint.h>
-#include <stdlib.h>
+int
+amqp_socket_init(void);
 
-#include "amqp.h"
-#include "amqp_private.h"
-#include "socket.h"
+#define amqp_socket_socket socket
+#define amqp_socket_close closesocket
 
-static int called_wsastartup;
+int
+amqp_socket_setsockopt(int sock, int level, int optname, const void *optval,
+		       size_t optlen);
 
-int amqp_socket_init(void)
-{
-	if (!called_wsastartup) {
-		WSADATA data;
-		int res = WSAStartup(0x0202, &data);
-		if (res)
-			return -res;
+int
+amqp_socket_writev(int sock, struct iovec *iov, int nvecs);
 
-		called_wsastartup = 1;
-	}
+int
+amqp_socket_error(void);
 
-	return 0;
-}
-
-char *amqp_os_error_string(int err)
-{
-	char *msg, *copy;
-
-	if (!FormatMessage(FORMAT_MESSAGE_FROM_SYSTEM
-			       | FORMAT_MESSAGE_ALLOCATE_BUFFER,
-			   NULL, err,
-			   MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT),
-			   (LPSTR)&msg, 0, NULL))
-		return strdup("(error retrieving Windows error message)");
-
-	copy = strdup(msg);
-	LocalFree(msg);
-	return copy;
-}
+#endif
