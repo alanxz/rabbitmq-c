@@ -38,17 +38,15 @@
 #include "config.h"
 #endif
 
-/* needed for asnprintf */
+#include "common.h"
+#include <amqp-ssl.h>
+#include <errno.h>
+#include <fcntl.h>
+#include <stdarg.h>
 #include <stdio.h>
 #include <stdlib.h>
-#include <stdarg.h>
 #include <string.h>
-
 #include <unistd.h>
-#include <fcntl.h>
-#include <errno.h>
-
-#include "common.h"
 
 #ifdef WINDOWS
 #include "compat.h"
@@ -174,6 +172,12 @@ static int amqp_port = -1;
 static char *amqp_vhost;
 static char *amqp_username;
 static char *amqp_password;
+#ifdef WITH_SSL
+static int amqp_ssl = 0;
+static char *amqp_cacert = "/etc/ssl/certs/cacert.pem";
+static char *amqp_key = NULL;
+static char *amqp_cert = NULL;
+#endif /* WITH_SSL */
 
 const char *connect_options_title = "Connection options";
 struct poptOption connect_options[] = {
@@ -201,6 +205,16 @@ struct poptOption connect_options[] = {
     "password", 0, POPT_ARG_STRING, &amqp_password, 0,
     "the password to login with", "password"
   },
+#ifdef WITH_SSL
+	{"ssl", 0, POPT_ARG_NONE, &amqp_ssl, 0,
+	 "connect over SSL/TLS", NULL},
+	{"cacert", 0, POPT_ARG_STRING, &amqp_cacert, 0,
+	 "path to the CA certificate file", "cacert.pem"},
+	{"key", 0, POPT_ARG_STRING, &amqp_key, 0,
+	 "path to the client private key file", "key.pem"},
+	{"cert", 0, POPT_ARG_STRING, &amqp_cert, 0,
+	 "path to the client certificate file", "cert.pem"},
+#endif /* WITH_SSL */
   { NULL, '\0', 0, NULL, 0, NULL, NULL }
 };
 
@@ -327,22 +341,25 @@ amqp_connection_state_t make_connection(void)
   amqp_connection_state_t conn;
 
   init_connection_info(&ci);
-
-  s = amqp_open_socket(ci.host, ci.port);
-  die_amqp_error(s, "opening socket to %s:%d", ci.host, ci.port);
-
   conn = amqp_new_connection();
-  amqp_set_sockfd(conn, s);
-
+#ifdef WITH_SSL
+  if (amqp_ssl) {
+    s = amqp_open_ssl_socket(conn, ci.host, ci.port, amqp_cacert,
+                             amqp_key, amqp_cert);
+  } else
+#endif
+  {
+    s = amqp_open_socket(ci.host, ci.port);
+    amqp_set_sockfd(conn, s);
+  }
+  die_amqp_error(s, "opening socket to %s:%d", ci.host, ci.port);
   die_rpc(amqp_login(conn, ci.vhost, 0, 131072, 0,
                      AMQP_SASL_METHOD_PLAIN,
                      ci.user, ci.password),
           "logging in to AMQP server");
-
   if (!amqp_channel_open(conn, 1)) {
     die_rpc(amqp_get_rpc_reply(conn), "opening channel");
   }
-
   return conn;
 }
 

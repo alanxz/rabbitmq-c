@@ -52,10 +52,10 @@
  * (i.e. where its number comes from) in the top bits of the number
  * (assuming that an int has at least 32 bits).
  */
-#define ERROR_CATEGORY_MASK (1 << 29)
-
 #define ERROR_CATEGORY_CLIENT (0 << 29) /* librabbitmq error codes */
 #define ERROR_CATEGORY_OS (1 << 29) /* OS-specific error codes */
+#define ERROR_CATEGORY_SSL (1 << 28) /* SSL-specific error codes */
+#define ERROR_CATEGORY_MASK (ERROR_CATEGORY_OS | ERROR_CATEGORY_SSL)
 
 /* librabbitmq error codes */
 #define ERROR_NO_MEMORY 1

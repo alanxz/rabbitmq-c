@@ -26,12 +26,31 @@ else
 librabbitmq_librabbitmq_la_SOURCES += librabbitmq/amqp_framing.c
 endif
 
+if SSL_CYASSL
+librabbitmq_librabbitmq_la_SOURCES += librabbitmq/amqp-cyassl.c
+endif
+
+if SSL_GNUTLS
+librabbitmq_librabbitmq_la_SOURCES += librabbitmq/amqp-gnutls.c
+endif
+
+if SSL_OPENSSL
+librabbitmq_librabbitmq_la_SOURCES += librabbitmq/amqp-openssl.c
+endif
+
+if SSL_POLARSSL
+librabbitmq_librabbitmq_la_SOURCES += librabbitmq/amqp-polarssl.c
+endif
+
+librabbitmq_librabbitmq_la_CFLAGS = \
+	-I$(top_srcdir)/librabbitmq \
+	$(SSL_CFLAGS) \
+	$(AM_CFLAGS)
 
 librabbitmq_librabbitmq_la_LDFLAGS = \
 	-version-info $(LT_CURRENT):$(LT_REVISION):$(LT_AGE) \
-	$(NO_UNDEFINED)
-librabbitmq_librabbitmq_la_CFLAGS = $(AM_CFLAGS)
-
+	$(NO_UNDEFINED) \
+	$(SSL_LIBS)
 
 if OS_UNIX
 librabbitmq_librabbitmq_la_SOURCES += librabbitmq/unix/socket.c
@@ -49,7 +68,14 @@ endif
 include_HEADERS = \
 	$(top_srcdir)/librabbitmq/amqp.h
 
+if SSL
+include_HEADERS += librabbitmq/amqp-ssl.h
+endif
+
 if REGENERATE_AMQP_FRAMING
+BUILT_SOURCES = \
+	$(top_builddir)/librabbitmq/amqp_framing.h \
+	$(top_builddir)/librabbitmq/amqp_framing.c
 
 if PYTHON3
 codegen_py = $(top_builddir)/librabbitmq/python3/codegen3.py
