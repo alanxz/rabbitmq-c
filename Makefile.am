@@ -69,7 +69,7 @@ examples_libutils_la_SOURCES = \
 	examples/utils.c \
 	examples/utils.h
 
-examples_libutils_la_CFLAGS =
+examples_libutils_la_CFLAGS = -I$(top_srcdir)/librabbitmq
 
 if OS_UNIX
 examples_libutils_la_SOURCES += examples/unix/platform_utils.c
