@@ -34,6 +34,8 @@
 #include "config.h"
 #endif
 
+/* needed for asnprintf */
+#define _GNU_SOURCE
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdarg.h>
@@ -200,12 +202,13 @@ static void init_connection_info(struct amqp_connection_info *ci)
 			       "Parsing URL '%s'", amqp_url);
 
 	if (amqp_server) {
+    char *colon;
 		if (ci->host)
 			die("both --server and --url options specify"
 			    " server host");
 
 		/* parse the server string into a hostname and a port */
-		char *colon = strchr(amqp_server, ':');
+		colon = strchr(amqp_server, ':');
 		if (colon) {
 			char *port_end;
 			size_t host_len;

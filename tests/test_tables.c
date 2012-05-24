@@ -446,7 +446,7 @@ int main(void)
   test_dump_value(out);
 
   if (srcdir == NULL)
-    srcdir = "tests";
+    srcdir = ".";
 
   expected_path = malloc(strlen(srcdir) + strlen(expected_file_name) + 2);
   sprintf(expected_path, "%s/%s", srcdir, expected_file_name);
