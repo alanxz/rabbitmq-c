@@ -133,7 +133,7 @@ void amqp_dump(void const *buffer, size_t len) {
   long count = 0;
   int numinrow = 0;
   int chs[16];
-  int oldchs[16];
+  int oldchs[16] = {0};
   int showed_dots = 0;
   size_t i;
 

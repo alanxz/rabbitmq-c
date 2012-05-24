@@ -32,3 +32,47 @@ target_link_libraries(amqp-declare-queue rabbitmq ${POPT_LIBRARY})
 add_executable(amqp-delete-queue delete_queue.c ${COMMON_SRCS})
 target_link_libraries(amqp-delete-queue rabbitmq ${POPT_LIBRARY})
 
+if (BUILD_TOOLS_DOCS)
+  if (XmlTo_FOUND)
+    set(DOCS_SRCS
+      doc/amqp-consume.xml
+      doc/amqp-declare-queue.xml
+      doc/amqp-delete-queue.xml
+      doc/amqp-get.xml
+      doc/amqp-publish.xml
+      doc/librabbitmq-tools.xml
+      )
+
+    file(MAKE_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/doc)
+    set(XMLTO_DEPENDS ${CMAKE_CURRENT_BINARY_DIR}/doc/man-date.ent)
+    add_custom_command(
+            OUTPUT ${XMLTO_DEPENDS}
+	          COMMAND date +'%Y-%m-%d' > ${XMLTO_DEPENDS}
+            VERBATIM
+            )
+
+    set(XMLTO_COMMAND_ARGS --skip-validation --searchpath "${CMAKE_CURRENT_BINARY_DIR}/doc")
+
+    XMLTO(${DOCS_SRCS}
+      MODES man
+      ALL)
+
+    foreach(file ${XMLTO_FILES_man})
+      get_filename_component(fileExt ${file} EXT)
+      string( REGEX REPLACE "^[.]" "" fileExt ${fileExt} )
+      install(
+        FILES ${file}
+        DESTINATION ${CMAKE_INSTALL_PREFIX}/share/man/man${fileExt}
+        )
+    endforeach()
+
+  else(XmlTo_FOUND)
+    message(WARNING "xmlto not found, will not build tools documentation")
+  endif(XmlTo_FOUND)
+endif()
+
+install(TARGETS amqp-publish amqp-get amqp-consume amqp-declare-queue amqp-delete-queue
+	RUNTIME DESTINATION bin
+	LIBRARY DESTINATION lib
+	ARCHIVE DESTINATION lib
+	PUBLIC_HEADER DESTINATION include)
