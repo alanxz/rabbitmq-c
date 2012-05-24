@@ -1,4 +1,4 @@
-AC_PREREQ([2.63])
+AC_PREREQ([2.59])
 
 # Library versioning
 # Making releases:
@@ -25,7 +25,10 @@ LT_PREREQ([2.2])
 LT_INIT([disable-static win32-dll])
 
 # Program checks
-AC_PROG_CC_C99
+m4_ifdef([AC_PROG_CC_C99], [AC_PROG_CC_C99],
+	 [AC_MSG_WARN([Attempt c99 workaround for old versions of autoconf])
+	  AC_PROG_CC
+	  AX_TRY_CFLAGS([-std=c99], [AX_CFLAGS([-std=c99])])])
 
 # Environment setup
 AC_CANONICAL_HOST
