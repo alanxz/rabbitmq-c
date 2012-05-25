@@ -60,7 +60,7 @@ amqp_socket_socket(int domain, int type, int proto);
 int
 amqp_socket_close(int sockfd, void *user_data);
 
-int
+ssize_t
 amqp_socket_writev(int sockfd, const struct iovec *iov, int iovcnt,
 		   void *user_data);
 

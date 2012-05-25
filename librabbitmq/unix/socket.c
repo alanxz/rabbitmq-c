@@ -87,7 +87,7 @@ amqp_socket_close(int sockfd, AMQP_UNUSED void *user_data)
 	return close(sockfd);
 }
 
-int
+ssize_t
 amqp_socket_writev(int sockfd, const struct iovec *iov,
 		   int iovcnt, AMQP_UNUSED void *user_data)
 {

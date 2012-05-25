@@ -58,7 +58,7 @@ int
 amqp_socket_setsockopt(int sock, int level, int optname, const void *optval,
                        size_t optlen);
 
-int
+ssize_t
 amqp_socket_writev(int sock, struct iovec *iov, int nvecs);
 
 int
