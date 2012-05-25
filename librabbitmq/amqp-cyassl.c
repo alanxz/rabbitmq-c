@@ -32,6 +32,8 @@
 struct amqp_ssl_socket_context {
 	CYASSL_CTX *ctx;
 	CYASSL *ssl;
+	char *buffer;
+	size_t length;
 };
 
 static ssize_t
@@ -52,26 +54,30 @@ amqp_ssl_socket_writev(AMQP_UNUSED int sockfd,
 		       void *user_data)
 {
 	struct amqp_ssl_socket_context *self = user_data;
-	char *buffer, *bufferp;
 	ssize_t written = -1;
+	char *bufferp;
 	size_t bytes;
 	int i;
 	bytes = 0;
 	for (i = 0; i < iovcnt; ++i) {
 		bytes += iov[i].iov_len;
 	}
-	buffer = malloc(bytes);
-	if (!buffer) {
-		goto exit;
+	if (self->length < bytes) {
+		free(self->buffer);
+		self->buffer = malloc(bytes);
+		if (!self->buffer) {
+			self->length = 0;
+			goto exit;
+		}
+		self->length = bytes;
 	}
-	bufferp = buffer;
+	bufferp = self->buffer;
 	for (i = 0; i < iovcnt; ++i) {
 		memcpy(bufferp, iov[i].iov_base, iov[i].iov_len);
 		bufferp += iov[i].iov_len;
 	}
-	written = CyaSSL_write(self->ssl, buffer, bytes);
+	written = CyaSSL_write(self->ssl, self->buffer, bytes);
 exit:
-	free(buffer);
 	return written;
 }
 
@@ -95,6 +101,7 @@ amqp_ssl_socket_close(int sockfd,
 	if (self) {
 		CyaSSL_free(self->ssl);
 		CyaSSL_CTX_free(self->ctx);
+		free(self->buffer);
 		free(self);
 	}
 	if (sockfd >= 0) {

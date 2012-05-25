@@ -34,6 +34,8 @@ struct amqp_ssl_socket_context {
 	gnutls_session_t session;
 	gnutls_certificate_credentials_t credentials;
 	char *host;
+	char *buffer;
+	size_t length;
 };
 
 static ssize_t
@@ -54,26 +56,30 @@ amqp_ssl_socket_writev(AMQP_UNUSED int sockfd,
 		       void *user_data)
 {
 	struct amqp_ssl_socket_context *self = user_data;
-	char *buffer, *bufferp;
 	ssize_t written = -1;
+	char *bufferp;
 	size_t bytes;
 	int i;
 	bytes = 0;
 	for (i = 0; i < iovcnt; ++i) {
 		bytes += iov[i].iov_len;
 	}
-	buffer = malloc(bytes);
-	if (!buffer) {
-		goto exit;
+	if (self->length < bytes) {
+		free(self->buffer);
+		self->buffer = malloc(bytes);
+		if (!self->buffer) {
+			self->length = 0;
+			goto exit;
+		}
+		self->length = 0;
 	}
-	bufferp = buffer;
+	bufferp = self->buffer;
 	for (i = 0; i < iovcnt; ++i) {
 		memcpy(bufferp, iov[i].iov_base, iov[i].iov_len);
 		bufferp += iov[i].iov_len;
 	}
-	written = gnutls_record_send(self->session, buffer, bytes);
+	written = gnutls_record_send(self->session, self->buffer, bytes);
 exit:
-	free(buffer);
 	return written;
 }
 
@@ -101,6 +107,7 @@ amqp_ssl_socket_close(int sockfd,
 		gnutls_deinit(self->session);
 		gnutls_certificate_free_credentials(self->credentials);
 		free(self->host);
+		free(self->buffer);
 		free(self);
 	}
 	return status;
