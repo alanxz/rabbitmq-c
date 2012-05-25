@@ -244,9 +244,15 @@ amqp_open_ssl_socket(amqp_connection_state_t state,
 			goto error;
 		}
 	}
+#ifdef _MSC_VER
+#define strcasecmp _stricmp
+#endif
 	if (strcasecmp(host, (char *)utf8_value)) {
 		goto error;
 	}
+#ifdef _MSC_VER
+#undef strcasecmp
+#endif
 	sockfd = BIO_get_fd(self->bio, NULL);
 	amqp_set_sockfd_full(state, sockfd,
 			     amqp_ssl_socket_writev,
