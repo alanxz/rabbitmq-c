@@ -215,7 +215,7 @@ static void init_connection_info(struct amqp_connection_info *ci)
 			       "Parsing URL '%s'", amqp_url);
 
 	if (amqp_server) {
-    char *colon;
+		char *colon;
 		if (ci->host)
 			die("both --server and --url options specify"
 			    " server host");
@@ -253,6 +253,11 @@ static void init_connection_info(struct amqp_connection_info *ci)
 				die("bad server port number in '%s'",
 				    amqp_server);
 		}
+
+		if (amqp_ssl && !ci->ssl) {
+			die("the --ssl option specifies an SSL connection"
+			    " but the --server option does not");
+		}
 	}
 
 	if (amqp_port >= 0) {
@@ -287,6 +292,10 @@ static void init_connection_info(struct amqp_connection_info *ci)
 		ci->vhost = amqp_vhost;
 	}
 
+	if (amqp_ssl) {
+		ci->ssl = true;
+	}
+
 	amqp_default_connection_info(&defaults);
 
 	if (!ci->user)
@@ -309,13 +318,14 @@ amqp_connection_state_t make_connection(void)
 
 	init_connection_info(&ci);
 	conn = amqp_new_connection();
+	if (ci.ssl) {
 #ifdef WITH_SSL
-	if (amqp_ssl) {
 		s = amqp_open_ssl_socket(conn, ci.host, ci.port, amqp_cacert,
 					 amqp_key, amqp_cert);
-	} else
+#else
+		die("librabbitmq was not built with SSL/TLS support");
 #endif
-	{
+	} else {
 		s = amqp_open_socket(ci.host, ci.port);
 		amqp_set_sockfd(conn, s);
 	}

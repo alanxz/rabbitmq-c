@@ -48,6 +48,7 @@ void amqp_default_connection_info(struct amqp_connection_info *ci)
 	ci->host = "localhost";
 	ci->port = 5672;
 	ci->vhost = "/";
+	ci->ssl = false;
 }
 
 /* Scan for the next delimiter, handling percent-encodings on the way. */
@@ -110,10 +111,16 @@ int amqp_parse_url(char *url, struct amqp_connection_info *parsed)
 	char *port = NULL;
 
 	/* check the prefix */
-	if (strncmp(url, "amqp://", 7))
+	if (!strncmp(url, "amqp://", 7)) {
+		/* do nothing */
+	} else if (!strncmp(url, "amqps://", 8)) {
+		parsed->port = 5671;
+		parsed->ssl = true;
+	} else {
 		goto out;
+	}
 
-	host = start = url += 7;
+	host = start = url += (parsed->ssl ? 8 : 7);
 	delim = find_delim(&url, 1);
 
 	if (delim == ':') {
