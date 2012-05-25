@@ -41,6 +41,8 @@ struct amqp_ssl_socket_context {
 	x509_cert *cert;
 	ssl_context *ssl;
 	ssl_session *session;
+	char *buffer;
+	size_t length;
 };
 
 static ssize_t
@@ -61,26 +63,31 @@ amqp_ssl_socket_writev(AMQP_UNUSED int sockfd,
 		       void *user_data)
 {
 	struct amqp_ssl_socket_context *self = user_data;
-	char *buffer, *bufferp;
 	ssize_t written = -1;
+	char *bufferp;
 	size_t bytes;
 	int i;
 	bytes = 0;
 	for (i = 0; i < iovcnt; ++i) {
 		bytes += iov[i].iov_len;
 	}
-	buffer = malloc(bytes);
-	if (!buffer) {
-		goto exit;
+	if (self->length < bytes) {
+		free(self->buffer);
+		self->buffer = malloc(bytes);
+		if (!self->buffer) {
+			self->length = 0;
+			goto exit;
+		}
+		self->length = bytes;
 	}
-	bufferp = buffer;
+	bufferp = self->buffer;
 	for (i = 0; i < iovcnt; ++i) {
 		memcpy(bufferp, iov[i].iov_base, iov[i].iov_len);
 		bufferp += iov[i].iov_len;
 	}
-	written = ssl_write(self->ssl, (const unsigned char *)buffer, bytes);
+	written = ssl_write(self->ssl, (const unsigned char *)self->buffer,
+			    bytes);
 exit:
-	free(buffer);
 	return written;
 }
 
@@ -113,11 +120,12 @@ amqp_ssl_socket_close(int sockfd,
 		ssl_free(self->ssl);
 		free(self->ssl);
 		free(self->session);
-		free(self);
+		free(self->buffer);
 		if (self->sockfd >= 0) {
 			net_close(sockfd);
 			status = 0;
 		}
+		free(self);
 	}
 	return status;
 }
