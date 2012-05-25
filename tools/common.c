@@ -229,10 +229,9 @@ static void init_connection_info(struct amqp_connection_info *ci)
   ci->vhost = NULL;
   ci->user = NULL;
 
-  if (amqp_url) {
+  if (amqp_url)
     die_amqp_error(amqp_parse_url(strdup(amqp_url), ci),
-                   "Parsing URL '%s'", amqp_url);
-  }
+        "Parsing URL '%s'", amqp_url);
 
   if (amqp_server) {
     char *colon;
@@ -274,10 +273,12 @@ static void init_connection_info(struct amqp_connection_info *ci)
             amqp_server);
     }
 
+#if WITH_SSL
     if (amqp_ssl && !ci->ssl) {
       die("the --ssl option specifies an SSL connection"
           " but the --server option does not");
     }
+#endif
   }
 
   if (amqp_port >= 0) {
@@ -312,9 +313,11 @@ static void init_connection_info(struct amqp_connection_info *ci)
     ci->vhost = amqp_vhost;
   }
 
+#if WITH_SSL
   if (amqp_ssl) {
     ci->ssl = true;
   }
+#endif
 
   amqp_default_connection_info(&defaults);
 
