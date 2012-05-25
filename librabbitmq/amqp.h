@@ -140,7 +140,6 @@ typedef _W64 int ssize_t;
 # define AMQP_CALL
 #endif
 
-#include <stdbool.h>
 #include <stddef.h>
 #include <stdint.h>
 
@@ -586,7 +585,7 @@ struct amqp_connection_info {
   char *host;
   char *vhost;
   int port;
-  bool ssl;
+  amqp_boolean_t ssl;
 };
 
 AMQP_PUBLIC_FUNCTION
