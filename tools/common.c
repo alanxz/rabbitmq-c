@@ -254,10 +254,12 @@ static void init_connection_info(struct amqp_connection_info *ci)
 				    amqp_server);
 		}
 
+#if WITH_SSL
 		if (amqp_ssl && !ci->ssl) {
 			die("the --ssl option specifies an SSL connection"
 			    " but the --server option does not");
 		}
+#endif
 	}
 
 	if (amqp_port >= 0) {
@@ -292,9 +294,11 @@ static void init_connection_info(struct amqp_connection_info *ci)
 		ci->vhost = amqp_vhost;
 	}
 
+#if WITH_SSL
 	if (amqp_ssl) {
 		ci->ssl = true;
 	}
+#endif
 
 	amqp_default_connection_info(&defaults);
 
