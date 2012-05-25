@@ -236,10 +236,9 @@ static void init_connection_info(struct amqp_connection_info *ci)
 
   if (amqp_server) {
     char *colon;
-    if (ci->host) {
+    if (ci->host)
       die("both --server and --url options specify"
           " server host");
-    }
 
     /* parse the server string into a hostname and a port */
     colon = strchr(amqp_server, ':');
@@ -252,86 +251,83 @@ static void init_connection_info(struct amqp_connection_info *ci)
          --url now allows connection options to be
          specificied concisely. */
       fprintf(stderr, "Specifying the port number with"
-              " --server is deprecated\n");
+          " --server is deprecated\n");
 
       host_len = colon - amqp_server;
       ci->host = malloc(host_len + 1);
       memcpy(ci->host, amqp_server, host_len);
       ci->host[host_len] = 0;
 
-      if (ci->port >= 0) {
+      if (ci->port >= 0)
         die("both --server and --url options specify"
             " server port");
-      }
-      if (amqp_port >= 0) {
+      if (amqp_port >= 0)
         die("both --server and --port options specify"
             " server port");
-      }
 
       ci->port = strtol(colon+1, &port_end, 10);
       if (ci->port < 0
           || ci->port > 65535
           || port_end == colon+1
-          || *port_end != 0) {
+          || *port_end != 0)
         die("bad server port number in '%s'",
             amqp_server);
-      }
+    }
+
+    if (amqp_ssl && !ci->ssl) {
+      die("the --ssl option specifies an SSL connection"
+          " but the --server option does not");
     }
   }
 
   if (amqp_port >= 0) {
-    if (ci->port >= 0) {
+    if (ci->port >= 0)
       die("both --port and --url options specify"
           " server port");
-    }
 
     ci->port = amqp_port;
   }
 
   if (amqp_username) {
-    if (ci->user) {
+    if (ci->user)
       die("both --username and --url options specify"
           " AMQP username");
-    }
 
     ci->user = amqp_username;
   }
 
   if (amqp_password) {
-    if (ci->password) {
+    if (ci->password)
       die("both --password and --url options specify"
           " AMQP password");
-    }
 
     ci->password = amqp_password;
   }
 
   if (amqp_vhost) {
-    if (ci->vhost) {
+    if (ci->vhost)
       die("both --vhost and --url options specify"
           " AMQP vhost");
-    }
 
     ci->vhost = amqp_vhost;
   }
 
+  if (amqp_ssl) {
+    ci->ssl = true;
+  }
+
   amqp_default_connection_info(&defaults);
 
-  if (!ci->user) {
+  if (!ci->user)
     ci->user = defaults.user;
-  }
-  if (!ci->password) {
+  if (!ci->password)
     ci->password = defaults.password;
-  }
-  if (!ci->host) {
+  if (!ci->host)
     ci->host = defaults.host;
-  }
-  if (ci->port < 0) {
+  if (ci->port < 0)
     ci->port = defaults.port;
-  }
-  if (!ci->vhost) {
+  if (!ci->vhost)
     ci->vhost = defaults.vhost;
-  }
 }
 
 amqp_connection_state_t make_connection(void)
@@ -342,24 +338,24 @@ amqp_connection_state_t make_connection(void)
 
   init_connection_info(&ci);
   conn = amqp_new_connection();
+  if (ci.ssl) {
 #ifdef WITH_SSL
-  if (amqp_ssl) {
     s = amqp_open_ssl_socket(conn, ci.host, ci.port, amqp_cacert,
-                             amqp_key, amqp_cert);
-  } else
+        amqp_key, amqp_cert);
+#else
+    die("librabbitmq was not built with SSL/TLS support");
 #endif
-  {
+  } else {
     s = amqp_open_socket(ci.host, ci.port);
     amqp_set_sockfd(conn, s);
   }
   die_amqp_error(s, "opening socket to %s:%d", ci.host, ci.port);
   die_rpc(amqp_login(conn, ci.vhost, 0, 131072, 0,
-                     AMQP_SASL_METHOD_PLAIN,
-                     ci.user, ci.password),
-          "logging in to AMQP server");
-  if (!amqp_channel_open(conn, 1)) {
+        AMQP_SASL_METHOD_PLAIN,
+        ci.user, ci.password),
+      "logging in to AMQP server");
+  if (!amqp_channel_open(conn, 1))
     die_rpc(amqp_get_rpc_reply(conn), "opening channel");
-  }
   return conn;
 }
 

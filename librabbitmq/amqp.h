@@ -124,6 +124,7 @@ struct iovec;
 # define AMQP_CALL
 #endif
 
+#include <stdbool.h>
 #include <stddef.h>
 #include <stdint.h>
 
@@ -569,6 +570,7 @@ struct amqp_connection_info {
   char *host;
   char *vhost;
   int port;
+  bool ssl;
 };
 
 AMQP_PUBLIC_FUNCTION
