@@ -43,8 +43,11 @@
 
 #include "amqp.h"
 #include "amqp_framing.h"
-#include <arpa/inet.h>
 #include <string.h>
+
+#ifdef HAVE_ARPA_INET_H
+#include <arpa/inet.h>
+#endif
 
 /* Error numbering: Because of differences in error numbering on
  * different platforms, we want to keep error numbers opaque for
