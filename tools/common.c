@@ -296,7 +296,7 @@ static void init_connection_info(struct amqp_connection_info *ci)
 
 #if WITH_SSL
 	if (amqp_ssl) {
-		ci->ssl = true;
+		ci->ssl = 1;
 	}
 #endif
 
