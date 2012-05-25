@@ -111,6 +111,22 @@ struct iovec;
 # endif
 # define AMQP_CALL __cdecl
 
+#if !defined(_W64)
+#if !defined(__midl) && (defined(_X86_) || defined(_M_IX86)) && _MSC_VER >= 1300
+#define _W64 __w64
+#else
+#define _W64
+#endif
+#endif
+
+#ifdef _MSC_VER
+#ifdef _WIN64
+typedef __int64 ssize_t;
+#else
+typedef _W64 int ssize_t;
+#endif
+#endif
+
 #elif defined(__GNUC__) && __GNUC__ >= 4
 # include <sys/uio.h>
 # define AMQP_PUBLIC_FUNCTION \
