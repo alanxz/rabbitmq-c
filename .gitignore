@@ -32,6 +32,14 @@ examples/amqp_producer
 examples/amqp_rpc_sendstring_client
 examples/amqp_sendstring
 examples/amqp_unbind
+examples/amqps_bind
+examples/amqps_consumer
+examples/amqps_exchange_declare
+examples/amqps_listen
+examples/amqps_listenq
+examples/amqps_producer
+examples/amqps_sendstring
+examples/amqps_unbind
 librabbitmq.pc
 tests/test_parse_url
 tests/test_tables

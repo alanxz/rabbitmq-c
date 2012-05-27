@@ -199,10 +199,63 @@ examples_amqp_listenq_LDADD = \
 	examples/libutils.la \
 	librabbitmq/librabbitmq.la
 
-examples_amqp_rpc_sendstring_client_SOURCES = examples/amqp_rpc_sendstring_client.c
+examples_amqp_rpc_sendstring_client_SOURCES = \
+	examples/amqp_rpc_sendstring_client.c
 examples_amqp_rpc_sendstring_client_LDADD = \
 	examples/libutils.la \
 	librabbitmq/librabbitmq.la
+
+if SSL
+noinst_PROGRAMS += \
+	examples/amqps_bind \
+	examples/amqps_consumer \
+	examples/amqps_exchange_declare \
+	examples/amqps_listen \
+	examples/amqps_listenq \
+	examples/amqps_producer \
+	examples/amqps_sendstring \
+	examples/amqps_unbind
+
+examples_amqps_bind_SOURCES = examples/amqps_bind.c
+examples_amqps_bind_LDADD = \
+	examples/libutils.la \
+	librabbitmq/librabbitmq.la
+
+examples_amqps_consumer_SOURCES = examples/amqps_consumer.c
+examples_amqps_consumer_LDADD = \
+	examples/libutils.la \
+	librabbitmq/librabbitmq.la
+
+examples_amqps_exchange_declare_SOURCES = examples/amqps_exchange_declare.c
+examples_amqps_exchange_declare_LDADD = \
+	examples/libutils.la \
+	librabbitmq/librabbitmq.la
+
+examples_amqps_listen_SOURCES = examples/amqps_listen.c
+examples_amqps_listen_LDADD = \
+	examples/libutils.la \
+	librabbitmq/librabbitmq.la
+
+examples_amqps_listenq_SOURCES = examples/amqps_listenq.c
+examples_amqps_listenq_LDADD = \
+	examples/libutils.la \
+	librabbitmq/librabbitmq.la
+
+examples_amqps_producer_SOURCES = examples/amqps_producer.c
+examples_amqps_producer_LDADD = \
+	examples/libutils.la \
+	librabbitmq/librabbitmq.la
+
+examples_amqps_sendstring_SOURCES = examples/amqps_sendstring.c
+examples_amqps_sendstring_LDADD = \
+	examples/libutils.la \
+	librabbitmq/librabbitmq.la
+
+examples_amqps_unbind_SOURCES = examples/amqps_unbind.c
+examples_amqps_unbind_LDADD = \
+	examples/libutils.la \
+	librabbitmq/librabbitmq.la
+endif
 
 if TOOLS
 noinst_LTLIBRARIES += tools/libcommon.la
