@@ -39,21 +39,15 @@
 #endif
 
 #include "amqp_private.h"
+
+#include "socket.h"
+
 #include <assert.h>
 #include <stdarg.h>
 #include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <sys/socket.h>
-
-#ifdef HAVE_NETDB_H
-#include <netdb.h>
-#endif
-
-#ifdef HAVE_NETINET_TCP_H
-#include <netinet/tcp.h>
-#endif
 
 int amqp_open_socket(char const *hostname,
                      int portnumber)

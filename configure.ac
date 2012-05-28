@@ -39,9 +39,6 @@ PKG_PROG_PKG_CONFIG([0.17])
 # Environment setup
 AC_CANONICAL_HOST
 AC_C_INLINE
-AC_CHECK_HEADERS([arpa/inet.h])
-AC_CHECK_HEADERS([netdb.h])
-AC_CHECK_HEADERS([netinet/tcp.h])
 
 # Set compiler flags
 AX_TRY_CFLAGS([-Wall], [AX_CFLAGS([-Wall])])
