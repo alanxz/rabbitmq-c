@@ -111,6 +111,22 @@ struct iovec;
 # endif
 # define AMQP_CALL __cdecl
 
+#elif defined(__GNUC__) && __GNUC__ >= 4
+# include <sys/uio.h>
+# define AMQP_PUBLIC_FUNCTION \
+  __attribute__ ((visibility ("default")))
+# define AMQP_PUBLIC_VARIABLE \
+  __attribute__ ((visibility ("default"))) extern
+# define AMQP_CALL
+#else
+# define AMQP_PUBLIC_FUNCTION
+# define AMQP_PUBLIC_VARIABLE extern
+# define AMQP_CALL
+#endif
+
+/* Define ssize_t on Win32/64 platforms
+   See: http://lists.cs.uiuc.edu/pipermail/llvmdev/2010-April/030649.html for details
+   */
 #if !defined(_W64)
 #if !defined(__midl) && (defined(_X86_) || defined(_M_IX86)) && _MSC_VER >= 1300
 #define _W64 __w64
@@ -125,19 +141,6 @@ typedef __int64 ssize_t;
 #else
 typedef _W64 int ssize_t;
 #endif
-#endif
-
-#elif defined(__GNUC__) && __GNUC__ >= 4
-# include <sys/uio.h>
-# define AMQP_PUBLIC_FUNCTION \
-  __attribute__ ((visibility ("default")))
-# define AMQP_PUBLIC_VARIABLE \
-  __attribute__ ((visibility ("default"))) extern
-# define AMQP_CALL
-#else
-# define AMQP_PUBLIC_FUNCTION
-# define AMQP_PUBLIC_VARIABLE extern
-# define AMQP_CALL
 #endif
 
 #include <stddef.h>
