@@ -20,25 +20,33 @@
  * DEALINGS IN THE SOFTWARE.
  */
 
+/**
+ * \file
+ * Open an SSL/TLS connection
+ */
+
 #ifndef AMQP_SSL_H
 #define AMQP_SSL_H
 
 #include <amqp.h>
 
 /**
- * \brief Open an SSL connection to an AMQP broker.
+ * Open an SSL connection to an AMQP broker.
  *
- * If successful this function will setup the AMQP connection state object
- * for SSL/TLS communication. The caller of this function should not call
- * amqp_set_sockfd() or amqp_set_sockfd_full() after calling this function,
- * nor should the returned file descriptor be used directly for network I/O.
+ * This function will setup an AMQP connection state object for SSL/TLS
+ * communication. The caller of this function should not use the returned
+ * file descriptor as input to amqp_set_sockfd() or amqp_set_sockfd_full(),
+ * or directly for network I/O.
  *
- * \param state [in/out] An AMQP connection state object.
- * \param host [in] The name of the host to connect to.
- * \param port [in] The port to connect on.
- * \param caert [in] Path the CA cert file in PEM format.
- * \param key [in] Path to the client key in PEM format. (may be NULL)
- * \param cert [in] Path to the client cert in PEM format. (may be NULL)
+ * If a client key or certificate file is provide then they should both be
+ * provided.
+ *
+ * \param [in,out] state An AMQP connection state object.
+ * \param [in] host The name of the host to connect to.
+ * \param [in] port The port to connect on.
+ * \param [in] caert Path the CA cert file in PEM format.
+ * \param [in] key Path to the client key in PEM format. (may be NULL)
+ * \param [in] cert Path to the client cert in PEM format. (may be NULL)
  *
  * \return A socket file-descriptor (-1 if an error occurred).
  */
