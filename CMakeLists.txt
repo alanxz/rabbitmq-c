@@ -202,7 +202,7 @@ endif (REGENERATE_AMQP_FRAMING)
 
 find_package(POPT)
 find_package(XmlTo)
-find_package(OpenSSL 1.0.0)
+find_package(OpenSSL 0.9.8)
 
 if (POPT_FOUND AND XmlTo_FOUND)
   set(DO_DOCS ON)

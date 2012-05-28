@@ -142,7 +142,7 @@ AS_IF([test "x$with_ssl" = "xcyassl"],
       [test "x$with_ssl" = "xgnutls"],
       [PKG_CHECK_MODULES([SSL], [gnutls],, [with_ssl=no])],
       [test "x$with_ssl" = "xopenssl"],
-      [PKG_CHECK_MODULES([SSL], [openssl >= 1.0.0],, [with_ssl=no])],
+      [PKG_CHECK_MODULES([SSL], [openssl >= 0.9.8],, [with_ssl=no])],
       [test "x$with_ssl" = "xpolarssl"],
       [AX_LIB_POLARSSL([SSL_CFLAGS=$POLARSSL_CFLAGS
 			SSL_LIBS=$POLARSSL_LIBS],
