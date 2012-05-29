@@ -32,6 +32,10 @@
 #include <openssl/ssl.h>
 #include <stdlib.h>
 
+static int initialize_openssl();
+static int destroy_openssl();
+
+int open_connections = 0;
 amqp_boolean_t do_initialize_openssl = 1;
 amqp_boolean_t openssl_initialized = 0;
 
@@ -141,6 +145,7 @@ amqp_ssl_socket_close(int sockfd,
 		free(self->buffer);
 		free(self);
 	}
+  destroy_openssl();
 	return 0 > sockfd ? -1 : 0;
 }
 
@@ -167,9 +172,7 @@ amqp_open_ssl_socket(amqp_connection_state_t state,
 	struct amqp_ssl_socket_context *self;
 	int sockfd, status, pos, utf8_length;
 	unsigned char *utf8_value = NULL, *cp, ch;
-	SSL_library_init();
-	SSL_load_error_strings();
-	OpenSSL_add_all_algorithms();
+  initialize_openssl();
 	self = calloc(1, sizeof(*self));
 	if (!self) {
 		goto error;
@@ -281,4 +284,30 @@ amqp_set_initialize_ssl_library(amqp_boolean_t do_initialize)
   {
     do_initialize_openssl = do_initialize;
   }
+}
+
+static int
+initialize_openssl()
+{
+  if (do_initialize_openssl)
+  {
+    if (!openssl_initialized)
+    {
+      OPENSSL_config(NULL);
+
+      SSL_library_init();
+      SSL_load_error_strings();
+
+      openssl_initialized = 1;
+    }
+  }
+
+  ++open_connections;
+  return 0;
+}
+
+static int
+destroy_openssl()
+{
+  --open_connections;
 }
