@@ -208,6 +208,8 @@ if (POPT_FOUND AND XmlTo_FOUND)
   set(DO_DOCS ON)
 endif()
 
+find_package(Threads)
+
 option(BUILD_SHARED_LIBS "Build rabbitmq-c as a shared library" ON)
 option(BUILD_STATIC_LIBS "Build rabbitmq-c as a static library" OFF)
 
@@ -216,6 +218,7 @@ option(BUILD_TOOLS "Build Tools (requires POPT Library)" ${POPT_FOUND})
 option(BUILD_TOOLS_DOCS "Build man pages for Tools (requires xmlto)" ${DO_DOCS})
 option(BUILD_TESTS "Build tests (run tests with make test)" ON)
 option(ENABLE_SSL_SUPPORT "Enable SSL support" ON)
+option(ENABLE_THREAD_SAFETY "Enable thread safety when using OpenSSL" ${Threads_FOUND})
 
 set(SSL_ENGINE "OpenSSL" CACHE STRING "SSL Backend to use, valid options: OpenSSL, cyaSSL, GnuTLS, PolarSSL")
 mark_as_advanced(SSL_ENGINE)

@@ -103,6 +103,10 @@ if (ENABLE_SSL_SUPPORT)
   else()
     message(FATAL_ERROR "Unknown SSL_ENGINE ${SSL_ENGINE}")
   endif()
+
+  if (ENABLE_THREAD_SAFETY)
+    add_definitions(-DENABLE_THREAD_SAFETY)
+  endif()
 endif()
 
 set(RABBITMQ_SOURCES
@@ -123,7 +127,7 @@ if (BUILD_SHARED_LIBS)
     add_library(rabbitmq SHARED ${RABBITMQ_SOURCES})
 
     if (ENABLE_SSL_SUPPORT)
-        target_link_libraries(rabbitmq ${AMQP_SSL_LIBS})
+        target_link_libraries(rabbitmq ${AMQP_SSL_LIBS} ${CMAKE_THREAD_LIBS_INIT})
     endif()
 
     if (WIN32)
