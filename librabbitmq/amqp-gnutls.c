@@ -249,3 +249,8 @@ error:
 	sockfd = -1;
 	goto exit;
 }
+
+void
+amqp_set_initialize_ssl_library(amqp_boolean_t do_initialize)
+{
+}
