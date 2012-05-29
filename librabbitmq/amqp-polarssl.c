@@ -239,3 +239,8 @@ error:
 	amqp_ssl_socket_close(self->sockfd, self);
 	return -1;
 }
+
+void
+amqp_set_initialize_ssl_library(amqp_boolean_t do_initialize)
+{
+}

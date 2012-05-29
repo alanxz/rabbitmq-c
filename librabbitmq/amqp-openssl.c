@@ -32,6 +32,9 @@
 #include <openssl/ssl.h>
 #include <stdlib.h>
 
+amqp_boolean_t do_initialize_openssl = 1;
+amqp_boolean_t openssl_initialized = 0;
+
 struct amqp_ssl_socket_context {
 	BIO *bio;
 	SSL_CTX *ctx;
@@ -269,4 +272,13 @@ error:
 	amqp_ssl_socket_close(-1, self);
 	sockfd = -1;
 	goto exit;
+}
+
+void
+amqp_set_initialize_ssl_library(amqp_boolean_t do_initialize)
+{
+  if (!openssl_initialized)
+  {
+    do_initialize_openssl = do_initialize;
+  }
 }

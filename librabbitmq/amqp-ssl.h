@@ -59,4 +59,30 @@ amqp_open_ssl_socket(amqp_connection_state_t state,
 		     const char *key,
 		     const char *cert);
 
+/**
+ * Sets whether rabbitmq-c initializes the underlying SSL library
+ *
+ * For SSL libraries that require a one-time initialization across 
+ * a whole program (e.g., OpenSSL) this sets whether or not rabbitmq-c
+ * will initialize the SSL library when the first call to 
+ * amqp_open_ssl_socket() is made. You should call this function with
+ * do_init = 0 if the underlying SSL library is intialized somewhere else
+ * the program. 
+ *
+ * Failing to initialize or double initialization of the SSL library will 
+ * result in undefined behavior
+ *
+ * By default rabbitmq-c will initialize the underlying SSL library
+ *
+ * NOTE: calling this function after the first socket has been opened with
+ * amqp_open_ssl_socket() will not have any effect.
+ *
+ * \param [in] do_initalize, if 0 rabbitmq-c will not initialize the SSL library,
+ *              otherwise rabbitmq-c will initialize the SSL library
+ * 
+ */
+AMQP_PUBLIC_FUNCTION
+void
+amqp_set_initialize_ssl_library(amqp_boolean_t do_initialize);
+
 #endif /* AMQP_SSL_H */
