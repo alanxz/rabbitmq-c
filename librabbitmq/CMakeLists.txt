@@ -106,6 +106,11 @@ if (ENABLE_SSL_SUPPORT)
 
   if (ENABLE_THREAD_SAFETY)
     add_definitions(-DENABLE_THREAD_SAFETY)
+    if (WIN32)
+      set(AMQP_SSL_SRCS ${AMQP_SSL_SRCS} win32/threads.h win32/threads.c)
+    else()
+      set(AMQP_SSL_SRCS ${AMQP_SSL_SRCS} unix/threads.h)
+    endif()
   endif()
 endif()
 
