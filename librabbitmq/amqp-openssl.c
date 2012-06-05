@@ -34,8 +34,8 @@
 #include <openssl/ssl.h>
 #include <stdlib.h>
 
-static int initialize_openssl();
-static int destroy_openssl();
+static int initialize_openssl(void);
+static int destroy_openssl(void);
 
 static int open_ssl_connections = 0;
 static amqp_boolean_t do_initialize_openssl = 1;
@@ -160,7 +160,7 @@ amqp_ssl_socket_close(int sockfd,
 		free(self->buffer);
 		free(self);
 	}
-  destroy_openssl();
+	destroy_openssl();
 	return 0 > sockfd ? -1 : 0;
 }
 
@@ -187,7 +187,7 @@ amqp_open_ssl_socket(amqp_connection_state_t state,
 	struct amqp_ssl_socket_context *self;
 	int sockfd, status, pos, utf8_length;
 	unsigned char *utf8_value = NULL, *cp, ch;
-  initialize_openssl();
+	initialize_openssl();
 	self = calloc(1, sizeof(*self));
 	if (!self) {
 		goto error;
@@ -310,7 +310,9 @@ amqp_ssl_threadid_callback(void)
 }
 
 void
-amqp_ssl_locking_callback(int mode, int n, const char *file, int line)
+amqp_ssl_locking_callback(int mode, int n,
+			  AMQP_UNUSED const char *file,
+			  AMQP_UNUSED int line)
 {
   if (mode & CRYPTO_LOCK)
   {
@@ -326,13 +328,13 @@ amqp_ssl_locking_callback(int mode, int n, const char *file, int line)
 #endif /* ENABLE_THREAD_SAFETY */
 
 static int
-initialize_openssl()
+initialize_openssl(void)
 {
 #ifdef _WIN32
   /* No such thing as PTHREAD_INITIALIZE_MUTEX macro on Win32, so we use this */
   if (NULL == openssl_init_mutex)
   {
-    while (InterlockedExchange(&win32_create_mutex, 1) == 1) 
+    while (InterlockedExchange(&win32_create_mutex, 1) == 1)
       /* Loop, someone else is holding this lock */ ;
 
     if (NULL == openssl_init_mutex)
@@ -343,7 +345,7 @@ initialize_openssl()
     InterlockedExchange(&win32_create_mutex, 0);
   }
 #endif /* _WIN32 */
-  
+
 #ifdef ENABLE_THREAD_SAFETY
   if (pthread_mutex_lock(&openssl_init_mutex))
     return -1;
@@ -399,7 +401,7 @@ initialize_openssl()
 }
 
 static int
-destroy_openssl()
+destroy_openssl(void)
 {
 #ifdef ENABLE_THREAD_SAFETY
   if (pthread_mutex_lock(&openssl_init_mutex))

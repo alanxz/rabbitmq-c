@@ -69,6 +69,7 @@ AS_CASE([$host],
                 [os_unix=yes])
 AM_CONDITIONAL([OS_UNIX], [test "x$os_unix" = xyes])
 AM_CONDITIONAL([OS_WIN32], [test "x$os_win32" = xyes])
+AC_DEFINE([ENABLE_THREAD_SAFETY], [1], [Define to 1 to enable thread safety])
 
 # Extra Win32 setup
 AS_IF([test "x$os_win32" = xyes],
