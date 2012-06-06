@@ -413,7 +413,7 @@ int amqp_send_frame(amqp_connection_state_t state,
     amqp_e32(out_frame, 3, out_frame_len);
     amqp_e8(out_frame, out_frame_len + HEADER_SIZE, AMQP_FRAME_END);
     res = send(state->sockfd, out_frame,
-               out_frame_len + HEADER_SIZE + FOOTER_SIZE, 0);
+               out_frame_len + HEADER_SIZE + FOOTER_SIZE, MSG_NOSIGNAL);
   }
 
   if (res < 0)
