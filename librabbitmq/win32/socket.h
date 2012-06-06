@@ -57,4 +57,8 @@ amqp_socket_writev(int sock, struct iovec *iov, int nvecs);
 int
 amqp_socket_error(void);
 
+#ifndef MSG_NOSIGNAL
+# define MSG_NOSIGNAL 0x0
+#endif
+
 #endif

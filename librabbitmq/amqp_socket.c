@@ -66,6 +66,14 @@ int amqp_open_socket(char const *hostname,
   if (sockfd == -1)
     return -amqp_socket_error();
 
+#ifdef DISABLE_SIGPIPE_WITH_SETSOCKOPT
+  if (0 != amqp_socket_setsockopt(sockfd, SOL_SOCKET, SO_NOSIGPIPE, &one,
+        sizeof(one)))
+  {
+    return -amqp_socket_error();
+  }
+#endif
+
   if (amqp_socket_setsockopt(sockfd, IPPROTO_TCP, TCP_NODELAY, &one,
 			     sizeof(one)) < 0
       || connect(sockfd, (struct sockaddr *) &addr, sizeof(addr)) < 0)
