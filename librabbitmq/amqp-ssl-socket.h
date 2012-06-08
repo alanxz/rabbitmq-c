@@ -31,45 +31,71 @@
 #include <amqp.h>
 
 /**
- * Open an SSL connection to an AMQP broker.
+ * Create a new SSL/TLS socket object.
  *
- * This function will setup an AMQP connection state object for SSL/TLS
- * communication. The caller of this function should not use the returned
- * file descriptor as input to amqp_set_sockfd() or amqp_set_sockfd_full(),
- * or directly for network I/O.
+ * \return A new socket object or NULL if an error occurred.
+ */
+AMQP_PUBLIC_FUNCTION
+amqp_socket_t *
+AMQP_CALL
+amqp_ssl_socket_new(void);
+
+/**
+ * Set the CA certificate.
  *
- * If a client key or certificate file is provide then they should both be
- * provided.
+ * \param [in,out] self An SSL/TLS socket object.
+ * \param [in] cacert Path to the CA cert file in PEM format.
  *
- * \param [in,out] state An AMQP connection state object.
- * \param [in] host The name of the host to connect to.
- * \param [in] port The port to connect on.
- * \param [in] caert Path the CA cert file in PEM format.
- * \param [in] key Path to the client key in PEM format. (may be NULL)
- * \param [in] cert Path to the client cert in PEM format. (may be NULL)
- *
- * \return A socket file-descriptor (-1 if an error occurred).
+ * \return Zero if successful, -1 otherwise.
  */
 AMQP_PUBLIC_FUNCTION
 int
-amqp_open_ssl_socket(amqp_connection_state_t state,
-		     const char *host,
-		     int port,
-		     const char *cacert,
-		     const char *key,
-		     const char *cert);
+AMQP_CALL
+amqp_ssl_socket_set_cacert(amqp_socket_t *self,
+			   const char *cacert);
 
 /**
- * Sets whether rabbitmq-c initializes the underlying SSL library
+ * Set the client key & certificate.
  *
- * For SSL libraries that require a one-time initialization across 
+ * \param [in,out] self An SSL/TLS socket object.
+ * \param [in] key Path to the client key in PEM format.
+ * \param [in] cert Path to the client certificate in PEM foramt.
+ *
+ * \return Zero if successful, false otherwise.
+ */
+AMQP_PUBLIC_FUNCTION
+int
+AMQP_CALL
+amqp_ssl_socket_set_key(amqp_socket_t *self,
+			const char *key,
+			const char *cert);
+
+/**
+ * Enable or disable peer verification.
+ *
+ * If peer verification is enabled then the common name in the server
+ * certificate must match the server name.
+ *
+ * \param [in,out] self An SSL/TLS socket object.
+ * \param [in] verify Enable or disable peer verification.
+ */
+AMQP_PUBLIC_FUNCTION
+void
+AMQP_CALL
+amqp_ssl_socket_set_verify(amqp_socket_t *self,
+			   amqp_boolean_t verify);
+
+/**
+ * Sets whether rabbitmq-c initializes the underlying SSL library.
+ *
+ * For SSL libraries that require a one-time initialization across
  * a whole program (e.g., OpenSSL) this sets whether or not rabbitmq-c
- * will initialize the SSL library when the first call to 
+ * will initialize the SSL library when the first call to
  * amqp_open_ssl_socket() is made. You should call this function with
  * do_init = 0 if the underlying SSL library is intialized somewhere else
- * the program. 
+ * the program.
  *
- * Failing to initialize or double initialization of the SSL library will 
+ * Failing to initialize or double initialization of the SSL library will
  * result in undefined behavior
  *
  * By default rabbitmq-c will initialize the underlying SSL library
@@ -77,12 +103,14 @@ amqp_open_ssl_socket(amqp_connection_state_t state,
  * NOTE: calling this function after the first socket has been opened with
  * amqp_open_ssl_socket() will not have any effect.
  *
- * \param [in] do_initalize, if 0 rabbitmq-c will not initialize the SSL library,
- *              otherwise rabbitmq-c will initialize the SSL library
- * 
+ * \param [in] do_initalize If 0 rabbitmq-c will not initialize the SSL
+ *                          library, otherwise rabbitmq-c will initialize the
+ *                          SL library
+ *
  */
 AMQP_PUBLIC_FUNCTION
 void
+AMQP_CALL
 amqp_set_initialize_ssl_library(amqp_boolean_t do_initialize);
 
 #endif /* AMQP_SSL_H */

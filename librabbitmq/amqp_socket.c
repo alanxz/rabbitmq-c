@@ -49,6 +49,51 @@
 #include <stdlib.h>
 #include <string.h>
 
+ssize_t
+amqp_socket_writev(amqp_socket_t *self, const struct iovec *iov, int iovcnt)
+{
+  return self->writev(self, iov, iovcnt);
+}
+
+ssize_t
+amqp_socket_send(amqp_socket_t *self, const void *buf, size_t len, int flags)
+{
+  return self->send(self, buf, len, flags);
+}
+
+ssize_t
+amqp_socket_recv(amqp_socket_t *self, void *buf, size_t len, int flags)
+{
+  return self->recv(self, buf, len, flags);
+}
+
+int
+amqp_socket_open(amqp_socket_t *self, const char *host, int port)
+{
+  return self->open(self, host, port);
+}
+
+int
+amqp_socket_close(amqp_socket_t *self)
+{
+  if (self) {
+    return self->close(self);
+  }
+  return 0;
+}
+
+int
+amqp_socket_error(amqp_socket_t *self)
+{
+  return self->error(self);
+}
+
+int
+amqp_socket_get_sockfd(amqp_socket_t *self)
+{
+  return self->get_sockfd(self);
+}
+
 int amqp_open_socket(char const *hostname,
                      int portnumber)
 {
@@ -120,7 +165,7 @@ int amqp_send_header(amqp_connection_state_t state)
                                      AMQP_PROTOCOL_VERSION_MINOR,
                                      AMQP_PROTOCOL_VERSION_REVISION
                                    };
-  return state->send(state->sockfd, (void *)header, 8, 0, state->user_data);
+  return amqp_socket_send(state->socket, header, 8, 0);
 }
 
 static amqp_bytes_t sasl_method_name(amqp_sasl_method_enum method)
@@ -217,13 +262,13 @@ static int wait_frame_inner(amqp_connection_state_t state,
       assert(res != 0);
     }
 
-    res = state->recv(state->sockfd, state->sock_inbound_buffer.bytes,
-                      state->sock_inbound_buffer.len, 0, state->user_data);
+    res = amqp_socket_recv(state->socket, state->sock_inbound_buffer.bytes,
+                           state->sock_inbound_buffer.len, 0);
     if (res <= 0) {
       if (res == 0) {
         return -ERROR_CONNECTION_CLOSED;
       } else {
-        return -state->error(state->user_data);
+        return -amqp_socket_error(state->socket);
       }
     }
 

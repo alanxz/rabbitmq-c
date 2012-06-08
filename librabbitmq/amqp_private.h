@@ -92,7 +92,7 @@
 char *
 amqp_os_error_string(int err);
 
-#include "socket.h"
+#include "amqp-socket.h"
 
 /*
  * Connection states: XXX FIX THIS
@@ -150,13 +150,7 @@ struct amqp_connection_state_t_ {
 
   amqp_bytes_t outbound_buffer;
 
-  int sockfd;
-  amqp_socket_writev_fn writev;
-  amqp_socket_send_fn send;
-  amqp_socket_recv_fn recv;
-  amqp_socket_close_fn close;
-  amqp_socket_error_fn error;
-  void *user_data;
+  amqp_socket_t *socket;
 
   amqp_bytes_t sock_inbound_buffer;
   size_t sock_inbound_offset;

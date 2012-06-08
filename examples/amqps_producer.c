@@ -35,7 +35,7 @@
 #include <string.h>
 
 #include <stdint.h>
-#include <amqp-ssl.h>
+#include <amqp-ssl-socket.h>
 #include <amqp_framing.h>
 
 #include "utils.h"
@@ -106,11 +106,10 @@ static void send_batch(amqp_connection_state_t conn,
 
 int main(int argc, char const * const *argv) {
   char const *hostname;
-  int port;
+  int port, status;
   int rate_limit;
   int message_count;
-
-  int sockfd;
+  amqp_socket_t *socket;
   amqp_connection_state_t conn;
 
   if (argc < 5) {
@@ -126,11 +125,31 @@ int main(int argc, char const * const *argv) {
 
   conn = amqp_new_connection();
 
-  die_on_error(sockfd = amqp_open_ssl_socket(conn, hostname, port,
-					     argc > 5 ? argv[5] : NULL,
-					     argc > 7 ? argv[6] : NULL,
-					     argc > 7 ? argv[7] : NULL),
-	       "Opening SSL/TLS socket");
+  socket = amqp_ssl_socket_new();
+  if (!socket) {
+    die("creating SSL/TLS socket");
+  }
+
+  if (argc > 5) {
+    status = amqp_ssl_socket_set_cacert(socket, argv[5]);
+    if (status) {
+      die("setting CA certificate");
+    }
+  }
+
+  if (argc > 7) {
+    status = amqp_ssl_socket_set_key(socket, argv[6], argv[7]);
+    if (status) {
+      die("setting client key/cert");
+    }
+  }
+
+  status = amqp_socket_open(socket, hostname, port);
+  if (status) {
+    die("opening SSL/TLS connection");
+  }
+
+  amqp_set_socket(conn, socket);
   die_on_amqp_error(amqp_login(conn, "/", 0, 131072, 0, AMQP_SASL_METHOD_PLAIN, "guest", "guest"),
 		    "Logging in");
   amqp_channel_open(conn, 1);

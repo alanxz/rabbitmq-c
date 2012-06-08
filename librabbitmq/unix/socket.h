@@ -52,17 +52,13 @@ int
 amqp_socket_socket(int domain, int type, int proto);
 
 int
-amqp_socket_error(void *user_data);
+amqp_os_socket_error(void);
 
 int
-amqp_socket_socket(int domain, int type, int proto);
-
-int
-amqp_socket_close(int sockfd, void *user_data);
+amqp_os_socket_close(int sockfd);
 
 ssize_t
-amqp_socket_writev(int sockfd, const struct iovec *iov, int iovcnt,
-		   void *user_data);
+amqp_os_socket_writev(int sockfd, const struct iovec *iov, int iovcnt);
 
 #define amqp_socket_setsockopt setsockopt
 

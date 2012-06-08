@@ -52,7 +52,6 @@
   */
 
 #if defined(_WIN32) && defined(_MSC_VER)
-struct iovec;
 # if defined(AMQP_BUILD) && !defined(AMQP_STATIC)
 #  define AMQP_PUBLIC_FUNCTION __declspec(dllexport)
 #  define AMQP_PUBLIC_VARIABLE __declspec(dllexport) extern
@@ -67,7 +66,6 @@ struct iovec;
 # define AMQP_CALL __cdecl
 
 #elif defined(_WIN32) && defined(__BORLANDC__)
-struct iovec;
 # if defined(AMQP_BUILD) && !defined(AMQP_STATIC)
 #  define AMQP_PUBLIC_FUNCTION __declspec(dllexport)
 #  define AMQP_PUBLIC_VARIABLE __declspec(dllexport) extern
@@ -82,7 +80,6 @@ struct iovec;
 # define AMQP_CALL __cdecl
 
 #elif defined(_WIN32) && defined(__MINGW32__)
-struct iovec;
 # if defined(AMQP_BUILD) && !defined(AMQP_STATIC)
 #  define AMQP_PUBLIC_FUNCTION __declspec(dllexport)
 #  define AMQP_PUBLIC_VARIABLE __declspec(dllexport)
@@ -97,7 +94,6 @@ struct iovec;
 # define AMQP_CALL __cdecl
 
 #elif defined(_WIN32) && defined(__CYGWIN__)
-struct iovec;
 # if defined(AMQP_BUILD) && !defined(AMQP_STATIC)
 #  define AMQP_PUBLIC_FUNCTION __declspec(dllexport)
 #  define AMQP_PUBLIC_VARIABLE __declspec(dllexport)
@@ -122,6 +118,13 @@ struct iovec;
 # define AMQP_PUBLIC_FUNCTION
 # define AMQP_PUBLIC_VARIABLE extern
 # define AMQP_CALL
+#endif
+
+#if __GNUC__ > 3 || (__GNUC__ == 3 && __GNUC_MINOR__ >= 1)
+# define AMQP_DEPRECATED \
+  __attribute__ ((__deprecated__))
+#else
+# define AMQP_DEPRECATED
 #endif
 
 /* Define ssize_t on Win32/64 platforms
@@ -321,12 +324,7 @@ typedef enum amqp_sasl_method_enum_ {
 /* Opaque struct. */
 typedef struct amqp_connection_state_t_ *amqp_connection_state_t;
 
-/* Socket callbacks. */
-typedef ssize_t (*amqp_socket_writev_fn)(int, const struct iovec *, int, void *);
-typedef ssize_t (*amqp_socket_send_fn)(int, const void *, size_t, int, void *);
-typedef ssize_t (*amqp_socket_recv_fn)(int, void *, size_t, int, void *);
-typedef int (*amqp_socket_close_fn)(int, void *);
-typedef int (*amqp_socket_error_fn)(void *);
+typedef struct amqp_socket_t_ amqp_socket_t;
 
 AMQP_PUBLIC_FUNCTION
 char const *
@@ -389,17 +387,12 @@ AMQP_CALL amqp_get_sockfd(amqp_connection_state_t state);
 
 AMQP_PUBLIC_FUNCTION
 void
-AMQP_CALL amqp_set_sockfd(amqp_connection_state_t state, int sockfd);
+AMQP_CALL amqp_set_sockfd(amqp_connection_state_t state, int sockfd)
+	AMQP_DEPRECATED;
 
 AMQP_PUBLIC_FUNCTION
 void
-amqp_set_sockfd_full(amqp_connection_state_t state, int sockfd,
-		     amqp_socket_writev_fn writev_fn,
-		     amqp_socket_send_fn send_fn,
-		     amqp_socket_recv_fn recv_fn,
-		     amqp_socket_close_fn close_fn,
-		     amqp_socket_error_fn error_fn,
-		     void *user_data);
+AMQP_CALL amqp_set_socket(amqp_connection_state_t state, amqp_socket_t *socket);
 
 AMQP_PUBLIC_FUNCTION
 int
@@ -444,7 +437,8 @@ AMQP_CALL amqp_table_entry_cmp(void const *entry1, void const *entry2);
 
 AMQP_PUBLIC_FUNCTION
 int
-AMQP_CALL amqp_open_socket(char const *hostname, int portnumber);
+AMQP_CALL amqp_open_socket(char const *hostname, int portnumber)
+	AMQP_DEPRECATED;
 
 AMQP_PUBLIC_FUNCTION
 int
@@ -598,6 +592,27 @@ AMQP_CALL amqp_default_connection_info(struct amqp_connection_info *parsed);
 AMQP_PUBLIC_FUNCTION
 int
 AMQP_CALL amqp_parse_url(char *url, struct amqp_connection_info *parsed);
+
+/* socket API */
+AMQP_PUBLIC_FUNCTION
+int
+AMQP_CALL
+amqp_socket_open(amqp_socket_t *self, const char *host, int port);
+
+AMQP_PUBLIC_FUNCTION
+int
+AMQP_CALL
+amqp_socket_close(amqp_socket_t *self);
+
+AMQP_PUBLIC_FUNCTION
+int
+AMQP_CALL
+amqp_socket_error(amqp_socket_t *self);
+
+AMQP_PUBLIC_FUNCTION
+int
+AMQP_CALL
+amqp_socket_get_sockfd(amqp_socket_t *self);
 
 AMQP_END_DECLS
 

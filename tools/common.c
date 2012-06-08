@@ -39,7 +39,10 @@
 #endif
 
 #include "common.h"
-#include <amqp-ssl.h>
+#ifdef WITH_SSL
+#include <amqp-ssl-socket.h>
+#endif
+#include <amqp-tcp-socket.h>
 #include <errno.h>
 #include <fcntl.h>
 #include <stdarg.h>
@@ -220,14 +223,14 @@ struct poptOption connect_options[] = {
 
 static void init_connection_info(struct amqp_connection_info *ci)
 {
-  struct amqp_connection_info defaults;
-
   ci->user = NULL;
   ci->password = NULL;
   ci->host = NULL;
   ci->port = -1;
   ci->vhost = NULL;
   ci->user = NULL;
+
+  amqp_default_connection_info(ci);
 
   if (amqp_url)
     die_amqp_error(amqp_parse_url(strdup(amqp_url), ci),
@@ -312,30 +315,12 @@ static void init_connection_info(struct amqp_connection_info *ci)
 
     ci->vhost = amqp_vhost;
   }
-
-#if WITH_SSL
-  if (amqp_ssl) {
-    ci->ssl = true;
-  }
-#endif
-
-  amqp_default_connection_info(&defaults);
-
-  if (!ci->user)
-    ci->user = defaults.user;
-  if (!ci->password)
-    ci->password = defaults.password;
-  if (!ci->host)
-    ci->host = defaults.host;
-  if (ci->port < 0)
-    ci->port = defaults.port;
-  if (!ci->vhost)
-    ci->vhost = defaults.vhost;
 }
 
 amqp_connection_state_t make_connection(void)
 {
-  int s;
+  int status;
+  amqp_socket_t *socket;
   struct amqp_connection_info ci;
   amqp_connection_state_t conn;
 
@@ -343,16 +328,30 @@ amqp_connection_state_t make_connection(void)
   conn = amqp_new_connection();
   if (ci.ssl) {
 #ifdef WITH_SSL
-    s = amqp_open_ssl_socket(conn, ci.host, ci.port, amqp_cacert,
-        amqp_key, amqp_cert);
+    socket = amqp_ssl_socket_new();
+    if (!socket) {
+      die("creating SSL/TLS socket");
+    }
+    if (amqp_cacert) {
+      amqp_ssl_socket_set_cacert(socket, amqp_cacert);
+    }
+    if (amqp_key && amqp_cert) {
+      amqp_ssl_socket_set_key(socket, amqp_key, amqp_cert);
+    }
 #else
     die("librabbitmq was not built with SSL/TLS support");
 #endif
   } else {
-    s = amqp_open_socket(ci.host, ci.port);
-    amqp_set_sockfd(conn, s);
+    socket = amqp_tcp_socket_new();
+    if (!socket) {
+      die("creating TCP socket (out of memory)");
+    }
   }
-  die_amqp_error(s, "opening socket to %s:%d", ci.host, ci.port);
+  status = amqp_socket_open(socket, ci.host, ci.port);
+  if (status) {
+    die("opening socket to %s:%d", ci.host, ci.port);
+  }
+  amqp_set_socket(conn, socket);
   die_rpc(amqp_login(conn, ci.vhost, 0, 131072, 0,
         AMQP_SASL_METHOD_PLAIN,
         ci.user, ci.password),

@@ -12,6 +12,8 @@ endif #REGENERATE_AMQP_FRAMING
 lib_LTLIBRARIES = librabbitmq/librabbitmq.la
 
 librabbitmq_librabbitmq_la_SOURCES = \
+	librabbitmq/amqp-socket.h \
+	librabbitmq/amqp-tcp-socket.c \
 	librabbitmq/amqp_api.c \
 	librabbitmq/amqp_connection.c \
 	librabbitmq/amqp_mem.c \
@@ -67,9 +69,10 @@ endif
 
 include_HEADERS = \
 	$(top_srcdir)/librabbitmq/amqp.h
+	$(top_builddir)/librabbitmq/amqp-tcp-socket.h \
 
 if SSL
-include_HEADERS += librabbitmq/amqp-ssl.h
+include_HEADERS += librabbitmq/amqp-ssl-socket.h
 endif
 
 if REGENERATE_AMQP_FRAMING

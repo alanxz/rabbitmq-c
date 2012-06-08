@@ -82,20 +82,20 @@ amqp_os_error_string(int err)
 }
 
 int
-amqp_socket_close(int sockfd, AMQP_UNUSED void *user_data)
+amqp_os_socket_close(int sockfd)
 {
 	return close(sockfd);
 }
 
 ssize_t
-amqp_socket_writev(int sockfd, const struct iovec *iov,
-		   int iovcnt, AMQP_UNUSED void *user_data)
+amqp_os_socket_writev(int sockfd, const struct iovec *iov,
+		      int iovcnt)
 {
 	return writev(sockfd, iov, iovcnt);
 }
 
 int
-amqp_socket_error(AMQP_UNUSED void *user_data)
+amqp_os_socket_error(void)
 {
 	return errno | ERROR_CATEGORY_OS;
 }
