@@ -52,32 +52,32 @@
 ssize_t
 amqp_socket_writev(amqp_socket_t *self, const struct iovec *iov, int iovcnt)
 {
-  return self->writev(self, iov, iovcnt);
+  return self->klass->writev(self, iov, iovcnt);
 }
 
 ssize_t
 amqp_socket_send(amqp_socket_t *self, const void *buf, size_t len, int flags)
 {
-  return self->send(self, buf, len, flags);
+  return self->klass->send(self, buf, len, flags);
 }
 
 ssize_t
 amqp_socket_recv(amqp_socket_t *self, void *buf, size_t len, int flags)
 {
-  return self->recv(self, buf, len, flags);
+  return self->klass->recv(self, buf, len, flags);
 }
 
 int
 amqp_socket_open(amqp_socket_t *self, const char *host, int port)
 {
-  return self->open(self, host, port);
+  return self->klass->open(self, host, port);
 }
 
 int
 amqp_socket_close(amqp_socket_t *self)
 {
   if (self) {
-    return self->close(self);
+    return self->klass->close(self);
   }
   return 0;
 }
@@ -85,13 +85,13 @@ amqp_socket_close(amqp_socket_t *self)
 int
 amqp_socket_error(amqp_socket_t *self)
 {
-  return self->error(self);
+  return self->klass->error(self);
 }
 
 int
 amqp_socket_get_sockfd(amqp_socket_t *self)
 {
-  return self->get_sockfd(self);
+  return self->klass->get_sockfd(self);
 }
 
 int amqp_open_socket(char const *hostname,

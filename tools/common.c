@@ -320,7 +320,7 @@ static void init_connection_info(struct amqp_connection_info *ci)
 amqp_connection_state_t make_connection(void)
 {
   int status;
-  amqp_socket_t *socket;
+  amqp_socket_t *socket = NULL;
   struct amqp_connection_info ci;
   amqp_connection_state_t conn;
 
