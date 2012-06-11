@@ -37,7 +37,7 @@ typedef int (*amqp_socket_close_fn)(void *);
 typedef int (*amqp_socket_error_fn)(void *);
 typedef int (*amqp_socket_get_sockfd_fn)(void *);
 
-struct amqp_socket_t_ {
+struct amqp_socket_class_t {
 	amqp_socket_writev_fn writev;
 	amqp_socket_send_fn send;
 	amqp_socket_recv_fn recv;
@@ -45,6 +45,10 @@ struct amqp_socket_t_ {
 	amqp_socket_close_fn close;
 	amqp_socket_error_fn error;
 	amqp_socket_get_sockfd_fn get_sockfd;
+};
+
+struct amqp_socket_t_ {
+	const struct amqp_socket_class_t *klass;
 };
 
 ssize_t

@@ -55,7 +55,7 @@ static pthread_mutex_t *amqp_openssl_lockarray = NULL;
 #endif /* ENABLE_THREAD_SAFETY */
 
 struct amqp_ssl_socket_t {
-	amqp_socket_t base;
+	const struct amqp_socket_class_t *klass;
 	BIO *bio;
 	SSL_CTX *ctx;
 	char *buffer;
@@ -269,6 +269,16 @@ amqp_ssl_socket_get_sockfd(void *base)
 	return BIO_get_fd(self->bio, NULL);
 }
 
+static const struct amqp_socket_class_t amqp_ssl_socket_class = {
+	amqp_ssl_socket_writev, /* writev */
+	amqp_ssl_socket_send, /* send */
+	amqp_ssl_socket_recv, /* recv */
+	amqp_ssl_socket_open, /* open */
+	amqp_ssl_socket_close, /* close */
+	amqp_ssl_socket_error, /* error */
+	amqp_ssl_socket_get_sockfd /* get_sockfd */
+};
+
 amqp_socket_t *
 amqp_ssl_socket_new(void)
 {
@@ -285,13 +295,7 @@ amqp_ssl_socket_new(void)
 	if (!self->ctx) {
 		goto error;
 	}
-	self->base.writev = amqp_ssl_socket_writev;
-	self->base.send = amqp_ssl_socket_send;
-	self->base.recv = amqp_ssl_socket_recv;
-	self->base.open = amqp_ssl_socket_open;
-	self->base.close = amqp_ssl_socket_close;
-	self->base.error = amqp_ssl_socket_error;
-	self->base.get_sockfd = amqp_ssl_socket_get_sockfd;
+	self->klass = &amqp_ssl_socket_class;
 	self->verify = 1;
 	return (amqp_socket_t *)self;
 error:
@@ -303,8 +307,13 @@ int
 amqp_ssl_socket_set_cacert(amqp_socket_t *base,
 			   const char *cacert)
 {
-	struct amqp_ssl_socket_t *self = (struct amqp_ssl_socket_t *)base;
-	int status = SSL_CTX_load_verify_locations(self->ctx, cacert, NULL);
+	int status;
+	struct amqp_ssl_socket_t *self;
+	if (base->klass != &amqp_ssl_socket_class) {
+		amqp_abort("<%p> is not of type amqp_ssl_socket_t", base);
+	}
+	self = (struct amqp_ssl_socket_t *)base;
+	status = SSL_CTX_load_verify_locations(self->ctx, cacert, NULL);
 	if (1 != status) {
 		return -1;
 	}
@@ -316,7 +325,11 @@ amqp_ssl_socket_set_key(amqp_socket_t *base,
 			const char *key,
 			const char *cert)
 {
-	struct amqp_ssl_socket_t *self = (struct amqp_ssl_socket_t *)base;
+	struct amqp_ssl_socket_t *self;
+	if (base->klass != &amqp_ssl_socket_class) {
+		amqp_abort("<%p> is not of type amqp_ssl_socket_t", base);
+	}
+	self = (struct amqp_ssl_socket_t *)base;
 	if (key && cert) {
 		int status = SSL_CTX_use_PrivateKey_file(self->ctx, key,
 							 SSL_FILETYPE_PEM);
@@ -336,7 +349,11 @@ void
 amqp_ssl_socket_set_verify(amqp_socket_t *base,
 			   amqp_boolean_t verify)
 {
-	struct amqp_ssl_socket_t *self = (struct amqp_ssl_socket_t *)base;
+	struct amqp_ssl_socket_t *self;
+	if (base->klass != &amqp_ssl_socket_class) {
+		amqp_abort("<%p> is not of type amqp_ssl_socket_t", base);
+	}
+	self = (struct amqp_ssl_socket_t *)base;
 	self->verify = verify;
 }
 

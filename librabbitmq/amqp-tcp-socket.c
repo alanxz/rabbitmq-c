@@ -29,7 +29,7 @@
 #include <stdlib.h>
 
 struct amqp_tcp_socket_t {
-	amqp_socket_t base;
+	const struct amqp_socket_class_t *klass;
 	int sockfd;
 };
 
@@ -117,6 +117,16 @@ amqp_tcp_socket_get_sockfd(void *base)
 	return self->sockfd;
 }
 
+static const struct amqp_socket_class_t amqp_tcp_socket_class = {
+	amqp_tcp_socket_writev, /* writev */
+	amqp_tcp_socket_send, /* send */
+	amqp_tcp_socket_recv, /* recv */
+	amqp_tcp_socket_open, /* open */
+	amqp_tcp_socket_close, /* close */
+	amqp_tcp_socket_error, /* error */
+	amqp_tcp_socket_get_sockfd /* get_sockfd */
+};
+
 amqp_socket_t *
 amqp_tcp_socket_new(void)
 {
@@ -124,13 +134,7 @@ amqp_tcp_socket_new(void)
 	if (!self) {
 		return NULL;
 	}
-	self->base.writev = amqp_tcp_socket_writev;
-	self->base.send = amqp_tcp_socket_send;
-	self->base.recv = amqp_tcp_socket_recv;
-	self->base.open = amqp_tcp_socket_open;
-	self->base.close = amqp_tcp_socket_close;
-	self->base.error = amqp_tcp_socket_error;
-	self->base.get_sockfd = amqp_tcp_socket_get_sockfd;
+	self->klass = &amqp_tcp_socket_class;
 	self->sockfd = -1;
 	return (amqp_socket_t *)self;
 }
@@ -138,6 +142,10 @@ amqp_tcp_socket_new(void)
 void
 amqp_tcp_socket_set_sockfd(amqp_socket_t *base, int sockfd)
 {
-	struct amqp_tcp_socket_t *self = (struct amqp_tcp_socket_t *)base;
+	struct amqp_tcp_socket_t *self;
+	if (base->klass != &amqp_tcp_socket_class) {
+		amqp_abort("<%p> is not of type amqp_tcp_socket_t", base);
+	}
+	self = (struct amqp_tcp_socket_t *)base;
 	self->sockfd = sockfd;
 }
