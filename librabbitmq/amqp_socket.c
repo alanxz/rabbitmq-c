@@ -45,44 +45,71 @@
 int amqp_open_socket(char const *hostname,
 		     int portnumber)
 {
-  int sockfd, res;
-  struct sockaddr_in addr;
-  struct hostent *he;
-  int one = 1; /* used as a buffer by setsockopt below */
+  struct addrinfo hint;
+  struct addrinfo *address_list;
+  struct addrinfo *addr;
+  char portnumber_string[33];
+  int sockfd = -1;
+  int last_error = 0;
+  int one = 1; /* for setsockopt */
 
-  res = amqp_socket_init();
-  if (res)
-    return res;
+  if (0 != (last_error = amqp_socket_init()))
+    return last_error;
 
-  he = gethostbyname(hostname);
-  if (he == NULL)
+  memset(&hint, 0, sizeof(hint));
+  hint.ai_family = PF_UNSPEC; /* PF_INET or PF_INET6 */
+  hint.ai_socktype = SOCK_STREAM;
+  hint.ai_protocol = IPPROTO_TCP;
+
+  (void)sprintf(portnumber_string, "%d", portnumber);
+
+  last_error = getaddrinfo(hostname, portnumber_string, &hint, &address_list);
+
+  if (last_error != 0)
+  {
     return -ERROR_GETHOSTBYNAME_FAILED;
-
-  addr.sin_family = AF_INET;
-  addr.sin_port = htons(portnumber);
-  addr.sin_addr.s_addr = * (uint32_t *) he->h_addr_list[0];
-
-  sockfd = socket(PF_INET, SOCK_STREAM, 0);
-  if (sockfd == -1)
-    return -amqp_socket_error();
-
-#ifdef DISABLE_SIGPIPE_WITH_SETSOCKOPT
-  if (0 != amqp_socket_setsockopt(sockfd, SOL_SOCKET, SO_NOSIGPIPE, &one,
-        sizeof(one)))
-  {
-    return -amqp_socket_error();
-  }
-#endif
-
-  if (amqp_socket_setsockopt(sockfd, IPPROTO_TCP, TCP_NODELAY, &one,
-			     sizeof(one)) < 0
-      || connect(sockfd, (struct sockaddr *) &addr, sizeof(addr)) < 0)
-  {
-    res = -amqp_socket_error();
-    amqp_socket_close(sockfd);
-    return res;
   }
 
+  for (addr = address_list; addr; addr = addr->ai_next)
+  {
+    /*
+      This cast is to squash warnings on Win64, see:
+      http://stackoverflow.com/questions/1953639/is-it-safe-to-cast-socket-to-int-under-win64
+    */
+    sockfd = (int)socket(addr->ai_family, addr->ai_socktype, addr->ai_protocol);
+    if (-1 == sockfd)
+    {
+      last_error = -amqp_socket_error();
+      continue;
+    }
+#if DISABLE_SIGPIPE_WITH_SETSOCKOPT
+    if (0 != amqp_socket_setsockopt(sockfd, SOL_SOCKET, SO_NOSIGPIPE, &one, sizeof(one)))
+    {
+      last_error = -amqp_socket_error();
+      amqp_socket_close(sockfd);
+      continue;
+    }
+#endif /* DISABLE_SIGPIPE_WITH_SETSOCKOPT */
+    if (0 != amqp_socket_setsockopt(sockfd, IPPROTO_TCP, TCP_NODELAY, &one, sizeof(one))
+        || 0 != connect(sockfd, addr->ai_addr, addr->ai_addrlen))
+    {
+      last_error = -amqp_socket_error();
+      amqp_socket_close(sockfd);
+      continue;
+    }
+    else
+    {
+      last_error = 0;
+      break;
+    }
+  }
+
+  freeaddrinfo(address_list);
+  if (last_error != 0)
+  {
+    return last_error;
+  }
+  
   return sockfd;
 }
 

@@ -34,6 +34,7 @@
  */
 
 #include <winsock2.h>
+#include <WS2tcpip.h>
 
 /* same as WSABUF */
 struct iovec {
