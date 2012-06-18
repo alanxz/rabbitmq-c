@@ -11,7 +11,7 @@ env:
       
 # Make sure CMake is installed
 install:
- - sudo apt-get install cmake libpopt-dev xmlto
+ - sudo apt-get install cmake libpopt-dev
 
 # Run the Build script
 script:
