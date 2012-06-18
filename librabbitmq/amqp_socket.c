@@ -72,7 +72,11 @@ int amqp_open_socket(char const *hostname,
 
   for (addr = address_list; addr; addr = addr->ai_next)
   {
-    sockfd = socket(addr->ai_family, addr->ai_socktype, addr->ai_protocol);
+    /*
+      This cast is to squash warnings on Win64, see:
+      http://stackoverflow.com/questions/1953639/is-it-safe-to-cast-socket-to-int-under-win64
+    */
+    sockfd = (int)socket(addr->ai_family, addr->ai_socktype, addr->ai_protocol);
     if (-1 == sockfd)
     {
       last_error = -amqp_socket_error();
