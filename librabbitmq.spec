@@ -43,7 +43,7 @@ built using librabbitmq.
 %setup -q
 
 %build
-%configure
+%configure --enable-static
 %{__make} %{?_smp_mflags}
 
 %install
@@ -60,7 +60,7 @@ built using librabbitmq.
 
 %files devel
 %defattr(-,root,root)
-#%{_libdir}/librabbitmq.a
+%{_libdir}/librabbitmq.a
 %{_libdir}/librabbitmq.la
 %{_libdir}/librabbitmq.so
 %{_libdir}/pkgconfig/librabbitmq.pc
