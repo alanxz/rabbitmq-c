@@ -182,6 +182,13 @@ AS_IF([test "x$enable_docs" != "xno"],
 	     [enable_docs=no])])
 AM_CONDITIONAL([DOCS], [test "x$enable_docs" = "xyes"])
 
+# Configure examples
+AC_ARG_ENABLE([examples],
+	      [AS_HELP_STRING([--enable-examples],
+			      [build example code @<:@auto@:>@])],,
+	      [enable_examples=yes])
+AM_CONDITIONAL([EXAMPLES], [test "x$enable_examples" = "xyes"])
+
 AC_CONFIG_HEADERS([config.h])
 AC_CONFIG_FILES([
 	librabbitmq.pc
@@ -195,4 +202,5 @@ $PACKAGE_NAME build options:
 	SSL/TLS: $with_ssl
 	Tools: $enable_tools
 	Documentation: $enable_docs
+        Examples: $enable_examples
 ])

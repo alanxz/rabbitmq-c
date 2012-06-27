@@ -71,7 +71,7 @@ amqp_tcp_socket_open(void *base, const char *host, int port)
 	}
 	addr.sin_family = AF_INET;
 	addr.sin_port = htons(port);
-	addr.sin_addr.s_addr = *(uint32_t *)he->h_addr_list[0];
+	memcpy((char *)&addr.sin_addr.s_addr, he->h_addr_list, he->h_length);
 	self->sockfd = amqp_socket_socket(PF_INET, SOCK_STREAM, 0);
 	if (-1 == self->sockfd) {
 		return -amqp_os_socket_error();
