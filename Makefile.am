@@ -137,7 +137,10 @@ tests_test_tables_LDADD = librabbitmq/librabbitmq.la
 tests_test_parse_url_SOURCES = tests/test_parse_url.c
 tests_test_parse_url_LDADD = librabbitmq/librabbitmq.la
 
-noinst_LTLIBRARIES = examples/libutils.la
+noinst_LTLIBRARIES =
+
+if EXAMPLES
+noinst_LTLIBRARIES += examples/libutils.la
 
 examples_libutils_la_SOURCES = \
 	examples/utils.c \
@@ -260,6 +263,7 @@ examples_amqps_unbind_SOURCES = examples/amqps_unbind.c
 examples_amqps_unbind_LDADD = \
 	examples/libutils.la \
 	librabbitmq/librabbitmq.la
+endif
 endif
 
 if TOOLS
