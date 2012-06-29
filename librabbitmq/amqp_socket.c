@@ -82,7 +82,7 @@ int amqp_open_socket(char const *hostname,
       last_error = -amqp_socket_error();
       continue;
     }
-#if DISABLE_SIGPIPE_WITH_SETSOCKOPT
+#ifdef DISABLE_SIGPIPE_WITH_SETSOCKOPT
     if (0 != amqp_socket_setsockopt(sockfd, SOL_SOCKET, SO_NOSIGPIPE, &one, sizeof(one)))
     {
       last_error = -amqp_socket_error();
