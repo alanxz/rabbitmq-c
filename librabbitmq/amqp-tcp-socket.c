@@ -54,6 +54,9 @@ amqp_tcp_socket_recv(void *base, void *buf, size_t len, int flags)
 	return recv(self->sockfd, buf, len, flags);
 }
 
+#include <errno.h>
+#include <stdio.h>
+
 static int
 amqp_tcp_socket_open(void *base, const char *host, int port)
 {
@@ -71,7 +74,7 @@ amqp_tcp_socket_open(void *base, const char *host, int port)
 	}
 	addr.sin_family = AF_INET;
 	addr.sin_port = htons(port);
-	memcpy((char *)&addr.sin_addr.s_addr, he->h_addr_list, he->h_length);
+	memcpy((char *)&addr.sin_addr, he->h_addr, he->h_length);
 	self->sockfd = amqp_socket_socket(PF_INET, SOCK_STREAM, 0);
 	if (-1 == self->sockfd) {
 		return -amqp_os_socket_error();
