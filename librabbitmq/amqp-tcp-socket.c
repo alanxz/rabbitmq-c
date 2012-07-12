@@ -26,6 +26,7 @@
 
 #include "amqp_private.h"
 #include "amqp-tcp-socket.h"
+#include <stdio.h>
 #include <stdlib.h>
 
 struct amqp_tcp_socket_t {
@@ -54,45 +55,70 @@ amqp_tcp_socket_recv(void *base, void *buf, size_t len, int flags)
 	return recv(self->sockfd, buf, len, flags);
 }
 
-#include <errno.h>
-#include <stdio.h>
-
 static int
 amqp_tcp_socket_open(void *base, const char *host, int port)
 {
 	struct amqp_tcp_socket_t *self = (struct amqp_tcp_socket_t *)base;
-	struct sockaddr_in addr;
-	int status, one = 1;
-	struct hostent *he;
+	struct addrinfo *address_list;
+	struct addrinfo *addr;
+	struct addrinfo hint;
+	char port_string[33];
+	int status, one = 1; /* for setsockopt */
 	status = amqp_socket_init();
 	if (status) {
 		return status;
 	}
-	he = gethostbyname(host);
-	if (!he) {
+	memset(&hint, 0, sizeof hint);
+	hint.ai_family = PF_UNSPEC; /* PF_INET or PF_INET6 */
+	hint.ai_socktype = SOCK_STREAM;
+	hint.ai_protocol = IPPROTO_TCP;
+	(void)snprintf(port_string, sizeof port_string, "%d", port);
+	port_string[sizeof port_string - 1] = '\0';
+	status = getaddrinfo(host, port_string, &hint, &address_list);
+	if (status) {
 		return -ERROR_GETHOSTBYNAME_FAILED;
 	}
-	addr.sin_family = AF_INET;
-	addr.sin_port = htons(port);
-	memcpy((char *)&addr.sin_addr, he->h_addr, he->h_length);
-	self->sockfd = amqp_socket_socket(PF_INET, SOCK_STREAM, 0);
-	if (-1 == self->sockfd) {
-		return -amqp_os_socket_error();
+	for (addr = address_list; addr; addr = addr->ai_next) {
+		/*
+		 * This cast is to squash warnings on Win64, see:
+		 * http://bit.ly/PTxfCU
+		 */
+		self->sockfd = (int)amqp_socket_socket(addr->ai_family,
+						       addr->ai_socktype,
+						       addr->ai_protocol);
+		if (-1 == self->sockfd) {
+			status = -amqp_os_socket_error();
+			continue;
+		}
+#ifdef DISABLE_SIGPIPE_WITH_SETSOCKOPT
+		status = amqp_socket_setsockopt(self->sockfd, SOL_SOCKET,
+						SO_NOSIGPIPE, &one,
+						sizeof one);
+		if (0 > status) {
+			status = -amqp_os_socket_error();
+			amqp_os_socket_close(self->sockfd);
+			continue;
+		}
+#endif /* DISABLE_SIGPIPE_WITH_SETSOCKOPT */
+		status = amqp_socket_setsockopt(self->sockfd, IPPROTO_TCP,
+						TCP_NODELAY, &one,
+						sizeof one);
+		if (0 > status) {
+			status = -amqp_os_socket_error();
+			amqp_os_socket_close(self->sockfd);
+			continue;
+		}
+		status = connect(self->sockfd, addr->ai_addr, addr->ai_addrlen);
+		if (0 > status) {
+			status = -amqp_os_socket_error();
+			amqp_os_socket_close(self->sockfd);
+			continue;
+		}
+		status = 0;
+		break;
 	}
-	status = amqp_socket_setsockopt(self->sockfd, IPPROTO_TCP, TCP_NODELAY,
-					&one, sizeof(one));
-	if (0 > status) {
-		status = -amqp_os_socket_error();
-		amqp_os_socket_close(self->sockfd);
-		return status;
-	}
-	status = connect(self->sockfd, (struct sockaddr *)&addr, sizeof(addr));
-	if (0 > status) {
-		status = -amqp_os_socket_error();
-		amqp_os_socket_close(self->sockfd);
-		return status;
-	}
-	return 0;
+	freeaddrinfo(address_list);
+	return status;
 }
 
 static int

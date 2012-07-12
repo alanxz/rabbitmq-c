@@ -128,21 +128,24 @@ int amqp_open_socket(char const *hostname,
       http://stackoverflow.com/questions/1953639/is-it-safe-to-cast-socket-to-int-under-win64
     */
     sockfd = (int)socket(addr->ai_family, addr->ai_socktype, addr->ai_protocol);
-    if (-1 == sockfd) {
-      last_error = -amqp_socket_error();
+    if (-1 == sockfd)
+    {
+      last_error = -amqp_os_socket_error();
       continue;
     }
 #ifdef DISABLE_SIGPIPE_WITH_SETSOCKOPT
-    if (0 != amqp_socket_setsockopt(sockfd, SOL_SOCKET, SO_NOSIGPIPE, &one, sizeof(one))) {
-      last_error = -amqp_socket_error();
-      amqp_socket_close(sockfd);
+    if (0 != amqp_socket_setsockopt(sockfd, SOL_SOCKET, SO_NOSIGPIPE, &one, sizeof(one)))
+    {
+      last_error = -amqp_os_socket_error();
+      amqp_os_socket_close(sockfd);
       continue;
     }
 #endif /* DISABLE_SIGPIPE_WITH_SETSOCKOPT */
     if (0 != amqp_socket_setsockopt(sockfd, IPPROTO_TCP, TCP_NODELAY, &one, sizeof(one))
-        || 0 != connect(sockfd, addr->ai_addr, addr->ai_addrlen)) {
-      last_error = -amqp_socket_error();
-      amqp_socket_close(sockfd);
+        || 0 != connect(sockfd, addr->ai_addr, addr->ai_addrlen))
+    {
+      last_error = -amqp_os_socket_error();
+      amqp_os_socket_close(sockfd);
       continue;
     } else {
       last_error = 0;
