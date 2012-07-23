@@ -1,7 +1,7 @@
 cmake_minimum_required(VERSION 2.6)
 project(rabbitmq-c "C")
 
-set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} ${CMAKE_SOURCE_DIR}/cmake)
+set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} ${CMAKE_CURRENT_SOURCE_DIR}/cmake)
 
 set(VERSION "0.2")
 
@@ -37,9 +37,9 @@ include(TestCInline)
 
 find_path(RABBITMQ_CODEGEN_DIR
   amqp_codegen.py
-  PATHS ${CMAKE_SOURCE_DIR}/codegen
-        ${CMAKE_SOURCE_DIR}/rabbitmq-codegen 
-        ${CMAKE_SOURCE_DIR}/../rabbitmq-codegen
+  PATHS ${CMAKE_CURRENT_SOURCE_DIR}/codegen
+        ${CMAKE_CURRENT_SOURCE_DIR}/rabbitmq-codegen 
+        ${CMAKE_CURRENT_SOURCE_DIR}/../rabbitmq-codegen
         DOC "Path to directory containing amqp_codegen.py (rabbitmq-codegen)"
         NO_DEFAULT_PATH
         )
