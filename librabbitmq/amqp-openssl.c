@@ -153,61 +153,66 @@ amqp_ssl_socket_verify(void *base, const char *host)
 {
 	struct amqp_ssl_socket_t *self = (struct amqp_ssl_socket_t *)base;
 	unsigned char *utf8_value = NULL, *cp, ch;
+	int pos, utf8_length, status = 0;
 	ASN1_STRING *entry_string;
 	X509_NAME_ENTRY *entry;
-	int pos, utf8_length;
 	X509_NAME *name;
 	X509 *peer;
 	SSL *ssl;
 	BIO_get_ssl(self->bio, &ssl);
 	peer = SSL_get_peer_certificate(ssl);
 	if (!peer) {
-		return -1;
+		goto error;
 	}
 	name = X509_get_subject_name(peer);
 	if (!name) {
-		return -1;
+		goto error;
 	}
 	pos = X509_NAME_get_index_by_NID(name, NID_commonName, -1);
 	if (0 > pos) {
-		return -1;
+		goto error;
 	}
 	entry = X509_NAME_get_entry(name, pos);
 	if (!entry) {
-		return -1;
+		goto error;
 	}
 	entry_string = X509_NAME_ENTRY_get_data(entry);
 	if (!entry_string) {
-		return -1;
+		goto error;
 	}
 	utf8_length = ASN1_STRING_to_UTF8(&utf8_value, entry_string);
 	if (0 > utf8_length) {
-		return -1;
+		goto error;
 	}
 	while (utf8_length > 0 && utf8_value[utf8_length - 1] == 0) {
 		--utf8_length;
 	}
 	if (utf8_length >= 256) {
-		return -1;
+		goto error;
 	}
 	if ((size_t)utf8_length != strlen((char *)utf8_value)) {
-		return -1;
+		goto error;
 	}
 	for (cp = utf8_value; (ch = *cp) != '\0'; ++cp) {
 		if (isascii(ch) && !isprint(ch)) {
-			return -1;
+			goto error;
 		}
 	}
 #ifdef _MSC_VER
 #define strcasecmp _stricmp
 #endif
 	if (strcasecmp(host, (char *)utf8_value)) {
-		return -1;
+		goto error;
 	}
 #ifdef _MSC_VER
 #undef strcasecmp
 #endif
-	return 0;
+exit:
+	OPENSSL_free(utf8_value);
+	return status;
+error:
+	status = -1;
+	goto exit;
 }
 
 static int
