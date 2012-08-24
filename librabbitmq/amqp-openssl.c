@@ -28,11 +28,12 @@
 #include "amqp_private.h"
 #include "threads.h"
 #include <ctype.h>
-#include <openssl/bio.h>
 #include <openssl/conf.h>
 #include <openssl/err.h>
 #include <openssl/ssl.h>
 #include <stdlib.h>
+
+#include "socket.h"
 
 static int initialize_openssl(void);
 static int destroy_openssl(void);
@@ -56,8 +57,9 @@ static pthread_mutex_t *amqp_openssl_lockarray = NULL;
 
 struct amqp_ssl_socket_t {
 	const struct amqp_socket_class_t *klass;
-	BIO *bio;
 	SSL_CTX *ctx;
+	int sockfd;
+	SSL *ssl;
 	char *buffer;
 	size_t length;
 	amqp_boolean_t verify;
@@ -72,13 +74,9 @@ amqp_ssl_socket_send(void *base,
 	struct amqp_ssl_socket_t *self = (struct amqp_ssl_socket_t *)base;
 	ssize_t sent;
 	ERR_clear_error();
-	sent = BIO_write(self->bio, buf, len);
+	sent = SSL_write(self->ssl, buf, len);
 	if (0 > sent) {
-		SSL *ssl;
-		int error;
-		BIO_get_ssl(self->bio, &ssl);
-		error = SSL_get_error(ssl, sent);
-		switch (error) {
+		switch (SSL_get_error(self->ssl, sent)) {
 		case SSL_ERROR_NONE:
 		case SSL_ERROR_ZERO_RETURN:
 		case SSL_ERROR_WANT_READ:
@@ -132,13 +130,9 @@ amqp_ssl_socket_recv(void *base,
 	struct amqp_ssl_socket_t *self = (struct amqp_ssl_socket_t *)base;
 	ssize_t received;
 	ERR_clear_error();
-	received = BIO_read(self->bio, buf, len);
+	received = SSL_read(self->ssl, buf, len);
 	if (0 > received) {
-		SSL *ssl;
-		int error;
-		BIO_get_ssl(self->bio, &ssl);
-		error = SSL_get_error(ssl, received);
-		switch (error) {
+		switch(SSL_get_error(self->ssl, received)) {
 		case SSL_ERROR_WANT_READ:
 		case SSL_ERROR_WANT_WRITE:
 			received = 0;
@@ -158,9 +152,7 @@ amqp_ssl_socket_verify(void *base, const char *host)
 	X509_NAME_ENTRY *entry;
 	X509_NAME *name;
 	X509 *peer;
-	SSL *ssl;
-	BIO_get_ssl(self->bio, &ssl);
-	peer = SSL_get_peer_certificate(ssl);
+	peer = SSL_get_peer_certificate(self->ssl);
 	if (!peer) {
 		goto error;
 	}
@@ -221,20 +213,24 @@ amqp_ssl_socket_open(void *base, const char *host, int port)
 	struct amqp_ssl_socket_t *self = (struct amqp_ssl_socket_t *)base;
 	long result;
 	int status;
-	SSL *ssl;
-	self->bio = BIO_new_ssl_connect(self->ctx);
-	if (!self->bio) {
+	self->ssl = SSL_new(self->ctx);
+	if (!self->ssl) {
 		return -1;
 	}
-	BIO_get_ssl(self->bio, &ssl);
-	SSL_set_mode(ssl, SSL_MODE_AUTO_RETRY);
-	BIO_set_conn_hostname(self->bio, host);
-	BIO_set_conn_int_port(self->bio, &port);
-	status = BIO_do_connect(self->bio);
-	if (1 != status) {
+	SSL_set_mode(self->ssl, SSL_MODE_AUTO_RETRY);
+	self->sockfd = amqp_open_socket(host, port);
+	if (0 > self->sockfd) {
 		return -1;
 	}
-	result = SSL_get_verify_result(ssl);
+	status = SSL_set_fd(self->ssl, self->sockfd);
+	if (!status) {
+		return -1;
+	}
+	status = SSL_connect(self->ssl);
+	if (!status) {
+		return -1;
+	}
+	result = SSL_get_verify_result(self->ssl);
 	if (X509_V_OK != result) {
 		return -1;
 	}
@@ -252,7 +248,8 @@ amqp_ssl_socket_close(void *base)
 {
 	struct amqp_ssl_socket_t *self = (struct amqp_ssl_socket_t *)base;
 	if (self) {
-		BIO_free_all(self->bio);
+		SSL_free(self->ssl);
+		amqp_os_socket_close(self->sockfd);
 		SSL_CTX_free(self->ctx);
 		free(self->buffer);
 		free(self);
@@ -271,7 +268,7 @@ static int
 amqp_ssl_socket_get_sockfd(void *base)
 {
 	struct amqp_ssl_socket_t *self = (struct amqp_ssl_socket_t *)base;
-	return BIO_get_fd(self->bio, NULL);
+	return self->sockfd;
 }
 
 static const struct amqp_socket_class_t amqp_ssl_socket_class = {

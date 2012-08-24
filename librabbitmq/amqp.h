@@ -437,8 +437,7 @@ AMQP_CALL amqp_table_entry_cmp(void const *entry1, void const *entry2);
 
 AMQP_PUBLIC_FUNCTION
 int
-AMQP_CALL amqp_open_socket(char const *hostname, int portnumber)
-	AMQP_DEPRECATED;
+AMQP_CALL amqp_open_socket(char const *hostname, int portnumber);
 
 AMQP_PUBLIC_FUNCTION
 int
