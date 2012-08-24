@@ -59,66 +59,11 @@ static int
 amqp_tcp_socket_open(void *base, const char *host, int port)
 {
 	struct amqp_tcp_socket_t *self = (struct amqp_tcp_socket_t *)base;
-	struct addrinfo *address_list;
-	struct addrinfo *addr;
-	struct addrinfo hint;
-	char port_string[33];
-	int status, one = 1; /* for setsockopt */
-	status = amqp_socket_init();
-	if (status) {
-		return status;
+	self->sockfd = amqp_open_socket(host, port);
+	if (0 > self->sockfd) {
+		return -1;
 	}
-	memset(&hint, 0, sizeof hint);
-	hint.ai_family = PF_UNSPEC; /* PF_INET or PF_INET6 */
-	hint.ai_socktype = SOCK_STREAM;
-	hint.ai_protocol = IPPROTO_TCP;
-	(void)snprintf(port_string, sizeof port_string, "%d", port);
-	port_string[sizeof port_string - 1] = '\0';
-	status = getaddrinfo(host, port_string, &hint, &address_list);
-	if (status) {
-		return -ERROR_GETHOSTBYNAME_FAILED;
-	}
-	for (addr = address_list; addr; addr = addr->ai_next) {
-		/*
-		 * This cast is to squash warnings on Win64, see:
-		 * http://bit.ly/PTxfCU
-		 */
-		self->sockfd = (int)amqp_socket_socket(addr->ai_family,
-						       addr->ai_socktype,
-						       addr->ai_protocol);
-		if (-1 == self->sockfd) {
-			status = -amqp_os_socket_error();
-			continue;
-		}
-#ifdef DISABLE_SIGPIPE_WITH_SETSOCKOPT
-		status = amqp_socket_setsockopt(self->sockfd, SOL_SOCKET,
-						SO_NOSIGPIPE, &one,
-						sizeof one);
-		if (0 > status) {
-			status = -amqp_os_socket_error();
-			amqp_os_socket_close(self->sockfd);
-			continue;
-		}
-#endif /* DISABLE_SIGPIPE_WITH_SETSOCKOPT */
-		status = amqp_socket_setsockopt(self->sockfd, IPPROTO_TCP,
-						TCP_NODELAY, &one,
-						sizeof one);
-		if (0 > status) {
-			status = -amqp_os_socket_error();
-			amqp_os_socket_close(self->sockfd);
-			continue;
-		}
-		status = connect(self->sockfd, addr->ai_addr, addr->ai_addrlen);
-		if (0 > status) {
-			status = -amqp_os_socket_error();
-			amqp_os_socket_close(self->sockfd);
-			continue;
-		}
-		status = 0;
-		break;
-	}
-	freeaddrinfo(address_list);
-	return status;
+	return 0;
 }
 
 static int
