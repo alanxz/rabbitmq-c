@@ -335,8 +335,11 @@ amqp_connection_state_t make_connection(void)
     if (amqp_cacert) {
       amqp_ssl_socket_set_cacert(socket, amqp_cacert);
     }
-    if (amqp_key && amqp_cert) {
-      amqp_ssl_socket_set_key(socket, amqp_key, amqp_cert);
+    if (amqp_key) {
+      amqp_ssl_socket_set_key(socket, amqp_key);
+    }
+    if (amqp_cert) {
+      amqp_ssl_socket_set_cert(socket, amqp_cert);
     }
 #else
     die("librabbitmq was not built with SSL/TLS support");

@@ -324,27 +324,79 @@ amqp_ssl_socket_set_cacert(amqp_socket_t *base,
 
 int
 amqp_ssl_socket_set_key(amqp_socket_t *base,
-			const char *key,
-			const char *cert)
+			const char *key)
 {
 	struct amqp_ssl_socket_t *self;
 	if (base->klass != &amqp_ssl_socket_class) {
 		amqp_abort("<%p> is not of type amqp_ssl_socket_t", base);
 	}
 	self = (struct amqp_ssl_socket_t *)base;
-	if (key && cert) {
-		int status = SSL_CTX_use_PrivateKey_file(self->ctx, key,
-							 SSL_FILETYPE_PEM);
-		if (1 != status) {
-			return -1;
-		}
-		status = SSL_CTX_use_certificate_chain_file(self->ctx, cert);
-		if (1 != status) {
-			return -1;
-		}
-		return 0;
+	int status = SSL_CTX_use_PrivateKey_file(self->ctx, key,
+						 SSL_FILETYPE_PEM);
+	if (1 != status) {
+		return -1;
 	}
-	return -1;
+	return 0;
+}
+
+static int
+password_cb(AMQP_UNUSED char *buffer,
+	    AMQP_UNUSED int length,
+	    AMQP_UNUSED int rwflag,
+	    AMQP_UNUSED void *user_data)
+{
+	amqp_abort("don't use password protected keys!");
+	return 0;
+}
+
+int
+amqp_ssl_socket_set_key_buffer(amqp_socket_t *base,
+			       const void *key,
+			       size_t n)
+{
+	int status = 0;
+	BIO *buf = NULL;
+	RSA *rsa = NULL;
+	struct amqp_ssl_socket_t *self;
+	if (base->klass != &amqp_ssl_socket_class) {
+		amqp_abort("<%p> is not of type amqp_ssl_socket_t", base);
+	}
+	self = (struct amqp_ssl_socket_t *)base;
+	buf = BIO_new_mem_buf((void *)key, n);
+	if (!buf) {
+		goto error;
+	}
+	rsa = PEM_read_bio_RSAPrivateKey(buf, NULL, password_cb, NULL);
+	if (!rsa) {
+		goto error;
+	}
+	status = SSL_CTX_use_RSAPrivateKey(self->ctx, rsa);
+	if (1 != status) {
+		goto error;
+	}
+exit:
+	BIO_vfree(buf);
+	RSA_free(rsa);
+	return status;
+error:
+	status = -1;
+	goto exit;
+}
+
+int
+amqp_ssl_socket_set_cert(amqp_socket_t *base,
+			 const char *cert)
+{
+	struct amqp_ssl_socket_t *self;
+	if (base->klass != &amqp_ssl_socket_class) {
+		amqp_abort("<%p> is not of type amqp_ssl_socket_t", base);
+	}
+	self = (struct amqp_ssl_socket_t *)base;
+	int status = SSL_CTX_use_certificate_chain_file(self->ctx, cert);
+	if (1 != status) {
+		return -1;
+	}
+	return 0;
 }
 
 void
