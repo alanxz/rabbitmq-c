@@ -43,6 +43,7 @@
 int main(int argc, char const * const *argv) {
   char const *hostname;
   int port;
+  char const *virtualhost;
   char const *exchange;
   char const *routingkey;
   char const *messagebody;
@@ -50,22 +51,23 @@ int main(int argc, char const * const *argv) {
   int sockfd;
   amqp_connection_state_t conn;
 
-  if (argc < 6) {
-    fprintf(stderr, "Usage: amqp_sendstring host port exchange routingkey messagebody\n");
+  if (argc < 7) {
+    fprintf(stderr, "Usage: amqp_sendstring host port virtualhost exchange routingkey messagebody\n");
     return 1;
   }
 
   hostname = argv[1];
   port = atoi(argv[2]);
-  exchange = argv[3];
-  routingkey = argv[4];
-  messagebody = argv[5];
+  virtualhost = argv[3];
+  exchange = argv[4];
+  routingkey = argv[5];
+  messagebody = argv[6];
 
   conn = amqp_new_connection();
 
   die_on_error(sockfd = amqp_open_socket(hostname, port), "Opening socket");
   amqp_set_sockfd(conn, sockfd);
-  die_on_amqp_error(amqp_login(conn, "/", 0, 131072, 0, AMQP_SASL_METHOD_PLAIN, "guest", "guest"),
+  die_on_amqp_error(amqp_login(conn, virtualhost, 0, 131072, 0, AMQP_SASL_METHOD_PLAIN, "guest", "guest"),
 		    "Logging in");
   amqp_channel_open(conn, 1);
   die_on_amqp_error(amqp_get_rpc_reply(conn), "Opening channel");
