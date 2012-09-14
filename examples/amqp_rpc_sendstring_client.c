@@ -74,11 +74,11 @@ int main(int argc, char const * const *argv) {
   die_on_error(sockfd = amqp_open_socket(hostname, port), "Opening socket");
   amqp_set_sockfd(conn, sockfd);
   die_on_amqp_error(amqp_login(conn, virtualhost, 0, 131072, 0, AMQP_SASL_METHOD_PLAIN, "guest", "guest"),
-		    "Logging in");
+                    "Logging in");
   amqp_channel_open(conn, 1);
   die_on_amqp_error(amqp_get_rpc_reply(conn), "Opening channel");
 
-  /* 
+  /*
      create private reply_to queue
   */
 
@@ -93,15 +93,19 @@ int main(int argc, char const * const *argv) {
     }
   }
 
-  /* 
+  /*
      send the message
   */
 
   {
+    /*
+      set properties
+    */
     amqp_basic_properties_t props;
     props._flags = AMQP_BASIC_CONTENT_TYPE_FLAG |
                    AMQP_BASIC_DELIVERY_MODE_FLAG |
-                   AMQP_BASIC_REPLY_TO_FLAG;
+                   AMQP_BASIC_REPLY_TO_FLAG |
+                   AMQP_BASIC_CORRELATION_ID_FLAG;
     props.content_type = amqp_cstring_bytes("text/plain");
     props.delivery_mode = 2; /* persistent delivery mode */
     props.reply_to = amqp_bytes_malloc_dup(reply_to_queue); /* is this a memory leak ? */
@@ -109,20 +113,24 @@ int main(int argc, char const * const *argv) {
       fprintf(stderr, "Out of memory while copying queue name");
       return 1;
     }
-    /* TODO set props.correlation_id */
+    props.correlation_id = amqp_cstring_bytes("1");
+
+    /*
+      publish
+    */
     die_on_error(amqp_basic_publish(conn,
-				    1,
-				    amqp_cstring_bytes(exchange),
-				    amqp_cstring_bytes(routingkey),
-				    0,
-				    0,
-				    &props,
-				    amqp_cstring_bytes(messagebody)),
-		 "Publishing");
+                                    1,
+                                    amqp_cstring_bytes(exchange),
+                                    amqp_cstring_bytes(routingkey),
+                                    0,
+                                    0,
+                                    &props,
+                                    amqp_cstring_bytes(messagebody)),
+                 "Publishing");
   }
 
   /*
-    wait an answer 
+    wait an answer
   */
 
   {
@@ -207,7 +215,7 @@ int main(int argc, char const * const *argv) {
     }
   }
 
-  /* 
+  /*
      closing
   */
 
