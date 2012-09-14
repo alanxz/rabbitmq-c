@@ -168,3 +168,31 @@ void amqp_dump(void const *buffer, size_t len) {
   if (numinrow != 0)
     printf("%08lX:\n", count);
 }
+
+const char* getopt_str(
+  const char* const option,
+  const int argc,
+  char* argv[],
+  const char* const default_
+) {
+  for (int i = 0; i < argc; i++) {
+    if (strcmp(option, argv[i]) == 0) {
+      return argv[i+1];
+    }
+  }
+  return default_;
+}
+
+int getopt_int(
+  const char* const option,
+  const int argc,
+  char* argv[],
+  const int default_
+) {
+  for (int i = 0; i < argc; i++) {
+    if (strcmp(option, argv[i]) == 0) {
+      return atoi(argv[i+1]);
+    }
+  }
+  return default_;
+}

@@ -42,28 +42,22 @@
 
 #include "utils.h"
 
-int main(int argc, char const * const *argv) {
-  char const *hostname;
-  int port;
-  char const *virtualhost;
-  char const *exchange;
-  char const *routingkey;
-  char const *messagebody;
+int main(int argc, char* argv[]) {
 
   int sockfd;
   amqp_connection_state_t conn;
 
-  if (argc < 7) {
-    fprintf(stderr, "Usage: amqp_rpc_sendstring_client host port virtualhost exchange routingkey messagebody\n");
+  if (argc < 6) { // minimum number of mandatory arguments
+    fprintf(stderr, "usage:\namqp_rpc_sendstring_client -h hostname [-p port] [-vh virtualhost] [-e exchange] -r routingkey messagebody\n");
     return 1;
   }
 
-  hostname = argv[1];
-  port = atoi(argv[2]);
-  virtualhost = argv[3];
-  exchange = argv[4];
-  routingkey = argv[5];
-  messagebody = argv[6];
+  const char* const hostname    = getopt_str("-h", argc, argv, "");
+  const int         port        = getopt_int("-p", argc, argv, 5672);
+  const char* const virtualhost = getopt_str("-vh", argc, argv, "/");
+  const char* const exchange    = getopt_str("-e", argc, argv, "");
+  const char* const routingkey  = getopt_str("-r", argc, argv, "");
+  const char* const messagebody = argv[argc - 1];
 
   /*
      establish a channel that is used to connect RabbitMQ server
