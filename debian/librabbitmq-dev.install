@@ -1,4 +1,2 @@
 debian/tmp/usr/include/*.h	usr/include
-debian/tmp/usr/lib/*.a		usr/lib
-debian/tmp/usr/lib/*.la		usr/lib
-debian/tmp/usr/lib/*.so		usr/lib
+debian/tmp/usr/lib/pkgconfig/*.pc usr/lib/pkgconfig
