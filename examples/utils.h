@@ -41,4 +41,18 @@ extern void amqp_dump(void const *buffer, size_t len);
 extern uint64_t now_microseconds(void);
 extern void microsleep(int usec);
 
+extern const char* getopt_str(
+  const char* const option,
+  const int argc,
+  char* argv[],
+  const char* const default_
+);
+
+extern int getopt_int(
+  const char* const option,
+  const int argc,
+  char* argv[],
+  const int default_
+);
+
 #endif
