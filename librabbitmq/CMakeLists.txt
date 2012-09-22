@@ -8,15 +8,26 @@ set(CODEGEN_PY "${CMAKE_CURRENT_BINARY_DIR}/codegen.py")
 set(AMQP_SPEC_JSON_PATH "${AMQP_CODEGEN_DIR}/amqp-rabbitmq-0.9.1.json")
 
 #generate amqp_framing.h/amqp_framing.c
+
+if (PYTHON_VERSION_MAJOR GREATER 2)
+  set(CONVERT_CODEGEN ${PYTHON_2TO3_EXECUTABLE} -w ${CODEGEN_PY} > codegen_2to3.out)
+  set(CONVERT_AMQP_CODEGEN ${PYTHON_2TO3_EXECUTABLE} -w ${AMQP_CODEGEN_PY} > amqp_codegen_2to3.out)
+else ()
+  set(CONVERT_CODEGEN "")
+  set(CONVERT_AMQP_CODEGEN "")
+endif ()
+
 add_custom_command(
   OUTPUT ${CODEGEN_PY}
   COMMAND ${CMAKE_COMMAND} ARGS -E copy ${CMAKE_CURRENT_SOURCE_DIR}/codegen.py ${CODEGEN_PY}
+  COMMAND ${CONVERT_CODEGEN}
   DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/codegen.py
   VERBATIM)
 
 add_custom_command(
   OUTPUT ${AMQP_CODEGEN_PY}
   COMMAND ${CMAKE_COMMAND} ARGS -E copy ${AMQP_CODEGEN_DIR}/amqp_codegen.py ${AMQP_CODEGEN_PY}
+  COMMAND ${CONVERT_AMQP_CODEGEN}
   DEPENDS ${AMQP_CODEGEN_DIR}/amqp_codegen.py ${AMQP_CODEGEN_TARGET}
   VERBATIM)
 
