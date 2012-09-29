@@ -15,6 +15,9 @@ set(COMMON_SRCS
 add_executable(amqp_sendstring amqp_sendstring.c ${COMMON_SRCS})
 target_link_libraries(amqp_sendstring rabbitmq)
 
+add_executable(amqp_rpc_sendstring_client amqp_rpc_sendstring_client.c ${COMMON_SRCS})
+target_link_libraries(amqp_rpc_sendstring_client rabbitmq)
+
 add_executable(amqp_exchange_declare amqp_exchange_declare.c ${COMMON_SRCS})
 target_link_libraries(amqp_exchange_declare rabbitmq)
 
