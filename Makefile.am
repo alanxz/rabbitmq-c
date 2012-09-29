@@ -106,6 +106,7 @@ noinst_PROGRAMS = \
 	examples/amqp_listen \
 	examples/amqp_listenq \
 	examples/amqp_producer \
+	examples/amqp_rpc_sendstring_client \
 	examples/amqp_sendstring \
 	examples/amqp_unbind
 
@@ -146,6 +147,11 @@ examples_amqp_bind_LDADD = \
 
 examples_amqp_listenq_SOURCES = examples/amqp_listenq.c
 examples_amqp_listenq_LDADD = \
+	examples/libutils.la \
+	librabbitmq/librabbitmq.la
+
+examples_amqp_rpc_sendstring_client_SOURCES = examples/amqp_rpc_sendstring_client.c
+examples_amqp_rpc_sendstring_client_LDADD = \
 	examples/libutils.la \
 	librabbitmq/librabbitmq.la
 

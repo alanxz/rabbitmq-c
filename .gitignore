@@ -29,6 +29,7 @@ examples/amqp_exchange_declare
 examples/amqp_listen
 examples/amqp_listenq
 examples/amqp_producer
+examples/amqp_rpc_sendstring_client
 examples/amqp_sendstring
 examples/amqp_unbind
 librabbitmq.pc
