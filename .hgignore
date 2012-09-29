@@ -22,6 +22,7 @@
 ^tests/test_tables$
 ^tests/test_parse_url$
 ^examples/amqp_sendstring$
+^examples/amqp_rpc_sendstring_client$
 ^examples/amqp_exchange_declare$
 ^examples/amqp_listen$
 ^examples/amqp_producer$
