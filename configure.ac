@@ -1,15 +1,19 @@
 AC_PREREQ([2.59])
 
-# Library versioning
-# Making releases:
-#       micro_version += 1
-#       interface_age += 1
-# If functions have been added or backward-compatibility has been broken:
-#       interface_age = 0
 m4_define([major_version], [0])
 m4_define([minor_version], [2])
 m4_define([micro_version], [0])
-m4_define([interface_age], [0])
+
+# Follow all steps below in order to calculate new ABI version when updating the library
+# NOTE: THIS IS UNRELATED to the actual project version
+#
+# 1. If the library source code has changed at all since the last update, then increment revision
+# 2. If any interfaces have been added, removed, or changed since the last update, increment current and set revision to 0.
+# 3. If any interfaces have been added since the last public release, then increment age.
+# 4. If any interfaces have been removed since the last public release, then set age to 0.
+m4_define([soversion_current],   [1])
+m4_define([soversion_revision],  [0])
+m4_define([soversion_age],       [0])
 
 AC_INIT([rabbitmq-c], [major_version.minor_version.micro_version],
 	[https://github.com/alanxz/rabbitmq-c/issues], [librabbitmq],
@@ -47,9 +51,9 @@ AX_TRY_LDFLAGS([-no-undefined], [NO_UNDEFINED=-no-undefined])
 AC_SUBST([NO_UNDEFINED])
 
 # Libtool versioning
-LT_CURRENT=m4_eval(minor_version + micro_version - interface_age)
-LT_REVISION=interface_age
-LT_AGE=m4_eval(m4_eval(minor_version + micro_version) - interface_age)
+LT_CURRENT=soversion_current
+LT_REVISION=soversion_revision
+LT_AGE=soversion_age
 AC_SUBST([LT_CURRENT])
 AC_SUBST([LT_REVISION])
 AC_SUBST([LT_AGE])
