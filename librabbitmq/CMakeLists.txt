@@ -87,6 +87,12 @@ endif()
 
 add_library(rabbitmq ${RABBITMQ_SOURCES})
 
+if (WIN32)
+    set_target_properties(rabbitmq PROPERTIES VERSION ${RMQ_VERSION} OUTPUT_NAME rabbitmq.${RMQ_SOVERSION})
+else ()
+    set_target_properties(rabbitmq PROPERTIES VERSION ${RMQ_VERSION} SOVERSION ${RMQ_SOVERSION})
+endif ()
+
 if(WIN32)
   target_link_libraries(rabbitmq ws2_32)
 endif(WIN32)
