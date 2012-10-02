@@ -3,6 +3,25 @@ project(rabbitmq-c "C")
 
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} ${CMAKE_CURRENT_SOURCE_DIR}/cmake)
 
+# Follow all steps below in order to calculate new ABI version when updating the library
+# NOTE: THIS IS UNRELATED to the actual project version
+#
+# 1. If the library source code has changed at all since the last update, then increment revision
+# 2. If any interfaces have been added, removed, or changed since the last update, increment current and set revision to 0.
+# 3. If any interfaces have been added since the last public release, then increment age.
+# 4. If any interfaces have been removed since the last public release, then set age to 0.
+
+set(RMQ_SOVERSION_CURRENT   1)
+set(RMQ_SOVERSION_REVISION  0)
+set(RMQ_SOVERSION_AGE       0)
+
+math(EXPR RMQ_SOVERSION_MAJOR "${RMQ_SOVERSION_CURRENT} - ${RMQ_SOVERSION_AGE}")
+math(EXPR RMQ_SOVERSION_MINOR "${RMQ_SOVERSION_AGE}")
+math(EXPR RMQ_SOVERSION_PATCH "${RMQ_SOVERSION_REVISION}")
+
+set(RMQ_VERSION ${RMQ_SOVERSION_MAJOR}.${RMQ_SOVERSION_MINOR}.${RMQ_SOVERSION_PATCH})
+set(RMQ_SOVERSION ${RMQ_SOVERSION_MAJOR})
+
 set(VERSION "0.2")
 
 if (MSVC)
