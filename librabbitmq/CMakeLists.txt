@@ -82,29 +82,52 @@ set(RABBITMQ_SOURCES
 
 add_definitions(-DAMQP_BUILD)
 
-if (NOT BUILD_SHARED_LIBS)
-  add_definitions(-DAMQP_STATIC)
-endif()
+if (BUILD_SHARED_LIBS)
+    add_library(rabbitmq SHARED ${RABBITMQ_SOURCES})
 
-add_library(rabbitmq ${RABBITMQ_SOURCES})
+    if (WIN32)
+        set_target_properties(rabbitmq PROPERTIES VERSION ${RMQ_VERSION} OUTPUT_NAME rabbitmq.${RMQ_SOVERSION})
+    else (WIN32)
+        set_target_properties(rabbitmq PROPERTIES VERSION ${RMQ_VERSION} SOVERSION ${RMQ_SOVERSION})
+    endif (WIN32)
 
-if (WIN32)
-    set_target_properties(rabbitmq PROPERTIES VERSION ${RMQ_VERSION} OUTPUT_NAME rabbitmq.${RMQ_SOVERSION})
-else ()
-    set_target_properties(rabbitmq PROPERTIES VERSION ${RMQ_VERSION} SOVERSION ${RMQ_SOVERSION})
-endif ()
+    if (DEFINED SOCKET_LIBRARIES)
+      target_link_libraries(rabbitmq ${SOCKET_LIBRARIES})
+    endif ()
 
-if (DEFINED SOCKET_LIBRARIES)
-  target_link_libraries(rabbitmq ${SOCKET_LIBRARIES})
-endif ()
+    install(TARGETS rabbitmq
+        RUNTIME DESTINATION bin
+        LIBRARY DESTINATION lib
+        )
+    set(RMQ_LIBRARY_TARGET rabbitmq)
+endif (BUILD_SHARED_LIBS)
 
-install(TARGETS rabbitmq
-	RUNTIME DESTINATION bin
-	LIBRARY DESTINATION lib
-	ARCHIVE DESTINATION lib
-	PUBLIC_HEADER DESTINATION include)
+if (BUILD_STATIC_LIBS)
+    add_library(rabbitmq-static STATIC ${RABBITMQ_SOURCES})
+
+    set_target_properties(rabbitmq-static PROPERTIES COMPILE_DEFINITIONS AMQP_STATIC)
+    if (WIN32)
+        set_target_properties(rabbitmq-static PROPERTIES VERSION ${RMQ_VERSION} OUTPUT_NAME librabbitmq.${RMQ_SOVERSION})
+    else (WIN32)
+        set_target_properties(rabbitmq-static PROPERTIES VERSION ${RMQ_VERSION} SOVERSION ${RMQ_SOVERSION} OUTPUT_NAME rabbitmq)
+    endif (WIN32)
+
+    if (DEFINED SOCKET_LIBRARIES)
+      target_link_libraries(rabbitmq-static ${SOCKET_LIBRARIES})
+    endif ()
+
+    install(TARGETS rabbitmq-static
+        ARCHIVE DESTINATION lib
+        )
+
+    if (NOT DEFINED RMQ_LIBRARY_TARGET)
+        set(RMQ_LIBRARY_TARGET rabbitmq-static)
+    endif ()
+endif (BUILD_STATIC_LIBS)
 
 install(FILES amqp.h ${CMAKE_CURRENT_BINARY_DIR}/amqp_framing.h ${STDINT_H_INSTALL_FILE}
-	DESTINATION include)
+	DESTINATION include
+    )
 
+set(RMQ_LIBRARY_TARGET ${RMQ_LIBRARY_TARGET} PARENT_SCOPE)
 
