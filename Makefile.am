@@ -40,14 +40,33 @@ BUILT_SOURCES = \
 	librabbitmq/amqp_framing.h \
 	librabbitmq/amqp_framing.c
 
+if PYTHON3
+codegen_py = $(top_builddir)/librabbitmq/python3/codegen3.py
+codegenlib_py = $(top_builddir)/librabbitmq/python3/amqp_codegen.py
+codegenlib_path = $(top_builddir)/librabbitmq/python3
+
+$(codegenlib_path):
+	$(AM_V_at)$(MKDIR_P) $@
+
+$(codegen_py): $(top_srcdir)/librabbitmq/codegen.py $(codegenlib_path)
+	$(AM_V_GEN)$(PYTHON2TO3) $(top_srcdir)/librabbitmq/codegen.py | patch -p0 -o $(codegen_py)
+
+$(codegenlib_py): $(top_srcdir)/codegen/amqp_codegen.py $(codegenlib_path)
+	$(AM_V_GEN)$(PYTHON2TO3) $(top_srcdir)/codegen/amqp_codegen.py | patch -p0 -o $(codegenlib_py)
+else
 codegen_py = $(top_srcdir)/librabbitmq/codegen.py
+codegenlib_py = $(top_srcdir)/codegen/amqp_codegen.py
+codegenlib_path = $(top_srcdir)/codegen
+endif
+
+
 amqp_codegen_json = $(top_srcdir)/codegen/amqp-rabbitmq-0.9.1.json
 
-librabbitmq/amqp_framing.h: $(amqp_codegen_json) $(codegen_py)
-	$(AM_V_GEN)PYTHONPATH=$(top_srcdir)/codegen $(PYTHON) $(codegen_py) header $< $@
+librabbitmq/amqp_framing.h: $(amqp_codegen_json) $(codegen_py) $(codegenlib_py)
+	$(AM_V_GEN)PYTHONPATH=$(codegenlib_path) $(PYTHON) $(codegen_py) header $< $@
 
-librabbitmq/amqp_framing.c: $(amqp_codegen_json) $(codegen_py)
-	$(AM_V_GEN)PYTHONPATH=$(top_srcdir)/codegen $(PYTHON) $(codegen_py) body $< $@
+librabbitmq/amqp_framing.c: $(amqp_codegen_json) $(codegen_py) $(codegenlib_py)
+	$(AM_V_GEN)PYTHONPATH=$(codegenlib_path) $(PYTHON) $(codegen_py) body $< $@
 
 AM_CFLAGS = -I$(top_srcdir)/librabbitmq
 

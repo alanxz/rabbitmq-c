@@ -90,26 +90,22 @@ AC_ARG_ENABLE([64-bit],
                AX_TRY_LDFLAGS([-m64], [AX_LDFLAGS([-m64])])],
               [enable_64_bit=no])
 
-# Configure python
-pythons="python python2.6 python2.5"
-AC_CACHE_CHECK([for Python with 'json'], [ac_cv_path_PYTHON],
-        [AC_PATH_PROGS_FEATURE_CHECK([PYTHON], [$pythons],
-                [$ac_path_PYTHON -c 'import json' 2>/dev/null
-                 AS_IF([test "x$?" = "x0"],
-                       [ac_cv_path_PYTHON=$ac_path_PYTHON
-                        ac_path_PYTHON_found=:])],
-                [AC_MSG_RESULT([not found])])])
-AC_CACHE_CHECK([for Python with 'simplejson'], [ac_cv_path_PYTHON],
-        [AC_PATH_PROGS_FEATURE_CHECK([PYTHON], [$pythons],
-                [$ac_path_PYTHON -c 'import simplejson' 2>/dev/null
-                 AS_IF([test "x$?" = "x0"],
-                       [ac_cv_path_PYTHON=$ac_path_PYTHON
-                        ac_path_PYTHON_found=:])],
-                [AC_MSG_RESULT([not found])])])
-AS_IF([test "x$ac_cv_path_PYTHON" = "x"],
-      [ac_cv_path_PYTHON=:
-       AC_MSG_WARN([unable to rebuild AMQP framing])])
-AC_SUBST([PYTHON], [$ac_cv_path_PYTHON])
+AM_PATH_PYTHON([2.5])
+
+AX_PYTHON_MODULE([json], [Need JSON])
+AS_IF([test "x$HAVE_PYMOD_JSON" = "xno"],
+      [AX_PYTHON_MODULE([simplejson])])
+AS_IF([test "x$HAVE_PYMOD_JSON" = "xno" && test "x$HAVE_PYMOD_SIMPLEJSON" = "xno"],
+     [AC_MSG_ERROR([Unable to find json or simplejson python modules])])
+
+AS_VERSION_COMPARE([$PYTHON_VERSION],[3.0],[eval HAVE_PYTHON3=no],[eval HAVE_PYTHON3=yes],[eval HAVE_PYTHON3=yes])
+
+AS_IF([test "x$HAVE_PYTHON3" = "xyes"],
+      [AC_PATH_PROG(PYTHON2TO3,[2to3])
+      AS_IF([test "x$PYTHON2TO3" = "x"],
+            AC_MSG_ERROR([Unable to find 2to3 python utility]))])
+
+AM_CONDITIONAL([PYTHON3], [test "x$HAVE_PYTHON3" = "xyes"])
 
 # Configure AMQP command-line tools
 AC_ARG_ENABLE([tools],
