@@ -29,6 +29,7 @@
 # ***** END LICENSE BLOCK *****
 
 from __future__ import nested_scopes
+from __future__ import division
 
 from amqp_codegen import *
 import string
@@ -633,7 +634,7 @@ AMQP_CALL amqp_encode_properties(uint16_t class_id,
         for f in c.fields:
             if index % 16 == 15:
                 index = index + 1
-            shortnum = index / 16
+            shortnum = index // 16
             partialindex = 15 - (index % 16)
             bitindex = shortnum * 16 + partialindex
             print '#define %s (1 << %d)' % (cFlagName(c, f), bitindex)
