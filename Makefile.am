@@ -244,27 +244,28 @@ tools_amqp_delete_queue_LDADD = \
 
 if DOCS
 man_MANS = \
-	$(top_srcdir)/tools/doc/amqp-publish.1 \
-	$(top_srcdir)/tools/doc/amqp-consume.1 \
-	$(top_srcdir)/tools/doc/amqp-get.1 \
-	$(top_srcdir)/tools/doc/amqp-declare-queue.1 \
-	$(top_srcdir)/tools/doc/amqp-delete-queue.1 \
-	$(top_srcdir)/tools/doc/librabbitmq-tools.7
+	$(top_builddir)/tools/doc/amqp-publish.1 \
+	$(top_builddir)/tools/doc/amqp-consume.1 \
+	$(top_builddir)/tools/doc/amqp-get.1 \
+	$(top_builddir)/tools/doc/amqp-declare-queue.1 \
+	$(top_builddir)/tools/doc/amqp-delete-queue.1 \
+	$(top_builddir)/tools/doc/librabbitmq-tools.7
 
 # xmlto's --searchpath doesn't get passed through to xmllint, so we disable
 # xmllint validation with --skip-validation for the benefit of build/source
 # separation as required by distcheck, debian packaging etc.
 XMLTO_FLAGS = \
-	--skip-validation
+	--skip-validation \
+	--searchpath $(top_builddir)/tools/doc
 
-%.1: %.xml tools/doc/man-date.ent
-	$(AM_V_GEN)$(XMLTO) $(XMLTO_FLAGS) -o $(top_srcdir)/tools/doc man $<
+%.1: %.xml $(top_builddir)/tools/doc/man-date.ent
+	$(AM_V_GEN)$(XMLTO) $(XMLTO_FLAGS) -o $(top_builddir)/tools/doc man $<
 
-%.7: %.xml tools/doc/man-date.ent
-	$(AM_V_GEN)$(XMLTO) $(XMLTO_FLAGS) -o $(top_srcdir)/tools/doc man $<
+%.7: %.xml $(top_builddir)/tools/doc/man-date.ent
+	$(AM_V_GEN)$(XMLTO) $(XMLTO_FLAGS) -o $(top_builddir)/tools/doc man $<
 
-$(top_srcdir)/tools/doc/man-date.ent:
-	$(AM_V_at)$(MKDIR_P) tools/doc
+$(top_builddir)/tools/doc/man-date.ent:
+	$(AM_V_at)$(MKDIR_P) $(top_builddir)/tools/doc
 	$(AM_V_GEN)date +'%Y-%m-%d' > $@
 endif # DOCS
 endif # TOOLS
@@ -290,11 +291,11 @@ EXTRA_DIST = \
 	tools/doc/amqp-get.xml \
 	tools/doc/amqp-publish.xml \
 	tools/doc/librabbitmq-tools.xml \
-	tools/doc/man-date.ent
+	$(top_builddir)/tools/doc/man-date.ent
 
 MOSTLYCLEANFILES = \
 	$(man_MANS) \
-	tools/doc/man-date.ent
+	$(top_builddir)/tools/doc/man-date.ent
 
 pkgconfigdir = $(libdir)/pkgconfig
 pkgconfig_DATA = librabbitmq.pc
