@@ -1,5 +1,7 @@
 ACLOCAL_AMFLAGS = -I m4
 
+AM_CFLAGS = -I$(top_srcdir)/librabbitmq -I$(top_builddir)/librabbitmq
+
 lib_LTLIBRARIES = librabbitmq/librabbitmq.la
 
 librabbitmq_librabbitmq_la_SOURCES = \
@@ -12,12 +14,11 @@ librabbitmq_librabbitmq_la_SOURCES = \
 	librabbitmq/amqp_table.c \
 	librabbitmq/amqp_url.c
 
-librabbitmq_librabbitmq_la_CFLAGS = \
-	-I$(top_srcdir)/librabbitmq
-
 librabbitmq_librabbitmq_la_LDFLAGS = \
 	-version-info $(LT_CURRENT):$(LT_REVISION):$(LT_AGE) \
 	$(NO_UNDEFINED)
+librabbitmq_librabbitmq_la_CFLAGS = $(AM_CFLAGS)
+
 
 if OS_UNIX
 librabbitmq_librabbitmq_la_SOURCES += librabbitmq/unix/socket.c
@@ -68,8 +69,6 @@ librabbitmq/amqp_framing.h: $(amqp_codegen_json) $(codegen_py) $(codegenlib_py)
 librabbitmq/amqp_framing.c: $(amqp_codegen_json) $(codegen_py) $(codegenlib_py)
 	$(AM_V_GEN)PYTHONPATH=$(codegenlib_path) $(PYTHON) $(codegen_py) body $< $@
 
-AM_CFLAGS = -I$(top_srcdir)/librabbitmq
-
 check_PROGRAMS = \
 	tests/test_tables \
 	tests/test_parse_url
@@ -87,8 +86,7 @@ noinst_LTLIBRARIES = examples/libutils.la
 examples_libutils_la_SOURCES = \
 	examples/utils.c \
 	examples/utils.h
-
-examples_libutils_la_CFLAGS = -I$(top_srcdir)/librabbitmq
+examples_libutils_la_CFLAGS = $(AM_CFLAGS)
 
 if OS_UNIX
 examples_libutils_la_SOURCES += examples/unix/platform_utils.c
@@ -162,10 +160,10 @@ tools_libcommon_la_SOURCES = \
 	tools/common.c \
 	tools/common.h
 tools_libcommon_la_CFLAGS = \
-	-I$(top_srcdir)/librabbitmq \
+	$(AM_CFLAGS) \
 	-I$(top_srcdir)/tools
 
-tools_platform_CFLAGS =
+tools_platform_CFLAGS = $(AM_CFLAGS)
 
 if OS_UNIX
 tools_libcommon_la_SOURCES += tools/unix/process.c
@@ -191,58 +189,59 @@ bin_PROGRAMS = \
 
 tools_amqp_publish_SOURCES = tools/publish.c
 tools_amqp_publish_CFLAGS = \
+	$(AM_CFLAGS) \
 	$(POPT_CFLAGS) \
 	$(tools_platform_CFLAGS) \
-	-I$(top_srcdir)/librabbitmq \
 	-I$(top_srcdir)/tools
 tools_amqp_publish_LDADD = \
 	$(POPT_LIBS) \
-	librabbitmq/librabbitmq.la \
-	tools/libcommon.la
+	tools/libcommon.la \
+	librabbitmq/librabbitmq.la
 
 tools_amqp_get_SOURCES = tools/get.c
 tools_amqp_get_CFLAGS = \
+	$(AM_CFLAGS) \
 	$(POPT_CFLAGS) \
 	$(tools_platform_CFLAGS) \
-	-I$(top_srcdir)/librabbitmq \
 	-I$(top_srcdir)/tools
 tools_amqp_get_LDADD = \
 	$(POPT_LIBS) \
-	librabbitmq/librabbitmq.la \
-	tools/libcommon.la
+	tools/libcommon.la \
+	librabbitmq/librabbitmq.la
 
 tools_amqp_consume_SOURCES = tools/consume.c
 tools_amqp_consume_CFLAGS = \
+	$(AM_CFLAGS) \
 	$(POPT_CFLAGS) \
 	$(tools_platform_CFLAGS) \
-	-I$(top_srcdir)/librabbitmq \
 	-I$(top_srcdir)/tools
 tools_amqp_consume_LDADD = \
 	$(POPT_LIBS) \
-	librabbitmq/librabbitmq.la \
-	tools/libcommon.la
+	tools/libcommon.la \
+	librabbitmq/librabbitmq.la
 
 tools_amqp_declare_queue_SOURCES = tools/declare_queue.c
 tools_amqp_declare_queue_CFLAGS = \
+	$(AM_CFLAGS) \
 	$(POPT_CFLAGS) \
 	$(tools_platform_CFLAGS) \
-	-I$(top_srcdir)/librabbitmq \
 	-I$(top_srcdir)/tools
 tools_amqp_declare_queue_LDADD = \
 	$(POPT_LIBS) \
-	librabbitmq/librabbitmq.la \
-	tools/libcommon.la
+	tools/libcommon.la \
+	librabbitmq/librabbitmq.la
 
 tools_amqp_delete_queue_SOURCES = tools/delete_queue.c
 tools_amqp_delete_queue_CFLAGS = \
+	$(AM_CFLAGS) \
 	$(POPT_CFLAGS) \
 	$(tools_platform_CFLAGS) \
-	-I$(top_srcdir)/librabbitmq \
 	-I$(top_srcdir)/tools
 tools_amqp_delete_queue_LDADD = \
 	$(POPT_LIBS) \
-	librabbitmq/librabbitmq.la \
-	tools/libcommon.la
+	tools/libcommon.la \
+	librabbitmq/librabbitmq.la
+
 if DOCS
 man_MANS = \
 	$(top_srcdir)/tools/doc/amqp-publish.1 \
