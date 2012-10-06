@@ -34,12 +34,12 @@ librabbitmq_librabbitmq_la_CFLAGS += -I$(top_srcdir)/librabbitmq/win32/msinttype
 endif
 
 include_HEADERS = \
-	librabbitmq/amqp.h \
-	librabbitmq/amqp_framing.h
+	$(top_srcdir)/librabbitmq/amqp.h \
+	$(top_builddir)/librabbitmq/amqp_framing.h
 
 BUILT_SOURCES = \
-	librabbitmq/amqp_framing.h \
-	librabbitmq/amqp_framing.c
+	$(top_builddir)/librabbitmq/amqp_framing.h \
+	$(top_builddir)/librabbitmq/amqp_framing.c
 
 if PYTHON3
 codegen_py = $(top_builddir)/librabbitmq/python3/codegen3.py
@@ -294,6 +294,8 @@ EXTRA_DIST = \
 	$(top_builddir)/tools/doc/man-date.ent
 
 MOSTLYCLEANFILES = \
+	$(top_builddir)/librabbitmq/amqp_framing.c \
+	$(top_builddir)/librabbitmq/amqp_framing.h \
 	$(man_MANS) \
 	$(top_builddir)/tools/doc/man-date.ent
 
