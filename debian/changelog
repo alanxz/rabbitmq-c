@@ -1,3 +1,10 @@
+librabbitmq0 (0.2.0-1ubuntu1) precise; urgency=low
+
+  * Patched to build with cmake
+  * renamed package to librabbitmq0 to match upstream Debian/Ubuntu naming
+
+ -- David Gillies <dgillies@brandscreen.com>  Tue, 18 Sep 2012 17:39:30 +1000
+
 librabbitmq (1.0-1) unstable; urgency=low
 
   * Initial release

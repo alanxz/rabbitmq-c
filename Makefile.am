@@ -1,5 +1,7 @@
 ACLOCAL_AMFLAGS = -I m4
 
+AM_CFLAGS = -I$(top_srcdir)/librabbitmq -I$(top_builddir)/librabbitmq
+
 lib_LTLIBRARIES = librabbitmq/librabbitmq.la
 
 librabbitmq_librabbitmq_la_SOURCES = \
@@ -12,12 +14,11 @@ librabbitmq_librabbitmq_la_SOURCES = \
 	librabbitmq/amqp_table.c \
 	librabbitmq/amqp_url.c
 
-librabbitmq_librabbitmq_la_CFLAGS = \
-	-I$(top_srcdir)/librabbitmq
-
 librabbitmq_librabbitmq_la_LDFLAGS = \
 	-version-info $(LT_CURRENT):$(LT_REVISION):$(LT_AGE) \
 	$(NO_UNDEFINED)
+librabbitmq_librabbitmq_la_CFLAGS = $(AM_CFLAGS)
+
 
 if OS_UNIX
 librabbitmq_librabbitmq_la_SOURCES += librabbitmq/unix/socket.c
@@ -33,23 +34,40 @@ librabbitmq_librabbitmq_la_CFLAGS += -I$(top_srcdir)/librabbitmq/win32/msinttype
 endif
 
 include_HEADERS = \
-	librabbitmq/amqp.h \
-	librabbitmq/amqp_framing.h
+	$(top_srcdir)/librabbitmq/amqp.h \
+	$(top_builddir)/librabbitmq/amqp_framing.h
 
 BUILT_SOURCES = \
-	librabbitmq/amqp_framing.h \
-	librabbitmq/amqp_framing.c
+	$(top_builddir)/librabbitmq/amqp_framing.h \
+	$(top_builddir)/librabbitmq/amqp_framing.c
 
+if PYTHON3
+codegen_py = $(top_builddir)/librabbitmq/python3/codegen3.py
+codegenlib_py = $(top_builddir)/librabbitmq/python3/amqp_codegen.py
+codegenlib_path = $(top_builddir)/librabbitmq/python3
+
+$(codegenlib_path):
+	$(AM_V_at)$(MKDIR_P) $@
+
+$(codegen_py): $(top_srcdir)/librabbitmq/codegen.py $(codegenlib_path)
+	$(AM_V_GEN)$(PYTHON2TO3) $(top_srcdir)/librabbitmq/codegen.py | patch -p0 -o $(codegen_py)
+
+$(codegenlib_py): $(top_srcdir)/codegen/amqp_codegen.py $(codegenlib_path)
+	$(AM_V_GEN)$(PYTHON2TO3) $(top_srcdir)/codegen/amqp_codegen.py | patch -p0 -o $(codegenlib_py)
+else
 codegen_py = $(top_srcdir)/librabbitmq/codegen.py
+codegenlib_py = $(top_srcdir)/codegen/amqp_codegen.py
+codegenlib_path = $(top_srcdir)/codegen
+endif
+
+
 amqp_codegen_json = $(top_srcdir)/codegen/amqp-rabbitmq-0.9.1.json
 
-librabbitmq/amqp_framing.h: $(amqp_codegen_json) $(codegen_py)
-	$(AM_V_GEN)PYTHONPATH=$(top_srcdir)/codegen $(PYTHON) $(codegen_py) header $< $@
+librabbitmq/amqp_framing.h: $(amqp_codegen_json) $(codegen_py) $(codegenlib_py)
+	$(AM_V_GEN)PYTHONPATH=$(codegenlib_path) $(PYTHON) $(codegen_py) header $< $@
 
-librabbitmq/amqp_framing.c: $(amqp_codegen_json) $(codegen_py)
-	$(AM_V_GEN)PYTHONPATH=$(top_srcdir)/codegen $(PYTHON) $(codegen_py) body $< $@
-
-AM_CFLAGS = -I$(top_srcdir)/librabbitmq
+librabbitmq/amqp_framing.c: $(amqp_codegen_json) $(codegen_py) $(codegenlib_py)
+	$(AM_V_GEN)PYTHONPATH=$(codegenlib_path) $(PYTHON) $(codegen_py) body $< $@
 
 check_PROGRAMS = \
 	tests/test_tables \
@@ -68,8 +86,7 @@ noinst_LTLIBRARIES = examples/libutils.la
 examples_libutils_la_SOURCES = \
 	examples/utils.c \
 	examples/utils.h
-
-examples_libutils_la_CFLAGS = -I$(top_srcdir)/librabbitmq
+examples_libutils_la_CFLAGS = $(AM_CFLAGS)
 
 if OS_UNIX
 examples_libutils_la_SOURCES += examples/unix/platform_utils.c
@@ -143,10 +160,10 @@ tools_libcommon_la_SOURCES = \
 	tools/common.c \
 	tools/common.h
 tools_libcommon_la_CFLAGS = \
-	-I$(top_srcdir)/librabbitmq \
+	$(AM_CFLAGS) \
 	-I$(top_srcdir)/tools
 
-tools_platform_CFLAGS =
+tools_platform_CFLAGS = $(AM_CFLAGS)
 
 if OS_UNIX
 tools_libcommon_la_SOURCES += tools/unix/process.c
@@ -172,81 +189,83 @@ bin_PROGRAMS = \
 
 tools_amqp_publish_SOURCES = tools/publish.c
 tools_amqp_publish_CFLAGS = \
+	$(AM_CFLAGS) \
 	$(POPT_CFLAGS) \
 	$(tools_platform_CFLAGS) \
-	-I$(top_srcdir)/librabbitmq \
 	-I$(top_srcdir)/tools
 tools_amqp_publish_LDADD = \
 	$(POPT_LIBS) \
-	librabbitmq/librabbitmq.la \
-	tools/libcommon.la
+	tools/libcommon.la \
+	librabbitmq/librabbitmq.la
 
 tools_amqp_get_SOURCES = tools/get.c
 tools_amqp_get_CFLAGS = \
+	$(AM_CFLAGS) \
 	$(POPT_CFLAGS) \
 	$(tools_platform_CFLAGS) \
-	-I$(top_srcdir)/librabbitmq \
 	-I$(top_srcdir)/tools
 tools_amqp_get_LDADD = \
 	$(POPT_LIBS) \
-	librabbitmq/librabbitmq.la \
-	tools/libcommon.la
+	tools/libcommon.la \
+	librabbitmq/librabbitmq.la
 
 tools_amqp_consume_SOURCES = tools/consume.c
 tools_amqp_consume_CFLAGS = \
+	$(AM_CFLAGS) \
 	$(POPT_CFLAGS) \
 	$(tools_platform_CFLAGS) \
-	-I$(top_srcdir)/librabbitmq \
 	-I$(top_srcdir)/tools
 tools_amqp_consume_LDADD = \
 	$(POPT_LIBS) \
-	librabbitmq/librabbitmq.la \
-	tools/libcommon.la
+	tools/libcommon.la \
+	librabbitmq/librabbitmq.la
 
 tools_amqp_declare_queue_SOURCES = tools/declare_queue.c
 tools_amqp_declare_queue_CFLAGS = \
+	$(AM_CFLAGS) \
 	$(POPT_CFLAGS) \
 	$(tools_platform_CFLAGS) \
-	-I$(top_srcdir)/librabbitmq \
 	-I$(top_srcdir)/tools
 tools_amqp_declare_queue_LDADD = \
 	$(POPT_LIBS) \
-	librabbitmq/librabbitmq.la \
-	tools/libcommon.la
+	tools/libcommon.la \
+	librabbitmq/librabbitmq.la
 
 tools_amqp_delete_queue_SOURCES = tools/delete_queue.c
 tools_amqp_delete_queue_CFLAGS = \
+	$(AM_CFLAGS) \
 	$(POPT_CFLAGS) \
 	$(tools_platform_CFLAGS) \
-	-I$(top_srcdir)/librabbitmq \
 	-I$(top_srcdir)/tools
 tools_amqp_delete_queue_LDADD = \
 	$(POPT_LIBS) \
-	librabbitmq/librabbitmq.la \
-	tools/libcommon.la
+	tools/libcommon.la \
+	librabbitmq/librabbitmq.la
+
 if DOCS
 man_MANS = \
-	$(top_srcdir)/tools/doc/amqp-publish.1 \
-	$(top_srcdir)/tools/doc/amqp-consume.1 \
-	$(top_srcdir)/tools/doc/amqp-get.1 \
-	$(top_srcdir)/tools/doc/amqp-declare-queue.1 \
-	$(top_srcdir)/tools/doc/amqp-delete-queue.1 \
-	$(top_srcdir)/tools/doc/librabbitmq-tools.7
+	$(top_builddir)/tools/doc/amqp-publish.1 \
+	$(top_builddir)/tools/doc/amqp-consume.1 \
+	$(top_builddir)/tools/doc/amqp-get.1 \
+	$(top_builddir)/tools/doc/amqp-declare-queue.1 \
+	$(top_builddir)/tools/doc/amqp-delete-queue.1 \
+	$(top_builddir)/tools/doc/librabbitmq-tools.7
 
 # xmlto's --searchpath doesn't get passed through to xmllint, so we disable
 # xmllint validation with --skip-validation for the benefit of build/source
 # separation as required by distcheck, debian packaging etc.
 XMLTO_FLAGS = \
-	--skip-validation
+	--skip-validation \
+	--searchpath $(top_builddir)/tools/doc
 
-%.1: %.xml tools/doc/man-date.ent
-	$(AM_V_GEN)$(XMLTO) $(XMLTO_FLAGS) -o $(top_srcdir)/tools/doc man $<
+%.1: %.xml $(top_builddir)/tools/doc/man-date.ent
+	$(AM_V_GEN)$(XMLTO) $(XMLTO_FLAGS) -o $(top_builddir)/tools/doc man $<
 
-%.7: %.xml tools/doc/man-date.ent
-	$(AM_V_GEN)$(XMLTO) $(XMLTO_FLAGS) -o $(top_srcdir)/tools/doc man $<
+%.7: %.xml $(top_builddir)/tools/doc/man-date.ent
+	$(AM_V_GEN)$(XMLTO) $(XMLTO_FLAGS) -o $(top_builddir)/tools/doc man $<
 
-$(top_srcdir)/tools/doc/man-date.ent:
-	$(AM_V_at)$(MKDIR_P) tools/doc
+$(top_builddir)/tools/doc/man-date.ent:
+	$(AM_V_at)$(MKDIR_P) $(top_builddir)/tools/doc
 	$(AM_V_GEN)date +'%Y-%m-%d' > $@
 endif # DOCS
 endif # TOOLS
@@ -272,11 +291,13 @@ EXTRA_DIST = \
 	tools/doc/amqp-get.xml \
 	tools/doc/amqp-publish.xml \
 	tools/doc/librabbitmq-tools.xml \
-	tools/doc/man-date.ent
+	$(top_builddir)/tools/doc/man-date.ent
 
 MOSTLYCLEANFILES = \
+	$(top_builddir)/librabbitmq/amqp_framing.c \
+	$(top_builddir)/librabbitmq/amqp_framing.h \
 	$(man_MANS) \
-	tools/doc/man-date.ent
+	$(top_builddir)/tools/doc/man-date.ent
 
 pkgconfigdir = $(libdir)/pkgconfig
 pkgconfig_DATA = librabbitmq.pc

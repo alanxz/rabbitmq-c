@@ -3,6 +3,25 @@ project(rabbitmq-c "C")
 
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} ${CMAKE_CURRENT_SOURCE_DIR}/cmake)
 
+# Follow all steps below in order to calculate new ABI version when updating the library
+# NOTE: THIS IS UNRELATED to the actual project version
+#
+# 1. If the library source code has changed at all since the last update, then increment revision
+# 2. If any interfaces have been added, removed, or changed since the last update, increment current and set revision to 0.
+# 3. If any interfaces have been added since the last public release, then increment age.
+# 4. If any interfaces have been removed since the last public release, then set age to 0.
+
+set(RMQ_SOVERSION_CURRENT   1)
+set(RMQ_SOVERSION_REVISION  0)
+set(RMQ_SOVERSION_AGE       0)
+
+math(EXPR RMQ_SOVERSION_MAJOR "${RMQ_SOVERSION_CURRENT} - ${RMQ_SOVERSION_AGE}")
+math(EXPR RMQ_SOVERSION_MINOR "${RMQ_SOVERSION_AGE}")
+math(EXPR RMQ_SOVERSION_PATCH "${RMQ_SOVERSION_REVISION}")
+
+set(RMQ_VERSION ${RMQ_SOVERSION_MAJOR}.${RMQ_SOVERSION_MINOR}.${RMQ_SOVERSION_PATCH})
+set(RMQ_SOVERSION ${RMQ_SOVERSION_MAJOR})
+
 set(VERSION "0.2")
 
 if (MSVC)
@@ -22,6 +41,64 @@ endif()
 
 #find python
 find_package(PythonInterp REQUIRED)
+
+#Determine Python Version:
+if(PYTHON_EXECUTABLE)
+  execute_process(COMMAND "${PYTHON_EXECUTABLE}" -c
+    "import sys; sys.stdout.write(';'.join([str(x) for x in sys.version_info[:3]]))"
+    OUTPUT_VARIABLE _VERSION
+    RESULT_VARIABLE _PYTHON_VERSION_RESULT
+    ERROR_QUIET)
+  if(NOT _PYTHON_VERSION_RESULT)
+    string(REPLACE ";" "." PYTHON_VERSION_STRING "${_VERSION}")
+    list(GET _VERSION 0 PYTHON_VERSION_MAJOR)
+    list(GET _VERSION 1 PYTHON_VERSION_MINOR)
+    list(GET _VERSION 2 PYTHON_VERSION_PATCH)
+    if(PYTHON_VERSION_PATCH EQUAL 0)
+      # it's called "Python 2.7", not "2.7.0"
+      string(REGEX REPLACE "\\.0$" "" PYTHON_VERSION_STRING "${PYTHON_VERSION_STRING}")
+    endif()
+  else()
+    # sys.version predates sys.version_info, so use that
+    execute_process(COMMAND "${PYTHON_EXECUTABLE}" -c "import sys; sys.stdout.write(sys.version)"
+      OUTPUT_VARIABLE _VERSION
+      RESULT_VARIABLE _PYTHON_VERSION_RESULT
+      ERROR_QUIET)
+    if(NOT _PYTHON_VERSION_RESULT)
+      string(REGEX REPLACE " .*" "" PYTHON_VERSION_STRING "${_VERSION}")
+      string(REGEX REPLACE "^([0-9]+)\\.[0-9]+.*" "\\1" PYTHON_VERSION_MAJOR "${PYTHON_VERSION_STRING}")
+      string(REGEX REPLACE "^[0-9]+\\.([0-9])+.*" "\\1" PYTHON_VERSION_MINOR "${PYTHON_VERSION_STRING}")
+      if(PYTHON_VERSION_STRING MATCHES "^[0-9]+\\.[0-9]+\\.[0-9]+.*")
+        string(REGEX REPLACE "^[0-9]+\\.[0-9]+\\.([0-9]+).*" "\\1" PYTHON_VERSION_PATCH "${PYTHON_VERSION_STRING}")
+      else()
+        set(PYTHON_VERSION_PATCH "0")
+      endif()
+    else()
+      # sys.version was first documented for Python 1.5, so assume
+      # this is older.
+      set(PYTHON_VERSION_STRING "1.4")
+      set(PYTHON_VERSION_MAJOR "1")
+      set(PYTHON_VERSION_MAJOR "4")
+      set(PYTHON_VERSION_MAJOR "0")
+    endif()
+  endif()
+  unset(_PYTHON_VERSION_RESULT)
+  unset(_VERSION)
+endif(PYTHON_EXECUTABLE)
+
+# If we're running v3.x look for a 2to3 utility
+if (PYTHON_VERSION_MAJOR GREATER 2)
+  get_filename_component(PYTHON_EXE_DIR ${PYTHON_EXECUTABLE} PATH)
+  find_program(PYTHON_2TO3_EXECUTABLE
+    NAMES 2to3
+    HINTS ${PYTHON_EXE_DIR}
+    )
+
+  if ("PYTHON_2TO3_EXECUTABLE-NOTFOUND" STREQUAL PYTHON_2TO3_EXECUTABLE)
+    message(FATAL_ERROR "Unable to find 2to3 python utility, specify python 2.7 or specify 2to3 utility")
+  endif ()
+endif ()
+
 
 #check for json or simplejson
 execute_process(COMMAND ${PYTHON_EXECUTABLE} -c "import json"
