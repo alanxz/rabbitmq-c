@@ -263,12 +263,12 @@ XMLTO_FLAGS = \
 
 %.7: %.xml $(top_builddir)/tools/doc/man-date.ent
 	$(AM_V_GEN)$(XMLTO) $(XMLTO_FLAGS) -o $(top_builddir)/tools/doc man $<
+endif # DOCS
+endif # TOOLS
 
 $(top_builddir)/tools/doc/man-date.ent:
 	$(AM_V_at)$(MKDIR_P) $(top_builddir)/tools/doc
 	$(AM_V_GEN)date +'%Y-%m-%d' > $@
-endif # DOCS
-endif # TOOLS
 
 EXTRA_DIST = \
 	$(man_MANS) \
