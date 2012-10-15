@@ -290,8 +290,7 @@ EXTRA_DIST = \
 	tools/doc/amqp-delete-queue.xml \
 	tools/doc/amqp-get.xml \
 	tools/doc/amqp-publish.xml \
-	tools/doc/librabbitmq-tools.xml \
-	$(top_builddir)/tools/doc/man-date.ent
+	tools/doc/librabbitmq-tools.xml
 
 MOSTLYCLEANFILES = \
 	$(top_builddir)/librabbitmq/amqp_framing.c \
