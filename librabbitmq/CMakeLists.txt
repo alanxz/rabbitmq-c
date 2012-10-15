@@ -92,29 +92,49 @@ set(RABBITMQ_SOURCES
 
 add_definitions(-DAMQP_BUILD)
 
-if (NOT BUILD_SHARED_LIBS)
-  add_definitions(-DAMQP_STATIC)
-endif()
+if (BUILD_SHARED_LIBS)
+    add_library(rabbitmq SHARED ${RABBITMQ_SOURCES})
 
-add_library(rabbitmq ${RABBITMQ_SOURCES})
+    if (WIN32)
+        set_target_properties(rabbitmq PROPERTIES VERSION ${RMQ_VERSION} OUTPUT_NAME rabbitmq.${RMQ_SOVERSION})
+        target_link_libraries(rabbitmq ws2_32)
+    else (WIN32)
+        set_target_properties(rabbitmq PROPERTIES VERSION ${RMQ_VERSION} SOVERSION ${RMQ_SOVERSION})
+    endif (WIN32)
 
-if (WIN32)
-    set_target_properties(rabbitmq PROPERTIES VERSION ${RMQ_VERSION} OUTPUT_NAME rabbitmq.${RMQ_SOVERSION})
-else ()
-    set_target_properties(rabbitmq PROPERTIES VERSION ${RMQ_VERSION} SOVERSION ${RMQ_SOVERSION})
-endif ()
+    install(TARGETS rabbitmq
+        RUNTIME DESTINATION bin
+        LIBRARY DESTINATION lib
+        COMPONENT runtime
+        )
+    set(RMQ_LIBRARY_TARGET rabbitmq)
+endif (BUILD_SHARED_LIBS)
 
-if(WIN32)
-  target_link_libraries(rabbitmq ws2_32)
-endif(WIN32)
+if (BUILD_STATIC_LIBS)
+    add_library(rabbitmq-static STATIC ${RABBITMQ_SOURCES})
 
-install(TARGETS rabbitmq
-	RUNTIME DESTINATION bin
-	LIBRARY DESTINATION lib
-	ARCHIVE DESTINATION lib
-	PUBLIC_HEADER DESTINATION include)
+    set_target_properties(rabbitmq-static PROPERTIES COMPILE_DEFINITIONS AMQP_STATIC)
+    if (WIN32)
+        set_target_properties(rabbitmq-static PROPERTIES VERSION ${RMQ_VERSION} OUTPUT_NAME librabbitmq.${RMQ_SOVERSION})
+        target_link_libraries(rabbitmq-static ws2_32)
+    else (WIN32)
+        set_target_properties(rabbitmq-static PROPERTIES VERSION ${RMQ_VERSION} SOVERSION ${RMQ_SOVERSION} OUTPUT_NAME rabbitmq)
+    endif (WIN32)
+
+    install(TARGETS rabbitmq-static
+        ARCHIVE DESTINATION lib
+        COMPONENT devel
+        )
+
+    if (NOT DEFINED RMQ_LIBRARY_TARGET)
+        set(RMQ_LIBRARY_TARGET rabbitmq-static)
+    endif ()
+endif (BUILD_STATIC_LIBS)
 
 install(FILES amqp.h ${CMAKE_CURRENT_BINARY_DIR}/amqp_framing.h ${STDINT_H_INSTALL_FILE}
-	DESTINATION include)
+	DESTINATION include
+    COMPONENT devel
+    )
 
+set(RMQ_LIBRARY_TARGET ${RMQ_LIBRARY_TARGET} PARENT_SCOPE)
 

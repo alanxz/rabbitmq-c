@@ -3,6 +3,10 @@ project(rabbitmq-c "C")
 
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} ${CMAKE_CURRENT_SOURCE_DIR}/cmake)
 
+set(RMQ_VERSION_MAJOR 0)
+set(RMQ_VERSION_MINOR 2)
+set(RMQ_VERSION_PATCH 0)
+
 # Follow all steps below in order to calculate new ABI version when updating the library
 # NOTE: THIS IS UNRELATED to the actual project version
 #
@@ -22,7 +26,7 @@ math(EXPR RMQ_SOVERSION_PATCH "${RMQ_SOVERSION_REVISION}")
 set(RMQ_VERSION ${RMQ_SOVERSION_MAJOR}.${RMQ_SOVERSION_MINOR}.${RMQ_SOVERSION_PATCH})
 set(RMQ_SOVERSION ${RMQ_SOVERSION_MAJOR})
 
-set(VERSION "0.2")
+set(VERSION ${RMQ_VERSION_MAJOR}.${RMQ_VERSION_MINOR}.${RMQ_VERSION_PATCH})
 
 if (MSVC)
   set(CMAKE_C_FLAGS "/W4 /nologo ${CMAKE_C_FLAGS}")
@@ -143,13 +147,19 @@ if (POPT_FOUND AND XmlTo_FOUND)
 endif()
 
 option(BUILD_SHARED_LIBS "Build rabbitmq-c as a shared library" ON)
+option(BUILD_STATIC_LIBS "Build rabbitmq-c as a static library" OFF)
+
 option(BUILD_EXAMPLES "Build Examples" ON)
 option(BUILD_TOOLS "Build Tools (requires POPT Library)" ${POPT_FOUND})
 option(BUILD_TOOLS_DOCS "Build man pages for Tools (requires xmlto)" ${DO_DOCS})
 option(BUILD_TESTS "Build tests (run tests with make test)" ON)
 
-if (WIN32 AND NOT BUILD_SHARED_LIBS)
-  message(FATAL_ERROR "The rabbitmq-c library cannot be built as a static library on Win32. Set BUILD_SHARED_LIBS=ON to get around this.")
+if (NOT BUILD_SHARED_LIBS AND NOT BUILD_STATIC_LIBS)
+    message(FATAL_ERROR "One or both of BUILD_SHARED_LIBS or BUILD_STATIC_LIBS must be set to ON to build")
+endif()
+
+if (WIN32 AND BUILD_STATIC_LIBS)
+  message(FATAL_ERROR "The rabbitmq-c library cannot be built as a static library on Win32. Set BUILD_STATIC_LIBS=ON to get around this.")
 endif()
 
 add_subdirectory(librabbitmq)
@@ -181,4 +191,17 @@ configure_file(librabbitmq.pc.in ${CMAKE_CURRENT_BINARY_DIR}/librabbitmq.pc @ONL
 install(FILES
   ${CMAKE_CURRENT_BINARY_DIR}/librabbitmq.pc
   DESTINATION ${CMAKE_INSTALL_PREFIX}/lib/pkgconfig
+  COMPONENT devel
   )
+
+set(CPACK_SOURCE_GENERATOR "TBZ2")
+set(CPACK_SOURCE_PACKAGE_FILE_NAME
+    ${CMAKE_PROJECT_NAME}-${RMQ_VERSION_MAJOR}.${RMQ_VERSION_MINOR}.${RMQ_VERSION_PATCH}-src)
+set(CPACK_SOURCE_IGNORE_FILES
+    \\\\.git
+    \\\\.gitignore$
+    \\\\.gitmodules$
+    \\\\.hgignore$
+    )
+
+include(CPack)

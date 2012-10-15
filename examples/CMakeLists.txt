@@ -13,28 +13,28 @@ set(COMMON_SRCS
     )
 
 add_executable(amqp_sendstring amqp_sendstring.c ${COMMON_SRCS})
-target_link_libraries(amqp_sendstring rabbitmq)
+target_link_libraries(amqp_sendstring ${RMQ_LIBRARY_TARGET})
 
 add_executable(amqp_rpc_sendstring_client amqp_rpc_sendstring_client.c ${COMMON_SRCS})
 target_link_libraries(amqp_rpc_sendstring_client rabbitmq)
 
 add_executable(amqp_exchange_declare amqp_exchange_declare.c ${COMMON_SRCS})
-target_link_libraries(amqp_exchange_declare rabbitmq)
+target_link_libraries(amqp_exchange_declare ${RMQ_LIBRARY_TARGET})
 
 add_executable(amqp_listen amqp_listen.c ${COMMON_SRCS})
-target_link_libraries(amqp_listen rabbitmq)
+target_link_libraries(amqp_listen ${RMQ_LIBRARY_TARGET})
 
 add_executable(amqp_producer amqp_producer.c ${COMMON_SRCS})
-target_link_libraries(amqp_producer rabbitmq)
+target_link_libraries(amqp_producer ${RMQ_LIBRARY_TARGET})
 
 add_executable(amqp_consumer amqp_consumer.c ${COMMON_SRCS})
-target_link_libraries(amqp_consumer rabbitmq)
+target_link_libraries(amqp_consumer ${RMQ_LIBRARY_TARGET})
 
 add_executable(amqp_unbind amqp_unbind.c ${COMMON_SRCS})
-target_link_libraries(amqp_unbind rabbitmq)
+target_link_libraries(amqp_unbind ${RMQ_LIBRARY_TARGET})
 
 add_executable(amqp_bind amqp_bind.c ${COMMON_SRCS})
-target_link_libraries(amqp_bind rabbitmq)
+target_link_libraries(amqp_bind ${RMQ_LIBRARY_TARGET})
 
 add_executable(amqp_listenq amqp_listenq.c ${COMMON_SRCS})
-target_link_libraries(amqp_listenq rabbitmq)
+target_link_libraries(amqp_listenq ${RMQ_LIBRARY_TARGET})
