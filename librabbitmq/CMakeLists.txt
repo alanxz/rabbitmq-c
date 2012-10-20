@@ -104,9 +104,9 @@ else ()
     set_target_properties(rabbitmq PROPERTIES VERSION ${RMQ_VERSION} SOVERSION ${RMQ_SOVERSION})
 endif ()
 
-if(WIN32)
-  target_link_libraries(rabbitmq ws2_32)
-endif(WIN32)
+if (DEFINED SOCKET_LIBRARIES)
+  target_link_libraries(rabbitmq ${SOCKET_LIBRARIES})
+endif ()
 
 install(TARGETS rabbitmq
 	RUNTIME DESTINATION bin
