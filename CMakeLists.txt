@@ -137,8 +137,10 @@ mark_as_advanced(AMQP_CODEGEN_DIR)
 
 include(CheckFunctionExists)
 include(CheckLibraryExists)
+include(CMakePushCheckState)
 
 # Detect if we need to link against a socket library:
+cmake_push_check_state()
 if (WIN32)
   # Always use WinSock2 on Windows
   set(SOCKET_LIBRARIES ws2_32)
@@ -175,6 +177,12 @@ else ()
     endif ()
   endif ()
 endif ()
+cmake_pop_check_state()
+
+cmake_push_check_state()
+set(CMAKE_REQUIRED_LIBRARIES ${SOCKET_LIBRARIES})
+check_function_exists(htonll HAVE_HTONLL)
+cmake_pop_check_state()
 
 find_package(POPT)
 find_package(XmlTo)

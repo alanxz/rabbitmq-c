@@ -36,7 +36,6 @@ m4_ifdef([AC_PROG_CC_C99], [AC_PROG_CC_C99],
 
 # Environment setup
 AC_CANONICAL_HOST
-AC_C_BIGENDIAN
 AC_C_INLINE
 
 # Set compiler flags
@@ -96,6 +95,7 @@ AC_SEARCH_LIBS([socket], [socket], [],
                              [LIBS="-lsocket -lnsl $LIBS"], 
                              [AC_MSG_ERROR([cannot find socket library (library with socket symbol)])],
                              [-lnsl])])
+AC_CHECK_FUNCS([htonll])
 
 # 64-bit option
 AC_ARG_ENABLE([64-bit],
