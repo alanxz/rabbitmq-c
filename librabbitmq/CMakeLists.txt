@@ -43,16 +43,6 @@ add_custom_command(
   DEPENDS ${AMQP_SPEC_JSON_PATH} ${CODEGEN_PY} ${AMQP_CODEGEN_PY}
   VERBATIM)
 
-
-SET(CONFIG_CONTENTS "#define VERSION \"${VERSION}\"
-#ifndef __cplusplus
-# define inline ${C_INLINE}
-#endif /* __cplusplus */
-")
-
-#prepare config.h
-file(WRITE "${CMAKE_CURRENT_BINARY_DIR}/config.h" ${CONFIG_CONTENTS})
-
 if(WIN32)
   set(SOCKET_IMPL "win32")
 else(WIN32)
@@ -104,9 +94,9 @@ else ()
     set_target_properties(rabbitmq PROPERTIES VERSION ${RMQ_VERSION} SOVERSION ${RMQ_SOVERSION})
 endif ()
 
-if(WIN32)
-  target_link_libraries(rabbitmq ws2_32)
-endif(WIN32)
+if (DEFINED SOCKET_LIBRARIES)
+  target_link_libraries(rabbitmq ${SOCKET_LIBRARIES})
+endif ()
 
 install(TARGETS rabbitmq
 	RUNTIME DESTINATION bin

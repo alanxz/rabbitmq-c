@@ -36,7 +36,6 @@ m4_ifdef([AC_PROG_CC_C99], [AC_PROG_CC_C99],
 
 # Environment setup
 AC_CANONICAL_HOST
-AC_C_BIGENDIAN
 AC_C_INLINE
 
 # Set compiler flags
@@ -81,6 +80,22 @@ AS_IF([test "x$os_win32" = xyes],
                     [AC_MSG_ERROR([select one of shared @<:@--enable-shared@:>@ or static @<:@--enable-static@:>@.])],
                     [AC_DEFINE([AMQP_STATIC], [1],
                                [Define to 1 for a static Win32 build.])])])])
+
+# Detect which libraries we might need to use socket functions:
+#  Solaris needs -lsocket -lnsl
+#  QNX will need -lsocket
+
+AC_SEARCH_LIBS([getaddrinfo], [socket], [],
+               [AC_CHECK_LIB([getaddrinfo], [socket],
+                             [LIBS="-lsocket -lnsl $LIBS"],
+                             [AC_MSG_ERROR([cannot find name resolution library (library with getaddrinfo symbol)])],
+                             [-lnsl])])
+AC_SEARCH_LIBS([socket], [socket], [],
+               [AC_CHECK_LIB([socket], [socket],
+                             [LIBS="-lsocket -lnsl $LIBS"], 
+                             [AC_MSG_ERROR([cannot find socket library (library with socket symbol)])],
+                             [-lnsl])])
+AC_CHECK_FUNCS([htonll])
 
 # 64-bit option
 AC_ARG_ENABLE([64-bit],

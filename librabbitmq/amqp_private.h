@@ -206,7 +206,38 @@ static inline int amqp_decode_##bits(amqp_bytes_t encoded, size_t *offset,  \
   }                                                                         \
 }
 
-#ifndef WORDS_BIGENDIAN
+/* Determine byte order */
+#if defined(__GLIBC__)
+# include <endian.h>
+# if (__BYTE_ORDER == __LITTLE_ENDIAN)
+#  define AMQP_LITTLE_ENDIAN
+# elif (__BYTE_ORDER == __BIG_ENDIAN)
+#  define AMQP_BIG_ENDIAN
+# else
+   /* Don't define anything */
+# endif
+#elif defined(_BIG_ENDIAN) && !defined(_LITTLE_ENDIAN) ||                   \
+      defined(__BIG_ENDIAN__) && !defined(__LITTLE_ENDIAN__)
+# define AMQP_BIG_ENDIAN
+#elif defined(_LITTLE_ENDIAN) && !defined(_BIG_ENDIAN) ||                   \
+      defined(__LITTLE_ENDIAN__) && !defined(__BIG_ENDIAN__)
+# define AMQP_LITTLE_ENDIAN
+#elif defined(__hppa__) || defined(__HPPA__) || defined(__hppa) ||          \
+      defined(_POWER) || defined(__powerpc__) || defined(__ppc___) ||       \
+      defined(_MIPSEB) || defined(__s390__) ||                              \
+      defined(__sparc) || defined(__sparc__)
+# define AMQP_BIG_ENDIAN
+#elif defined(__alpha__) || defined(__alpha) || defined(_M_ALPHA) ||        \
+      defined(__amd64__) || defined(__x86_64__) || defined(_M_X64) ||       \
+      defined(__ia64) || defined(__ia64__) || defined(_M_IA64) ||           \
+      defined(__arm__) || defined(_M_ARM) ||                                \
+      defined(__i386__) || defined(_M_IX86)
+# define AMQP_LITTLE_ENDIAN
+#else
+  /* Don't define anything */
+#endif
+
+#if defined(AMQP_LITTLE_ENDIAN)
 
 #define DECLARE_XTOXLL(func)                      \
 static inline uint64_t func##ll(uint64_t val)     \
@@ -223,7 +254,7 @@ static inline uint64_t func##ll(uint64_t val)     \
   return u.whole;                                 \
 }
 
-#else
+#elif defined(AMQP_BIG_ENDIAN)
 
 #define DECLARE_XTOXLL(func)                      \
 static inline uint64_t func##ll(uint64_t val)     \
@@ -238,9 +269,11 @@ static inline uint64_t func##ll(uint64_t val)     \
   return u.whole;                                 \
 }
 
+#else
+# error Endianness not known
 #endif
 
-#ifndef __sun
+#ifndef HAVE_HTONLL
 DECLARE_XTOXLL(hton)
 DECLARE_XTOXLL(ntoh)
 #endif
