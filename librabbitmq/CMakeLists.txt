@@ -43,16 +43,6 @@ add_custom_command(
   DEPENDS ${AMQP_SPEC_JSON_PATH} ${CODEGEN_PY} ${AMQP_CODEGEN_PY}
   VERBATIM)
 
-
-SET(CONFIG_CONTENTS "#define VERSION \"${VERSION}\"
-#ifndef __cplusplus
-# define inline ${C_INLINE}
-#endif /* __cplusplus */
-")
-
-#prepare config.h
-file(WRITE "${CMAKE_CURRENT_BINARY_DIR}/config.h" ${CONFIG_CONTENTS})
-
 if(WIN32)
   set(SOCKET_IMPL "win32")
 else(WIN32)

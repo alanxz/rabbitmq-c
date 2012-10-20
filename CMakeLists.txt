@@ -217,6 +217,7 @@ set(exec_prefix ${CMAKE_INSTALL_PREFIX}/bin)
 set(libdir ${CMAKE_INSTALL_PREFIX}/lib)
 set(includedir ${CMAKE_INSTALL_PREFIX}/include)
 
+configure_file(cmake/config.h.in ${CMAKE_CURRENT_BINARY_DIR}/librabbitmq/config.h)
 configure_file(librabbitmq.pc.in ${CMAKE_CURRENT_BINARY_DIR}/librabbitmq.pc @ONLY)
 
 install(FILES
