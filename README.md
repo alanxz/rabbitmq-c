@@ -17,6 +17,9 @@ RabbitMQ mailing list and on the RabbitMQ blog.
  - <http://lists.rabbitmq.com/cgi-bin/mailman/listinfo/rabbitmq-discuss>
  - <http://www.rabbitmq.com/blog/>
 
+API Documentation (rather incomplete at this point) can be found:
+- <http://alanxz.github.com/rabbitmq-c/docs/0.2/>
+
 ## Retrieving the code
 
 In addition to the source code for this library, you will require a

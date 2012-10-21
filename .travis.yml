@@ -2,12 +2,16 @@
 # see travis-ci.org for details
 
 # As CMake is not officially supported we use erlang VMs
-language: erlang
+language: c
+
+compiler:
+  - gcc
+  - clang
 
 # Settings to try
 env:
-  - OPTIONS="-DBUILD_SHARED_LIBS=ON"
-  - OPTIONS="-DBUILD_SHARED_LIBS=OFF"
+  - PRE_CONFIGURE=true CONFIGURE="cmake .. -DCMAKE_INSTALL_PREFIX=../_install" BUILD_INSTALL="cmake --build . --target install"
+  - PRE_CONFIGURE="autoreconf -i" CONFIGURE="../configure --prefix=`pwd`/_install" BUILD_INSTALL="make install"
       
 # Make sure CMake is installed
 install:
@@ -16,10 +20,8 @@ install:
 # Run the Build script
 script:
  - mkdir _build
- - cd _build
- - cmake .. -DCMAKE_INSTALL_PREFIX=../_install -DBUILD_EXAMPLES=ON -DBUILD_TESTS=ON -DBUILD_TOOLS=ON -DBUILD_TOOLS_DOCS=ON $OPTIONS
- - cmake --build . --target install
+ - $PRE_CONFIGURE && cd _build && $CONFIGURE && $BUILD_INSTALL
 
 # Run Tests
 after_script:
- - ctest -V .
+ - if [ -f CTestTestfile.cmake ]; then ctest -V . ; fi
