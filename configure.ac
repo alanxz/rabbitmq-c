@@ -107,7 +107,7 @@ AC_ARG_ENABLE([64-bit],
 
 AM_PATH_PYTHON([2.5])
 
-AX_PYTHON_MODULE([json], [Need JSON])
+AX_PYTHON_MODULE([json], [])
 AS_IF([test "x$HAVE_PYMOD_JSON" = "xno"],
       [AX_PYTHON_MODULE([simplejson])])
 AS_IF([test "x$HAVE_PYMOD_JSON" = "xno" && test "x$HAVE_PYMOD_SIMPLEJSON" = "xno"],
