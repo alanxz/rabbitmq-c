@@ -35,8 +35,10 @@ elseif (CMAKE_COMPILER_IS_GNUCC)
   set(CMAKE_C_FLAGS "${RMQ_C_FLAGS} ${CMAKE_C_FLAGS}")
 endif ()
 
-if (NOT CMAKE_BUILD_TYPE)
+if (CMAKE_GENERATOR MATCHES ".*(Make|Ninja).*"
+    AND NOT CMAKE_BUILD_TYPE)
   set(CMAKE_BUILD_TYPE "Release" CACHE STRING "Choose the type of build, options are: Debug Release RelWithDebInfo MinSizeRel." FORCE)
+  message(STATUS "CMAKE_BUILD_TYPE not specified. Using ${CMAKE_BUILD_TYPE} build")
 endif()
 
 #find python
