@@ -7,23 +7,23 @@ Standards-Version: 3.8.1
 Homepage: http://www.rabbitmq.com/
 Vcs-Browser: https://github.com/alanxz/rabbitmq-c
 
-Package: librabbitmq0
+Package: librabbitmq1
 Architecture: any
 Section: libs
 Priority: extra
-Depends:
-Description: An AMQP client library written in C
+Depends: ${shlibs:Depends}, ${misc:Depends}
+Description: AMQP client library written in C
 
-Package: librabbitmq-dev
+Package: librabbitmq1-dev
 Architecture: any
 Section: libdevel
 Priority: extra
-Depends: librabbitmq0 (= ${binary:Version}), libc-dev
+Depends: librabbitmq1 (= ${binary:Version}), libc-dev
 Description: developer's libraries and docs for librabbitmq
 
 Package: amqp-tools
 Architecture: any
 Section: net
 Priority: extra
-Depends: librabbitmq (= ${binary:Version}), ${shlibs:Depends}
+Depends: librabbitmq1 (= ${binary:Version}), ${shlibs:Depends}
 Description: Command-line utilities for interacting with AMQP servers
