@@ -1,6 +1,6 @@
 #Inspired from http://www.cmake.org/Wiki/CMakeTestInline
 
-IF(NOT DEFINED C_INLINE_DETECTED)
+IF(NOT DEFINED C_INLINE_KEYWORD)
 
   SET(INLINE_TEST_SRC "/* Inspired by autoconf's c.m4 */
 static inline int static_foo() {return 0\;}
@@ -22,7 +22,7 @@ int main(int argc, char *argv[]){return 0\;}
     ENDIF(NOT DEFINED C_INLINE)
   ENDFOREACH(KEYWORD)
 
-  SET(C_INLINE_DETECTED True CACHE BOOL INTERNAL)
+  SET(C_INLINE_KEYWORD ${C_INLINE} CACHE INTERNAL "The keyword needed by the C compiler to inline a function" FORCE)
+  message(STATUS "Found C inline keyword: ${C_INLINE_KEYWORD}")
 
-ENDIF(NOT DEFINED C_INLINE_DETECTED)
-
+ENDIF(NOT DEFINED C_INLINE_KEYWORD)
