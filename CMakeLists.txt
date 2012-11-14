@@ -123,7 +123,7 @@ endif (CHECK_PYTHON_JSON_FAILED)
 
 include(TestCInline)
 
-find_path(RABBITMQ_CODEGEN_DIR
+find_path(AMQP_CODEGEN_DIR
   amqp_codegen.py
   PATHS ${CMAKE_CURRENT_SOURCE_DIR}/codegen
         ${CMAKE_CURRENT_SOURCE_DIR}/rabbitmq-codegen 
@@ -132,13 +132,12 @@ find_path(RABBITMQ_CODEGEN_DIR
         NO_DEFAULT_PATH
         )
 
-if (RABBITMQ_CODEGEN_DIR STREQUAL "RABBITMQ_CODEGEN_DIR-NOTFOUND")
-  message(SEND_ERROR "Cannot find amqp_codegen.py, did you forget to:\n\ngit submodule init\ngit submodule update\n?")
+if (AMQP_CODEGEN_DIR STREQUAL "AMQP_CODEGEN_DIR-NOTFOUND")
+  message(SEND_ERROR "Cannot find amqp_codegen.py, did you forget to:\n\ngit submodule init\ngit submodule update\n?\n\n Or set AMQP_CODEGEN_DIR to directory containing amqp_codegen.py")
 else ()
-  message(STATUS "Using amqp_codegen.py in ${RABBITMQ_CODEGEN_DIR}")
+  message(STATUS "Found amqp_codegen.py in ${AMQP_CODEGEN_DIR}")
 endif()
 
-set(AMQP_CODEGEN_DIR ${RABBITMQ_CODEGEN_DIR} CACHE PATH "Path to rabbitmq-codegen" FORCE)
 mark_as_advanced(AMQP_CODEGEN_DIR)
 
 include(CheckFunctionExists)
