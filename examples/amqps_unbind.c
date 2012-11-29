@@ -75,15 +75,8 @@ int main(int argc, char const * const *argv) {
     }
   }
 
-  if (argc > 7) {
-    status = amqp_ssl_socket_set_key(socket, argv[7]);
-    if (status) {
-      die("setting client key");
-    }
-  }
-
   if (argc > 8) {
-    status = amqp_ssl_socket_set_cert(socket, argv[8]);
+    status = amqp_ssl_socket_set_key(socket, argv[8], argv[7]);
     if (status) {
       die("setting client cert");
     }

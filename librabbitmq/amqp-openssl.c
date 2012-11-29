@@ -324,15 +324,21 @@ amqp_ssl_socket_set_cacert(amqp_socket_t *base,
 
 int
 amqp_ssl_socket_set_key(amqp_socket_t *base,
+			const char *cert,
 			const char *key)
 {
+	int status;
 	struct amqp_ssl_socket_t *self;
 	if (base->klass != &amqp_ssl_socket_class) {
 		amqp_abort("<%p> is not of type amqp_ssl_socket_t", base);
 	}
 	self = (struct amqp_ssl_socket_t *)base;
-	int status = SSL_CTX_use_PrivateKey_file(self->ctx, key,
-						 SSL_FILETYPE_PEM);
+	status = SSL_CTX_use_certificate_chain_file(self->ctx, cert);
+	if (1 != status) {
+		return -1;
+	}
+	status = SSL_CTX_use_PrivateKey_file(self->ctx, key,
+					     SSL_FILETYPE_PEM);
 	if (1 != status) {
 		return -1;
 	}
@@ -351,6 +357,7 @@ password_cb(AMQP_UNUSED char *buffer,
 
 int
 amqp_ssl_socket_set_key_buffer(amqp_socket_t *base,
+			       const char *cert,
 			       const void *key,
 			       size_t n)
 {
@@ -362,6 +369,10 @@ amqp_ssl_socket_set_key_buffer(amqp_socket_t *base,
 		amqp_abort("<%p> is not of type amqp_ssl_socket_t", base);
 	}
 	self = (struct amqp_ssl_socket_t *)base;
+	status = SSL_CTX_use_certificate_chain_file(self->ctx, cert);
+	if (1 != status) {
+		return -1;
+	}
 	buf = BIO_new_mem_buf((void *)key, n);
 	if (!buf) {
 		goto error;

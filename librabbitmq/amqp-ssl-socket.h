@@ -58,6 +58,7 @@ amqp_ssl_socket_set_cacert(amqp_socket_t *self,
  * Set the client key.
  *
  * \param [in,out] self An SSL/TLS socket object.
+ * \param [in] cert Path to the client certificate in PEM foramt.
  * \param [in] key Path to the client key in PEM format.
  *
  * \return Zero if successful, -1 otherwise.
@@ -66,12 +67,14 @@ AMQP_PUBLIC_FUNCTION
 int
 AMQP_CALL
 amqp_ssl_socket_set_key(amqp_socket_t *self,
+			const char *cert,
 			const char *key);
 
 /**
  * Set the client key from a buffer.
  *
  * \param [in,out] self An SSL/TLS socket object.
+ * \param [in] cert Path to the client certificate in PEM foramt.
  * \param [in] key A buffer containing client key in PEM format.
  * \param [in] n The length of the buffer.
  *
@@ -81,22 +84,9 @@ AMQP_PUBLIC_FUNCTION
 int
 AMQP_CALL
 amqp_ssl_socket_set_key_buffer(amqp_socket_t *self,
+			       const char *cert,
 			       const void *key,
 			       size_t n);
-
-/**
- * Set the client certificate.
- *
- * \param [in,out] self An SSL/TLS socket object.
- * \param [in] cert Path to the client certificate in PEM foramt.
- *
- * \return Zero if successful, -1 otherwise.
- */
-AMQP_PUBLIC_FUNCTION
-int
-AMQP_CALL
-amqp_ssl_socket_set_cert(amqp_socket_t *self,
-			 const char *cert);
 
 /**
  * Enable or disable peer verification.
