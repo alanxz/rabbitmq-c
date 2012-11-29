@@ -24,36 +24,35 @@
 #include "config.h"
 #endif
 
-#include "amqp-ssl.h"
+#include "amqp-ssl-socket.h"
 #include "amqp_private.h"
 #include <cyassl/ssl.h>
 #include <stdlib.h>
 
-struct amqp_ssl_socket_context {
+struct amqp_ssl_socket_t {
 	CYASSL_CTX *ctx;
 	CYASSL *ssl;
+	int sockfd;
 	char *buffer;
 	size_t length;
 };
 
 static ssize_t
-amqp_ssl_socket_send(AMQP_UNUSED int sockfd,
+amqp_ssl_socket_send(void *base,
 		     const void *buf,
 		     size_t len,
-		     AMQP_UNUSED int flags,
-		     void *user_data)
+		     AMQP_UNUSED int flags)
 {
-	struct amqp_ssl_socket_context *self = user_data;
+	struct amqp_ssl_socket_t *self = (struct amqp_ssl_socket_t *)base;
 	return CyaSSL_write(self->ssl, buf, len);
 }
 
 static ssize_t
-amqp_ssl_socket_writev(AMQP_UNUSED int sockfd,
+amqp_ssl_socket_writev(void *base,
 		       const struct iovec *iov,
-		       int iovcnt,
-		       void *user_data)
+		       int iovcnt)
 {
-	struct amqp_ssl_socket_context *self = user_data;
+	struct amqp_ssl_socket_t *self = (struct amqp_ssl_socket_t *)base;
 	ssize_t written = -1;
 	char *bufferp;
 	size_t bytes;
@@ -82,30 +81,35 @@ exit:
 }
 
 static ssize_t
-amqp_ssl_socket_recv(AMQP_UNUSED int sockfd,
+amqp_ssl_socket_recv(void *base,
 		     void *buf,
 		     size_t len,
-		     AMQP_UNUSED int flags,
-		     void *user_data)
+		     AMQP_UNUSED int flags)
 {
-	struct amqp_ssl_socket_context *self = user_data;
+	struct amqp_ssl_socket_t *self = (struct amqp_ssl_socket_t *)base;
 	return CyaSSL_read(self->ssl, buf, len);
 }
 
 static int
-amqp_ssl_socket_close(int sockfd,
-		      void *user_data)
+amqp_ssl_socket_get_sockfd(void *base)
+{
+	struct amqp_ssl_socket_t *self = (struct amqp_ssl_socket_t *)base;
+	return self->sockfd;
+}
+
+static int
+amqp_ssl_socket_close(void *base)
 {
 	int status = -1;
-	struct amqp_ssl_socket_context *self = user_data;
+	struct amqp_ssl_socket_t *self = (struct amqp_ssl_socket_t *)base;
+	if (self->sockfd >= 0) {
+		status = amqp_os_socket_close(self->sockfd);
+	}
 	if (self) {
 		CyaSSL_free(self->ssl);
 		CyaSSL_CTX_free(self->ctx);
 		free(self->buffer);
 		free(self);
-	}
-	if (sockfd >= 0) {
-		status = amqp_socket_close(sockfd, 0);
 	}
 	return status;
 }
@@ -116,64 +120,106 @@ amqp_ssl_socket_error(AMQP_UNUSED void *user_data)
 	return -1;
 }
 
-int
-amqp_open_ssl_socket(amqp_connection_state_t state,
-		     const char *host,
-		     int port,
-		     const char *cacert,
-		     const char *key,
-		     const char *cert)
+static int
+amqp_ssl_socket_open(void *base, const char *host, int port)
 {
-	int sockfd = -1, status;
-	struct amqp_ssl_socket_context *self;
-	CyaSSL_Init();
-	self = calloc(1, sizeof(*self));
+	struct amqp_ssl_socket_t *self = (struct amqp_ssl_socket_t *)base;
+	int status;
+	self->sockfd = amqp_open_socket(host, port);
+	if (0 > self->sockfd) {
+		return -1;
+	}
+	CyaSSL_set_fd(self->ssl, self->sockfd);
+	status = CyaSSL_connect(self->ssl);
+	if (SSL_SUCCESS != status) {
+		return -1;
+	}
+	return 0;
+}
+
+static const struct amqp_socket_class_t amqp_ssl_socket_class = {
+	amqp_ssl_socket_writev, /* writev */
+	amqp_ssl_socket_send, /* send */
+	amqp_ssl_socket_recv, /* recv */
+	amqp_ssl_socket_open, /* open */
+	amqp_ssl_socket_close, /* close */
+	amqp_ssl_socket_error, /* error */
+	amqp_ssl_socket_get_sockfd /* get_sockfd */
+};
+
+amqp_socket_t *
+amqp_ssl_socket_new(void)
+{
+	struct amqp_ssl_socket_t *self = calloc(1, sizeof(*self));
 	if (!self) {
 		goto error;
 	}
+	CyaSSL_Init();
 	self->ctx = CyaSSL_CTX_new(CyaSSLv23_client_method());
 	if (!self->ctx) {
 		goto error;
 	}
+	return (amqp_socket_t *)self;
+error:
+	amqp_socket_close((amqp_socket_t *)self);
+	return NULL;
+}
+
+int
+amqp_ssl_socket_set_cacert(amqp_socket_t *base,
+			   const char *cacert)
+{
+	int status;
+	struct amqp_ssl_socket_t *self;
+	if (base->klass != &amqp_ssl_socket_class) {
+		amqp_abort("<%p> is not of type amqp_ssl_socket_t", base);
+	}
+	self = (struct amqp_ssl_socket_t *)base;
 	status = CyaSSL_CTX_load_verify_locations(self->ctx, cacert, NULL);
 	if (SSL_SUCCESS != status) {
-		goto error;
+		return -1;
 	}
-	if (key && cert) {
-		status = CyaSSL_CTX_use_PrivateKey_file(self->ctx, key,
-							SSL_FILETYPE_PEM);
-		if (SSL_SUCCESS != status) {
-			goto error;
-		}
-		status = CyaSSL_CTX_use_certificate_chain_file(self->ctx, cert);
+	return 0;
+}
+
+int
+amqp_ssl_socket_set_key(amqp_socket_t *base,
+			const char *cert,
+			const char *key)
+{
+	int status;
+	struct amqp_ssl_socket_t *self;
+	if (base->klass != &amqp_ssl_socket_class) {
+		amqp_abort("<%p> is not of type amqp_ssl_socket_t", base);
 	}
-	self->ssl = CyaSSL_new(self->ctx);
-	if (!self->ssl) {
-		goto error;
-	}
-	sockfd = amqp_open_socket(host, port);
-	if (0 > sockfd) {
-		goto error;
-	}
-	CyaSSL_set_fd(self->ssl, sockfd);
-	status = CyaSSL_connect(self->ssl);
+	self = (struct amqp_ssl_socket_t *)base;
+	status = CyaSSL_CTX_use_PrivateKey_file(self->ctx, key,
+						SSL_FILETYPE_PEM);
 	if (SSL_SUCCESS != status) {
-		goto error;
+		return -1;
 	}
-	amqp_set_sockfd_full(state, sockfd,
-			     amqp_ssl_socket_writev,
-			     amqp_ssl_socket_send,
-			     amqp_ssl_socket_recv,
-			     amqp_ssl_socket_close,
-			     amqp_ssl_socket_error,
-			     self);
-	return sockfd;
-error:
-	amqp_ssl_socket_close(sockfd, self);
+	status = CyaSSL_CTX_use_certificate_chain_file(self->ctx, cert);
+	return 0;
+}
+
+int
+amqp_ssl_socket_set_key_buffer(AMQP_UNUSED amqp_socket_t *base,
+			       AMQP_UNUSED const char *cert,
+			       AMQP_UNUSED const void *key,
+			       AMQP_UNUSED size_t n)
+{
+	amqp_abort("%s is not implemented for CyaSSL", __func__);
 	return -1;
 }
 
 void
-amqp_set_initialize_ssl_library(amqp_boolean_t do_initialize)
+amqp_ssl_socket_set_verify(AMQP_UNUSED amqp_socket_t *base,
+			   AMQP_UNUSED amqp_boolean_t verify)
+{
+	/* noop for CyaSSL */
+}
+
+void
+amqp_set_initialize_ssl_library(AMQP_UNUSED amqp_boolean_t do_initialize)
 {
 }
