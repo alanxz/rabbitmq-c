@@ -82,6 +82,8 @@ set(RABBITMQ_SOURCES
 
 add_definitions(-DAMQP_BUILD)
 
+include(InstallMacros)
+
 if (BUILD_SHARED_LIBS)
     add_library(rabbitmq SHARED ${RABBITMQ_SOURCES})
 
@@ -100,6 +102,8 @@ if (BUILD_SHARED_LIBS)
         LIBRARY DESTINATION lib
         ARCHIVE DESTINATION lib
         )
+    install_pdb(rabbitmq)
+
     set(RMQ_LIBRARY_TARGET rabbitmq)
 endif (BUILD_SHARED_LIBS)
 
@@ -120,6 +124,7 @@ if (BUILD_STATIC_LIBS)
     install(TARGETS rabbitmq-static
         ARCHIVE DESTINATION lib
         )
+    install_pdb(rabbitmq-static)
 
     if (NOT DEFINED RMQ_LIBRARY_TARGET)
         set(RMQ_LIBRARY_TARGET rabbitmq-static)
