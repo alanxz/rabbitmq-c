@@ -98,6 +98,7 @@ if (BUILD_SHARED_LIBS)
     install(TARGETS rabbitmq
         RUNTIME DESTINATION bin
         LIBRARY DESTINATION lib
+        ARCHIVE DESTINATION lib
         )
     set(RMQ_LIBRARY_TARGET rabbitmq)
 endif (BUILD_SHARED_LIBS)
