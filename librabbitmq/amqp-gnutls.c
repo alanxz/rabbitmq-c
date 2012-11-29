@@ -87,7 +87,6 @@ amqp_ssl_socket_recv(void *base,
 		     void *buf,
 		     size_t len,
 		     AMQP_UNUSED int flags)
-
 {
 	struct amqp_ssl_socket_t *self = (struct amqp_ssl_socket_t *)base;
 	return gnutls_record_recv(self->session, buf, len);
