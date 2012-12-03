@@ -24,17 +24,15 @@
 #include "config.h"
 #endif
 
-#include "amqp-ssl-socket.h"
+#include "amqp_ssl_socket.h"
 #include "amqp_private.h"
-#include <gnutls/gnutls.h>
-#include <gnutls/x509.h>
+#include <cyassl/ssl.h>
 #include <stdlib.h>
 
 struct amqp_ssl_socket_t {
-	gnutls_session_t session;
-	gnutls_certificate_credentials_t credentials;
+	CYASSL_CTX *ctx;
+	CYASSL *ssl;
 	int sockfd;
-	char *host;
 	char *buffer;
 	size_t length;
 };
@@ -46,7 +44,7 @@ amqp_ssl_socket_send(void *base,
 		     AMQP_UNUSED int flags)
 {
 	struct amqp_ssl_socket_t *self = (struct amqp_ssl_socket_t *)base;
-	return gnutls_record_send(self->session, buf, len);
+	return CyaSSL_write(self->ssl, buf, len);
 }
 
 static ssize_t
@@ -70,14 +68,14 @@ amqp_ssl_socket_writev(void *base,
 			self->length = 0;
 			goto exit;
 		}
-		self->length = 0;
+		self->length = bytes;
 	}
 	bufferp = self->buffer;
 	for (i = 0; i < iovcnt; ++i) {
 		memcpy(bufferp, iov[i].iov_base, iov[i].iov_len);
 		bufferp += iov[i].iov_len;
 	}
-	written = gnutls_record_send(self->session, self->buffer, bytes);
+	written = CyaSSL_write(self->ssl, self->buffer, bytes);
 exit:
 	return written;
 }
@@ -89,24 +87,14 @@ amqp_ssl_socket_recv(void *base,
 		     AMQP_UNUSED int flags)
 {
 	struct amqp_ssl_socket_t *self = (struct amqp_ssl_socket_t *)base;
-	return gnutls_record_recv(self->session, buf, len);
+	return CyaSSL_read(self->ssl, buf, len);
 }
 
 static int
-amqp_ssl_socket_open(void *base, const char *host, int port)
+amqp_ssl_socket_get_sockfd(void *base)
 {
 	struct amqp_ssl_socket_t *self = (struct amqp_ssl_socket_t *)base;
-	int status;
-	self->sockfd = amqp_open_socket(host, port);
-	if (0 > self->sockfd) {
-		return -1;
-	}
-	gnutls_transport_set_ptr(self->session,
-				 (gnutls_transport_ptr_t)self->sockfd);
-	do {
-		status = gnutls_handshake(self->session);
-	} while (status < 0 && !gnutls_error_is_fatal(status));
-	return status;
+	return self->sockfd;
 }
 
 static int
@@ -118,9 +106,8 @@ amqp_ssl_socket_close(void *base)
 		status = amqp_os_socket_close(self->sockfd);
 	}
 	if (self) {
-		gnutls_deinit(self->session);
-		gnutls_certificate_free_credentials(self->credentials);
-		free(self->host);
+		CyaSSL_free(self->ssl);
+		CyaSSL_CTX_free(self->ctx);
 		free(self->buffer);
 		free(self);
 	}
@@ -134,63 +121,20 @@ amqp_ssl_socket_error(AMQP_UNUSED void *user_data)
 }
 
 static int
-amqp_ssl_socket_get_sockfd(void *base)
+amqp_ssl_socket_open(void *base, const char *host, int port)
 {
 	struct amqp_ssl_socket_t *self = (struct amqp_ssl_socket_t *)base;
-	return self->sockfd;
-}
-
-static int
-amqp_ssl_verify(gnutls_session_t session)
-{
-	int ret;
-	unsigned int status, size;
-	const gnutls_datum_t *list;
-	gnutls_x509_crt_t cert = NULL;
-	struct amqp_ssl_socket_t *self = gnutls_session_get_ptr(session);
-	ret = gnutls_certificate_verify_peers2(session, &status);
-	if (0 > ret) {
-		goto error;
+	int status;
+	self->sockfd = amqp_open_socket(host, port);
+	if (0 > self->sockfd) {
+		return -1;
 	}
-	if (status & GNUTLS_CERT_INVALID) {
-		goto error;
+	CyaSSL_set_fd(self->ssl, self->sockfd);
+	status = CyaSSL_connect(self->ssl);
+	if (SSL_SUCCESS != status) {
+		return -1;
 	}
-	if (status & GNUTLS_CERT_SIGNER_NOT_FOUND) {
-		goto error;
-	}
-	if (status & GNUTLS_CERT_REVOKED) {
-		goto error;
-	}
-	if (status & GNUTLS_CERT_EXPIRED) {
-		goto error;
-	}
-	if (status & GNUTLS_CERT_NOT_ACTIVATED) {
-		goto error;
-	}
-	if (gnutls_certificate_type_get(session) != GNUTLS_CRT_X509) {
-		goto error;
-	}
-	if (gnutls_x509_crt_init(&cert) < 0) {
-		goto error;
-	}
-	list = gnutls_certificate_get_peers(session, &size);
-	if (!list) {
-		goto error;
-	}
-	ret = gnutls_x509_crt_import(cert, &list[0], GNUTLS_X509_FMT_DER);
-	if (0 > ret) {
-		goto error;
-	}
-	if (!gnutls_x509_crt_check_hostname(cert, self->host)) {
-		goto error;
-	}
-	gnutls_x509_crt_deinit(cert);
 	return 0;
-error:
-	if (cert) {
-		gnutls_x509_crt_deinit (cert);
-	}
-	return GNUTLS_E_CERTIFICATE_ERROR;
 }
 
 static const struct amqp_socket_class_t amqp_ssl_socket_class = {
@@ -207,28 +151,12 @@ amqp_socket_t *
 amqp_ssl_socket_new(void)
 {
 	struct amqp_ssl_socket_t *self = calloc(1, sizeof(*self));
-	const char *error;
-	int status;
 	if (!self) {
 		goto error;
 	}
-	gnutls_global_init();
-	status = gnutls_init(&self->session, GNUTLS_CLIENT);
-	if (GNUTLS_E_SUCCESS != status) {
-		goto error;
-	}
-	status = gnutls_certificate_allocate_credentials(&self->credentials);
-	if (GNUTLS_E_SUCCESS != status) {
-		goto error;
-	}
-	status = gnutls_credentials_set(self->session, GNUTLS_CRD_CERTIFICATE,
-					self->credentials);
-	if (GNUTLS_E_SUCCESS != status) {
-		goto error;
-	}
-	gnutls_session_set_ptr(self->session, self);
-	status = gnutls_priority_set_direct(self->session, "NORMAL", &error);
-	if (GNUTLS_E_SUCCESS != status) {
+	CyaSSL_Init();
+	self->ctx = CyaSSL_CTX_new(CyaSSLv23_client_method());
+	if (!self->ctx) {
 		goto error;
 	}
 	return (amqp_socket_t *)self;
@@ -247,10 +175,8 @@ amqp_ssl_socket_set_cacert(amqp_socket_t *base,
 		amqp_abort("<%p> is not of type amqp_ssl_socket_t", base);
 	}
 	self = (struct amqp_ssl_socket_t *)base;
-	status = gnutls_certificate_set_x509_trust_file(self->credentials,
-							cacert,
-							GNUTLS_X509_FMT_PEM);
-	if (0 > status) {
+	status = CyaSSL_CTX_load_verify_locations(self->ctx, cacert, NULL);
+	if (SSL_SUCCESS != status) {
 		return -1;
 	}
 	return 0;
@@ -267,14 +193,12 @@ amqp_ssl_socket_set_key(amqp_socket_t *base,
 		amqp_abort("<%p> is not of type amqp_ssl_socket_t", base);
 	}
 	self = (struct amqp_ssl_socket_t *)base;
-	status = gnutls_certificate_set_x509_key_file(self->credentials,
-						      cert,
-						      key,
-						      GNUTLS_X509_FMT_PEM);
-	if (0 > status) {
+	status = CyaSSL_CTX_use_PrivateKey_file(self->ctx, key,
+						SSL_FILETYPE_PEM);
+	if (SSL_SUCCESS != status) {
 		return -1;
 	}
-
+	status = CyaSSL_CTX_use_certificate_chain_file(self->ctx, cert);
 	return 0;
 }
 
@@ -284,26 +208,15 @@ amqp_ssl_socket_set_key_buffer(AMQP_UNUSED amqp_socket_t *base,
 			       AMQP_UNUSED const void *key,
 			       AMQP_UNUSED size_t n)
 {
-	amqp_abort("%s is not implemented for GnuTLS", __func__);
+	amqp_abort("%s is not implemented for CyaSSL", __func__);
 	return -1;
 }
 
 void
-amqp_ssl_socket_set_verify(amqp_socket_t *base,
-			   amqp_boolean_t verify)
+amqp_ssl_socket_set_verify(AMQP_UNUSED amqp_socket_t *base,
+			   AMQP_UNUSED amqp_boolean_t verify)
 {
-	struct amqp_ssl_socket_t *self;
-	if (base->klass != &amqp_ssl_socket_class) {
-		amqp_abort("<%p> is not of type amqp_ssl_socket_t", base);
-	}
-	self = (struct amqp_ssl_socket_t *)base;
-	if (verify) {
-		gnutls_certificate_set_verify_function(self->credentials,
-						       amqp_ssl_verify);
-	} else {
-		gnutls_certificate_set_verify_function(self->credentials,
-						       NULL);
-	}
+	/* noop for CyaSSL */
 }
 
 void

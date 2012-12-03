@@ -35,7 +35,7 @@
 #include <string.h>
 
 #include <stdint.h>
-#include <amqp-ssl-socket.h>
+#include <amqp_ssl_socket.h>
 #include <amqp_framing.h>
 
 #include <assert.h>

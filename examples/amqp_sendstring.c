@@ -35,7 +35,7 @@
 #include <string.h>
 
 #include <stdint.h>
-#include <amqp-tcp-socket.h>
+#include <amqp_tcp_socket.h>
 #include <amqp.h>
 #include <amqp_framing.h>
 

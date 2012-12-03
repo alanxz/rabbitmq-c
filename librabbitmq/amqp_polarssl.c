@@ -24,7 +24,7 @@
 #include "config.h"
 #endif
 
-#include "amqp-ssl-socket.h"
+#include "amqp_ssl_socket.h"
 #include "amqp_private.h"
 #include <polarssl/ctr_drbg.h>
 #include <polarssl/entropy.h>

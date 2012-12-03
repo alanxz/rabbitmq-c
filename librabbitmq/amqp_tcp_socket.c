@@ -25,7 +25,7 @@
 #endif
 
 #include "amqp_private.h"
-#include "amqp-tcp-socket.h"
+#include "amqp_tcp_socket.h"
 #include <stdio.h>
 #include <stdlib.h>
 
