@@ -13,7 +13,7 @@ lib_LTLIBRARIES = librabbitmq/librabbitmq.la
 
 librabbitmq_librabbitmq_la_SOURCES = \
 	librabbitmq/amqp-socket.h \
-	librabbitmq/amqp-tcp-socket.c \
+	librabbitmq/amqp_tcp_socket.c \
 	librabbitmq/amqp_api.c \
 	librabbitmq/amqp_connection.c \
 	librabbitmq/amqp_mem.c \
@@ -29,19 +29,19 @@ librabbitmq_librabbitmq_la_SOURCES += librabbitmq/amqp_framing.c
 endif
 
 if SSL_CYASSL
-librabbitmq_librabbitmq_la_SOURCES += librabbitmq/amqp-cyassl.c
+librabbitmq_librabbitmq_la_SOURCES += librabbitmq/amqp_cyassl.c
 endif
 
 if SSL_GNUTLS
-librabbitmq_librabbitmq_la_SOURCES += librabbitmq/amqp-gnutls.c
+librabbitmq_librabbitmq_la_SOURCES += librabbitmq/amqp_gnutls.c
 endif
 
 if SSL_OPENSSL
-librabbitmq_librabbitmq_la_SOURCES += librabbitmq/amqp-openssl.c
+librabbitmq_librabbitmq_la_SOURCES += librabbitmq/amqp_openssl.c
 endif
 
 if SSL_POLARSSL
-librabbitmq_librabbitmq_la_SOURCES += librabbitmq/amqp-polarssl.c
+librabbitmq_librabbitmq_la_SOURCES += librabbitmq/amqp_polarssl.c
 endif
 
 librabbitmq_librabbitmq_la_CFLAGS = \
@@ -71,10 +71,10 @@ endif
 
 include_HEADERS = \
 	$(top_srcdir)/librabbitmq/amqp.h
-	$(top_builddir)/librabbitmq/amqp-tcp-socket.h \
+	$(top_builddir)/librabbitmq/amqp_tcp_socket.h
 
 if SSL
-include_HEADERS += librabbitmq/amqp-ssl-socket.h
+include_HEADERS += librabbitmq/amqp_ssl_socket.h
 endif
 
 if REGENERATE_AMQP_FRAMING

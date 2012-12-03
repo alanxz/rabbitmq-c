@@ -30,6 +30,8 @@
 
 #include <amqp.h>
 
+AMQP_BEGIN_DECLS
+
 /**
  * Create a new SSL/TLS socket object.
  *
@@ -130,5 +132,7 @@ AMQP_PUBLIC_FUNCTION
 void
 AMQP_CALL
 amqp_set_initialize_ssl_library(amqp_boolean_t do_initialize);
+
+AMQP_END_DECLS
 
 #endif /* AMQP_SSL_H */

@@ -92,7 +92,7 @@
 char *
 amqp_os_error_string(int err);
 
-#include "amqp-socket.h"
+#include "amqp_socket.h"
 
 /*
  * Connection states: XXX FIX THIS

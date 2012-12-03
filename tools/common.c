@@ -40,9 +40,9 @@
 
 #include "common.h"
 #ifdef WITH_SSL
-#include <amqp-ssl-socket.h>
+#include <amqp_ssl_socket.h>
 #endif
-#include <amqp-tcp-socket.h>
+#include <amqp_tcp_socket.h>
 #include <errno.h>
 #include <fcntl.h>
 #include <stdarg.h>

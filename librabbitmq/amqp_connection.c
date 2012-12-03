@@ -38,7 +38,7 @@
 #include "config.h"
 #endif
 
-#include "amqp-tcp-socket.h"
+#include "amqp_tcp_socket.h"
 #include "amqp_private.h"
 #include <assert.h>
 #include <errno.h>
