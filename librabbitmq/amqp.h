@@ -121,10 +121,13 @@
 #endif
 
 #if __GNUC__ > 3 || (__GNUC__ == 3 && __GNUC_MINOR__ >= 1)
-# define AMQP_DEPRECATED \
-  __attribute__ ((__deprecated__))
+# define AMQP_DEPRECATED(function) \
+  function __attribute__ ((__deprecated__))
+#elif defined(_MSC_VER)
+# define AMQP_DEPRECATED(function) \
+  __declspec(deprecated) function
 #else
-# define AMQP_DEPRECATED
+# define AMQP_DEPRECATED(function)
 #endif
 
 /* Define ssize_t on Win32/64 platforms
@@ -385,10 +388,11 @@ AMQP_PUBLIC_FUNCTION
 int
 AMQP_CALL amqp_get_sockfd(amqp_connection_state_t state);
 
+AMQP_DEPRECATED(
 AMQP_PUBLIC_FUNCTION
 void
 AMQP_CALL amqp_set_sockfd(amqp_connection_state_t state, int sockfd)
-	AMQP_DEPRECATED;
+);
 
 AMQP_PUBLIC_FUNCTION
 void
