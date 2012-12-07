@@ -1,17 +1,23 @@
-INCLUDE(LibFindMacros)
+# - Try to find the PolarSSL SSL Library
+# The module will set the following variables
+#
+#  POLARSSL_FOUND - System has popt
+#  POLARSSL_INCLUDE_DIR - The popt include directory
+#  POLARSSL_LIBRARIES - The libraries needed to use popt
 
 # Find the include directories
 FIND_PATH(POLARSSL_INCLUDE_DIR
     NAMES polarssl/ssl.h
-    HINTS ${POLARSSL_PREFIX}/include
+    DOC "Path containing the polarssl/ssl.h include file"
     )
 
-FIND_LIBRARY(POLARSSL_LIBRARY
+FIND_LIBRARY(POLARSSL_LIBRARIES
     NAMES polarssl
-    HINTS ${POLARSSL_PREFIX}/lib
+    DOC "polarssl library path"
     )
 
-SET(POLARSSL_PROCESS_INCLUDES POLARSSL_INCLUDE_DIR)
-SET(POLARSSL_PROCESS_LIBS POLARSSL_LIBRARY)
+include(FindPackageHandleStandardArgs)
 
-LIBFIND_PROCESS(POLARSSL)
+FIND_PACKAGE_HANDLE_STANDARD_ARGS(POLARSSL
+    REQUIRED_VARS POLARSSL_INCLUDE_DIR POLARSSL_LIBRARIES
+  )
