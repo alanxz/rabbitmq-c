@@ -21,8 +21,7 @@
  */
 
 /**
- * \file
- * Open an SSL/TLS connection
+ * An SSL socket connection.
  */
 
 #ifndef AMQP_SSL_H
@@ -34,6 +33,8 @@ AMQP_BEGIN_DECLS
 
 /**
  * Create a new SSL/TLS socket object.
+ *
+ * Call amqp_socket_close() to release socket resources.
  *
  * \return A new socket object or NULL if an error occurred.
  */
@@ -94,7 +95,8 @@ amqp_ssl_socket_set_key_buffer(amqp_socket_t *self,
  * Enable or disable peer verification.
  *
  * If peer verification is enabled then the common name in the server
- * certificate must match the server name.
+ * certificate must match the server name. Peer verification is disabled by
+ * default.
  *
  * \param [in,out] self An SSL/TLS socket object.
  * \param [in] verify Enable or disable peer verification.

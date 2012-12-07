@@ -20,6 +20,10 @@
  * DEALINGS IN THE SOFTWARE.
  */
 
+/**
+ * A TCP socket connection.
+ */
+
 #ifndef AMQP_TCP_SOCKET_H
 #define AMQP_TCP_SOCKET_H
 
@@ -29,6 +33,8 @@ AMQP_BEGIN_DECLS
 
 /**
  * Create a new TCP socket.
+ *
+ * Call amqp_socket_close() to release socket resources.
  *
  * \return A new socket object or NULL if an error occurred.
  */
@@ -40,7 +46,9 @@ amqp_tcp_socket_new(void);
 /**
  * Assign an open file descriptor to a socket object.
  *
- * This function must not be used in conjunction with amqp_socket_open().
+ * This function must not be used in conjunction with amqp_socket_open(), i.e.
+ * the socket connection should already be open(2) when this function is
+ * called.
  *
  * \param [in,out] self A TCP socket object.
  * \param [in] sockfd An open socket descriptor.
