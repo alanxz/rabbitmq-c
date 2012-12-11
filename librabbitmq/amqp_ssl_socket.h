@@ -95,7 +95,7 @@ amqp_ssl_socket_set_key_buffer(amqp_socket_t *self,
  * Enable or disable peer verification.
  *
  * If peer verification is enabled then the common name in the server
- * certificate must match the server name. Peer verification is disabled by
+ * certificate must match the server name. Peer verification is enabled by
  * default.
  *
  * \param [in,out] self An SSL/TLS socket object.

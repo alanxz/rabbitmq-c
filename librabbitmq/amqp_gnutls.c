@@ -221,6 +221,8 @@ amqp_ssl_socket_new(void)
 	if (GNUTLS_E_SUCCESS != status) {
 		goto error;
 	}
+	gnutls_certificate_set_verify_function(self->credentials,
+					       amqp_ssl_verify);
 	status = gnutls_credentials_set(self->session, GNUTLS_CRD_CERTIFICATE,
 					self->credentials);
 	if (GNUTLS_E_SUCCESS != status) {
@@ -274,7 +276,6 @@ amqp_ssl_socket_set_key(amqp_socket_t *base,
 	if (0 > status) {
 		return -1;
 	}
-
 	return 0;
 }
 

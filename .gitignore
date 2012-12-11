@@ -42,6 +42,7 @@ examples/amqps_producer
 examples/amqps_sendstring
 examples/amqps_unbind
 librabbitmq.pc
+test-driver
 tests/test_parse_url
 tests/test_tables
 tools/amqp-consume

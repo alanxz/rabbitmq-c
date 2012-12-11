@@ -351,7 +351,7 @@ password_cb(AMQP_UNUSED char *buffer,
 	    AMQP_UNUSED int rwflag,
 	    AMQP_UNUSED void *user_data)
 {
-	amqp_abort("don't use password protected keys!");
+	amqp_abort("rabbitmq-c does not support password protected keys");
 	return 0;
 }
 
