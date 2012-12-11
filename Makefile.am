@@ -78,9 +78,6 @@ include_HEADERS += librabbitmq/amqp_ssl_socket.h
 endif
 
 if REGENERATE_AMQP_FRAMING
-BUILT_SOURCES = \
-	$(top_builddir)/librabbitmq/amqp_framing.h \
-	$(top_builddir)/librabbitmq/amqp_framing.c
 
 if PYTHON3
 codegen_py = $(top_builddir)/librabbitmq/python3/codegen3.py

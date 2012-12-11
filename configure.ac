@@ -203,5 +203,5 @@ $PACKAGE_NAME build options:
 	SSL/TLS: $with_ssl
 	Tools: $enable_tools
 	Documentation: $enable_docs
-        Examples: $enable_examples
+	Examples: $enable_examples
 ])

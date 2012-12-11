@@ -211,6 +211,7 @@ amqp_ssl_socket_new(void)
 	ssl_set_endpoint(self->ssl, SSL_IS_CLIENT);
 	ssl_set_rng(self->ssl, ctr_drbg_random, self->ctr_drbg);
 	ssl_set_ciphersuites(self->ssl, ssl_default_ciphersuites);
+	ssl_set_authmode(self->ssl, SSL_VERIFY_REQUIRED);
 	self->session = calloc(1, sizeof(*self->session));
 	if (!self->session) {
 		goto error;
