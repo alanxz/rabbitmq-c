@@ -109,7 +109,7 @@ out_nomem:
 
 int amqp_get_sockfd(amqp_connection_state_t state)
 {
-  return amqp_socket_get_sockfd(state->socket);
+  return state->socket ? amqp_socket_get_sockfd(state->socket) : -1;
 }
 
 void amqp_set_sockfd(amqp_connection_state_t state,

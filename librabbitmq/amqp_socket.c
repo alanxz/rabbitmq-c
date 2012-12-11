@@ -52,24 +52,32 @@
 ssize_t
 amqp_socket_writev(amqp_socket_t *self, const struct iovec *iov, int iovcnt)
 {
+  assert(self);
+  assert(self->klass->writev);
   return self->klass->writev(self, iov, iovcnt);
 }
 
 ssize_t
 amqp_socket_send(amqp_socket_t *self, const void *buf, size_t len, int flags)
 {
+  assert(self);
+  assert(self->klass->send);
   return self->klass->send(self, buf, len, flags);
 }
 
 ssize_t
 amqp_socket_recv(amqp_socket_t *self, void *buf, size_t len, int flags)
 {
+  assert(self);
+  assert(self->klass->recv);
   return self->klass->recv(self, buf, len, flags);
 }
 
 int
 amqp_socket_open(amqp_socket_t *self, const char *host, int port)
 {
+  assert(self);
+  assert(self->klass->open);
   return self->klass->open(self, host, port);
 }
 
@@ -77,6 +85,7 @@ int
 amqp_socket_close(amqp_socket_t *self)
 {
   if (self) {
+    assert(self->klass->close);
     return self->klass->close(self);
   }
   return 0;
@@ -85,12 +94,16 @@ amqp_socket_close(amqp_socket_t *self)
 int
 amqp_socket_error(amqp_socket_t *self)
 {
+  assert(self);
+  assert(self->klass->error);
   return self->klass->error(self);
 }
 
 int
 amqp_socket_get_sockfd(amqp_socket_t *self)
 {
+  assert(self);
+  assert(self->klass->get_sockfd);
   return self->klass->get_sockfd(self);
 }
 
@@ -168,7 +181,7 @@ int amqp_send_header(amqp_connection_state_t state)
                                      AMQP_PROTOCOL_VERSION_MINOR,
                                      AMQP_PROTOCOL_VERSION_REVISION
                                    };
-  return amqp_socket_send(state->socket, header, 8, 0);
+  return amqp_socket_send(state->socket, header, 8, MSG_NOSIGNAL);
 }
 
 static amqp_bytes_t sasl_method_name(amqp_sasl_method_enum method)
