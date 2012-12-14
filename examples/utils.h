@@ -41,4 +41,9 @@ extern void amqp_dump(void const *buffer, size_t len);
 extern uint64_t now_microseconds(void);
 extern void microsleep(int usec);
 
+/* Primitive command-line parsing */
+
+extern const char* getopt_str(const char* option, int argc, char* argv[], const char* default_);
+extern int getopt_int(char* option, int argc, char* argv[], int default_);
+
 #endif

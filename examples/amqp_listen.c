@@ -42,32 +42,41 @@
 
 #include "utils.h"
 
-int main(int argc, char const * const *argv) {
+int main(int argc, char *argv[]) {
   char const *hostname;
   int port;
+  char const *virtualhost;
   char const *exchange;
-  char const *bindingkey;
+  char const *routingkey;
 
   int sockfd;
   amqp_connection_state_t conn;
 
   amqp_bytes_t queuename;
 
-  if (argc < 5) {
-    fprintf(stderr, "Usage: amqp_listen host port exchange bindingkey\n");
+  /*
+    command line options
+  */
+
+  hostname    = getopt_str("-h", argc, argv, "");
+  port        = getopt_int("-p", argc, argv, 5672);
+  virtualhost = getopt_str("-vh", argc, argv, "/");
+  exchange    = getopt_str("-e", argc, argv, "amq.direct");
+  routingkey  = getopt_str("-r", argc, argv, "test_queue");
+
+  printf("hostname = %s\nport = %d\nvirtualhost = %s\nexchange = %s\nroutingkey = %s\n----\n",
+         hostname, port, virtualhost, exchange, routingkey);
+
+  if (strlen(hostname) == 0) {
+    fprintf(stderr, "usage:\namqp_listen -h hostname [-p port] [-vh virtualhost] [-e exchange] [-r routingkey]\n");
     return 1;
   }
-
-  hostname = argv[1];
-  port = atoi(argv[2]);
-  exchange = argv[3];
-  bindingkey = argv[4];
 
   conn = amqp_new_connection();
 
   die_on_error(sockfd = amqp_open_socket(hostname, port), "Opening socket");
   amqp_set_sockfd(conn, sockfd);
-  die_on_amqp_error(amqp_login(conn, "/", 0, 131072, 0, AMQP_SASL_METHOD_PLAIN, "guest", "guest"),
+  die_on_amqp_error(amqp_login(conn, virtualhost, 0, 131072, 0, AMQP_SASL_METHOD_PLAIN, "guest", "guest"),
 		    "Logging in");
   amqp_channel_open(conn, 1);
   die_on_amqp_error(amqp_get_rpc_reply(conn), "Opening channel");
@@ -83,7 +92,7 @@ int main(int argc, char const * const *argv) {
     }
   }
 
-  amqp_queue_bind(conn, 1, queuename, amqp_cstring_bytes(exchange), amqp_cstring_bytes(bindingkey),
+  amqp_queue_bind(conn, 1, queuename, amqp_cstring_bytes(exchange), amqp_cstring_bytes(routingkey),
 		  amqp_empty_table);
   die_on_amqp_error(amqp_get_rpc_reply(conn), "Binding queue");
 
