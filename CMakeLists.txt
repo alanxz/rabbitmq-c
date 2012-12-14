@@ -3,6 +3,10 @@ project(rabbitmq-c "C")
 
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} ${CMAKE_CURRENT_SOURCE_DIR}/cmake)
 
+set(RMQ_VERSION_MAJOR 0)
+set(RMQ_VERSION_MINOR 2)
+set(RMQ_VERSION_PATCH 0)
+
 # Follow all steps below in order to calculate new ABI version when updating the library
 # NOTE: THIS IS UNRELATED to the actual project version
 #
@@ -22,7 +26,7 @@ math(EXPR RMQ_SOVERSION_PATCH "${RMQ_SOVERSION_REVISION}")
 set(RMQ_VERSION ${RMQ_SOVERSION_MAJOR}.${RMQ_SOVERSION_MINOR}.${RMQ_SOVERSION_PATCH})
 set(RMQ_SOVERSION ${RMQ_SOVERSION_MAJOR})
 
-set(VERSION "0.2")
+set(VERSION ${RMQ_VERSION_MAJOR}.${RMQ_VERSION_MINOR}.${RMQ_VERSION_PATCH})
 
 if (MSVC)
   set(CMAKE_C_FLAGS "/W4 /nologo ${CMAKE_C_FLAGS}")
@@ -35,13 +39,63 @@ elseif (CMAKE_COMPILER_IS_GNUCC)
   set(CMAKE_C_FLAGS "${RMQ_C_FLAGS} ${CMAKE_C_FLAGS}")
 endif ()
 
-if (NOT CMAKE_BUILD_TYPE)
+if (CMAKE_GENERATOR MATCHES ".*(Make|Ninja).*"
+    AND NOT CMAKE_BUILD_TYPE)
   set(CMAKE_BUILD_TYPE "Release" CACHE STRING "Choose the type of build, options are: Debug Release RelWithDebInfo MinSizeRel." FORCE)
+  message(STATUS "CMAKE_BUILD_TYPE not specified. Creating ${CMAKE_BUILD_TYPE} build")
 endif()
 
-#find python
-find_package(PythonInterp REQUIRED)
+include(TestCInline)
+include(CheckFunctionExists)
+include(CheckLibraryExists)
+include(CMakePushCheckState)
 
+# Detect if we need to link against a socket library:
+cmake_push_check_state()
+if (WIN32)
+  # Always use WinSock2 on Windows
+  set(SOCKET_LIBRARIES ws2_32)
+else ()
+  # Is it in the default link?
+  CHECK_FUNCTION_EXISTS(getaddrinfo HAVE_GETADDRINFO)
+  if (NOT (HAVE_GETADDRINFO EQUAL 1))
+    CHECK_LIBRARY_EXISTS(socket getaddrinfo "" HAVE_GETADDRINFO2)
+    if (HAVE_GETADDRINFO2 EQUAL 1)
+      set(SOCKET_LIBRARIES socket)
+    else ()
+      CHECK_LIBRARY_EXISTS("socket;nsl" getaddrinfo "" HAVE_GETADDRINFO3)
+      if (HAVE_GETADDRINFO3 EQUAL 1)
+        set(SOCKET_LIBRARIES socket nsl)
+      else ()
+        message(FATAL_ERROR "Cannot find name resolution library (containing symbol getaddrinfo)")
+      endif ()
+    endif ()
+  endif ()
+
+  set(CMAKE_REQUIRED_LIBRARIES ${SOCKET_LIBRARIES})
+  CHECK_FUNCTION_EXISTS(socket HAVE_SOCKET)
+  if (NOT HAVE_SOCKET EQUAL 1)
+    CHECK_LIBRARY_EXISTS(socket socket "" HAVE_SOCKET2)
+    if (NOT HAVE_SOCKET2 EQUAL 1)
+      set(SOCKET_LIBRARIES socket ${SOCKET_LIBRARIES})
+    else ()
+      CHECK_LIBRARY_EXISTS("socket;nsl" socket "" HAVE_SOCKET3)
+      if (HAVE_SOCKET3 EQUAL 1)
+        set(SOCKET_LIBRARIES socket nsl ${SOCKET_LIBRARIES})
+      else ()
+        message(FATAL_ERROR "Cannot find socket library (containing symbol socket)")
+      endif ()
+    endif ()
+  endif ()
+endif ()
+cmake_pop_check_state()
+
+cmake_push_check_state()
+set(CMAKE_REQUIRED_LIBRARIES ${SOCKET_LIBRARIES})
+check_function_exists(htonll HAVE_HTONLL)
+cmake_pop_check_state()
+
+find_package(PythonInterp REQUIRED)
 #Determine Python Version:
 if(PYTHON_EXECUTABLE)
   execute_process(COMMAND "${PYTHON_EXECUTABLE}" -c
@@ -115,9 +169,8 @@ if (CHECK_PYTHON_JSON_FAILED)
   endif (CHECK_PYTHON_SIMPLEJSON_FAILED)
 endif (CHECK_PYTHON_JSON_FAILED)
 
-include(TestCInline)
 
-find_path(RABBITMQ_CODEGEN_DIR
+find_path(AMQP_CODEGEN_DIR
   amqp_codegen.py
   PATHS ${CMAKE_CURRENT_SOURCE_DIR}/codegen
         ${CMAKE_CURRENT_SOURCE_DIR}/rabbitmq-codegen 
@@ -126,63 +179,13 @@ find_path(RABBITMQ_CODEGEN_DIR
         NO_DEFAULT_PATH
         )
 
-if (RABBITMQ_CODEGEN_DIR STREQUAL "RABBITMQ_CODEGEN_DIR-NOTFOUND")
-  message(SEND_ERROR "Cannot find amqp_codegen.py, did you forget to:\n\ngit submodule init\ngit submodule update\n?")
+if (AMQP_CODEGEN_DIR STREQUAL "AMQP_CODEGEN_DIR-NOTFOUND")
+  message(SEND_ERROR "Cannot find amqp_codegen.py, did you forget to:\n\ngit submodule init\ngit submodule update\n?\n\n Or set AMQP_CODEGEN_DIR to directory containing amqp_codegen.py")
 else ()
-  message(STATUS "Using amqp_codegen.py in ${RABBITMQ_CODEGEN_DIR}")
+  message(STATUS "Found amqp_codegen.py in ${AMQP_CODEGEN_DIR}")
 endif()
 
-set(AMQP_CODEGEN_DIR ${RABBITMQ_CODEGEN_DIR} CACHE PATH "Path to rabbitmq-codegen" FORCE)
 mark_as_advanced(AMQP_CODEGEN_DIR)
-
-include(CheckFunctionExists)
-include(CheckLibraryExists)
-include(CMakePushCheckState)
-
-# Detect if we need to link against a socket library:
-cmake_push_check_state()
-if (WIN32)
-  # Always use WinSock2 on Windows
-  set(SOCKET_LIBRARIES ws2_32)
-else ()
-  # Is it in the default link?
-  CHECK_FUNCTION_EXISTS(getaddrinfo HAVE_GETADDRINFO)
-  if (NOT (HAVE_GETADDRINFO EQUAL 1))
-    CHECK_LIBRARY_EXISTS(socket getaddrinfo "" HAVE_GETADDRINFO2)
-    if (HAVE_GETADDRINFO2 EQUAL 1)
-      set(SOCKET_LIBRARIES socket)
-    else ()
-      CHECK_LIBRARY_EXISTS("socket;nsl" getaddrinfo "" HAVE_GETADDRINFO3)
-      if (HAVE_GETADDRINFO3 EQUAL 1)
-        set(SOCKET_LIBRARIES socket nsl)
-      else ()
-        message(FATAL_ERROR "Cannot find name resolution library (containing symbol getaddrinfo)")
-      endif ()
-    endif ()
-  endif ()
-
-  set(CMAKE_REQUIRED_LIBRARIES ${SOCKET_LIBRARIES})
-  CHECK_FUNCTION_EXISTS(socket HAVE_SOCKET)
-  if (NOT HAVE_SOCKET EQUAL 1)
-    CHECK_LIBRARY_EXISTS(socket socket "" HAVE_SOCKET2)
-    if (NOT HAVE_SOCKET2 EQUAL 1)
-      set(SOCKET_LIBRARIES socket ${SOCKET_LIBRARIES})
-    else ()
-      CHECK_LIBRARY_EXISTS("socket;nsl" socket "" HAVE_SOCKET3)
-      if (HAVE_SOCKET3 EQUAL 1)
-        set(SOCKET_LIBRARIES socket nsl ${SOCKET_LIBRARIES})
-      else ()
-        message(FATAL_ERROR "Cannot find socket library (containing symbol socket)")
-      endif ()
-    endif ()
-  endif ()
-endif ()
-cmake_pop_check_state()
-
-cmake_push_check_state()
-set(CMAKE_REQUIRED_LIBRARIES ${SOCKET_LIBRARIES})
-check_function_exists(htonll HAVE_HTONLL)
-cmake_pop_check_state()
 
 find_package(POPT)
 find_package(XmlTo)
@@ -192,13 +195,19 @@ if (POPT_FOUND AND XmlTo_FOUND)
 endif()
 
 option(BUILD_SHARED_LIBS "Build rabbitmq-c as a shared library" ON)
+option(BUILD_STATIC_LIBS "Build rabbitmq-c as a static library" OFF)
+
 option(BUILD_EXAMPLES "Build Examples" ON)
 option(BUILD_TOOLS "Build Tools (requires POPT Library)" ${POPT_FOUND})
 option(BUILD_TOOLS_DOCS "Build man pages for Tools (requires xmlto)" ${DO_DOCS})
 option(BUILD_TESTS "Build tests (run tests with make test)" ON)
 
-if (WIN32 AND NOT BUILD_SHARED_LIBS)
-  message(FATAL_ERROR "The rabbitmq-c library cannot be built as a static library on Win32. Set BUILD_SHARED_LIBS=ON to get around this.")
+if (NOT BUILD_SHARED_LIBS AND NOT BUILD_STATIC_LIBS)
+    message(FATAL_ERROR "One or both of BUILD_SHARED_LIBS or BUILD_STATIC_LIBS must be set to ON to build")
+endif()
+
+if (WIN32 AND BUILD_STATIC_LIBS)
+  message(FATAL_ERROR "The rabbitmq-c library cannot be built as a static library on Win32. Set BUILD_STATIC_LIBS=OFF to get around this.")
 endif()
 
 add_subdirectory(librabbitmq)
@@ -232,3 +241,15 @@ install(FILES
   ${CMAKE_CURRENT_BINARY_DIR}/librabbitmq.pc
   DESTINATION ${CMAKE_INSTALL_PREFIX}/lib/pkgconfig
   )
+
+if (BUILD_SHARED_LIBS)
+  message(STATUS "Building rabbitmq as a shared library - yes")
+else ()
+  message(STATUS "Building rabbitmq as a shared library - no")
+endif ()
+
+if (BUILD_STATIC_LIBS)
+  message(STATUS "Building rabbitmq as a static library - yes")
+else ()
+  message(STATUS "Building rabbitmq as a static library - no")
+endif ()
