@@ -43,7 +43,8 @@
 #define SUMMARY_EVERY_US 1000000
 
 static void send_batch(amqp_connection_state_t conn,
-		       char const *queue_name,
+                       char const *exchange,
+		       char const *routingkey,
 		       int rate_limit,
 		       int message_count)
 {
@@ -69,8 +70,8 @@ static void send_batch(amqp_connection_state_t conn,
 
     die_on_error(amqp_basic_publish(conn,
 				    1,
-				    amqp_cstring_bytes("amq.direct"),
-				    amqp_cstring_bytes(queue_name),
+				    amqp_cstring_bytes(exchange),
+				    amqp_cstring_bytes(routingkey),
 				    0,
 				    0,
 				    NULL,
@@ -104,35 +105,50 @@ static void send_batch(amqp_connection_state_t conn,
   }
 }
 
-int main(int argc, char const * const *argv) {
+int main(int argc, char *argv[]) {
   char const *hostname;
   int port;
-  int rate_limit;
-  int message_count;
+  char const *virtualhost;
+  char const *exchange;
+  char const *routingkey;
+  int rate_limit = 2;
+  int message_count = 10;
 
   int sockfd;
   amqp_connection_state_t conn;
 
-  if (argc < 5) {
-    fprintf(stderr, "Usage: amqp_producer host port rate_limit message_count\n");
-    return 1;
+  /*
+    command line options
+  */
+
+  hostname    = getopt_str("-h", argc, argv, "");
+  port        = getopt_int("-p", argc, argv, 5672);
+  virtualhost = getopt_str("-vh", argc, argv, "/");
+  exchange    = getopt_str("-e", argc, argv, "amq.direct");
+  routingkey  = getopt_str("-r", argc, argv, "test_queue");
+  if (argc > 4) {
+    rate_limit  = strtol(argv[argc-2], NULL, 10);
+    message_count = strtol(argv[argc-1], NULL, 10);
   }
 
-  hostname = argv[1];
-  port = atoi(argv[2]);
-  rate_limit = atoi(argv[3]);
-  message_count = atoi(argv[4]);
+  printf("hostname = %s\nport = %d\nvirtualhost = %s\nexchange = %s\nroutingkey = %s\nrate_limit = %d\nmessage_count = %d\n----\n",
+         hostname, port, virtualhost, exchange, routingkey, rate_limit, message_count);
+
+  if (strlen(hostname) == 0) {
+    fprintf(stderr, "usage:\namqp_producer -h hostname [-p port] [-vh virtualhost] [-e exchange] [-r routingkey] rate_limit message_count\n");
+    return 1;
+  }
 
   conn = amqp_new_connection();
 
   die_on_error(sockfd = amqp_open_socket(hostname, port), "Opening socket");
   amqp_set_sockfd(conn, sockfd);
-  die_on_amqp_error(amqp_login(conn, "/", 0, 131072, 0, AMQP_SASL_METHOD_PLAIN, "guest", "guest"),
+  die_on_amqp_error(amqp_login(conn, virtualhost, 0, 131072, 0, AMQP_SASL_METHOD_PLAIN, "guest", "guest"),
 		    "Logging in");
   amqp_channel_open(conn, 1);
   die_on_amqp_error(amqp_get_rpc_reply(conn), "Opening channel");
 
-  send_batch(conn, "test queue", rate_limit, message_count);
+  send_batch(conn, exchange, routingkey, rate_limit, message_count);
 
   die_on_amqp_error(amqp_channel_close(conn, 1, AMQP_REPLY_SUCCESS), "Closing channel");
   die_on_amqp_error(amqp_connection_close(conn, AMQP_REPLY_SUCCESS), "Closing connection");

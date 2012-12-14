@@ -42,9 +42,10 @@
 
 #include "utils.h"
 
-int main(int argc, char* argv[]) {
+int main(int argc, char *argv[]) {
   char const *hostname;
   int port;
+  char const *virtualhost;
   char const *exchange;
   char const *routingkey;
   char const *messagebody;
@@ -53,16 +54,26 @@ int main(int argc, char* argv[]) {
   amqp_connection_state_t conn;
   amqp_bytes_t reply_to_queue;
 
-  if (argc < 6) { /* minimum number of mandatory arguments */
-    fprintf(stderr, "usage:\namqp_rpc_sendstring_client host port exchange routingkey messagebody\n");
+  /*
+    command line options
+  */
+
+  hostname    = getopt_str("-h", argc, argv, "");
+  port        = getopt_int("-p", argc, argv, 5672);
+  virtualhost = getopt_str("-vh", argc, argv, "/");
+  exchange    = getopt_str("-e", argc, argv, "");
+  routingkey  = getopt_str("-r", argc, argv, "");
+  messagebody = argv[argc - 1];
+
+  printf("hostname = %s\nport = %d\nvirtualhost = %s\nexchange = %s\nroutingkey = %s\nmessagebody = %s\n----\n",
+         hostname, port, virtualhost, exchange, routingkey, messagebody);
+
+  if (strlen(hostname) == 0 ||
+      strlen(routingkey) == 0 ||
+      strlen(messagebody) == 0) {
+    fprintf(stderr, "usage:\namqp_rpc_sendstring_client -h hostname [-p port] [-vh virtualhost] [-e exchange] -r routingkey messagebody\n");
     return 1;
   }
-
-  hostname = argv[1];
-  port = atoi(argv[2]);
-  exchange = argv[3];
-  routingkey = argv[4];
-  messagebody = argv[5];
 
   /*
      establish a channel that is used to connect RabbitMQ server
@@ -72,7 +83,7 @@ int main(int argc, char* argv[]) {
 
   die_on_error(sockfd = amqp_open_socket(hostname, port), "Opening socket");
   amqp_set_sockfd(conn, sockfd);
-  die_on_amqp_error(amqp_login(conn, "/", 0, 131072, 0, AMQP_SASL_METHOD_PLAIN, "guest", "guest"),
+  die_on_amqp_error(amqp_login(conn, virtualhost, 0, 131072, 0, AMQP_SASL_METHOD_PLAIN, "guest", "guest"),
                     "Logging in");
   amqp_channel_open(conn, 1);
   die_on_amqp_error(amqp_get_rpc_reply(conn), "Opening channel");
