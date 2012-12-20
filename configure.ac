@@ -105,7 +105,7 @@ AC_ARG_ENABLE([64-bit],
                AX_TRY_LDFLAGS([-m64], [AX_LDFLAGS([-m64])])],
               [enable_64_bit=no])
 
-AM_PATH_PYTHON([2.5])
+AM_PATH_PYTHON([2.4])
 
 AX_PYTHON_MODULE([json], [])
 AS_IF([test "x$HAVE_PYMOD_JSON" = "xno"],
