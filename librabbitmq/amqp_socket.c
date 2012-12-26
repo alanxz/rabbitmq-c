@@ -443,7 +443,7 @@ static int amqp_login_inner(amqp_connection_state_t state,
     properties[1].key = amqp_cstring_bytes("information");
     properties[1].value.kind = AMQP_FIELD_KIND_UTF8;
     properties[1].value.value.bytes
-      = amqp_cstring_bytes("See http://hg.rabbitmq.com/rabbitmq-c/");
+      = amqp_cstring_bytes("See https://github.com/alanxz/rabbitmq-c");
 
     s.client_properties.num_entries = 2;
     s.client_properties.entries = properties;
