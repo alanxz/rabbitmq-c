@@ -97,14 +97,6 @@ AC_SEARCH_LIBS([socket], [socket], [],
                              [-lnsl])])
 AC_CHECK_FUNCS([htonll])
 
-# 64-bit option
-AC_ARG_ENABLE([64-bit],
-              [AS_HELP_STRING([--enable-64-bit],
-                              [produce 64-bit library @<:@no@:>@])],
-              [AX_TRY_CFLAGS([-m64], AX_CFLAGS([-m64]))
-               AX_TRY_LDFLAGS([-m64], [AX_LDFLAGS([-m64])])],
-              [enable_64_bit=no])
-
 AM_PATH_PYTHON([2.4])
 
 AX_PYTHON_MODULE([json], [])
@@ -157,7 +149,6 @@ AC_MSG_RESULT([
 $PACKAGE_NAME build options:
 	Host: $host
 	Version: $VERSION
-	64-bit: $enable_64_bit
 	Tools: $enable_tools
 	Documentation: $enable_docs
 ])
