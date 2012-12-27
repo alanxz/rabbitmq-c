@@ -1,3 +1,9 @@
+librabbitmq (1.0.1-1ubuntu1) precise; urgency=low
+
+  * bump package version
+
+ -- Bernhard Weisshuhn <bkw@codingforce.com>  Tue, 13 Nov 2012 12:57:30 +0100
+
 librabbitmq0 (0.2.0-1ubuntu1) precise; urgency=low
 
   * Patched to build with cmake
