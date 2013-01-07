@@ -256,7 +256,7 @@ man_MANS = \
 # separation as required by distcheck, debian packaging etc.
 XMLTO_FLAGS = \
 	--skip-validation \
-	--searchpath $(top_builddir)/tools/doc
+	--searchpath $(abs_top_builddir)/tools/doc
 
 %.1: %.xml $(top_builddir)/tools/doc/man-date.ent
 	$(AM_V_GEN)$(XMLTO) $(XMLTO_FLAGS) -o $(top_builddir)/tools/doc man $<
