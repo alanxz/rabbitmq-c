@@ -1,18 +1,24 @@
 ACLOCAL_AMFLAGS = -I m4
 
-AM_CFLAGS = -I$(top_srcdir)/librabbitmq -I$(top_builddir)/librabbitmq
+AM_CFLAGS = -I$(top_builddir)/librabbitmq/gen -I$(top_srcdir)/librabbitmq
 
 lib_LTLIBRARIES = librabbitmq/librabbitmq.la
 
 librabbitmq_librabbitmq_la_SOURCES = \
 	librabbitmq/amqp_api.c \
 	librabbitmq/amqp_connection.c \
-	librabbitmq/amqp_framing.c \
 	librabbitmq/amqp_mem.c \
 	librabbitmq/amqp_private.h \
 	librabbitmq/amqp_socket.c \
 	librabbitmq/amqp_table.c \
 	librabbitmq/amqp_url.c
+
+if REGENERATE_AMQP_FRAMING
+librabbitmq_librabbitmq_la_SOURCES += librabbitmq/gen/amqp_framing.c
+else
+librabbitmq_librabbitmq_la_SOURCES += librabbitmq/amqp_framing.c
+endif
+
 
 librabbitmq_librabbitmq_la_LDFLAGS = \
 	-version-info $(LT_CURRENT):$(LT_REVISION):$(LT_AGE) \
@@ -34,12 +40,9 @@ librabbitmq_librabbitmq_la_CFLAGS += -I$(top_srcdir)/librabbitmq/win32/msinttype
 endif
 
 include_HEADERS = \
-	$(top_srcdir)/librabbitmq/amqp.h \
-	$(top_builddir)/librabbitmq/amqp_framing.h
+	$(top_srcdir)/librabbitmq/amqp.h
 
-BUILT_SOURCES = \
-	$(top_builddir)/librabbitmq/amqp_framing.h \
-	$(top_builddir)/librabbitmq/amqp_framing.c
+if REGENERATE_AMQP_FRAMING
 
 if PYTHON3
 codegen_py = $(top_builddir)/librabbitmq/python3/codegen3.py
@@ -63,11 +66,21 @@ endif
 
 amqp_codegen_json = $(top_srcdir)/codegen/amqp-rabbitmq-0.9.1.json
 
-librabbitmq/amqp_framing.h: $(amqp_codegen_json) $(codegen_py) $(codegenlib_py)
+$(top_builddir)/librabbitmq/gen/amqp_framing.h: $(amqp_codegen_json) $(codegen_py) $(codegenlib_py)
 	$(AM_V_GEN)PYTHONPATH=$(codegenlib_path) $(PYTHON) $(codegen_py) header $< $@
 
-librabbitmq/amqp_framing.c: $(amqp_codegen_json) $(codegen_py) $(codegenlib_py)
+$(top_builddir)/librabbitmq/gen/amqp_framing.c: $(amqp_codegen_json) $(codegen_py) $(codegenlib_py)
 	$(AM_V_GEN)PYTHONPATH=$(codegenlib_path) $(PYTHON) $(codegen_py) body $< $@
+
+BUILT_SOURCES = \
+	$(top_builddir)/librabbitmq/gen/amqp_framing.h \
+	$(top_builddir)/librabbitmq/gen/amqp_framing.c
+
+include_HEADERS += $(top_builddir)/librabbitmq/gen/amqp_framing.h
+
+else
+include_HEADERS += $(top_srcdir)/librabbitmq/amqp_framing.h
+endif #REGENERATE_AMQP_FRAMING
 
 check_PROGRAMS = \
 	tests/test_tables \
@@ -293,10 +306,14 @@ EXTRA_DIST = \
 	tools/doc/librabbitmq-tools.xml
 
 MOSTLYCLEANFILES = \
-	$(top_builddir)/librabbitmq/amqp_framing.c \
-	$(top_builddir)/librabbitmq/amqp_framing.h \
 	$(man_MANS) \
 	$(top_builddir)/tools/doc/man-date.ent
+
+if REGENERATE_AMQP_FRAMING
+MOSTLYCLEANFILES += \
+	$(top_builddir)/librabbitmq/gen/amqp_framing.c \
+	$(top_builddir)/librabbitmq/gen/amqp_framing.h
+endif #REGENERATE_AMQP_FRAMING
 
 pkgconfigdir = $(libdir)/pkgconfig
 pkgconfig_DATA = librabbitmq.pc

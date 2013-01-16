@@ -1,47 +1,49 @@
 project(librabbitmq "C")
 
-set(CMAKE_INCLUDE_CURRENT_DIR ON)
+if (REGENERATE_AMQP_FRAMING)
+  set(AMQP_CODEGEN_PY "${CMAKE_CURRENT_BINARY_DIR}/amqp_codegen.py")
+  set(CODEGEN_PY "${CMAKE_CURRENT_BINARY_DIR}/codegen.py")
+  set(AMQP_SPEC_JSON_PATH "${AMQP_CODEGEN_DIR}/amqp-rabbitmq-0.9.1.json")
+  set(AMQP_FRAMING_H_PATH ${CMAKE_CURRENT_BINARY_DIR}/amqp_framing.h)
+  set(AMQP_FRAMING_C_PATH ${CMAKE_CURRENT_BINARY_DIR}/amqp_framing.c)
 
-# Stuff dealing with code generation
-set(AMQP_CODEGEN_PY "${CMAKE_CURRENT_BINARY_DIR}/amqp_codegen.py")
-set(CODEGEN_PY "${CMAKE_CURRENT_BINARY_DIR}/codegen.py")
-set(AMQP_SPEC_JSON_PATH "${AMQP_CODEGEN_DIR}/amqp-rabbitmq-0.9.1.json")
+  if (PYTHON_VERSION_MAJOR GREATER 2)
+    set(CONVERT_CODEGEN ${PYTHON_2TO3_EXECUTABLE} -w ${CODEGEN_PY} > codegen_2to3.out)
+    set(CONVERT_AMQP_CODEGEN ${PYTHON_2TO3_EXECUTABLE} -w ${AMQP_CODEGEN_PY} > amqp_codegen_2to3.out)
+  else ()
+    set(CONVERT_CODEGEN "")
+    set(CONVERT_AMQP_CODEGEN "")
+  endif ()
 
-#generate amqp_framing.h/amqp_framing.c
+  add_custom_command(
+    OUTPUT ${CODEGEN_PY}
+    COMMAND ${CMAKE_COMMAND} ARGS -E copy ${CMAKE_CURRENT_SOURCE_DIR}/codegen.py ${CODEGEN_PY}
+    COMMAND ${CONVERT_CODEGEN}
+    DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/codegen.py
+    VERBATIM)
 
-if (PYTHON_VERSION_MAJOR GREATER 2)
-  set(CONVERT_CODEGEN ${PYTHON_2TO3_EXECUTABLE} -w ${CODEGEN_PY} > codegen_2to3.out)
-  set(CONVERT_AMQP_CODEGEN ${PYTHON_2TO3_EXECUTABLE} -w ${AMQP_CODEGEN_PY} > amqp_codegen_2to3.out)
-else ()
-  set(CONVERT_CODEGEN "")
-  set(CONVERT_AMQP_CODEGEN "")
-endif ()
+  add_custom_command(
+    OUTPUT ${AMQP_CODEGEN_PY}
+    COMMAND ${CMAKE_COMMAND} ARGS -E copy ${AMQP_CODEGEN_DIR}/amqp_codegen.py ${AMQP_CODEGEN_PY}
+    COMMAND ${CONVERT_AMQP_CODEGEN}
+    DEPENDS ${AMQP_CODEGEN_DIR}/amqp_codegen.py ${AMQP_CODEGEN_TARGET}
+    VERBATIM)
 
-add_custom_command(
-  OUTPUT ${CODEGEN_PY}
-  COMMAND ${CMAKE_COMMAND} ARGS -E copy ${CMAKE_CURRENT_SOURCE_DIR}/codegen.py ${CODEGEN_PY}
-  COMMAND ${CONVERT_CODEGEN}
-  DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/codegen.py
-  VERBATIM)
+  add_custom_command(
+    OUTPUT ${AMQP_FRAMING_H_PATH}
+    COMMAND ${PYTHON_EXECUTABLE} ARGS ${CODEGEN_PY} header ${AMQP_SPEC_JSON_PATH} ${AMQP_FRAMING_H_PATH}
+    DEPENDS ${AMQP_SPEC_JSON_PATH} ${CODEGEN_PY} ${AMQP_CODEGEN_PY}
+    VERBATIM)
 
-add_custom_command(
-  OUTPUT ${AMQP_CODEGEN_PY}
-  COMMAND ${CMAKE_COMMAND} ARGS -E copy ${AMQP_CODEGEN_DIR}/amqp_codegen.py ${AMQP_CODEGEN_PY}
-  COMMAND ${CONVERT_AMQP_CODEGEN}
-  DEPENDS ${AMQP_CODEGEN_DIR}/amqp_codegen.py ${AMQP_CODEGEN_TARGET}
-  VERBATIM)
-
-add_custom_command(
-  OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/amqp_framing.h
-  COMMAND ${PYTHON_EXECUTABLE} ARGS ${CODEGEN_PY} header ${AMQP_SPEC_JSON_PATH} ${CMAKE_CURRENT_BINARY_DIR}/amqp_framing.h
-  DEPENDS ${AMQP_SPEC_JSON_PATH} ${CODEGEN_PY} ${AMQP_CODEGEN_PY}
-  VERBATIM)
-
-add_custom_command(
-  OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/amqp_framing.c
-  COMMAND ${PYTHON_EXECUTABLE} ARGS ${CODEGEN_PY} body ${AMQP_SPEC_JSON_PATH} ${CMAKE_CURRENT_BINARY_DIR}/amqp_framing.c
-  DEPENDS ${AMQP_SPEC_JSON_PATH} ${CODEGEN_PY} ${AMQP_CODEGEN_PY}
-  VERBATIM)
+  add_custom_command(
+    OUTPUT ${AMQP_FRAMING_C_PATH}
+    COMMAND ${PYTHON_EXECUTABLE} ARGS ${CODEGEN_PY} body ${AMQP_SPEC_JSON_PATH} ${AMQP_FRAMING_C_PATH}
+    DEPENDS ${AMQP_SPEC_JSON_PATH} ${CODEGEN_PY} ${AMQP_CODEGEN_PY}
+    VERBATIM)
+else (REGENERATE_AMQP_FRAMING)
+  set(AMQP_FRAMING_H_PATH ${CMAKE_CURRENT_SOURCE_DIR}/amqp_framing.h)
+  set(AMQP_FRAMING_C_PATH ${CMAKE_CURRENT_SOURCE_DIR}/amqp_framing.c)
+endif (REGENERATE_AMQP_FRAMING)
 
 if(WIN32)
   set(SOCKET_IMPL "win32")
@@ -56,9 +58,11 @@ if(MSVC)
   endif(MSVC_VERSION LESS 1600)
 endif(MSVC)
 
+# NOTE: order is important here: if we generate amqp_framing.h/.c it'll be in the
+# binary directory, and should shadow whats in the source directory
 set(LIBRABBITMQ_INCLUDE_DIRS
+  ${CMAKE_CURRENT_BINARY_DIR}
 	${CMAKE_CURRENT_SOURCE_DIR}
-	${CMAKE_CURRENT_BINARY_DIR}
 	${SOCKET_IMPL}
 	${MSINTTYPES_INCLUDE}
 	)
@@ -72,8 +76,8 @@ set(LIBRABBITMQ_INCLUDE_DIRS
 add_definitions(-DHAVE_CONFIG_H)
 
 set(RABBITMQ_SOURCES
-    ${CMAKE_CURRENT_BINARY_DIR}/amqp_framing.h
-    ${CMAKE_CURRENT_BINARY_DIR}/amqp_framing.c
+    ${AMQP_FRAMING_H_PATH}
+    ${AMQP_FRAMING_C_PATH}
     amqp_api.c  amqp.h 
     amqp_connection.c  amqp_mem.c  amqp_private.h  amqp_socket.c  amqp_table.c
     amqp_url.c
@@ -131,7 +135,7 @@ if (BUILD_STATIC_LIBS)
     endif ()
 endif (BUILD_STATIC_LIBS)
 
-install(FILES amqp.h ${CMAKE_CURRENT_BINARY_DIR}/amqp_framing.h ${STDINT_H_INSTALL_FILE}
+install(FILES amqp.h ${AMQP_FRAMING_H_PATH} ${STDINT_H_INSTALL_FILE}
 	DESTINATION include
     )
 

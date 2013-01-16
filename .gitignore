@@ -33,8 +33,6 @@ examples/amqp_rpc_sendstring_client
 examples/amqp_sendstring
 examples/amqp_unbind
 librabbitmq.pc
-librabbitmq/amqp_framing.c
-librabbitmq/amqp_framing.h
 tests/test_parse_url
 tests/test_tables
 tools/amqp-consume
