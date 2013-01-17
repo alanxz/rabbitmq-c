@@ -20,6 +20,11 @@ RabbitMQ mailing list and on the RabbitMQ blog.
 API Documentation (rather incomplete at this point) can be found:
 - <http://alanxz.github.com/rabbitmq-c/docs/0.2/>
 
+## Latest Stable Version
+
+The latest stable version of rabbitmq-c is v0.3.0 and can be downloaded from:
+https://github.com/alanxz/rabbitmq-c/archive/rabbitmq-c-v0.3.0.zip
+
 ## Building and installing using CMake
 
 The rabbitmq-c library is built using CMake v2.6+ (http://www.cmake.org) on all
