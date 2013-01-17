@@ -1,7 +1,7 @@
 AC_PREREQ([2.59])
 
 m4_define([major_version], [0])
-m4_define([minor_version], [2])
+m4_define([minor_version], [3])
 m4_define([micro_version], [0])
 
 # Follow all steps below in order to calculate new ABI version when updating the library

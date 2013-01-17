@@ -4,7 +4,7 @@ project(rabbitmq-c "C")
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} ${CMAKE_CURRENT_SOURCE_DIR}/cmake)
 
 set(RMQ_VERSION_MAJOR 0)
-set(RMQ_VERSION_MINOR 2)
+set(RMQ_VERSION_MINOR 3)
 set(RMQ_VERSION_PATCH 0)
 
 # Follow all steps below in order to calculate new ABI version when updating the library
