@@ -20,76 +20,55 @@ RabbitMQ mailing list and on the RabbitMQ blog.
 API Documentation (rather incomplete at this point) can be found:
 - <http://alanxz.github.com/rabbitmq-c/docs/0.2/>
 
-## Retrieving the code
+## Building and installing using CMake
 
-In addition to the source code for this library, you will require a
-copy of `rabbitmq-codegen`, which resides in the `codegen` directory
-as a git submodule. To update the submodule(s):
+The rabbitmq-c library is built using CMake v2.6+ (http://www.cmake.org) on all
+platforms.
 
-    git clone git://github.com/alanxz/rabbitmq-c.git
-    cd rabbitmq-c
-    git submodule init
-    git submodule update
+The library itself requires no external dependancies.
 
-You will also need a recent python with the simplejson module
-installed, and the GNU autotools (autoconf, automake, libtool etc.),
-or as an alternative CMake.
+*OPTIONALLY*: A set of command line tools used to interact with the broker are
+included and require the Popt library (http://freecode.com/projects/popt).
+A matching set of man pages have been written in DocBook format and need
+the XmlTo (https://fedorahosted.org/xmlto/) utility to function correctly.
 
-## Building the code
+On most systems the commands to build rabbitmq-c are:
 
-### Using autoconf
+    mkdir build && cd build
+    cmake ..
+    cmake --build .
 
-Once you have all the prerequisites, change to the `rabbitmq-c`
-directory and run
+It is also possible to point the CMake GUI tool at the CMakeLists.txt in the root of
+the source tree and generate build projects or IDE workspace
+
+Installing the library and optionally specifying a prefix can be done with:
+
+    cmake -DCMAKE_INSTALL_PREFIX=/usr/local ..
+    cmake --build . --target install
+
+More information on CMake can be found on its FAQ (http://www.cmake.org/Wiki/CMake_FAQ)
+
+Other interesting flags that can be passed to CMake:
+* `BUILD_EXAMPLES` - builds the example code
+* `BUILD_TOOLS` builds some command line tools for interacting with the broker
+* `BUILD_TOOLS_DOCS` is enabled and XmlTo is found
+* `BUILD_SHARED_LIBS` - build rabbitmq-c as a shared library
+* `BUILD_STATIC_LIBS` - build rabbitmq-c as a static library
+
+## Building and installing using autotools
+
+For legacy purposes, a GNU autotools based build system is also maintained. The required
+utilities you need are autoconf v2.59+, automake v1.9+, and libtool v2.2+
+
+From a fresh tarball you will need to run reconf:
 
     autoreconf -i
 
-to run the GNU autotools and generate the configure script, followed
-by
+Then the standard autotools build procedure will build rabbitmq-c:
 
     ./configure
     make
-
-to build the `librabbitmq` library and the example programs.
-
-### Using cmake
-
-You will need CMake (v2.6 or better): http://cmake.org/
-
-You will need a working python install (2.6+) with the json or simplejson
-modules installed.
-
-You will need to do the git submodule init/update as above.
-Alternatively you can clone the rabbitmq-codegen repository and point
-cmake to it using the RABBITMQ_CODEGEN_DIR cmake variable
-
-Create a binary directory in a sibling directory from the directory
-you cloned the rabbitmq-c repository
-
-    mkdir bin-rabbitmq-c
-
-Run CMake in the binary directory
-
-    cmake /path/to/source/directory
-
-Build it:
-
-* On linux: `make`
-* On win32: `nmake` or `msbuild`, or open it in visual studio and
-  build from there
-
-Things you can pass to cmake to change the build:
-
-* `-DRABBITMQ_CODEGEN_DIR=/path/to/rabbitmq-codegen/checkout` - if you
-   have your codegen directory in a different place [Default is
-   sibiling directory to source]
-* `-DBUILD_TOOLS=OFF` build the programs in the tools directory
-    [Default is ON if the POPT library can be found]
-
-Other interesting flags to pass to CMake (see cmake docs for more info)
-
-* `-DCMAKE_BUILD_TYPE` - specify the type of build (Debug or Release)
-* `-DCMAKE_INSTALL_PREFIX` - specify where the install target puts files
+    make install
 
 ## Running the examples
 

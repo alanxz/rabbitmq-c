@@ -1,5 +1,11 @@
 # Using rabbitmq-c on Windows
 
+==================
+# This document is out of date
+
+To build rabbitmq-c on Win32 look at the "Building and Installing with CMake" section of README.md
+==================
+
 There are three approaches to building rabbitmq-c under Windows:
 
 - THE PREFERRED METHOD:
