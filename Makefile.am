@@ -1,6 +1,12 @@
 ACLOCAL_AMFLAGS = -I m4
 
-AM_CFLAGS = -I$(top_builddir)/librabbitmq/gen -I$(top_srcdir)/librabbitmq
+if REGENERATE_AMQP_FRAMING
+amqp_framing_dir = $(top_builddir)/librabbitmq/gen
+AM_CFLAGS = -I$(amqp_framing_dir) -I$(top_srcdir)/librabbitmq
+else
+AM_CFLAGS = -I$(top_srcdir)/librabbitmq
+endif #REGENERATE_AMQP_FRAMING
+
 
 lib_LTLIBRARIES = librabbitmq/librabbitmq.la
 
@@ -63,20 +69,25 @@ codegenlib_py = $(top_srcdir)/codegen/amqp_codegen.py
 codegenlib_path = $(top_srcdir)/codegen
 endif
 
-
 amqp_codegen_json = $(top_srcdir)/codegen/amqp-rabbitmq-0.9.1.json
 
-$(top_builddir)/librabbitmq/gen/amqp_framing.h: $(amqp_codegen_json) $(codegen_py) $(codegenlib_py)
+amqp_framing_h = $(amqp_framing_dir)/amqp_framing.h
+amqp_framing_c = $(amqp_framing_dir)/amqp_framing.c
+
+$(amqp_framing_dir):
+	$(AM_V_at)$(MKDIR_P) $@
+
+$(amqp_framing_h): $(amqp_codegen_json) $(codegen_py) $(codegenlib_py) $(amqp_framing_dir)
 	$(AM_V_GEN)PYTHONPATH=$(codegenlib_path) $(PYTHON) $(codegen_py) header $< $@
 
-$(top_builddir)/librabbitmq/gen/amqp_framing.c: $(amqp_codegen_json) $(codegen_py) $(codegenlib_py)
+$(amqp_framing_c): $(amqp_codegen_json) $(codegen_py) $(codegenlib_py) $(amqp_framing_dir)
 	$(AM_V_GEN)PYTHONPATH=$(codegenlib_path) $(PYTHON) $(codegen_py) body $< $@
 
 BUILT_SOURCES = \
-	$(top_builddir)/librabbitmq/gen/amqp_framing.h \
-	$(top_builddir)/librabbitmq/gen/amqp_framing.c
+	$(amqp_framing_h) \
+	$(amqp_framing_c)
 
-include_HEADERS += $(top_builddir)/librabbitmq/gen/amqp_framing.h
+include_HEADERS += $(amqp_framing_h)
 
 else
 include_HEADERS += $(top_srcdir)/librabbitmq/amqp_framing.h
@@ -311,8 +322,8 @@ MOSTLYCLEANFILES = \
 
 if REGENERATE_AMQP_FRAMING
 MOSTLYCLEANFILES += \
-	$(top_builddir)/librabbitmq/gen/amqp_framing.c \
-	$(top_builddir)/librabbitmq/gen/amqp_framing.h
+	$(amqp_framing_h) \
+	$(amqp_framing_c)
 endif #REGENERATE_AMQP_FRAMING
 
 pkgconfigdir = $(libdir)/pkgconfig
