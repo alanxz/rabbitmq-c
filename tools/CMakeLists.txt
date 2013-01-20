@@ -33,7 +33,7 @@ add_executable(amqp-delete-queue delete_queue.c ${COMMON_SRCS})
 target_link_libraries(amqp-delete-queue ${RMQ_LIBRARY_TARGET} ${POPT_LIBRARY})
 
 if (BUILD_TOOLS_DOCS)
-  if (XmlTo_FOUND)
+  if (XMLTO_FOUND)
     set(DOCS_SRCS
       doc/amqp-consume.xml
       doc/amqp-declare-queue.xml
@@ -66,9 +66,9 @@ if (BUILD_TOOLS_DOCS)
         )
     endforeach()
 
-  else(XmlTo_FOUND)
+  else(XMLTO_FOUND)
     message(WARNING "xmlto not found, will not build tools documentation")
-  endif(XmlTo_FOUND)
+  endif(XMLTO_FOUND)
 endif()
 
 install(TARGETS amqp-publish amqp-get amqp-consume amqp-declare-queue amqp-delete-queue
