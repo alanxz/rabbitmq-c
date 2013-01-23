@@ -7,4 +7,6 @@
 # define inline ${C_INLINE_KEYWORD}
 #endif
 
+#cmakedefine HAVE_HTONLL
+
 #endif /* CONFIG_H */

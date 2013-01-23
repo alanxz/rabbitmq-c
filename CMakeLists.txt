@@ -47,6 +47,7 @@ endif()
 
 include(TestCInline)
 include(CheckFunctionExists)
+include(CheckSymbolExists)
 include(CheckLibraryExists)
 include(CMakePushCheckState)
 
@@ -92,7 +93,11 @@ cmake_pop_check_state()
 
 cmake_push_check_state()
 set(CMAKE_REQUIRED_LIBRARIES ${SOCKET_LIBRARIES})
-check_function_exists(htonll HAVE_HTONLL)
+if (WIN32)
+  check_symbol_exists(htonll Winsock2.h HAVE_HTONLL)
+else (WIN32)
+  check_function_exists(htonll HAVE_HTONLL)
+endif (WIN32)
 cmake_pop_check_state()
 
 option(REGENERATE_AMQP_FRAMING "Regenerate amqp_framing.h/amqp_framing.c sources (for developer use)" OFF)
