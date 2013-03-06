@@ -55,12 +55,12 @@ amqp_socket_error(void);
 #define amqp_socket_close close
 #define amqp_socket_writev writev
 
-#ifndef MSG_NOSIGNAL
-# define MSG_NOSIGNAL 0x0
-#endif
-
 #if defined(SO_NOSIGPIPE) && !defined(MSG_NOSIGNAL)
 # define DISABLE_SIGPIPE_WITH_SETSOCKOPT
+#endif
+
+#ifndef MSG_NOSIGNAL
+# define MSG_NOSIGNAL 0x0
 #endif
 
 #endif
