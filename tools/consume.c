@@ -36,9 +36,13 @@
 
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 
 #include "common.h"
 #include "process.h"
+
+#define MAX_LISTEN_KEYS 1024
+#define LISTEN_KEYS_DELIMITER ","
 
 /* Convert a amqp_bytes_t to an escaped string form for printing.  We
    use the same escaping conventions as rabbitmqctl. */
@@ -72,6 +76,11 @@ static amqp_bytes_t setup_queue(amqp_connection_state_t conn,
 {
 	amqp_bytes_t queue_bytes = cstring_bytes(queue);
 
+	char *routing_key_rest;
+	char *routing_key_token;
+	char *routing_tmp;
+	int routing_key_count = 0;
+
 	/* if an exchange name wasn't provided, check that we don't
 	   have options that require it. */
 	if (!exchange && routing_key) {
@@ -101,11 +110,26 @@ static amqp_bytes_t setup_queue(amqp_connection_state_t conn,
 		/* Bind to an exchange if requested */
 		if (exchange) {
 			amqp_bytes_t eb = amqp_cstring_bytes(exchange);
-			if (!amqp_queue_bind(conn, 1, queue_bytes, eb,
-					     cstring_bytes(routing_key),
-					     amqp_empty_table))
-				die_rpc(amqp_get_rpc_reply(conn),
-					"queue.bind");
+
+			routing_tmp = strdup( routing_key );
+			if ( NULL == routing_tmp ) {
+				fprintf(stderr,	"could not allocate memory to parse routing key\n" );
+				exit(1);
+			}
+
+			for ( 
+				routing_key_token = strtok_r( routing_tmp, LISTEN_KEYS_DELIMITER, &routing_key_rest )
+				; NULL != routing_key_token && routing_key_count < MAX_LISTEN_KEYS - 1 
+				; routing_key_token = strtok_r( NULL, LISTEN_KEYS_DELIMITER, &routing_key_rest )
+			) {
+
+				if (!amqp_queue_bind(conn, 1, queue_bytes, eb,
+							 cstring_bytes(routing_key_token),
+							 amqp_empty_table)) {
+					die_rpc(amqp_get_rpc_reply(conn), "queue.bind");
+				}
+			}
+			free( routing_tmp );
 		}
 	}
 
@@ -122,9 +146,9 @@ static void do_consume(amqp_connection_state_t conn, amqp_bytes_t queue,
 	    && !amqp_basic_qos(conn, 1, 0, count, 0))
 		die_rpc(amqp_get_rpc_reply(conn), "basic.qos");
 
-	if (!amqp_basic_consume(conn, 1, queue, amqp_empty_bytes, 0, no_ack,
-				0, amqp_empty_table))
+	if (!amqp_basic_consume(conn, 1, queue, amqp_empty_bytes, 0, no_ack, 0, amqp_empty_table))  {
 		die_rpc(amqp_get_rpc_reply(conn), "basic.consume");
+	}
 
 	for (i = 0; count < 0 || i < count; i++) {
 		amqp_frame_t frame;
@@ -196,8 +220,9 @@ int main(int argc, const char **argv)
 	}
 
 	conn = make_connection();
-	queue_bytes = setup_queue(conn, queue, exchange, routing_key, declare);
+	queue_bytes = setup_queue(conn, queue, exchange, routing_key, declare );
 	do_consume(conn, queue_bytes, no_ack, count, cmd_argv);
+
 	close_connection(conn);
 	return 0;
 
