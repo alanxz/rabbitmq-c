@@ -1,3 +1,4 @@
+/* vim:set ft=c ts=2 sw=2 sts=2 et cindent: */
 #ifndef librabbitmq_windows_socket_h
 #define librabbitmq_windows_socket_h
 

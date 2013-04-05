@@ -1,3 +1,4 @@
+/* vim:set ft=c ts=2 sw=2 sts=2 et cindent: */
 /*
  * ***** BEGIN LICENSE BLOCK *****
  * Version: MIT
@@ -109,7 +110,7 @@ int amqp_open_socket(char const *hostname,
   {
     return last_error;
   }
-  
+
   return sockfd;
 }
 

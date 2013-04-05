@@ -1,3 +1,4 @@
+# vim:set ts=2 sw=2 sts=2 et:
 AC_PREREQ([2.59])
 
 m4_define([major_version], [0])

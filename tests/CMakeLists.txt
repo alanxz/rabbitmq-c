@@ -1,3 +1,4 @@
+# vim:set ts=2 sw=2 sts=2 et:
 include_directories(${LIBRABBITMQ_INCLUDE_DIRS})
 
 if (MSVC)

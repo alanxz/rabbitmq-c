@@ -1,3 +1,4 @@
+# vim:set ts=2 sw=2 sts=2 et:
 #Inspired from http://www.cmake.org/Wiki/CMakeTestInline
 
 IF(NOT DEFINED C_INLINE_KEYWORD)
