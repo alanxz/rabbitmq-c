@@ -43,3 +43,4 @@ tools/amqp-publish
 tools/doc/*.1
 tools/doc/*.7
 tools/doc/man-date.ent
+.ycm_extra_conf.py*
