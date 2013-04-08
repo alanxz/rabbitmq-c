@@ -104,6 +104,7 @@
 # define AMQP_CALL __cdecl
 
 #elif defined(__GNUC__) && __GNUC__ >= 4
+# include <sys/uio.h>
 # define AMQP_PUBLIC_FUNCTION \
   __attribute__ ((visibility ("default")))
 # define AMQP_PUBLIC_VARIABLE \
@@ -113,6 +114,35 @@
 # define AMQP_PUBLIC_FUNCTION
 # define AMQP_PUBLIC_VARIABLE extern
 # define AMQP_CALL
+#endif
+
+#if __GNUC__ > 3 || (__GNUC__ == 3 && __GNUC_MINOR__ >= 1)
+# define AMQP_DEPRECATED(function) \
+  function __attribute__ ((__deprecated__))
+#elif defined(_MSC_VER)
+# define AMQP_DEPRECATED(function) \
+  __declspec(deprecated) function
+#else
+# define AMQP_DEPRECATED(function)
+#endif
+
+/* Define ssize_t on Win32/64 platforms
+   See: http://lists.cs.uiuc.edu/pipermail/llvmdev/2010-April/030649.html for details
+   */
+#if !defined(_W64)
+#if !defined(__midl) && (defined(_X86_) || defined(_M_IX86)) && _MSC_VER >= 1300
+#define _W64 __w64
+#else
+#define _W64
+#endif
+#endif
+
+#ifdef _MSC_VER
+#ifdef _WIN64
+typedef __int64 ssize_t;
+#else
+typedef _W64 int ssize_t;
+#endif
 #endif
 
 #include <stddef.h>
@@ -293,6 +323,8 @@ typedef enum amqp_sasl_method_enum_ {
 /* Opaque struct. */
 typedef struct amqp_connection_state_t_ *amqp_connection_state_t;
 
+typedef struct amqp_socket_t_ amqp_socket_t;
+
 AMQP_PUBLIC_FUNCTION
 char const *
 AMQP_CALL amqp_version(void);
@@ -352,9 +384,15 @@ AMQP_PUBLIC_FUNCTION
 int
 AMQP_CALL amqp_get_sockfd(amqp_connection_state_t state);
 
+AMQP_DEPRECATED(
 AMQP_PUBLIC_FUNCTION
 void
-AMQP_CALL amqp_set_sockfd(amqp_connection_state_t state, int sockfd);
+AMQP_CALL amqp_set_sockfd(amqp_connection_state_t state, int sockfd)
+);
+
+AMQP_PUBLIC_FUNCTION
+void
+AMQP_CALL amqp_set_socket(amqp_connection_state_t state, amqp_socket_t *socket);
 
 AMQP_PUBLIC_FUNCTION
 int
@@ -537,6 +575,7 @@ struct amqp_connection_info {
   char *host;
   char *vhost;
   int port;
+  amqp_boolean_t ssl;
 };
 
 AMQP_PUBLIC_FUNCTION
@@ -546,6 +585,74 @@ AMQP_CALL amqp_default_connection_info(struct amqp_connection_info *parsed);
 AMQP_PUBLIC_FUNCTION
 int 
 AMQP_CALL amqp_parse_url(char *url, struct amqp_connection_info *parsed);
+
+/* socket API */
+
+/**
+ * Open a socket connection.
+ *
+ * This function opens a socket connection returned from amqp_tcp_socket_new()
+ * or amqp_ssl_socket_new(). This function should be called after setting
+ * socket options and prior to assigning the socket to an AMQP connection with
+ * amqp_set_socket().
+ *
+ * \param [in,out] self A socket object.
+ * \param [in] host Connect to this host.
+ * \param [in] port Connect on this remote port.
+ *
+ * \return Zero upon success, non-zero otherwise.
+ */
+AMQP_PUBLIC_FUNCTION
+int
+AMQP_CALL
+amqp_socket_open(amqp_socket_t *self, const char *host, int port);
+
+/**
+ * Close a socket connection and free resources.
+ *
+ * This function closes a socket connection and releases any resources used by
+ * the object. After calling this function the specified socket should no
+ * longer be referenced.
+ *
+ * \param [in,out] self A socket object.
+ *
+ * \return Zero upon success, non-zero otherwise.
+ */
+AMQP_PUBLIC_FUNCTION
+int
+AMQP_CALL
+amqp_socket_close(amqp_socket_t *self);
+
+/**
+ * Retrieve an error code for the last socket operation.
+ *
+ * At the time of writing, this interface is not well supported and is subject
+ * to changes!
+ *
+ * \param [in,out] self A socket object.
+ *
+ * \return Zero upon success, non-zero otherwise.
+ */
+AMQP_PUBLIC_FUNCTION
+int
+AMQP_CALL
+amqp_socket_error(amqp_socket_t *self);
+
+/**
+ * Get the socket descriptor in use by a socket object.
+ *
+ * Retrieve the underlying socket descriptor. This function can be used to
+ * perform low-level socket operations that aren't supported by the socket
+ * interface. Use with caution!
+ *
+ * \param [in,out] self A socket object.
+ *
+ * \return The underlying socket descriptor.
+ */
+AMQP_PUBLIC_FUNCTION
+int
+AMQP_CALL
+amqp_socket_get_sockfd(amqp_socket_t *self);
 
 AMQP_END_DECLS
 

@@ -35,8 +35,7 @@
 #include <string.h>
 
 #include <stdint.h>
-#include <amqp_tcp_socket.h>
-#include <amqp.h>
+#include <amqp_ssl_socket.h>
 #include <amqp_framing.h>
 
 #include <assert.h>
@@ -46,33 +45,44 @@
 int main(int argc, char const * const *argv) {
   char const *hostname;
   int port, status;
-  char const *exchange;
-  char const *bindingkey;
-  amqp_socket_t *socket = NULL;
+  char const *queuename;
+  amqp_socket_t *socket;
   amqp_connection_state_t conn;
 
-  amqp_bytes_t queuename;
-
-  if (argc < 5) {
-    fprintf(stderr, "Usage: amqp_listen host port exchange bindingkey\n");
+  if (argc < 4) {
+    fprintf(stderr, "Usage: amqps_listenq host port queuename "
+		    "[cacert.pem [key.pem cert.pem]]\n");
     return 1;
   }
 
   hostname = argv[1];
   port = atoi(argv[2]);
-  exchange = argv[3];
-  bindingkey = argv[4];
+  queuename = argv[3];
 
   conn = amqp_new_connection();
 
-  socket = amqp_tcp_socket_new();
+  socket = amqp_ssl_socket_new();
   if (!socket) {
-    die("creating TCP socket");
+    die("creating SSL/TLS socket");
+  }
+
+  if (argc > 4) {
+    status = amqp_ssl_socket_set_cacert(socket, argv[4]);
+    if (status) {
+      die("setting CA certificate");
+    }
+  }
+
+  if (argc > 6) {
+    status = amqp_ssl_socket_set_key(socket, argv[6], argv[5]);
+    if (status) {
+      die("setting client cert");
+    }
   }
 
   status = amqp_socket_open(socket, hostname, port);
   if (status) {
-    die("opening TCP socket");
+    die("opening SSL/TLS connection");
   }
 
   amqp_set_socket(conn, socket);
@@ -81,22 +91,7 @@ int main(int argc, char const * const *argv) {
   amqp_channel_open(conn, 1);
   die_on_amqp_error(amqp_get_rpc_reply(conn), "Opening channel");
 
-  {
-    amqp_queue_declare_ok_t *r = amqp_queue_declare(conn, 1, amqp_empty_bytes, 0, 0, 0, 1,
-						    amqp_empty_table);
-    die_on_amqp_error(amqp_get_rpc_reply(conn), "Declaring queue");
-    queuename = amqp_bytes_malloc_dup(r->queue);
-    if (queuename.bytes == NULL) {
-      fprintf(stderr, "Out of memory while copying queue name");
-      return 1;
-    }
-  }
-
-  amqp_queue_bind(conn, 1, queuename, amqp_cstring_bytes(exchange), amqp_cstring_bytes(bindingkey),
-		  amqp_empty_table);
-  die_on_amqp_error(amqp_get_rpc_reply(conn), "Binding queue");
-
-  amqp_basic_consume(conn, 1, queuename, amqp_empty_bytes, 0, 1, 0, amqp_empty_table);
+  amqp_basic_consume(conn, 1, amqp_cstring_bytes(queuename), amqp_empty_bytes, 0, 0, 0, amqp_empty_table);
   die_on_amqp_error(amqp_get_rpc_reply(conn), "Consuming");
 
   {
@@ -169,6 +164,8 @@ int main(int argc, char const * const *argv) {
 	/* We break here to close the connection */
 	break;
       }
+
+      amqp_basic_ack(conn, 1, d->delivery_tag, 0);
     }
   }
 

@@ -30,6 +30,7 @@
  * ***** END LICENSE BLOCK *****
  */
 
+#include <stdarg.h>
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
@@ -40,6 +41,16 @@
 #include <amqp_framing.h>
 
 #include "utils.h"
+
+void die(const char *fmt, ...)
+{
+  va_list ap;
+  va_start(ap, fmt);
+  vfprintf(stderr, fmt, ap);
+  va_end(ap);
+  fprintf(stderr, "\n");
+  exit(1);
+}
 
 void die_on_error(int x, char const *context) {
   if (x < 0) {

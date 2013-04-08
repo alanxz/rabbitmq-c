@@ -35,8 +35,7 @@
 #include <string.h>
 
 #include <stdint.h>
-#include <amqp_tcp_socket.h>
-#include <amqp.h>
+#include <amqp_ssl_socket.h>
 #include <amqp_framing.h>
 
 #include <assert.h>
@@ -48,13 +47,14 @@ int main(int argc, char const * const *argv) {
   int port, status;
   char const *exchange;
   char const *bindingkey;
-  amqp_socket_t *socket = NULL;
+  amqp_socket_t *socket;
   amqp_connection_state_t conn;
 
   amqp_bytes_t queuename;
 
   if (argc < 5) {
-    fprintf(stderr, "Usage: amqp_listen host port exchange bindingkey\n");
+    fprintf(stderr, "Usage: amqps_listen host port exchange bindingkey "
+		    "[cacert.pem [key.pem cert.pem]]\n");
     return 1;
   }
 
@@ -65,14 +65,28 @@ int main(int argc, char const * const *argv) {
 
   conn = amqp_new_connection();
 
-  socket = amqp_tcp_socket_new();
+  socket = amqp_ssl_socket_new();
   if (!socket) {
-    die("creating TCP socket");
+    die("creating SSL/TLS socket");
+  }
+
+  if (argc > 5) {
+    status = amqp_ssl_socket_set_cacert(socket, argv[5]);
+    if (status) {
+      die("setting CA certificate");
+    }
+  }
+
+  if (argc > 7) {
+    status = amqp_ssl_socket_set_key(socket, argv[7], argv[6]);
+    if (status) {
+      die("setting client cert");
+    }
   }
 
   status = amqp_socket_open(socket, hostname, port);
   if (status) {
-    die("opening TCP socket");
+    die("opening SSL/TLS connection");
   }
 
   amqp_set_socket(conn, socket);
