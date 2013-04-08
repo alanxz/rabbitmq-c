@@ -32,8 +32,8 @@
  */
 
 struct pipeline {
-	int pid;
-	int infd;
+  int pid;
+  int infd;
 };
 
 extern void pipeline(const char *const *argv, struct pipeline *pl);

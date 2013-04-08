@@ -1,0 +1,4 @@
+--style=1tbs
+--indent=spaces=2
+--indent-preprocessor
+--align-pointer=name

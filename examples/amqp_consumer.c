@@ -66,7 +66,7 @@ static void run(amqp_connection_state_t conn)
       int countOverInterval = received - previous_received;
       double intervalRate = countOverInterval / ((now - previous_report_time) / 1000000.0);
       printf("%d ms: Received %d - %d since last report (%d Hz)\n",
-	     (int)(now - start_time) / 1000, received, countOverInterval, (int) intervalRate);
+             (int)(now - start_time) / 1000, received, countOverInterval, (int) intervalRate);
 
       previous_received = received;
       previous_report_time = now;
@@ -75,18 +75,22 @@ static void run(amqp_connection_state_t conn)
 
     amqp_maybe_release_buffers(conn);
     result = amqp_simple_wait_frame(conn, &frame);
-    if (result < 0)
+    if (result < 0) {
       return;
+    }
 
-    if (frame.frame_type != AMQP_FRAME_METHOD)
+    if (frame.frame_type != AMQP_FRAME_METHOD) {
       continue;
+    }
 
-    if (frame.payload.method.id != AMQP_BASIC_DELIVER_METHOD)
+    if (frame.payload.method.id != AMQP_BASIC_DELIVER_METHOD) {
       continue;
+    }
 
     result = amqp_simple_wait_frame(conn, &frame);
-    if (result < 0)
+    if (result < 0) {
       return;
+    }
 
     if (frame.frame_type != AMQP_FRAME_HEADER) {
       fprintf(stderr, "Expected header!");
@@ -98,12 +102,13 @@ static void run(amqp_connection_state_t conn)
 
     while (body_received < body_target) {
       result = amqp_simple_wait_frame(conn, &frame);
-      if (result < 0)
-	return;
+      if (result < 0) {
+        return;
+      }
 
       if (frame.frame_type != AMQP_FRAME_BODY) {
-	fprintf(stderr, "Expected body!");
-	abort();
+        fprintf(stderr, "Expected body!");
+        abort();
       }
 
       body_received += frame.payload.body_fragment.len;
@@ -114,7 +119,8 @@ static void run(amqp_connection_state_t conn)
   }
 }
 
-int main(int argc, char const * const *argv) {
+int main(int argc, char const *const *argv)
+{
   char const *hostname;
   int port;
   char const *exchange;
@@ -140,13 +146,13 @@ int main(int argc, char const * const *argv) {
   die_on_error(sockfd = amqp_open_socket(hostname, port), "Opening socket");
   amqp_set_sockfd(conn, sockfd);
   die_on_amqp_error(amqp_login(conn, "/", 0, 131072, 0, AMQP_SASL_METHOD_PLAIN, "guest", "guest"),
-		    "Logging in");
+                    "Logging in");
   amqp_channel_open(conn, 1);
   die_on_amqp_error(amqp_get_rpc_reply(conn), "Opening channel");
 
   {
     amqp_queue_declare_ok_t *r = amqp_queue_declare(conn, 1, amqp_empty_bytes, 0, 0, 0, 1,
-						    amqp_empty_table);
+                                 amqp_empty_table);
     die_on_amqp_error(amqp_get_rpc_reply(conn), "Declaring queue");
     queuename = amqp_bytes_malloc_dup(r->queue);
     if (queuename.bytes == NULL) {
@@ -156,7 +162,7 @@ int main(int argc, char const * const *argv) {
   }
 
   amqp_queue_bind(conn, 1, queuename, amqp_cstring_bytes(exchange), amqp_cstring_bytes(bindingkey),
-		  amqp_empty_table);
+                  amqp_empty_table);
   die_on_amqp_error(amqp_get_rpc_reply(conn), "Binding queue");
 
   amqp_basic_consume(conn, 1, queuename, amqp_empty_bytes, 0, 1, 0, amqp_empty_table);

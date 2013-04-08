@@ -39,8 +39,8 @@
 
 /* same as WSABUF */
 struct iovec {
-	u_long iov_len;
-	void *iov_base;
+  u_long iov_len;
+  void *iov_base;
 };
 
 int
@@ -51,7 +51,7 @@ amqp_socket_init(void);
 
 int
 amqp_socket_setsockopt(int sock, int level, int optname, const void *optval,
-		       size_t optlen);
+                       size_t optlen);
 
 int
 amqp_socket_writev(int sock, struct iovec *iov, int nvecs);

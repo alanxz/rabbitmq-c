@@ -43,7 +43,8 @@
 
 #include "utils.h"
 
-int main(int argc, char* argv[]) {
+int main(int argc, char *argv[])
+{
   char const *hostname;
   int port;
   char const *exchange;
@@ -152,16 +153,19 @@ int main(int argc, char* argv[]) {
         amqp_maybe_release_buffers(conn);
         result = amqp_simple_wait_frame(conn, &frame);
         printf("Result: %d\n", result);
-        if (result < 0)
+        if (result < 0) {
           break;
+        }
 
         printf("Frame type: %d channel: %d\n", frame.frame_type, frame.channel);
-        if (frame.frame_type != AMQP_FRAME_METHOD)
+        if (frame.frame_type != AMQP_FRAME_METHOD) {
           continue;
+        }
 
         printf("Method: %s\n", amqp_method_name(frame.payload.method.id));
-        if (frame.payload.method.id != AMQP_BASIC_DELIVER_METHOD)
+        if (frame.payload.method.id != AMQP_BASIC_DELIVER_METHOD) {
           continue;
+        }
 
         d = (amqp_basic_deliver_t *) frame.payload.method.decoded;
         printf("Delivery: %u exchange: %.*s routingkey: %.*s\n",
@@ -170,8 +174,9 @@ int main(int argc, char* argv[]) {
                (int) d->routing_key.len, (char *) d->routing_key.bytes);
 
         result = amqp_simple_wait_frame(conn, &frame);
-        if (result < 0)
+        if (result < 0) {
           break;
+        }
 
         if (frame.frame_type != AMQP_FRAME_HEADER) {
           fprintf(stderr, "Expected header!");
@@ -189,8 +194,9 @@ int main(int argc, char* argv[]) {
 
         while (body_received < body_target) {
           result = amqp_simple_wait_frame(conn, &frame);
-          if (result < 0)
+          if (result < 0) {
             break;
+          }
 
           if (frame.frame_type != AMQP_FRAME_BODY) {
             fprintf(stderr, "Expected body!");

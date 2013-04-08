@@ -34,8 +34,8 @@
 #include <windef.h>
 
 struct pipeline {
-	HANDLE proc_handle;
-	int infd;
+  HANDLE proc_handle;
+  int infd;
 };
 
 extern void pipeline(const char *const *argv, struct pipeline *pl);

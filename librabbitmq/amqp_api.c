@@ -62,10 +62,11 @@ char *amqp_error_string(int err)
 
   switch (category) {
   case ERROR_CATEGORY_CLIENT:
-    if (err < 1 || err > ERROR_MAX)
+    if (err < 1 || err > ERROR_MAX) {
       str = "(undefined librabbitmq error)";
-    else
+    } else {
       str = client_error_strings[err - 1];
+    }
     break;
 
   case ERROR_CATEGORY_OS:
@@ -80,31 +81,31 @@ char *amqp_error_string(int err)
 
 void amqp_abort(const char *fmt, ...)
 {
-	va_list ap;
-	va_start(ap, fmt);
-	vfprintf(stderr, fmt, ap);
-	va_end(ap);
-	fputc('\n', stderr);
-	abort();
+  va_list ap;
+  va_start(ap, fmt);
+  vfprintf(stderr, fmt, ap);
+  va_end(ap);
+  fputc('\n', stderr);
+  abort();
 }
 
 const amqp_bytes_t amqp_empty_bytes = { 0, NULL };
 const amqp_table_t amqp_empty_table = { 0, NULL };
 const amqp_array_t amqp_empty_array = { 0, NULL };
 
-#define RPC_REPLY(replytype)						\
-  (state->most_recent_api_result.reply_type == AMQP_RESPONSE_NORMAL	\
-   ? (replytype *) state->most_recent_api_result.reply.decoded		\
+#define RPC_REPLY(replytype)\
+  (state->most_recent_api_result.reply_type == AMQP_RESPONSE_NORMAL\
+   ? (replytype *) state->most_recent_api_result.reply.decoded\
    : NULL)
 
 int amqp_basic_publish(amqp_connection_state_t state,
-		       amqp_channel_t channel,
-		       amqp_bytes_t exchange,
-		       amqp_bytes_t routing_key,
-		       amqp_boolean_t mandatory,
-		       amqp_boolean_t immediate,
-		       amqp_basic_properties_t const *properties,
-		       amqp_bytes_t body)
+                       amqp_channel_t channel,
+                       amqp_bytes_t exchange,
+                       amqp_bytes_t routing_key,
+                       amqp_boolean_t mandatory,
+                       amqp_boolean_t immediate,
+                       amqp_basic_properties_t const *properties,
+                       amqp_bytes_t body)
 {
   amqp_frame_t f;
   size_t body_offset;
@@ -121,8 +122,9 @@ int amqp_basic_publish(amqp_connection_state_t state,
   m.ticket = 0;
 
   res = amqp_send_method(state, channel, AMQP_BASIC_PUBLISH_METHOD, &m);
-  if (res < 0)
+  if (res < 0) {
     return res;
+  }
 
   if (properties == NULL) {
     memset(&default_properties, 0, sizeof(default_properties));
@@ -136,15 +138,17 @@ int amqp_basic_publish(amqp_connection_state_t state,
   f.payload.properties.decoded = (void *) properties;
 
   res = amqp_send_frame(state, &f);
-  if (res < 0)
+  if (res < 0) {
     return res;
+  }
 
   body_offset = 0;
   while (body_offset < body.len) {
     size_t remaining = body.len - body_offset;
 
-    if (remaining == 0)
+    if (remaining == 0) {
       break;
+    }
 
     f.frame_type = AMQP_FRAME_BODY;
     f.channel = channel;
@@ -157,16 +161,17 @@ int amqp_basic_publish(amqp_connection_state_t state,
 
     body_offset += f.payload.body_fragment.len;
     res = amqp_send_frame(state, &f);
-    if (res < 0)
+    if (res < 0) {
       return res;
+    }
   }
 
   return 0;
 }
 
 amqp_rpc_reply_t amqp_channel_close(amqp_connection_state_t state,
-				    amqp_channel_t channel,
-				    int code)
+                                    amqp_channel_t channel,
+                                    int code)
 {
   char codestr[13];
   amqp_method_number_t replies[2] = { AMQP_CHANNEL_CLOSE_OK_METHOD, 0};
@@ -179,11 +184,11 @@ amqp_rpc_reply_t amqp_channel_close(amqp_connection_state_t state,
   req.method_id = 0;
 
   return amqp_simple_rpc(state, channel, AMQP_CHANNEL_CLOSE_METHOD,
-			 replies, &req);
+                         replies, &req);
 }
 
 amqp_rpc_reply_t amqp_connection_close(amqp_connection_state_t state,
-				       int code)
+                                       int code)
 {
   char codestr[13];
   amqp_method_number_t replies[2] = { AMQP_CONNECTION_CLOSE_OK_METHOD, 0};
@@ -196,13 +201,13 @@ amqp_rpc_reply_t amqp_connection_close(amqp_connection_state_t state,
   req.method_id = 0;
 
   return amqp_simple_rpc(state, 0, AMQP_CONNECTION_CLOSE_METHOD,
-			 replies, &req);
+                         replies, &req);
 }
 
 int amqp_basic_ack(amqp_connection_state_t state,
-		   amqp_channel_t channel,
-		   uint64_t delivery_tag,
-		   amqp_boolean_t multiple)
+                   amqp_channel_t channel,
+                   uint64_t delivery_tag,
+                   amqp_boolean_t multiple)
 {
   amqp_basic_ack_t m;
   m.delivery_tag = delivery_tag;
@@ -211,28 +216,29 @@ int amqp_basic_ack(amqp_connection_state_t state,
 }
 
 amqp_rpc_reply_t amqp_basic_get(amqp_connection_state_t state,
-				amqp_channel_t channel,
-				amqp_bytes_t queue,
-				amqp_boolean_t no_ack)
+                                amqp_channel_t channel,
+                                amqp_bytes_t queue,
+                                amqp_boolean_t no_ack)
 {
   amqp_method_number_t replies[] = { AMQP_BASIC_GET_OK_METHOD,
-				     AMQP_BASIC_GET_EMPTY_METHOD,
-				     0 };
+                                     AMQP_BASIC_GET_EMPTY_METHOD,
+                                     0
+                                   };
   amqp_basic_get_t req;
   req.ticket = 0;
   req.queue = queue;
   req.no_ack = no_ack;
 
   state->most_recent_api_result = amqp_simple_rpc(state, channel,
-						  AMQP_BASIC_GET_METHOD,
-						  replies, &req);
+                                  AMQP_BASIC_GET_METHOD,
+                                  replies, &req);
   return state->most_recent_api_result;
 }
 
 int amqp_basic_reject(amqp_connection_state_t state,
-		      amqp_channel_t channel,
-		      uint64_t delivery_tag,
-		      amqp_boolean_t requeue)
+                      amqp_channel_t channel,
+                      uint64_t delivery_tag,
+                      amqp_boolean_t requeue)
 {
   amqp_basic_reject_t req;
   req.delivery_tag = delivery_tag;

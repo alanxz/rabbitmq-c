@@ -40,7 +40,7 @@ uint64_t now_microseconds(void)
   FILETIME ft;
   GetSystemTimeAsFileTime(&ft);
   return (((uint64_t)ft.dwHighDateTime << 32) | (uint64_t)ft.dwLowDateTime)
-                                                                   / 10;
+         / 10;
 }
 
 void microsleep(int usec)

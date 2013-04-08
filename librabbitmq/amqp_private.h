@@ -159,53 +159,53 @@ static inline void *amqp_offset(void *data, size_t offset)
 /* This macro defines the encoding and decoding functions associated with a
    simple type. */
 
-#define DECLARE_CODEC_BASE_TYPE(bits, htonx, ntohx)                         \
-                                                                            \
-static inline void amqp_e##bits(void *data, size_t offset,                  \
-                                uint##bits##_t val)                         \
-{									    \
-  /* The AMQP data might be unaligned. So we encode and then copy the       \
-     result into place. */		   				    \
-  uint##bits##_t res = htonx(val);	   				    \
-  memcpy(amqp_offset(data, offset), &res, bits/8);                          \
-}                                                                           \
-                                                                            \
-static inline uint##bits##_t amqp_d##bits(void *data, size_t offset)        \
-{			      		   				    \
-  /* The AMQP data might be unaligned.  So we copy the source value	    \
-     into a variable and then decode it. */				    \
-  uint##bits##_t val;	      						    \
-  memcpy(&val, amqp_offset(data, offset), bits/8);                          \
-  return ntohx(val);							    \
-}                                                                           \
-                                                                            \
-static inline int amqp_encode_##bits(amqp_bytes_t encoded, size_t *offset,  \
-                                     uint##bits##_t input)                  \
-                                                                            \
-{                                                                           \
-  size_t o = *offset;                                                       \
-  if ((*offset = o + bits / 8) <= encoded.len) {                            \
-    amqp_e##bits(encoded.bytes, o, input);                                  \
-    return 1;                                                               \
-  }                                                                         \
-  else {                                                                    \
-    return 0;                                                               \
-  }                                                                         \
-}                                                                           \
-                                                                            \
-static inline int amqp_decode_##bits(amqp_bytes_t encoded, size_t *offset,  \
-                                     uint##bits##_t *output)                \
-                                                                            \
-{                                                                           \
-  size_t o = *offset;                                                       \
-  if ((*offset = o + bits / 8) <= encoded.len) {                            \
-    *output = amqp_d##bits(encoded.bytes, o);                               \
-    return 1;                                                               \
-  }                                                                         \
-  else {                                                                    \
-    return 0;                                                               \
-  }                                                                         \
-}
+#define DECLARE_CODEC_BASE_TYPE(bits, htonx, ntohx)                           \
+                                                                              \
+  static inline void amqp_e##bits(void *data, size_t offset,                  \
+                                  uint##bits##_t val)                         \
+  {                                                                           \
+    /* The AMQP data might be unaligned. So we encode and then copy the       \
+             result into place. */                                            \
+    uint##bits##_t res = htonx(val);                                          \
+    memcpy(amqp_offset(data, offset), &res, bits/8);                          \
+  }                                                                           \
+                                                                              \
+  static inline uint##bits##_t amqp_d##bits(void *data, size_t offset)        \
+  {                                                                           \
+    /* The AMQP data might be unaligned.  So we copy the source value         \
+             into a variable and then decode it. */                           \
+    uint##bits##_t val;                                                       \
+    memcpy(&val, amqp_offset(data, offset), bits/8);                          \
+    return ntohx(val);                                                        \
+  }                                                                           \
+                                                                              \
+  static inline int amqp_encode_##bits(amqp_bytes_t encoded, size_t *offset,  \
+                                       uint##bits##_t input)                  \
+                                                                              \
+  {                                                                           \
+    size_t o = *offset;                                                       \
+    if ((*offset = o + bits / 8) <= encoded.len) {                            \
+      amqp_e##bits(encoded.bytes, o, input);                                  \
+      return 1;                                                               \
+    }                                                                         \
+    else {                                                                    \
+      return 0;                                                               \
+    }                                                                         \
+  }                                                                           \
+                                                                              \
+  static inline int amqp_decode_##bits(amqp_bytes_t encoded, size_t *offset,  \
+                                       uint##bits##_t *output)                \
+                                                                              \
+  {                                                                           \
+    size_t o = *offset;                                                       \
+    if ((*offset = o + bits / 8) <= encoded.len) {                            \
+      *output = amqp_d##bits(encoded.bytes, o);                               \
+      return 1;                                                               \
+    }                                                                         \
+    else {                                                                    \
+      return 0;                                                               \
+    }                                                                         \
+  }
 
 /* Determine byte order */
 #if defined(__GLIBC__)
@@ -215,7 +215,7 @@ static inline int amqp_decode_##bits(amqp_bytes_t encoded, size_t *offset,  \
 # elif (__BYTE_ORDER == __BIG_ENDIAN)
 #  define AMQP_BIG_ENDIAN
 # else
-   /* Don't define anything */
+/* Don't define anything */
 # endif
 #elif defined(_BIG_ENDIAN) && !defined(_LITTLE_ENDIAN) ||                   \
       defined(__BIG_ENDIAN__) && !defined(__LITTLE_ENDIAN__)
@@ -235,40 +235,40 @@ static inline int amqp_decode_##bits(amqp_bytes_t encoded, size_t *offset,  \
       defined(__i386__) || defined(_M_IX86)
 # define AMQP_LITTLE_ENDIAN
 #else
-  /* Don't define anything */
+/* Don't define anything */
 #endif
 
 #if defined(AMQP_LITTLE_ENDIAN)
 
-#define DECLARE_XTOXLL(func)                      \
-static inline uint64_t func##ll(uint64_t val)     \
-{                                                 \
-  union {                                         \
-    uint64_t whole;                               \
-    uint32_t halves[2];                           \
-  } u;                                            \
-  uint32_t t;                                     \
-  u.whole = val;                                  \
-  t = u.halves[0];                                \
-  u.halves[0] = func##l(u.halves[1]);             \
-  u.halves[1] = func##l(t);                       \
-  return u.whole;                                 \
-}
+#define DECLARE_XTOXLL(func)                        \
+  static inline uint64_t func##ll(uint64_t val)     \
+  {                                                 \
+    union {                                         \
+      uint64_t whole;                               \
+      uint32_t halves[2];                           \
+    } u;                                            \
+    uint32_t t;                                     \
+    u.whole = val;                                  \
+    t = u.halves[0];                                \
+    u.halves[0] = func##l(u.halves[1]);             \
+    u.halves[1] = func##l(t);                       \
+    return u.whole;                                 \
+  }
 
 #elif defined(AMQP_BIG_ENDIAN)
 
-#define DECLARE_XTOXLL(func)                      \
-static inline uint64_t func##ll(uint64_t val)     \
-{                                                 \
-  union {                                         \
-    uint64_t whole;                               \
-    uint32_t halves[2];                           \
-  } u;                                            \
-  u.whole = val;                                  \
-  u.halves[0] = func##l(u.halves[0]);             \
-  u.halves[1] = func##l(u.halves[1]);             \
-  return u.whole;                                 \
-}
+#define DECLARE_XTOXLL(func)                        \
+  static inline uint64_t func##ll(uint64_t val)     \
+  {                                                 \
+    union {                                         \
+      uint64_t whole;                               \
+      uint32_t halves[2];                           \
+    } u;                                            \
+    u.whole = val;                                  \
+    u.halves[0] = func##l(u.halves[0]);             \
+    u.halves[1] = func##l(u.halves[1]);             \
+    return u.whole;                                 \
+  }
 
 #else
 # error Endianness not known
@@ -285,28 +285,26 @@ DECLARE_CODEC_BASE_TYPE(32, htonl, ntohl)
 DECLARE_CODEC_BASE_TYPE(64, htonll, ntohll)
 
 static inline int amqp_encode_bytes(amqp_bytes_t encoded, size_t *offset,
-				    amqp_bytes_t input)
+                                    amqp_bytes_t input)
 {
   size_t o = *offset;
   if ((*offset = o + input.len) <= encoded.len) {
     memcpy(amqp_offset(encoded.bytes, o), input.bytes, input.len);
     return 1;
-  }
-  else {
+  } else {
     return 0;
   }
 }
 
 static inline int amqp_decode_bytes(amqp_bytes_t encoded, size_t *offset,
-				    amqp_bytes_t *output, size_t len)
+                                    amqp_bytes_t *output, size_t len)
 {
   size_t o = *offset;
   if ((*offset = o + len) <= encoded.len) {
     output->bytes = amqp_offset(encoded.bytes, o);
     output->len = len;
     return 1;
-  }
-  else {
+  } else {
     return 0;
   }
 }
