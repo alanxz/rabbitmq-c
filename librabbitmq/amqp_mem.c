@@ -1,6 +1,10 @@
+/* vim:set ft=c ts=2 sw=2 sts=2 et cindent: */
 /*
  * ***** BEGIN LICENSE BLOCK *****
  * Version: MIT
+ *
+ * Portions created by Alan Antonuk are Copyright (c) 2012-2013
+ * Alan Antonuk. All Rights Reserved.
  *
  * Portions created by VMware are Copyright (c) 2007-2012 VMware, Inc.
  * All Rights Reserved.
@@ -42,11 +46,13 @@
 #include <string.h>
 #include <sys/types.h>
 
-char const *amqp_version(void) {
+char const *amqp_version(void)
+{
   return VERSION; /* defined in config.h */
 }
 
-void init_amqp_pool(amqp_pool_t *pool, size_t pagesize) {
+void init_amqp_pool(amqp_pool_t *pool, size_t pagesize)
+{
   pool->pagesize = pagesize ? pagesize : 4096;
 
   pool->pages.num_blocks = 0;
@@ -60,7 +66,8 @@ void init_amqp_pool(amqp_pool_t *pool, size_t pagesize) {
   pool->alloc_used = 0;
 }
 
-static void empty_blocklist(amqp_pool_blocklist_t *x) {
+static void empty_blocklist(amqp_pool_blocklist_t *x)
+{
   int i;
 
   for (i = 0; i < x->num_blocks; i++) {
@@ -73,30 +80,35 @@ static void empty_blocklist(amqp_pool_blocklist_t *x) {
   x->blocklist = NULL;
 }
 
-void recycle_amqp_pool(amqp_pool_t *pool) {
+void recycle_amqp_pool(amqp_pool_t *pool)
+{
   empty_blocklist(&pool->large_blocks);
   pool->next_page = 0;
   pool->alloc_block = NULL;
   pool->alloc_used = 0;
 }
 
-void empty_amqp_pool(amqp_pool_t *pool) {
+void empty_amqp_pool(amqp_pool_t *pool)
+{
   recycle_amqp_pool(pool);
   empty_blocklist(&pool->pages);
 }
 
 /* Returns 1 on success, 0 on failure */
-static int record_pool_block(amqp_pool_blocklist_t *x, void *block) {
+static int record_pool_block(amqp_pool_blocklist_t *x, void *block)
+{
   size_t blocklistlength = sizeof(void *) * (x->num_blocks + 1);
 
   if (x->blocklist == NULL) {
     x->blocklist = malloc(blocklistlength);
-    if (x->blocklist == NULL)
+    if (x->blocklist == NULL) {
       return 0;
+    }
   } else {
     void *newbl = realloc(x->blocklist, blocklistlength);
-    if (newbl == NULL)
+    if (newbl == NULL) {
       return 0;
+    }
     x->blocklist = newbl;
   }
 
@@ -105,7 +117,8 @@ static int record_pool_block(amqp_pool_blocklist_t *x, void *block) {
   return 1;
 }
 
-void *amqp_pool_alloc(amqp_pool_t *pool, size_t amount) {
+void *amqp_pool_alloc(amqp_pool_t *pool, size_t amount)
+{
   if (amount == 0) {
     return NULL;
   }
@@ -117,8 +130,9 @@ void *amqp_pool_alloc(amqp_pool_t *pool, size_t amount) {
     if (result == NULL) {
       return NULL;
     }
-    if (!record_pool_block(&pool->large_blocks, result))
+    if (!record_pool_block(&pool->large_blocks, result)) {
       return NULL;
+    }
     return result;
   }
 
@@ -137,8 +151,9 @@ void *amqp_pool_alloc(amqp_pool_t *pool, size_t amount) {
     if (pool->alloc_block == NULL) {
       return NULL;
     }
-    if (!record_pool_block(&pool->pages, pool->alloc_block))
+    if (!record_pool_block(&pool->pages, pool->alloc_block)) {
       return NULL;
+    }
     pool->next_page = pool->pages.num_blocks;
   } else {
     pool->alloc_block = pool->pages.blocklist[pool->next_page];
@@ -150,19 +165,22 @@ void *amqp_pool_alloc(amqp_pool_t *pool, size_t amount) {
   return pool->alloc_block;
 }
 
-void amqp_pool_alloc_bytes(amqp_pool_t *pool, size_t amount, amqp_bytes_t *output) {
+void amqp_pool_alloc_bytes(amqp_pool_t *pool, size_t amount, amqp_bytes_t *output)
+{
   output->len = amount;
   output->bytes = amqp_pool_alloc(pool, amount);
 }
 
-amqp_bytes_t amqp_cstring_bytes(char const *cstr) {
+amqp_bytes_t amqp_cstring_bytes(char const *cstr)
+{
   amqp_bytes_t result;
   result.len = strlen(cstr);
   result.bytes = (void *) cstr;
   return result;
 }
 
-amqp_bytes_t amqp_bytes_malloc_dup(amqp_bytes_t src) {
+amqp_bytes_t amqp_bytes_malloc_dup(amqp_bytes_t src)
+{
   amqp_bytes_t result;
   result.len = src.len;
   result.bytes = malloc(src.len);
@@ -172,13 +190,15 @@ amqp_bytes_t amqp_bytes_malloc_dup(amqp_bytes_t src) {
   return result;
 }
 
-amqp_bytes_t amqp_bytes_malloc(size_t amount) {
+amqp_bytes_t amqp_bytes_malloc(size_t amount)
+{
   amqp_bytes_t result;
   result.len = amount;
   result.bytes = malloc(amount); /* will return NULL if it fails */
   return result;
 }
 
-void amqp_bytes_free(amqp_bytes_t bytes) {
+void amqp_bytes_free(amqp_bytes_t bytes)
+{
   free(bytes.bytes);
 }

@@ -1,5 +1,9 @@
+# vim:set ts=2 sw=2 sts=2 et
 # ***** BEGIN LICENSE BLOCK *****
 # Version: MIT
+#
+# Portions created by Alan Antonuk are Copyright (c) 2012-2013
+# Alan Antonuk. All Rights Reserved.
 #
 # Portions created by VMware are Copyright (c) 2007-2012 VMware, Inc.
 # All Rights Reserved.
@@ -339,6 +343,9 @@ def genErl(spec):
  * ***** BEGIN LICENSE BLOCK *****
  * Version: MIT
  *
+ * Portions created by Alan Antonuk are Copyright (c) 2012-2013
+ * Alan Antonuk. All Rights Reserved.
+ *
  * Portions created by VMware are Copyright (c) 2007-2012 VMware, Inc.
  * All Rights Reserved.
  *
@@ -556,6 +563,9 @@ def genHrl(spec):
  *
  * ***** BEGIN LICENSE BLOCK *****
  * Version: MIT
+ *
+ * Portions created by Alan Antonuk are Copyright (c) 2012-2013
+ * Alan Antonuk. All Rights Reserved.
  *
  * Portions created by VMware are Copyright (c) 2007-2012 VMware, Inc.
  * All Rights Reserved.

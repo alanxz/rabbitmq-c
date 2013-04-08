@@ -1,6 +1,10 @@
+/* vim:set ft=c ts=2 sw=2 sts=2 et cindent: */
 /*
  * ***** BEGIN LICENSE BLOCK *****
  * Version: MIT
+ *
+ * Portions created by Alan Antonuk are Copyright (c) 2012-2013
+ * Alan Antonuk. All Rights Reserved.
  *
  * Portions created by VMware are Copyright (c) 2007-2012 VMware, Inc.
  * All Rights Reserved.
@@ -42,21 +46,22 @@
 
 int asprintf(char **strp, const char *fmt, ...)
 {
-	va_list ap;
-	int len;
+  va_list ap;
+  int len;
 
-	va_start(ap, fmt);
-	len = _vscprintf(fmt, ap);
-	va_end(ap);
+  va_start(ap, fmt);
+  len = _vscprintf(fmt, ap);
+  va_end(ap);
 
-	*strp = malloc(len+1);
-	if (!*strp)
-		return -1;
+  *strp = malloc(len+1);
+  if (!*strp) {
+    return -1;
+  }
 
-	va_start(ap, fmt);
-	_vsnprintf(*strp, len+1, fmt, ap);
-	va_end(ap);
+  va_start(ap, fmt);
+  _vsnprintf(*strp, len+1, fmt, ap);
+  va_end(ap);
 
-	(*strp)[len] = 0;
-	return len;
+  (*strp)[len] = 0;
+  return len;
 }

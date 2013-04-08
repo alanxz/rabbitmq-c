@@ -1,9 +1,13 @@
+/* vim:set ft=c ts=2 sw=2 sts=2 et cindent: */
 #ifndef librabbitmq_windows_socket_h
 #define librabbitmq_windows_socket_h
 
 /*
  * ***** BEGIN LICENSE BLOCK *****
  * Version: MIT
+ *
+ * Portions created by Alan Antonuk are Copyright (c) 2012-2013
+ * Alan Antonuk. All Rights Reserved.
  *
  * Portions created by VMware are Copyright (c) 2007-2012 VMware, Inc.
  * All Rights Reserved.
@@ -38,8 +42,8 @@
 
 /* same as WSABUF */
 struct iovec {
-	u_long iov_len;
-	void *iov_base;
+  u_long iov_len;
+  void *iov_base;
 };
 
 int
@@ -50,7 +54,7 @@ amqp_socket_init(void);
 
 int
 amqp_socket_setsockopt(int sock, int level, int optname, const void *optval,
-		       size_t optlen);
+                       size_t optlen);
 
 int
 amqp_socket_writev(int sock, struct iovec *iov, int nvecs);

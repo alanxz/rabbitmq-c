@@ -1,6 +1,10 @@
+/* vim:set ft=c ts=2 sw=2 sts=2 et cindent: */
 /*
  * ***** BEGIN LICENSE BLOCK *****
  * Version: MIT
+ *
+ * Portions created by Alan Antonuk are Copyright (c) 2012-2013
+ * Alan Antonuk. All Rights Reserved.
  *
  * Portions created by VMware are Copyright (c) 2007-2012 VMware, Inc.
  * All Rights Reserved.
@@ -47,20 +51,21 @@
 
 void die(const char *fmt, ...)
 {
-	va_list ap;
-	va_start(ap, fmt);
-	vfprintf(stderr, fmt, ap);
-	va_end(ap);
-	fprintf(stderr, "\n");
-	abort();
+  va_list ap;
+  va_start(ap, fmt);
+  vfprintf(stderr, fmt, ap);
+  va_end(ap);
+  fprintf(stderr, "\n");
+  abort();
 }
 
 static void dump_indent(int indent, FILE *out)
 {
   int i;
 
-  for (i = 0; i < indent; i++)
+  for (i = 0; i < indent; i++) {
     fputc(' ', out);
+  }
 }
 
 static void dump_value(int indent, amqp_field_value_t v, FILE *out)
@@ -113,26 +118,28 @@ static void dump_value(int indent, amqp_field_value_t v, FILE *out)
 
   case AMQP_FIELD_KIND_DECIMAL:
     fprintf(out, " %d:::%u\n", v.value.decimal.decimals,
-	    v.value.decimal.value);
+            v.value.decimal.value);
     break;
 
   case AMQP_FIELD_KIND_UTF8:
     fprintf(out, " %.*s\n", (int)v.value.bytes.len,
-	    (char *)v.value.bytes.bytes);
+            (char *)v.value.bytes.bytes);
     break;
 
   case AMQP_FIELD_KIND_BYTES:
     fputc(' ', out);
-    for (i = 0; i < (int)v.value.bytes.len; i++)
+    for (i = 0; i < (int)v.value.bytes.len; i++) {
       fprintf(out, "%02x", ((char *) v.value.bytes.bytes)[i]);
+    }
 
     fputc('\n', out);
     break;
 
   case AMQP_FIELD_KIND_ARRAY:
     fputc('\n', out);
-    for (i = 0; i < v.value.array.num_entries; i++)
+    for (i = 0; i < v.value.array.num_entries; i++) {
       dump_value(indent + 2, v.value.array.entries[i], out);
+    }
 
     break;
 
@@ -145,8 +152,8 @@ static void dump_value(int indent, amqp_field_value_t v, FILE *out)
     for (i = 0; i < v.value.table.num_entries; i++) {
       dump_indent(indent + 2, out);
       fprintf(out, "%.*s ->\n",
-	      (int)v.value.table.entries[i].key.len,
-	      (char *)v.value.table.entries[i].key.bytes);
+              (int)v.value.table.entries[i].key.len,
+              (char *)v.value.table.entries[i].key.bytes);
       dump_value(indent + 4, v.value.table.entries[i].value, out);
     }
 
@@ -360,9 +367,10 @@ static void test_table_codec(FILE *out)
     decoding_bytes.bytes = pre_encoded_table;
 
     result = amqp_decode_table(decoding_bytes, &pool, &decoded,
-			       &decoding_offset);
-    if (result < 0)
+                               &decoding_offset);
+    if (result < 0) {
       die("Table decoding failed: %s", amqp_error_string(-result));
+    }
 
     fprintf(out, "BBBBBBBBBB\n");
 
@@ -385,16 +393,18 @@ static void test_table_codec(FILE *out)
     encoding_result.bytes = &encoding_buffer[0];
 
     result = amqp_encode_table(encoding_result, &table, &offset);
-    if (result < 0)
+    if (result < 0) {
       die("Table encoding failed: %s", amqp_error_string(-result));
+    }
 
     if (offset != sizeof(pre_encoded_table))
       die("Offset should be %ld, was %ld", (long)sizeof(pre_encoded_table),
-	  (long)offset);
+          (long)offset);
 
     result = memcmp(pre_encoded_table, encoding_buffer, offset);
-    if (result != 0)
+    if (result != 0) {
       die("Table encoding differed", result);
+    }
   }
 
   empty_amqp_pool(&pool);
@@ -416,12 +426,14 @@ static int compare_files(FILE *f1_in, FILE *f2_in)
     size_t f2_got = fread(f2_buf, 1, CHUNK_SIZE, f2_in);
     res = memcmp(f1_buf, f2_buf, f1_got < f2_got ? f1_got : f2_got);
 
-    if (res)
+    if (res) {
       break;
+    }
 
     if (f1_got < CHUNK_SIZE || f2_got < CHUNK_SIZE) {
-      if (f1_got != f2_got)
+      if (f1_got != f2_got) {
         res = (f1_got < f2_got ? -1 : 1);
+      }
       break;
     }
   }
@@ -438,24 +450,28 @@ int main(void)
   char *expected_path;
 
   out = tmpfile();
-  if (out == NULL)
+  if (out == NULL) {
     die("failed to create temporary file: %s", strerror(errno));
+  }
 
   test_table_codec(out);
   fprintf(out, "----------\n");
   test_dump_value(out);
 
-  if (srcdir == NULL)
+  if (srcdir == NULL) {
     srcdir = ".";
+  }
 
   expected_path = malloc(strlen(srcdir) + strlen(expected_file_name) + 2);
   sprintf(expected_path, "%s/%s", srcdir, expected_file_name);
   expected = fopen(expected_path, "r");
-  if (!expected)
+  if (!expected) {
     die("failed to open %s: %s", expected_path, strerror(errno));
+  }
 
-  if (compare_files(expected, out))
+  if (compare_files(expected, out)) {
     die("output file did not have expected contents");
+  }
 
   fclose(out);
   fclose(expected);

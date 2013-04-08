@@ -1,6 +1,10 @@
+/* vim:set ft=c ts=2 sw=2 sts=2 et cindent: */
 /*
  * ***** BEGIN LICENSE BLOCK *****
  * Version: MIT
+ *
+ * Portions created by Alan Antonuk are Copyright (c) 2012-2013
+ * Alan Antonuk. All Rights Reserved.
  *
  * Portions created by VMware are Copyright (c) 2007-2012 VMware, Inc.
  * All Rights Reserved.
@@ -40,7 +44,8 @@
 
 #include "utils.h"
 
-int main(int argc, char const * const *argv) {
+int main(int argc, char const *const *argv)
+{
   char const *hostname;
   int port;
   char const *exchange;
@@ -66,7 +71,7 @@ int main(int argc, char const * const *argv) {
   die_on_error(sockfd = amqp_open_socket(hostname, port), "Opening socket");
   amqp_set_sockfd(conn, sockfd);
   die_on_amqp_error(amqp_login(conn, "/", 0, 131072, 0, AMQP_SASL_METHOD_PLAIN, "guest", "guest"),
-		    "Logging in");
+                    "Logging in");
   amqp_channel_open(conn, 1);
   die_on_amqp_error(amqp_get_rpc_reply(conn), "Opening channel");
 
@@ -76,14 +81,14 @@ int main(int argc, char const * const *argv) {
     props.content_type = amqp_cstring_bytes("text/plain");
     props.delivery_mode = 2; /* persistent delivery mode */
     die_on_error(amqp_basic_publish(conn,
-				    1,
-				    amqp_cstring_bytes(exchange),
-				    amqp_cstring_bytes(routingkey),
-				    0,
-				    0,
-				    &props,
-				    amqp_cstring_bytes(messagebody)),
-		 "Publishing");
+                                    1,
+                                    amqp_cstring_bytes(exchange),
+                                    amqp_cstring_bytes(routingkey),
+                                    0,
+                                    0,
+                                    &props,
+                                    amqp_cstring_bytes(messagebody)),
+                 "Publishing");
   }
 
   die_on_amqp_error(amqp_channel_close(conn, 1, AMQP_REPLY_SUCCESS), "Closing channel");

@@ -1,3 +1,4 @@
+# vim:set ts=2 sw=2 sts=2 noet:
 ACLOCAL_AMFLAGS = -I m4
 
 if REGENERATE_AMQP_FRAMING

@@ -1,6 +1,10 @@
+/* vim:set ft=c ts=2 sw=2 sts=2 et cindent: */
 /*
  * ***** BEGIN LICENSE BLOCK *****
  * Version: MIT
+ *
+ * Portions created by Alan Antonuk are Copyright (c) 2012-2013
+ * Alan Antonuk. All Rights Reserved.
  *
  * Portions created by VMware are Copyright (c) 2007-2012 VMware, Inc.
  * All Rights Reserved.
@@ -44,37 +48,38 @@
 int
 amqp_socket_init(void)
 {
-	return 0;
+  return 0;
 }
 
 int
 amqp_socket_error(void)
 {
-	return errno | ERROR_CATEGORY_OS;
+  return errno | ERROR_CATEGORY_OS;
 }
 
 int amqp_socket_socket(int domain, int type, int proto)
 {
-	int flags;
+  int flags;
 
-	int s = socket(domain, type, proto);
-	if (s < 0)
-		return s;
+  int s = socket(domain, type, proto);
+  if (s < 0) {
+    return s;
+  }
 
-	/* Always enable CLOEXEC on the socket */
-	flags = fcntl(s, F_GETFD);
-	if (flags == -1
-	    || fcntl(s, F_SETFD, (long)(flags | FD_CLOEXEC)) == -1) {
-		int e = errno;
-		close(s);
-		errno = e;
-		return -1;
-	}
+  /* Always enable CLOEXEC on the socket */
+  flags = fcntl(s, F_GETFD);
+  if (flags == -1
+      || fcntl(s, F_SETFD, (long)(flags | FD_CLOEXEC)) == -1) {
+    int e = errno;
+    close(s);
+    errno = e;
+    return -1;
+  }
 
-	return s;
+  return s;
 }
 
 char *amqp_os_error_string(int err)
 {
-	return strdup(strerror(err));
+  return strdup(strerror(err));
 }
