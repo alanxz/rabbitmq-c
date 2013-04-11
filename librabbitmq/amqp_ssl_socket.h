@@ -56,7 +56,7 @@ AMQP_PUBLIC_FUNCTION
 int
 AMQP_CALL
 amqp_ssl_socket_set_cacert(amqp_socket_t *self,
-			   const char *cacert);
+                           const char *cacert);
 
 /**
  * Set the client key.
@@ -71,8 +71,8 @@ AMQP_PUBLIC_FUNCTION
 int
 AMQP_CALL
 amqp_ssl_socket_set_key(amqp_socket_t *self,
-			const char *cert,
-			const char *key);
+                        const char *cert,
+                        const char *key);
 
 /**
  * Set the client key from a buffer.
@@ -88,9 +88,9 @@ AMQP_PUBLIC_FUNCTION
 int
 AMQP_CALL
 amqp_ssl_socket_set_key_buffer(amqp_socket_t *self,
-			       const char *cert,
-			       const void *key,
-			       size_t n);
+                               const char *cert,
+                               const void *key,
+                               size_t n);
 
 /**
  * Enable or disable peer verification.
@@ -106,7 +106,7 @@ AMQP_PUBLIC_FUNCTION
 void
 AMQP_CALL
 amqp_ssl_socket_set_verify(amqp_socket_t *self,
-			   amqp_boolean_t verify);
+                           amqp_boolean_t verify);
 
 /**
  * Sets whether rabbitmq-c initializes the underlying SSL library.

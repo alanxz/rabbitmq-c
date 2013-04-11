@@ -389,9 +389,9 @@ int
 AMQP_CALL amqp_get_sockfd(amqp_connection_state_t state);
 
 AMQP_DEPRECATED(
-AMQP_PUBLIC_FUNCTION
-void
-AMQP_CALL amqp_set_sockfd(amqp_connection_state_t state, int sockfd)
+  AMQP_PUBLIC_FUNCTION
+  void
+  AMQP_CALL amqp_set_sockfd(amqp_connection_state_t state, int sockfd)
 );
 
 AMQP_PUBLIC_FUNCTION
@@ -512,8 +512,8 @@ AMQP_CALL amqp_login(amqp_connection_state_t state, char const *vhost,
 AMQP_PUBLIC_FUNCTION
 amqp_rpc_reply_t
 AMQP_CALL amqp_login_with_properties(amqp_connection_state_t state, char const *vhost,
-        int channel_max, int frame_max, int heartbeat,
-        const amqp_table_t *properties, amqp_sasl_method_enum sasl_method, ...);
+                                     int channel_max, int frame_max, int heartbeat,
+                                     const amqp_table_t *properties, amqp_sasl_method_enum sasl_method, ...);
 
 struct amqp_basic_properties_t_;
 

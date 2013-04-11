@@ -60,7 +60,7 @@ amqp_socket_setsockopt(int sock, int level, int optname, const void *optval,
                        size_t optlen);
 
 ssize_t
-amqp_socket_writev(int sock, struct iovec *iov, int nvecs, AMQP_UNUSED void* user_data);
+amqp_socket_writev(int sock, struct iovec *iov, int nvecs, AMQP_UNUSED void *user_data);
 
 int
 amqp_socket_error(AMQP_UNUSED void *user_data);

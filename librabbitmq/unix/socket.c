@@ -85,18 +85,18 @@ amqp_os_error_string(int err)
 int
 amqp_os_socket_close(int sockfd)
 {
-	return close(sockfd);
+  return close(sockfd);
 }
 
 ssize_t
 amqp_os_socket_writev(int sockfd, const struct iovec *iov,
-		      int iovcnt)
+                      int iovcnt)
 {
-	return writev(sockfd, iov, iovcnt);
+  return writev(sockfd, iov, iovcnt);
 }
 
 int
 amqp_os_socket_error(void)
 {
-	return errno | ERROR_CATEGORY_OS;
+  return errno | ERROR_CATEGORY_OS;
 }

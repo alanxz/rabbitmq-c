@@ -95,12 +95,12 @@ amqp_socket_setsockopt(int sock, int level, int optname,
 int
 amqp_socket_close(int sockfd, AMQP_UNUSED void *user_data)
 {
-	return closesocket(sockfd);
+  return closesocket(sockfd);
 }
 
 ssize_t
 amqp_socket_writev(int sock, struct iovec *iov, int nvecs,
-		       AMQP_UNUSED void *user_data)
+                   AMQP_UNUSED void *user_data)
 {
   DWORD ret;
   if (WSASend(sock, (LPWSABUF)iov, nvecs, &ret, 0, NULL, NULL) == 0) {

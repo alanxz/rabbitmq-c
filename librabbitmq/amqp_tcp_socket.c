@@ -31,96 +31,96 @@
 #include <stdlib.h>
 
 struct amqp_tcp_socket_t {
-	const struct amqp_socket_class_t *klass;
-	int sockfd;
+  const struct amqp_socket_class_t *klass;
+  int sockfd;
 };
 
 static ssize_t
 amqp_tcp_socket_writev(void *base, const struct iovec *iov, int iovcnt)
 {
-	struct amqp_tcp_socket_t *self = (struct amqp_tcp_socket_t *)base;
-	return amqp_os_socket_writev(self->sockfd, iov, iovcnt);
+  struct amqp_tcp_socket_t *self = (struct amqp_tcp_socket_t *)base;
+  return amqp_os_socket_writev(self->sockfd, iov, iovcnt);
 }
 
 static ssize_t
 amqp_tcp_socket_send(void *base, const void *buf, size_t len, int flags)
 {
-	struct amqp_tcp_socket_t *self = (struct amqp_tcp_socket_t *)base;
-	return send(self->sockfd, buf, len, flags);
+  struct amqp_tcp_socket_t *self = (struct amqp_tcp_socket_t *)base;
+  return send(self->sockfd, buf, len, flags);
 }
 
 static ssize_t
 amqp_tcp_socket_recv(void *base, void *buf, size_t len, int flags)
 {
-	struct amqp_tcp_socket_t *self = (struct amqp_tcp_socket_t *)base;
-	return recv(self->sockfd, buf, len, flags);
+  struct amqp_tcp_socket_t *self = (struct amqp_tcp_socket_t *)base;
+  return recv(self->sockfd, buf, len, flags);
 }
 
 static int
 amqp_tcp_socket_open(void *base, const char *host, int port)
 {
-	struct amqp_tcp_socket_t *self = (struct amqp_tcp_socket_t *)base;
-	self->sockfd = amqp_open_socket(host, port);
-	if (0 > self->sockfd) {
-		return -1;
-	}
-	return 0;
+  struct amqp_tcp_socket_t *self = (struct amqp_tcp_socket_t *)base;
+  self->sockfd = amqp_open_socket(host, port);
+  if (0 > self->sockfd) {
+    return -1;
+  }
+  return 0;
 }
 
 static int
 amqp_tcp_socket_close(void *base)
 {
-	struct amqp_tcp_socket_t *self = (struct amqp_tcp_socket_t *)base;
-	int status = -1;
-	if (self) {
-		status = amqp_os_socket_close(self->sockfd);
-		free(self);
-	}
-	return status;
+  struct amqp_tcp_socket_t *self = (struct amqp_tcp_socket_t *)base;
+  int status = -1;
+  if (self) {
+    status = amqp_os_socket_close(self->sockfd);
+    free(self);
+  }
+  return status;
 }
 
 static int
 amqp_tcp_socket_error(AMQP_UNUSED void *base)
 {
-	return amqp_os_socket_error();
+  return amqp_os_socket_error();
 }
 
 static int
 amqp_tcp_socket_get_sockfd(void *base)
 {
-	struct amqp_tcp_socket_t *self = (struct amqp_tcp_socket_t *)base;
-	return self->sockfd;
+  struct amqp_tcp_socket_t *self = (struct amqp_tcp_socket_t *)base;
+  return self->sockfd;
 }
 
 static const struct amqp_socket_class_t amqp_tcp_socket_class = {
-	amqp_tcp_socket_writev, /* writev */
-	amqp_tcp_socket_send, /* send */
-	amqp_tcp_socket_recv, /* recv */
-	amqp_tcp_socket_open, /* open */
-	amqp_tcp_socket_close, /* close */
-	amqp_tcp_socket_error, /* error */
-	amqp_tcp_socket_get_sockfd /* get_sockfd */
+  amqp_tcp_socket_writev, /* writev */
+  amqp_tcp_socket_send, /* send */
+  amqp_tcp_socket_recv, /* recv */
+  amqp_tcp_socket_open, /* open */
+  amqp_tcp_socket_close, /* close */
+  amqp_tcp_socket_error, /* error */
+  amqp_tcp_socket_get_sockfd /* get_sockfd */
 };
 
 amqp_socket_t *
 amqp_tcp_socket_new(void)
 {
-	struct amqp_tcp_socket_t *self = calloc(1, sizeof(*self));
-	if (!self) {
-		return NULL;
-	}
-	self->klass = &amqp_tcp_socket_class;
-	self->sockfd = -1;
-	return (amqp_socket_t *)self;
+  struct amqp_tcp_socket_t *self = calloc(1, sizeof(*self));
+  if (!self) {
+    return NULL;
+  }
+  self->klass = &amqp_tcp_socket_class;
+  self->sockfd = -1;
+  return (amqp_socket_t *)self;
 }
 
 void
 amqp_tcp_socket_set_sockfd(amqp_socket_t *base, int sockfd)
 {
-	struct amqp_tcp_socket_t *self;
-	if (base->klass != &amqp_tcp_socket_class) {
-		amqp_abort("<%p> is not of type amqp_tcp_socket_t", base);
-	}
-	self = (struct amqp_tcp_socket_t *)base;
-	self->sockfd = sockfd;
+  struct amqp_tcp_socket_t *self;
+  if (base->klass != &amqp_tcp_socket_class) {
+    amqp_abort("<%p> is not of type amqp_tcp_socket_t", base);
+  }
+  self = (struct amqp_tcp_socket_t *)base;
+  self->sockfd = sockfd;
 }

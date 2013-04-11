@@ -11,8 +11,9 @@ int
 pthread_mutex_init(pthread_mutex_t *mutex, void *attr)
 {
   *mutex = malloc(sizeof(CRITICAL_SECTION));
-  if (!*mutex)
+  if (!*mutex) {
     return 1;
+  }
   InitializeCriticalSection(*mutex);
   return 0;
 }
@@ -20,8 +21,9 @@ pthread_mutex_init(pthread_mutex_t *mutex, void *attr)
 int
 pthread_mutex_lock(pthread_mutex_t *mutex)
 {
-  if (!*mutex)
+  if (!*mutex) {
     return 1;
+  }
 
   EnterCriticalSection(*mutex);
   return 0;
@@ -30,8 +32,9 @@ pthread_mutex_lock(pthread_mutex_t *mutex)
 int
 pthread_mutex_unlock(pthread_mutex_t *mutex)
 {
-  if (!*mutex)
+  if (!*mutex) {
     return 1;
+  }
 
   LeaveCriticalSection(*mutex);
   return 0;

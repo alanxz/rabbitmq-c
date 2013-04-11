@@ -56,7 +56,8 @@ void die(const char *fmt, ...)
   exit(1);
 }
 
-void die_on_error(int x, char const *context) {
+void die_on_error(int x, char const *context)
+{
   if (x < 0) {
     char *errstr = amqp_error_string(-x);
     fprintf(stderr, "%s: %s\n", context, errstr);

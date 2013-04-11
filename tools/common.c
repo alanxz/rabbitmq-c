@@ -209,14 +209,22 @@ struct poptOption connect_options[] = {
     "the password to login with", "password"
   },
 #ifdef WITH_SSL
-	{"ssl", 0, POPT_ARG_NONE, &amqp_ssl, 0,
-	 "connect over SSL/TLS", NULL},
-	{"cacert", 0, POPT_ARG_STRING, &amqp_cacert, 0,
-	 "path to the CA certificate file", "cacert.pem"},
-	{"key", 0, POPT_ARG_STRING, &amqp_key, 0,
-	 "path to the client private key file", "key.pem"},
-	{"cert", 0, POPT_ARG_STRING, &amqp_cert, 0,
-	 "path to the client certificate file", "cert.pem"},
+  {
+    "ssl", 0, POPT_ARG_NONE, &amqp_ssl, 0,
+    "connect over SSL/TLS", NULL
+  },
+  {
+    "cacert", 0, POPT_ARG_STRING, &amqp_cacert, 0,
+    "path to the CA certificate file", "cacert.pem"
+  },
+  {
+    "key", 0, POPT_ARG_STRING, &amqp_key, 0,
+    "path to the client private key file", "key.pem"
+  },
+  {
+    "cert", 0, POPT_ARG_STRING, &amqp_cert, 0,
+    "path to the client certificate file", "cert.pem"
+  },
 #endif /* WITH_SSL */
   { NULL, '\0', 0, NULL, 0, NULL, NULL }
 };
@@ -234,7 +242,7 @@ static void init_connection_info(struct amqp_connection_info *ci)
 
   if (amqp_url)
     die_amqp_error(amqp_parse_url(strdup(amqp_url), ci),
-        "Parsing URL '%s'", amqp_url);
+                   "Parsing URL '%s'", amqp_url);
 
   if (amqp_server) {
     char *colon;
@@ -253,7 +261,7 @@ static void init_connection_info(struct amqp_connection_info *ci)
          --url now allows connection options to be
          specificied concisely. */
       fprintf(stderr, "Specifying the port number with"
-          " --server is deprecated\n");
+              " --server is deprecated\n");
 
       host_len = colon - amqp_server;
       ci->host = malloc(host_len + 1);
@@ -353,11 +361,12 @@ amqp_connection_state_t make_connection(void)
   }
   amqp_set_socket(conn, socket);
   die_rpc(amqp_login(conn, ci.vhost, 0, 131072, 0,
-        AMQP_SASL_METHOD_PLAIN,
-        ci.user, ci.password),
-      "logging in to AMQP server");
-  if (!amqp_channel_open(conn, 1))
+                     AMQP_SASL_METHOD_PLAIN,
+                     ci.user, ci.password),
+          "logging in to AMQP server");
+  if (!amqp_channel_open(conn, 1)) {
     die_rpc(amqp_get_rpc_reply(conn), "opening channel");
+  }
   return conn;
 }
 

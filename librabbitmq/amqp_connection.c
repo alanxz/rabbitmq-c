@@ -170,8 +170,9 @@ int amqp_destroy_connection(amqp_connection_state_t state)
     empty_amqp_pool(&state->decoding_pool);
     free(state->outbound_buffer.bytes);
     free(state->sock_inbound_buffer.bytes);
-    if (amqp_socket_close(state->socket) < 0)
+    if (amqp_socket_close(state->socket) < 0) {
       status = -amqp_socket_error(state->socket);
+    }
     free(state);
   }
   return status;

@@ -141,8 +141,9 @@ int amqp_parse_url(char *url, struct amqp_connection_info *parsed)
     /* What might have been the host and port were in fact
        the username and password */
     parsed->user = host;
-    if (port)
+    if (port) {
       parsed->password = port;
+    }
 
     port = NULL;
     host = start = url;
@@ -152,14 +153,16 @@ int amqp_parse_url(char *url, struct amqp_connection_info *parsed)
   if (delim == '[') {
     /* IPv6 address.  The bracket should be the first
        character in the host. */
-    if (host != start || *host != 0)
+    if (host != start || *host != 0) {
       goto out;
+    }
 
     start = url;
     delim = find_delim(&url, 0);
 
-    if (delim != ']')
+    if (delim != ']') {
       goto out;
+    }
 
     parsed->host = start;
     start = url;
@@ -167,13 +170,14 @@ int amqp_parse_url(char *url, struct amqp_connection_info *parsed)
 
     /* Closing bracket should be the last character in the
        host. */
-    if (*start != 0)
+    if (*start != 0) {
       goto out;
-  }
-  else {
+    }
+  } else {
     /* If we haven't seen the host yet, this is it. */
-    if (*host != 0)
+    if (*host != 0) {
       parsed->host = host;
+    }
   }
 
   if (delim == ':') {
@@ -185,8 +189,9 @@ int amqp_parse_url(char *url, struct amqp_connection_info *parsed)
     char *end;
     long portnum = strtol(port, &end, 10);
 
-    if (port == end || *end != 0 || portnum < 0 || portnum > 65535)
+    if (port == end || *end != 0 || portnum < 0 || portnum > 65535) {
       goto out;
+    }
 
     parsed->port = portnum;
   }
@@ -195,13 +200,13 @@ int amqp_parse_url(char *url, struct amqp_connection_info *parsed)
     start = url;
     delim = find_delim(&url, 1);
 
-    if (delim != 0)
+    if (delim != 0) {
       goto out;
+    }
 
     parsed->vhost = start;
     res = 0;
-  }
-  else if (delim == 0) {
+  } else if (delim == 0) {
     res = 0;
   }
 
