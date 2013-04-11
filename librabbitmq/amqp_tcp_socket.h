@@ -1,6 +1,6 @@
 /* vim:set ft=c ts=2 sw=2 sts=2 et cindent: */
 /*
- * Copyright 2012 Michael Steinert
+ * Copyright 2012-2013 Michael Steinert
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
