@@ -93,14 +93,13 @@ amqp_socket_setsockopt(int sock, int level, int optname,
 }
 
 int
-amqp_socket_close(int sockfd, AMQP_UNUSED void *user_data)
+amqp_os_socket_close(int sockfd)
 {
   return closesocket(sockfd);
 }
 
 ssize_t
-amqp_socket_writev(int sock, struct iovec *iov, int nvecs,
-                   AMQP_UNUSED void *user_data)
+amqp_os_socket_writev(int sock, struct iovec *iov, int nvecs)
 {
   DWORD ret;
   if (WSASend(sock, (LPWSABUF)iov, nvecs, &ret, 0, NULL, NULL) == 0) {
@@ -111,7 +110,7 @@ amqp_socket_writev(int sock, struct iovec *iov, int nvecs,
 }
 
 int
-amqp_socket_error(AMQP_UNUSED void *user_data)
+amqp_os_socket_error(void)
 {
   return WSAGetLastError() | ERROR_CATEGORY_OS;
 }
