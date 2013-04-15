@@ -118,8 +118,9 @@ int amqp_open_socket(char const *hostname,
   int last_error = 0;
   int one = 1; /* for setsockopt */
 
-  if (0 != (last_error = amqp_socket_init())) {
-    return last_error;
+  last_error = amqp_socket_init();
+  if (0 != last_error) {
+    return -last_error;
   }
 
   memset(&hint, 0, sizeof(hint));
