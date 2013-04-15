@@ -32,6 +32,7 @@
 #include <polarssl/net.h>
 #include <polarssl/ssl.h>
 #include <stdlib.h>
+#include <string.h>
 
 struct amqp_ssl_socket_t {
   int sockfd;
@@ -158,7 +159,13 @@ amqp_ssl_socket_close(void *base)
 static int
 amqp_ssl_socket_error(AMQP_UNUSED void *user_data)
 {
-  return -1;
+  return ERROR_CATEGORY_SSL;
+}
+
+char *
+amqp_ssl_error_string(AMQP_UNUSED int err)
+{
+  return strdup("A SSL socket error occurred");
 }
 
 static int

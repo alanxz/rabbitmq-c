@@ -33,6 +33,7 @@
 #include <openssl/err.h>
 #include <openssl/ssl.h>
 #include <stdlib.h>
+#include <string.h>
 
 #include "socket.h"
 
@@ -262,7 +263,13 @@ amqp_ssl_socket_close(void *base)
 static int
 amqp_ssl_socket_error(AMQP_UNUSED void *base)
 {
-  return -1;
+  return ERROR_CATEGORY_SSL;
+}
+
+char *
+amqp_ssl_error_string(AMQP_UNUSED int err)
+{
+  return strdup("A ssl socket error occurred.");
 }
 
 static int

@@ -30,6 +30,7 @@
 #include <gnutls/gnutls.h>
 #include <gnutls/x509.h>
 #include <stdlib.h>
+#include <string.h>
 
 struct amqp_ssl_socket_t {
   gnutls_session_t session;
@@ -131,7 +132,13 @@ amqp_ssl_socket_close(void *base)
 static int
 amqp_ssl_socket_error(AMQP_UNUSED void *user_data)
 {
-  return -1;
+  return ERROR_CATEGORY_SSL;
+}
+
+char *
+amqp_ssl_error_string(AMQP_UNUSED int err)
+{
+  return strdup("A SSL error occurred");
 }
 
 static int

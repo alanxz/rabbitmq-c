@@ -29,6 +29,7 @@
 #include "amqp_private.h"
 #include <cyassl/ssl.h>
 #include <stdlib.h>
+#include <string.h>
 
 struct amqp_ssl_socket_t {
   CYASSL_CTX *ctx;
@@ -118,7 +119,13 @@ amqp_ssl_socket_close(void *base)
 static int
 amqp_ssl_socket_error(AMQP_UNUSED void *user_data)
 {
-  return -1;
+  return ERROR_CATEGORY_SSL;
+}
+
+char *
+amqp_ssl_error_string(AMQP_UNUSED int err)
+{
+  return strdup("A ssl socket error occurred.");
 }
 
 static int
