@@ -202,7 +202,6 @@ endif (REGENERATE_AMQP_FRAMING)
 
 find_package(POPT)
 find_package(XmlTo)
-find_package(OpenSSL 0.9.8)
 
 if (POPT_FOUND AND XmlTo_FOUND)
   set(DO_DOCS ON)
@@ -225,9 +224,7 @@ mark_as_advanced(SSL_ENGINE)
 
 if (ENABLE_SSL_SUPPORT)
   if (SSL_ENGINE STREQUAL "OpenSSL")
-    if (NOT OPENSSL_FOUND)
-      message(FATAL_ERROR "Cannot find OpenSSL package, install openssl-dev package")
-    endif()
+    find_package(OpenSSL 0.9.8 REQUIRED)
 
   elseif (SSL_ENGINE STREQUAL "cyaSSL")
     find_package(cyaSSL REQUIRED)
