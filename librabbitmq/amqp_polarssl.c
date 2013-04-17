@@ -224,7 +224,7 @@ amqp_ssl_socket_new(void)
   if (!self->session) {
     goto error;
   }
-  ssl_set_session(self->ssl, 0, 0, self->session);
+  ssl_set_session(self->ssl, self->session);
   return (amqp_socket_t *)self;
 error:
   amqp_socket_close((amqp_socket_t *)self);
