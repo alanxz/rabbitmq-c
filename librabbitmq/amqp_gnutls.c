@@ -33,6 +33,7 @@
 #include <string.h>
 
 struct amqp_ssl_socket_t {
+  const struct amqp_socket_class_t *klass;
   gnutls_session_t session;
   gnutls_certificate_credentials_t credentials;
   int sockfd;
@@ -118,6 +119,14 @@ amqp_ssl_socket_open(void *base, const char *host, int port)
   struct amqp_ssl_socket_t *self = (struct amqp_ssl_socket_t *)base;
   int status;
   self->last_error = 0;
+
+  free(self->host);
+  self->host = strdup(host);
+  if (NULL == self->host) {
+    self->last_error = ERROR_NO_MEMORY;
+    return -1;
+  }
+
   self->sockfd = amqp_open_socket(host, port);
   if (0 > self->sockfd) {
     self->last_error = -self->sockfd;
@@ -267,6 +276,7 @@ amqp_ssl_socket_new(void)
   if (GNUTLS_E_SUCCESS != status) {
     goto error;
   }
+  self->klass = &amqp_ssl_socket_class;
   return (amqp_socket_t *)self;
 error:
   amqp_socket_close((amqp_socket_t *)self);

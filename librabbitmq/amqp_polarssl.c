@@ -36,6 +36,7 @@
 #include <string.h>
 
 struct amqp_ssl_socket_t {
+  const struct amqp_socket_class_t *klass;
   int sockfd;
   entropy_context *entropy;
   ctr_drbg_context *ctr_drbg;
@@ -258,6 +259,7 @@ amqp_ssl_socket_new(void)
   ssl_set_session(self->ssl, 0, 0, self->session);
 #endif
 
+  self->klass = &amqp_ssl_socket_class;
   return (amqp_socket_t *)self;
 error:
   amqp_socket_close((amqp_socket_t *)self);
