@@ -32,6 +32,11 @@
 #include <stdlib.h>
 #include <string.h>
 
+#ifndef AMQP_USE_UNTESTED_SSL_BACKEND
+# error This SSL backend is alpha quality and likely contains errors.\
+  -DAMQP_USE_UNTESTED_SSL_BACKEND to use this backend
+#endif
+
 struct amqp_ssl_socket_t {
   const struct amqp_socket_class_t *klass;
   gnutls_session_t session;
