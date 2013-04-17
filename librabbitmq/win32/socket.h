@@ -52,18 +52,22 @@ amqp_socket_init(void);
 
 #define amqp_socket_socket socket
 
-int
-amqp_socket_close(int sockfd, AMQP_UNUSED void *user_data);
+char *
+amqp_os_error_string(int err);
 
 int
-amqp_socket_setsockopt(int sock, int level, int optname, const void *optval,
-                       size_t optlen);
+amqp_socket_setsockopt(int sock, int level, int optname,
+                       const void *optval, size_t optlen);
+
+int
+amqp_os_socket_close(int sockfd);
+
 
 ssize_t
-amqp_socket_writev(int sock, struct iovec *iov, int nvecs, AMQP_UNUSED void *user_data);
+amqp_os_socket_writev(int sock, struct iovec *iov, int nvecs);
 
 int
-amqp_socket_error(AMQP_UNUSED void *user_data);
+amqp_os_socket_error(void);
 
 #ifndef MSG_NOSIGNAL
 # define MSG_NOSIGNAL 0x0

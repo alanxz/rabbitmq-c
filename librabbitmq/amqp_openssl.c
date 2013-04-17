@@ -421,12 +421,13 @@ int
 amqp_ssl_socket_set_cert(amqp_socket_t *base,
                          const char *cert)
 {
+  int status;
   struct amqp_ssl_socket_t *self;
   if (base->klass != &amqp_ssl_socket_class) {
     amqp_abort("<%p> is not of type amqp_ssl_socket_t", base);
   }
   self = (struct amqp_ssl_socket_t *)base;
-  int status = SSL_CTX_use_certificate_chain_file(self->ctx, cert);
+  status = SSL_CTX_use_certificate_chain_file(self->ctx, cert);
   if (1 != status) {
     return -1;
   }
