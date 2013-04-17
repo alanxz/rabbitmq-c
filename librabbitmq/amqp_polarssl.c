@@ -31,6 +31,7 @@
 #include <polarssl/entropy.h>
 #include <polarssl/net.h>
 #include <polarssl/ssl.h>
+#include <polarssl/version.h>
 #include <stdlib.h>
 #include <string.h>
 
@@ -251,7 +252,12 @@ amqp_ssl_socket_new(void)
   if (!self->session) {
     goto error;
   }
+#if POLARSSL_VERSION_NUMBER >= 0x01020000
   ssl_set_session(self->ssl, self->session);
+#else
+  ssl_set_session(self->ssl, 0, 0, self->session);
+#endif
+
   return (amqp_socket_t *)self;
 error:
   amqp_socket_close((amqp_socket_t *)self);
