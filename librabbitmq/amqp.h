@@ -641,7 +641,7 @@ amqp_socket_close(amqp_socket_t *self);
  *
  * \param [in,out] self A socket object.
  *
- * \return Zero upon success, non-zero otherwise.
+ * \return Zero upon success, an opaque error code otherwise
  */
 AMQP_PUBLIC_FUNCTION
 int

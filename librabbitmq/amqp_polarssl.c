@@ -45,6 +45,7 @@ struct amqp_ssl_socket_t {
   ssl_session *session;
   char *buffer;
   size_t length;
+  int last_error;
 };
 
 static ssize_t
@@ -53,8 +54,16 @@ amqp_ssl_socket_send(void *base,
                      size_t len,
                      AMQP_UNUSED int flags)
 {
+  ssize_t status;
   struct amqp_ssl_socket_t *self = (struct amqp_ssl_socket_t *)base;
-  return ssl_write(self->ssl, buf, len);
+
+  self->last_error = 0;
+  status = ssl_write(self->ssl, buf, len);
+  if (status < 0) {
+    self->last_error = ERROR_CATEGORY_SSL;
+  }
+
+  return status;
 }
 
 static ssize_t
@@ -67,6 +76,7 @@ amqp_ssl_socket_writev(void *base,
   char *bufferp;
   size_t bytes;
   int i;
+  self->last_error = 0;
   bytes = 0;
   for (i = 0; i < iovcnt; ++i) {
     bytes += iov[i].iov_len;
@@ -76,6 +86,7 @@ amqp_ssl_socket_writev(void *base,
     self->buffer = malloc(bytes);
     if (!self->buffer) {
       self->length = 0;
+      self->last_error = ERROR_NO_MEMORY;
       goto exit;
     }
     self->length = bytes;
@@ -85,8 +96,8 @@ amqp_ssl_socket_writev(void *base,
     memcpy(bufferp, iov[i].iov_base, iov[i].iov_len);
     bufferp += iov[i].iov_len;
   }
-  written = ssl_write(self->ssl, (const unsigned char *)self->buffer,
-                      bytes);
+  written = amqp_ssl_socket_send(self, (const unsigned char *)self->buffer,
+                      bytes, 0);
 exit:
   return written;
 }
@@ -97,16 +108,31 @@ amqp_ssl_socket_recv(void *base,
                      size_t len,
                      AMQP_UNUSED int flags)
 {
+  ssize_t status;
   struct amqp_ssl_socket_t *self = (struct amqp_ssl_socket_t *)base;
-  return ssl_read(self->ssl, buf, len);
+
+  self->last_error = 0;
+  status = ssl_read(self->ssl, buf, len);
+  if (status < 0) {
+    self->last_error = ERROR_CATEGORY_SSL;
+  }
+
+  return status;
 }
 
 static int
 amqp_ssl_socket_open(void *base, const char *host, int port)
 {
+  int status;
   struct amqp_ssl_socket_t *self = (struct amqp_ssl_socket_t *)base;
-  int status = net_connect(&self->sockfd, host, port);
+  self->last_error = 0;
+
+  status = net_connect(&self->sockfd, host, port);
   if (status) {
+    /* This isn't quite right. We should probably translate between
+     * POLARSSL_ERR_* to our internal error codes
+     */
+    self->last_error = ERROR_CATEGORY_SSL;
     return -1;
   }
   if (self->cacert) {
@@ -123,6 +149,7 @@ amqp_ssl_socket_open(void *base, const char *host, int port)
     case POLARSSL_ERR_NET_WANT_WRITE:
       continue;
     default:
+      self->last_error = ERROR_CATEGORY_SSL;
       break;
     }
   }

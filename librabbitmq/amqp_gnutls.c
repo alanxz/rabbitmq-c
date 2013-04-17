@@ -39,6 +39,7 @@ struct amqp_ssl_socket_t {
   char *host;
   char *buffer;
   size_t length;
+  int last_error;
 };
 
 static ssize_t
@@ -47,8 +48,15 @@ amqp_ssl_socket_send(void *base,
                      size_t len,
                      AMQP_UNUSED int flags)
 {
+  ssize_t status;
   struct amqp_ssl_socket_t *self = (struct amqp_ssl_socket_t *)base;
-  return gnutls_record_send(self->session, buf, len);
+
+  self->last_error = 0;
+  status = gnutls_record_send(self->session, buf, len);
+  if (status < 0) {
+    self->last_error = ERROR_CATEGORY_SSL;
+  }
+  return status;
 }
 
 static ssize_t
@@ -61,6 +69,7 @@ amqp_ssl_socket_writev(void *base,
   char *bufferp;
   size_t bytes;
   int i;
+  self->last_error = 0;
   bytes = 0;
   for (i = 0; i < iovcnt; ++i) {
     bytes += iov[i].iov_len;
@@ -70,6 +79,7 @@ amqp_ssl_socket_writev(void *base,
     self->buffer = malloc(bytes);
     if (!self->buffer) {
       self->length = 0;
+      self->last_error = ERROR_NO_MEMORY;
       goto exit;
     }
     self->length = 0;
@@ -79,7 +89,7 @@ amqp_ssl_socket_writev(void *base,
     memcpy(bufferp, iov[i].iov_base, iov[i].iov_len);
     bufferp += iov[i].iov_len;
   }
-  written = gnutls_record_send(self->session, self->buffer, bytes);
+  written = amqp_ssl_socket_send(self, self->buffer, bytes, 0);
 exit:
   return written;
 }
@@ -90,8 +100,16 @@ amqp_ssl_socket_recv(void *base,
                      size_t len,
                      AMQP_UNUSED int flags)
 {
+  ssize_t status;
   struct amqp_ssl_socket_t *self = (struct amqp_ssl_socket_t *)base;
-  return gnutls_record_recv(self->session, buf, len);
+
+  self->last_error = 0;
+  status = gnutls_record_recv(self->session, buf, len);
+  if (status < 0) {
+    self->last_error = ERROR_CATEGORY_SSL;
+  }
+
+  return status;
 }
 
 static int
@@ -99,8 +117,10 @@ amqp_ssl_socket_open(void *base, const char *host, int port)
 {
   struct amqp_ssl_socket_t *self = (struct amqp_ssl_socket_t *)base;
   int status;
+  self->last_error = 0;
   self->sockfd = amqp_open_socket(host, port);
   if (0 > self->sockfd) {
+    self->last_error = -self->sockfd;
     return -1;
   }
   gnutls_transport_set_ptr(self->session,
@@ -108,6 +128,11 @@ amqp_ssl_socket_open(void *base, const char *host, int port)
   do {
     status = gnutls_handshake(self->session);
   } while (status < 0 && !gnutls_error_is_fatal(status));
+
+  if (gnutls_error_is_fatal(status)) {
+    self->last_error = ERROR_CATEGORY_SSL;
+  }
+
   return status;
 }
 
@@ -130,9 +155,10 @@ amqp_ssl_socket_close(void *base)
 }
 
 static int
-amqp_ssl_socket_error(AMQP_UNUSED void *user_data)
+amqp_ssl_socket_error(void *base)
 {
-  return ERROR_CATEGORY_SSL;
+  struct amqp_ssl_socket_t *self = (struct amqp_ssl_socket_t *)base;
+  return self->last_error;
 }
 
 char *
