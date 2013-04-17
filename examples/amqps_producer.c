@@ -6,6 +6,9 @@
  * Portions created by Alan Antonuk are Copyright (c) 2012-2013
  * Alan Antonuk. All Rights Reserved.
  *
+ * Portions created by Mike Steinert are Copyright (c) 2012-2013
+ * Mike Steinert. All Rights Reserved.
+ *
  * Portions created by VMware are Copyright (c) 2007-2012 VMware, Inc.
  * All Rights Reserved.
  *
@@ -39,87 +42,72 @@
 #include <string.h>
 
 #include <stdint.h>
-#include <amqp_tcp_socket.h>
-#include <amqp.h>
+#include <amqp_ssl_socket.h>
 #include <amqp_framing.h>
-
-#include <assert.h>
 
 #include "utils.h"
 
 #define SUMMARY_EVERY_US 1000000
 
-static void run(amqp_connection_state_t conn)
+static void send_batch(amqp_connection_state_t conn,
+                       char const *queue_name,
+                       int rate_limit,
+                       int message_count)
 {
   uint64_t start_time = now_microseconds();
-  int received = 0;
-  int previous_received = 0;
+  int i;
+  int sent = 0;
+  int previous_sent = 0;
   uint64_t previous_report_time = start_time;
   uint64_t next_summary_time = start_time + SUMMARY_EVERY_US;
 
-  amqp_frame_t frame;
-  int result;
-  size_t body_received;
-  size_t body_target;
+  char message[256];
+  amqp_bytes_t message_bytes;
 
-  uint64_t now;
+  for (i = 0; i < (int)sizeof(message); i++) {
+    message[i] = i & 0xff;
+  }
 
-  while (1) {
-    now = now_microseconds();
+  message_bytes.len = sizeof(message);
+  message_bytes.bytes = message;
+
+  for (i = 0; i < message_count; i++) {
+    uint64_t now = now_microseconds();
+
+    die_on_error(amqp_basic_publish(conn,
+                                    1,
+                                    amqp_cstring_bytes("amq.direct"),
+                                    amqp_cstring_bytes(queue_name),
+                                    0,
+                                    0,
+                                    NULL,
+                                    message_bytes),
+                 "Publishing");
+    sent++;
     if (now > next_summary_time) {
-      int countOverInterval = received - previous_received;
+      int countOverInterval = sent - previous_sent;
       double intervalRate = countOverInterval / ((now - previous_report_time) / 1000000.0);
-      printf("%d ms: Received %d - %d since last report (%d Hz)\n",
-             (int)(now - start_time) / 1000, received, countOverInterval, (int) intervalRate);
+      printf("%d ms: Sent %d - %d since last report (%d Hz)\n",
+             (int)(now - start_time) / 1000, sent, countOverInterval, (int) intervalRate);
 
-      previous_received = received;
+      previous_sent = sent;
       previous_report_time = now;
       next_summary_time += SUMMARY_EVERY_US;
     }
 
-    amqp_maybe_release_buffers(conn);
-    result = amqp_simple_wait_frame(conn, &frame);
-    if (result < 0) {
-      return;
+    while (((i * 1000000.0) / (now - start_time)) > rate_limit) {
+      microsleep(2000);
+      now = now_microseconds();
     }
+  }
 
-    if (frame.frame_type != AMQP_FRAME_METHOD) {
-      continue;
-    }
+  {
+    uint64_t stop_time = now_microseconds();
+    int total_delta = stop_time - start_time;
 
-    if (frame.payload.method.id != AMQP_BASIC_DELIVER_METHOD) {
-      continue;
-    }
-
-    result = amqp_simple_wait_frame(conn, &frame);
-    if (result < 0) {
-      return;
-    }
-
-    if (frame.frame_type != AMQP_FRAME_HEADER) {
-      fprintf(stderr, "Expected header!");
-      abort();
-    }
-
-    body_target = frame.payload.properties.body_size;
-    body_received = 0;
-
-    while (body_received < body_target) {
-      result = amqp_simple_wait_frame(conn, &frame);
-      if (result < 0) {
-        return;
-      }
-
-      if (frame.frame_type != AMQP_FRAME_BODY) {
-        fprintf(stderr, "Expected body!");
-        abort();
-      }
-
-      body_received += frame.payload.body_fragment.len;
-      assert(body_received <= body_target);
-    }
-
-    received++;
+    printf("PRODUCER - Message count: %d\n", message_count);
+    printf("Total time, milliseconds: %d\n", total_delta / 1000);
+    printf("Overall messages-per-second: %g\n", (message_count / (total_delta / 1000000.0)));
   }
 }
 
@@ -127,33 +115,46 @@ int main(int argc, char const *const *argv)
 {
   char const *hostname;
   int port, status;
-  char const *exchange;
-  char const *bindingkey;
-  amqp_socket_t *socket = NULL;
+  int rate_limit;
+  int message_count;
+  amqp_socket_t *socket;
   amqp_connection_state_t conn;
 
-  amqp_bytes_t queuename;
-
-  if (argc < 3) {
-    fprintf(stderr, "Usage: amqp_consumer host port\n");
+  if (argc < 5) {
+    fprintf(stderr, "Usage: amqps_producer host port rate_limit message_count "
+            "[cacert.pem [key.pem cert.pem]]\n");
     return 1;
   }
 
   hostname = argv[1];
   port = atoi(argv[2]);
-  exchange = "amq.direct"; /* argv[3]; */
-  bindingkey = "test queue"; /* argv[4]; */
+  rate_limit = atoi(argv[3]);
+  message_count = atoi(argv[4]);
 
   conn = amqp_new_connection();
 
-  socket = amqp_tcp_socket_new();
+  socket = amqp_ssl_socket_new();
   if (!socket) {
-    die("creating TCP socket");
+    die("creating SSL/TLS socket");
+  }
+
+  if (argc > 5) {
+    status = amqp_ssl_socket_set_cacert(socket, argv[5]);
+    if (status) {
+      die("setting CA certificate");
+    }
+  }
+
+  if (argc > 7) {
+    status = amqp_ssl_socket_set_key(socket, argv[7], argv[6]);
+    if (status) {
+      die("setting client cert");
+    }
   }
 
   status = amqp_socket_open(socket, hostname, port);
   if (status) {
-    die("opening TCP socket");
+    die("opening SSL/TLS connection");
   }
 
   amqp_set_socket(conn, socket);
@@ -162,29 +163,10 @@ int main(int argc, char const *const *argv)
   amqp_channel_open(conn, 1);
   die_on_amqp_error(amqp_get_rpc_reply(conn), "Opening channel");
 
-  {
-    amqp_queue_declare_ok_t *r = amqp_queue_declare(conn, 1, amqp_empty_bytes, 0, 0, 0, 1,
-                                 amqp_empty_table);
-    die_on_amqp_error(amqp_get_rpc_reply(conn), "Declaring queue");
-    queuename = amqp_bytes_malloc_dup(r->queue);
-    if (queuename.bytes == NULL) {
-      fprintf(stderr, "Out of memory while copying queue name");
-      return 1;
-    }
-  }
-
-  amqp_queue_bind(conn, 1, queuename, amqp_cstring_bytes(exchange), amqp_cstring_bytes(bindingkey),
-                  amqp_empty_table);
-  die_on_amqp_error(amqp_get_rpc_reply(conn), "Binding queue");
-
-  amqp_basic_consume(conn, 1, queuename, amqp_empty_bytes, 0, 1, 0, amqp_empty_table);
-  die_on_amqp_error(amqp_get_rpc_reply(conn), "Consuming");
-
-  run(conn);
+  send_batch(conn, "test queue", rate_limit, message_count);
 
   die_on_amqp_error(amqp_channel_close(conn, 1, AMQP_REPLY_SUCCESS), "Closing channel");
   die_on_amqp_error(amqp_connection_close(conn, AMQP_REPLY_SUCCESS), "Closing connection");
   die_on_error(amqp_destroy_connection(conn), "Ending connection");
-
   return 0;
 }

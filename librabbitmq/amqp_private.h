@@ -45,16 +45,20 @@
 #include "amqp_framing.h"
 #include <string.h>
 
+#ifdef HAVE_ARPA_INET_H
+#include <arpa/inet.h>
+#endif
+
 /* Error numbering: Because of differences in error numbering on
  * different platforms, we want to keep error numbers opaque for
  * client code.  Internally, we encode the category of an error
  * (i.e. where its number comes from) in the top bits of the number
  * (assuming that an int has at least 32 bits).
  */
-#define ERROR_CATEGORY_MASK (1 << 29)
-
 #define ERROR_CATEGORY_CLIENT (0 << 29) /* librabbitmq error codes */
 #define ERROR_CATEGORY_OS (1 << 29) /* OS-specific error codes */
+#define ERROR_CATEGORY_SSL (1 << 28) /* SSL-specific error codes */
+#define ERROR_CATEGORY_MASK (ERROR_CATEGORY_OS | ERROR_CATEGORY_SSL)
 
 /* librabbitmq error codes */
 #define ERROR_NO_MEMORY 1
@@ -71,8 +75,11 @@
 #if __GNUC__ > 2 | (__GNUC__ == 2 && __GNUC_MINOR__ > 4)
 #define AMQP_NORETURN \
   __attribute__ ((__noreturn__))
+#define AMQP_UNUSED \
+  __attribute__ ((__unused__))
 #else
 #define AMQP_NORETURN
+#define AMQP_UNUSED
 #endif
 
 #if __GNUC__ >= 4
@@ -85,7 +92,12 @@
 char *
 amqp_os_error_string(int err);
 
-#include "socket.h"
+#ifdef WITH_SSL
+char *
+amqp_ssl_error_string(int err);
+#endif
+
+#include "amqp_socket.h"
 
 /*
  * Connection states: XXX FIX THIS
@@ -143,7 +155,8 @@ struct amqp_connection_state_t_ {
 
   amqp_bytes_t outbound_buffer;
 
-  int sockfd;
+  amqp_socket_t *socket;
+
   amqp_bytes_t sock_inbound_buffer;
   size_t sock_inbound_offset;
   size_t sock_inbound_limit;

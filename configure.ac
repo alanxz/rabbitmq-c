@@ -34,6 +34,7 @@ m4_ifdef([AC_PROG_CC_C99], [AC_PROG_CC_C99],
 	 [AC_MSG_WARN([Attempt c99 workaround for old versions of autoconf])
 	  AC_PROG_CC
 	  AX_TRY_CFLAGS([-std=c99], [AX_CFLAGS([-std=c99])])])
+PKG_PROG_PKG_CONFIG([0.17])
 
 # Environment setup
 AC_CANONICAL_HOST
@@ -68,6 +69,7 @@ AS_CASE([$host],
                 [os_unix=yes])
 AM_CONDITIONAL([OS_UNIX], [test "x$os_unix" = xyes])
 AM_CONDITIONAL([OS_WIN32], [test "x$os_win32" = xyes])
+AC_DEFINE([ENABLE_THREAD_SAFETY], [1], [Define to 1 to enable thread safety])
 
 # Extra Win32 setup
 AS_IF([test "x$os_win32" = xyes],
@@ -127,6 +129,35 @@ AS_IF([test "x$enable_regen_amqp_framing" = "xyes"],
        [HAVE_PYTHON3=no])
 AM_CONDITIONAL([PYTHON3], [test "x$HAVE_PYTHON3" = "xyes"])
 
+# Configure SSL/TLS
+AC_ARG_WITH([ssl],
+	    [AS_HELP_STRING([--with-ssl=@<:@cyassl/gnutls/no/openssl/polarssl/yes@:>@],
+			    [enable SSL/TLS support @<:@default=openssl@:>@])],
+	    [AS_CASE([$withval],
+		     [yes], [with_ssl=openssl],
+		     [*], [with_ssl=$withval])],
+	    [with_ssl=openssl])
+
+AS_IF([test "x$with_ssl" = "xcyassl"],
+      [PKG_CHECK_MODULES([SSL], [libcyassl],, [with_ssl=no])],
+      [test "x$with_ssl" = "xgnutls"],
+      [PKG_CHECK_MODULES([SSL], [gnutls],, [with_ssl=no])],
+      [test "x$with_ssl" = "xopenssl"],
+      [PKG_CHECK_MODULES([SSL], [openssl >= 0.9.8],, [with_ssl=no])],
+      [test "x$with_ssl" = "xpolarssl"],
+      [AX_LIB_POLARSSL([SSL_CFLAGS=$POLARSSL_CFLAGS
+			SSL_LIBS=$POLARSSL_LIBS],
+		       [with_ssl=no])],
+      [test "x$with_ssl" = "xno"],,
+      [AC_MSG_ERROR([unknown SSL/TLS implementation: $with_ssl])])
+AM_CONDITIONAL([SSL_CYASSL], [test "x$with_ssl" = "xcyassl"])
+AM_CONDITIONAL([SSL_GNUTLS], [test "x$with_ssl" = "xgnutls"])
+AM_CONDITIONAL([SSL_OPENSSL], [test "x$with_ssl" = "xopenssl"])
+AM_CONDITIONAL([SSL_POLARSSL], [test "x$with_ssl" = "xpolarssl"])
+AM_CONDITIONAL([SSL], [test "x$with_ssl" != "xno"])
+AS_IF([test "x$with_ssl" != "xno"],
+      [AC_DEFINE([WITH_SSL], [1], [Define to 1 if SSL/TLS is enabled.])])
+
 # Configure AMQP command-line tools
 AC_ARG_ENABLE([tools],
 	      [AS_HELP_STRING([--enable-tools],
@@ -152,6 +183,13 @@ AS_IF([test "x$enable_docs" != "xno"],
 	     [enable_docs=no])])
 AM_CONDITIONAL([DOCS], [test "x$enable_docs" = "xyes"])
 
+# Configure examples
+AC_ARG_ENABLE([examples],
+	      [AS_HELP_STRING([--enable-examples],
+			      [build example code @<:@auto@:>@])],,
+	      [enable_examples=yes])
+AM_CONDITIONAL([EXAMPLES], [test "x$enable_examples" = "xyes"])
+
 AC_CONFIG_HEADERS([config.h])
 AC_CONFIG_FILES([
 	librabbitmq.pc
@@ -162,6 +200,8 @@ AC_MSG_RESULT([
 $PACKAGE_NAME build options:
 	Host: $host
 	Version: $VERSION
+	SSL/TLS: $with_ssl
 	Tools: $enable_tools
 	Documentation: $enable_docs
+	Examples: $enable_examples
 ])

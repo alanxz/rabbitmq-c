@@ -112,61 +112,142 @@ int main(void)
   /* From the spec */
   parse_success("amqp://user:pass@host:10000/vhost", "user", "pass",
                 "host", 10000, "vhost");
+  parse_success("amqps://user:pass@host:10000/vhost", "user", "pass",
+                "host", 10000, "vhost");
+
   parse_success("amqp://user%61:%61pass@ho%61st:10000/v%2fhost",
                 "usera", "apass", "hoast", 10000, "v/host");
+  parse_success("amqps://user%61:%61pass@ho%61st:10000/v%2fhost",
+                "usera", "apass", "hoast", 10000, "v/host");
+
   parse_success("amqp://", "guest", "guest", "localhost", 5672, "/");
+  parse_success("amqps://", "guest", "guest", "localhost", 5671, "/");
+
   parse_success("amqp://:@/", "", "", "localhost", 5672, "");
+  parse_success("amqps://:@/", "", "", "localhost", 5671, "");
+
   parse_success("amqp://user@", "user", "guest", "localhost", 5672, "/");
+  parse_success("amqps://user@", "user", "guest", "localhost", 5671, "/");
+
   parse_success("amqp://user:pass@", "user", "pass",
                 "localhost", 5672, "/");
+  parse_success("amqps://user:pass@", "user", "pass",
+                "localhost", 5671, "/");
+
   parse_success("amqp://host", "guest", "guest", "host", 5672, "/");
+  parse_success("amqps://host", "guest", "guest", "host", 5671, "/");
+
   parse_success("amqp://:10000", "guest", "guest", "localhost", 10000,
                 "/");
+  parse_success("amqps://:10000", "guest", "guest", "localhost", 10000,
+                "/");
+
   parse_success("amqp:///vhost", "guest", "guest", "localhost", 5672,
                 "vhost");
+  parse_success("amqps:///vhost", "guest", "guest", "localhost", 5671,
+                "vhost");
+
   parse_success("amqp://host/", "guest", "guest", "host", 5672, "");
+  parse_success("amqps://host/", "guest", "guest", "host", 5671, "");
+
   parse_success("amqp://host/%2f", "guest", "guest", "host", 5672, "/");
+  parse_success("amqps://host/%2f", "guest", "guest", "host", 5671, "/");
+
   parse_success("amqp://[::1]", "guest", "guest", "::1", 5672, "/");
+  parse_success("amqps://[::1]", "guest", "guest", "::1", 5671, "/");
 
   /* Various other success cases */
   parse_success("amqp://host:100", "guest", "guest", "host", 100, "/");
+  parse_success("amqps://host:100", "guest", "guest", "host", 100, "/");
+
   parse_success("amqp://[::1]:100", "guest", "guest", "::1", 100, "/");
+  parse_success("amqps://[::1]:100", "guest", "guest", "::1", 100, "/");
 
   parse_success("amqp://host/blah", "guest", "guest",
                 "host", 5672, "blah");
+  parse_success("amqps://host/blah", "guest", "guest",
+                "host", 5671, "blah");
+
   parse_success("amqp://host:100/blah", "guest", "guest",
                 "host", 100, "blah");
+  parse_success("amqps://host:100/blah", "guest", "guest",
+                "host", 100, "blah");
+
   parse_success("amqp://:100/blah", "guest", "guest",
                 "localhost", 100, "blah");
+  parse_success("amqps://:100/blah", "guest", "guest",
+                "localhost", 100, "blah");
+
   parse_success("amqp://[::1]/blah", "guest", "guest",
                 "::1", 5672, "blah");
+  parse_success("amqps://[::1]/blah", "guest", "guest",
+                "::1", 5671, "blah");
+
   parse_success("amqp://[::1]:100/blah", "guest", "guest",
+                "::1", 100, "blah");
+  parse_success("amqps://[::1]:100/blah", "guest", "guest",
                 "::1", 100, "blah");
 
   parse_success("amqp://user:pass@host", "user", "pass",
                 "host", 5672, "/");
+  parse_success("amqps://user:pass@host", "user", "pass",
+                "host", 5671, "/");
+
   parse_success("amqp://user:pass@host:100", "user", "pass",
                 "host", 100, "/");
+  parse_success("amqps://user:pass@host:100", "user", "pass",
+                "host", 100, "/");
+
   parse_success("amqp://user:pass@:100", "user", "pass",
                 "localhost", 100, "/");
+  parse_success("amqps://user:pass@:100", "user", "pass",
+                "localhost", 100, "/");
+
   parse_success("amqp://user:pass@[::1]", "user", "pass",
                 "::1", 5672, "/");
+  parse_success("amqps://user:pass@[::1]", "user", "pass",
+                "::1", 5671, "/");
+
   parse_success("amqp://user:pass@[::1]:100", "user", "pass",
+                "::1", 100, "/");
+  parse_success("amqps://user:pass@[::1]:100", "user", "pass",
                 "::1", 100, "/");
 
   /* Various failure cases */
   parse_fail("http://www.rabbitmq.com");
+
   parse_fail("amqp://foo:bar:baz");
+  parse_fail("amqps://foo:bar:baz");
+
   parse_fail("amqp://foo[::1]");
+  parse_fail("amqps://foo[::1]");
+
+  parse_fail("amqp://foo[::1]");
+  parse_fail("amqps://foo[::1]");
+
   parse_fail("amqp://foo:[::1]");
+  parse_fail("amqps://foo:[::1]");
+
   parse_fail("amqp://[::1]foo");
+  parse_fail("amqps://[::1]foo");
+
   parse_fail("amqp://foo:1000xyz");
+  parse_fail("amqps://foo:1000xyz");
+
   parse_fail("amqp://foo:1000000");
+  parse_fail("amqps://foo:1000000");
+
   parse_fail("amqp://foo/bar/baz");
+  parse_fail("amqps://foo/bar/baz");
 
   parse_fail("amqp://foo%1");
+  parse_fail("amqps://foo%1");
+
   parse_fail("amqp://foo%1x");
+  parse_fail("amqps://foo%1x");
+
   parse_fail("amqp://foo%xy");
+  parse_fail("amqps://foo%xy");
 
   return 0;
 }

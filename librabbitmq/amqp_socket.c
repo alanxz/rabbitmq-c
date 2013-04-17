@@ -39,12 +39,73 @@
 #endif
 
 #include "amqp_private.h"
-#include <stdlib.h>
-#include <stdio.h>
-#include <string.h>
-#include <stdint.h>
-#include <stdarg.h>
+
+#include "socket.h"
+
 #include <assert.h>
+#include <stdarg.h>
+#include <stdint.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+
+ssize_t
+amqp_socket_writev(amqp_socket_t *self, const struct iovec *iov, int iovcnt)
+{
+  assert(self);
+  assert(self->klass->writev);
+  return self->klass->writev(self, iov, iovcnt);
+}
+
+ssize_t
+amqp_socket_send(amqp_socket_t *self, const void *buf, size_t len, int flags)
+{
+  assert(self);
+  assert(self->klass->send);
+  return self->klass->send(self, buf, len, flags);
+}
+
+ssize_t
+amqp_socket_recv(amqp_socket_t *self, void *buf, size_t len, int flags)
+{
+  assert(self);
+  assert(self->klass->recv);
+  return self->klass->recv(self, buf, len, flags);
+}
+
+int
+amqp_socket_open(amqp_socket_t *self, const char *host, int port)
+{
+  assert(self);
+  assert(self->klass->open);
+  return self->klass->open(self, host, port);
+}
+
+int
+amqp_socket_close(amqp_socket_t *self)
+{
+  if (self) {
+    assert(self->klass->close);
+    return self->klass->close(self);
+  }
+  return 0;
+}
+
+int
+amqp_socket_error(amqp_socket_t *self)
+{
+  assert(self);
+  assert(self->klass->error);
+  return self->klass->error(self);
+}
+
+int
+amqp_socket_get_sockfd(amqp_socket_t *self)
+{
+  assert(self);
+  assert(self->klass->get_sockfd);
+  return self->klass->get_sockfd(self);
+}
 
 int amqp_open_socket(char const *hostname,
                      int portnumber)
@@ -57,8 +118,9 @@ int amqp_open_socket(char const *hostname,
   int last_error = 0;
   int one = 1; /* for setsockopt */
 
-  if (0 != (last_error = amqp_socket_init())) {
-    return last_error;
+  last_error = amqp_socket_init();
+  if (0 != last_error) {
+    return -last_error;
   }
 
   memset(&hint, 0, sizeof(hint));
@@ -81,20 +143,20 @@ int amqp_open_socket(char const *hostname,
     */
     sockfd = (int)socket(addr->ai_family, addr->ai_socktype, addr->ai_protocol);
     if (-1 == sockfd) {
-      last_error = -amqp_socket_error();
+      last_error = -amqp_os_socket_error();
       continue;
     }
 #ifdef DISABLE_SIGPIPE_WITH_SETSOCKOPT
     if (0 != amqp_socket_setsockopt(sockfd, SOL_SOCKET, SO_NOSIGPIPE, &one, sizeof(one))) {
-      last_error = -amqp_socket_error();
-      amqp_socket_close(sockfd);
+      last_error = -amqp_os_socket_error();
+      amqp_os_socket_close(sockfd);
       continue;
     }
 #endif /* DISABLE_SIGPIPE_WITH_SETSOCKOPT */
     if (0 != amqp_socket_setsockopt(sockfd, IPPROTO_TCP, TCP_NODELAY, &one, sizeof(one))
         || 0 != connect(sockfd, addr->ai_addr, addr->ai_addrlen)) {
-      last_error = -amqp_socket_error();
-      amqp_socket_close(sockfd);
+      last_error = -amqp_os_socket_error();
+      amqp_os_socket_close(sockfd);
       continue;
     } else {
       last_error = 0;
@@ -117,7 +179,7 @@ int amqp_send_header(amqp_connection_state_t state)
                                      AMQP_PROTOCOL_VERSION_MINOR,
                                      AMQP_PROTOCOL_VERSION_REVISION
                                    };
-  return send(state->sockfd, (void *)header, 8, MSG_NOSIGNAL);
+  return amqp_socket_send(state->socket, header, 8, MSG_NOSIGNAL);
 }
 
 static amqp_bytes_t sasl_method_name(amqp_sasl_method_enum method)
@@ -214,13 +276,13 @@ static int wait_frame_inner(amqp_connection_state_t state,
       assert(res != 0);
     }
 
-    res = recv(state->sockfd, state->sock_inbound_buffer.bytes,
-               state->sock_inbound_buffer.len, 0);
+    res = amqp_socket_recv(state->socket, state->sock_inbound_buffer.bytes,
+                           state->sock_inbound_buffer.len, 0);
     if (res <= 0) {
       if (res == 0) {
         return -ERROR_CONNECTION_CLOSED;
       } else {
-        return -amqp_socket_error();
+        return -amqp_socket_error(state->socket);
       }
     }
 
@@ -342,14 +404,14 @@ retry:
      */
     if (!((frame.frame_type == AMQP_FRAME_METHOD)
           && (
-           ((frame.channel == channel)
-            && (amqp_id_in_reply_list(frame.payload.method.id, expected_reply_ids)
-               || (frame.payload.method.id == AMQP_CHANNEL_CLOSE_METHOD)))
-           ||
-           ((frame.channel == 0)
-            && (frame.payload.method.id == AMQP_CONNECTION_CLOSE_METHOD))
-           )
-          )) {
+            ((frame.channel == channel)
+             && (amqp_id_in_reply_list(frame.payload.method.id, expected_reply_ids)
+                 || (frame.payload.method.id == AMQP_CHANNEL_CLOSE_METHOD)))
+            ||
+            ((frame.channel == 0)
+             && (frame.payload.method.id == AMQP_CONNECTION_CLOSE_METHOD))
+          )
+         )) {
       amqp_frame_t *frame_copy = amqp_pool_alloc(&state->decoding_pool, sizeof(amqp_frame_t));
       amqp_link_t *link = amqp_pool_alloc(&state->decoding_pool, sizeof(amqp_link_t));
 
@@ -431,13 +493,13 @@ static int amqp_table_contains_entry(const amqp_table_t *table,
 }
 
 static amqp_rpc_reply_t amqp_login_inner(amqp_connection_state_t state,
-                                         char const *vhost,
-                                         int channel_max,
-                                         int frame_max,
-                                         int heartbeat,
-                                         const amqp_table_t *client_properties,
-                                         amqp_sasl_method_enum sasl_method,
-                                         va_list vl)
+    char const *vhost,
+    int channel_max,
+    int frame_max,
+    int heartbeat,
+    const amqp_table_t *client_properties,
+    amqp_sasl_method_enum sasl_method,
+    va_list vl)
 {
   int res;
   amqp_method_t method;
@@ -472,7 +534,7 @@ static amqp_rpc_reply_t amqp_login_inner(amqp_connection_state_t state,
     amqp_table_t default_table;
     amqp_connection_start_ok_t s;
     amqp_bytes_t response_bytes = sasl_response(&state->decoding_pool,
-                                                sasl_method, vl);
+                                  sasl_method, vl);
 
     if (response_bytes.bytes == NULL) {
       res = -ERROR_NO_MEMORY;
@@ -508,7 +570,7 @@ static amqp_rpc_reply_t amqp_login_inner(amqp_connection_state_t state,
       amqp_table_entry_t *current_entry;
 
       s.client_properties.entries = amqp_pool_alloc(&state->decoding_pool,
-          sizeof(amqp_table_entry_t) * (default_table.num_entries + client_properties->num_entries));
+                                    sizeof(amqp_table_entry_t) * (default_table.num_entries + client_properties->num_entries));
       if (NULL == s.client_properties.entries) {
         res = -ERROR_NO_MEMORY;
         goto error_res;
@@ -643,13 +705,13 @@ amqp_rpc_reply_t amqp_login(amqp_connection_state_t state,
 }
 
 amqp_rpc_reply_t amqp_login_with_properties(amqp_connection_state_t state,
-                                            char const *vhost,
-                                            int channel_max,
-                                            int frame_max,
-                                            int heartbeat,
-                                            const amqp_table_t *client_properties,
-                                            amqp_sasl_method_enum sasl_method,
-                                            ...)
+    char const *vhost,
+    int channel_max,
+    int frame_max,
+    int heartbeat,
+    const amqp_table_t *client_properties,
+    amqp_sasl_method_enum sasl_method,
+    ...)
 {
   va_list vl;
 

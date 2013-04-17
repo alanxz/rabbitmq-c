@@ -10,12 +10,17 @@ compiler:
 
 # Settings to try
 env:
+    # OpenSSL
   - PRE_CONFIGURE=true CONFIGURE="cmake .. -DCMAKE_INSTALL_PREFIX=../_install" BUILD_INSTALL="cmake --build . --target install"
+    # gnutls
+    #- PRE_CONFIGURE=true CONFIGURE="cmake .. -DSSL_ENGINE=GnuTLS -DCMAKE_INSTALL_PREFIX=../_install" BUILD_INSTALL="cmake --build . --target install"
+    # PolarSSL
+    #- PRE_CONFIGURE=true CONFIGURE="cmake .. -DSSL_ENGINE=PolarSSL -DCMAKE_INSTALL_PREFIX=../_install" BUILD_INSTALL="cmake --build . --target install"
   - PRE_CONFIGURE="autoreconf -i" CONFIGURE="../configure --prefix=`pwd`/_install" BUILD_INSTALL="make install"
-      
+
 # Make sure CMake is installed
 install:
- - sudo apt-get install cmake libpopt-dev
+  - sudo apt-get install cmake libpopt-dev libpolarssl-dev libgnutls-dev
 
 # Run the Build script
 script:

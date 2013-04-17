@@ -12,6 +12,8 @@ endif #REGENERATE_AMQP_FRAMING
 lib_LTLIBRARIES = librabbitmq/librabbitmq.la
 
 librabbitmq_librabbitmq_la_SOURCES = \
+	librabbitmq/amqp-socket.h \
+	librabbitmq/amqp_tcp_socket.c \
 	librabbitmq/amqp_api.c \
 	librabbitmq/amqp_connection.c \
 	librabbitmq/amqp_mem.c \
@@ -26,28 +28,54 @@ else
 librabbitmq_librabbitmq_la_SOURCES += librabbitmq/amqp_framing.c
 endif
 
+if SSL_CYASSL
+librabbitmq_librabbitmq_la_SOURCES += librabbitmq/amqp_cyassl.c
+endif
+
+if SSL_GNUTLS
+librabbitmq_librabbitmq_la_SOURCES += librabbitmq/amqp_gnutls.c
+endif
+
+if SSL_OPENSSL
+librabbitmq_librabbitmq_la_SOURCES += librabbitmq/amqp_openssl.c
+endif
+
+if SSL_POLARSSL
+librabbitmq_librabbitmq_la_SOURCES += librabbitmq/amqp_polarssl.c
+endif
+
+librabbitmq_librabbitmq_la_CFLAGS = \
+	-I$(top_srcdir)/librabbitmq \
+	$(SSL_CFLAGS) \
+	$(AM_CFLAGS)
 
 librabbitmq_librabbitmq_la_LDFLAGS = \
 	-version-info $(LT_CURRENT):$(LT_REVISION):$(LT_AGE) \
-	$(NO_UNDEFINED)
-librabbitmq_librabbitmq_la_CFLAGS = $(AM_CFLAGS)
-
+	$(NO_UNDEFINED) \
+	$(SSL_LIBS)
 
 if OS_UNIX
 librabbitmq_librabbitmq_la_SOURCES += librabbitmq/unix/socket.c
 librabbitmq_librabbitmq_la_SOURCES += librabbitmq/unix/socket.h
+librabbitmq_librabbitmq_la_SOURCES += librabbitmq/unix/threads.h
 librabbitmq_librabbitmq_la_CFLAGS += -I$(top_srcdir)/librabbitmq/unix
 endif
 
 if OS_WIN32
 librabbitmq_librabbitmq_la_SOURCES += librabbitmq/win32/socket.c
 librabbitmq_librabbitmq_la_SOURCES += librabbitmq/win32/socket.h
+librabbitmq_librabbitmq_la_SOURCES += librabbitmq/win32/threads.h
 librabbitmq_librabbitmq_la_CFLAGS += -I$(top_srcdir)/librabbitmq/win32
 librabbitmq_librabbitmq_la_CFLAGS += -I$(top_srcdir)/librabbitmq/win32/msinttypes
 endif
 
 include_HEADERS = \
 	$(top_srcdir)/librabbitmq/amqp.h
+	$(top_builddir)/librabbitmq/amqp_tcp_socket.h
+
+if SSL
+include_HEADERS += librabbitmq/amqp_ssl_socket.h
+endif
 
 if REGENERATE_AMQP_FRAMING
 
@@ -106,7 +134,10 @@ tests_test_tables_LDADD = librabbitmq/librabbitmq.la
 tests_test_parse_url_SOURCES = tests/test_parse_url.c
 tests_test_parse_url_LDADD = librabbitmq/librabbitmq.la
 
-noinst_LTLIBRARIES = examples/libutils.la
+noinst_LTLIBRARIES =
+
+if EXAMPLES
+noinst_LTLIBRARIES += examples/libutils.la
 
 examples_libutils_la_SOURCES = \
 	examples/utils.c \
@@ -173,10 +204,64 @@ examples_amqp_listenq_LDADD = \
 	examples/libutils.la \
 	librabbitmq/librabbitmq.la
 
-examples_amqp_rpc_sendstring_client_SOURCES = examples/amqp_rpc_sendstring_client.c
+examples_amqp_rpc_sendstring_client_SOURCES = \
+	examples/amqp_rpc_sendstring_client.c
 examples_amqp_rpc_sendstring_client_LDADD = \
 	examples/libutils.la \
 	librabbitmq/librabbitmq.la
+
+if SSL
+noinst_PROGRAMS += \
+	examples/amqps_bind \
+	examples/amqps_consumer \
+	examples/amqps_exchange_declare \
+	examples/amqps_listen \
+	examples/amqps_listenq \
+	examples/amqps_producer \
+	examples/amqps_sendstring \
+	examples/amqps_unbind
+
+examples_amqps_bind_SOURCES = examples/amqps_bind.c
+examples_amqps_bind_LDADD = \
+	examples/libutils.la \
+	librabbitmq/librabbitmq.la
+
+examples_amqps_consumer_SOURCES = examples/amqps_consumer.c
+examples_amqps_consumer_LDADD = \
+	examples/libutils.la \
+	librabbitmq/librabbitmq.la
+
+examples_amqps_exchange_declare_SOURCES = examples/amqps_exchange_declare.c
+examples_amqps_exchange_declare_LDADD = \
+	examples/libutils.la \
+	librabbitmq/librabbitmq.la
+
+examples_amqps_listen_SOURCES = examples/amqps_listen.c
+examples_amqps_listen_LDADD = \
+	examples/libutils.la \
+	librabbitmq/librabbitmq.la
+
+examples_amqps_listenq_SOURCES = examples/amqps_listenq.c
+examples_amqps_listenq_LDADD = \
+	examples/libutils.la \
+	librabbitmq/librabbitmq.la
+
+examples_amqps_producer_SOURCES = examples/amqps_producer.c
+examples_amqps_producer_LDADD = \
+	examples/libutils.la \
+	librabbitmq/librabbitmq.la
+
+examples_amqps_sendstring_SOURCES = examples/amqps_sendstring.c
+examples_amqps_sendstring_LDADD = \
+	examples/libutils.la \
+	librabbitmq/librabbitmq.la
+
+examples_amqps_unbind_SOURCES = examples/amqps_unbind.c
+examples_amqps_unbind_LDADD = \
+	examples/libutils.la \
+	librabbitmq/librabbitmq.la
+endif
+endif
 
 if TOOLS
 noinst_LTLIBRARIES += tools/libcommon.la

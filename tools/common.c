@@ -38,18 +38,18 @@
 #include "config.h"
 #endif
 
-/* needed for asnprintf */
-#define _GNU_SOURCE
+#include "common.h"
+#ifdef WITH_SSL
+#include <amqp_ssl_socket.h>
+#endif
+#include <amqp_tcp_socket.h>
+#include <errno.h>
+#include <fcntl.h>
+#include <stdarg.h>
 #include <stdio.h>
 #include <stdlib.h>
-#include <stdarg.h>
 #include <string.h>
-
 #include <unistd.h>
-#include <fcntl.h>
-#include <errno.h>
-
-#include "common.h"
 
 #ifdef WINDOWS
 #include "compat.h"
@@ -175,6 +175,12 @@ static int amqp_port = -1;
 static char *amqp_vhost;
 static char *amqp_username;
 static char *amqp_password;
+#ifdef WITH_SSL
+static int amqp_ssl = 0;
+static char *amqp_cacert = "/etc/ssl/certs/cacert.pem";
+static char *amqp_key = NULL;
+static char *amqp_cert = NULL;
+#endif /* WITH_SSL */
 
 const char *connect_options_title = "Connection options";
 struct poptOption connect_options[] = {
@@ -202,13 +208,29 @@ struct poptOption connect_options[] = {
     "password", 0, POPT_ARG_STRING, &amqp_password, 0,
     "the password to login with", "password"
   },
+#ifdef WITH_SSL
+  {
+    "ssl", 0, POPT_ARG_NONE, &amqp_ssl, 0,
+    "connect over SSL/TLS", NULL
+  },
+  {
+    "cacert", 0, POPT_ARG_STRING, &amqp_cacert, 0,
+    "path to the CA certificate file", "cacert.pem"
+  },
+  {
+    "key", 0, POPT_ARG_STRING, &amqp_key, 0,
+    "path to the client private key file", "key.pem"
+  },
+  {
+    "cert", 0, POPT_ARG_STRING, &amqp_cert, 0,
+    "path to the client certificate file", "cert.pem"
+  },
+#endif /* WITH_SSL */
   { NULL, '\0', 0, NULL, 0, NULL, NULL }
 };
 
 static void init_connection_info(struct amqp_connection_info *ci)
 {
-  struct amqp_connection_info defaults;
-
   ci->user = NULL;
   ci->password = NULL;
   ci->host = NULL;
@@ -216,17 +238,17 @@ static void init_connection_info(struct amqp_connection_info *ci)
   ci->vhost = NULL;
   ci->user = NULL;
 
-  if (amqp_url) {
+  amqp_default_connection_info(ci);
+
+  if (amqp_url)
     die_amqp_error(amqp_parse_url(strdup(amqp_url), ci),
                    "Parsing URL '%s'", amqp_url);
-  }
 
   if (amqp_server) {
     char *colon;
-    if (ci->host) {
+    if (ci->host)
       die("both --server and --url options specify"
           " server host");
-    }
 
     /* parse the server string into a hostname and a port */
     colon = strchr(amqp_server, ':');
@@ -246,104 +268,105 @@ static void init_connection_info(struct amqp_connection_info *ci)
       memcpy(ci->host, amqp_server, host_len);
       ci->host[host_len] = 0;
 
-      if (ci->port >= 0) {
+      if (ci->port >= 0)
         die("both --server and --url options specify"
             " server port");
-      }
-      if (amqp_port >= 0) {
+      if (amqp_port >= 0)
         die("both --server and --port options specify"
             " server port");
-      }
 
       ci->port = strtol(colon+1, &port_end, 10);
       if (ci->port < 0
           || ci->port > 65535
           || port_end == colon+1
-          || *port_end != 0) {
+          || *port_end != 0)
         die("bad server port number in '%s'",
             amqp_server);
-      }
     }
+
+#if WITH_SSL
+    if (amqp_ssl && !ci->ssl) {
+      die("the --ssl option specifies an SSL connection"
+          " but the --server option does not");
+    }
+#endif
   }
 
   if (amqp_port >= 0) {
-    if (ci->port >= 0) {
+    if (ci->port >= 0)
       die("both --port and --url options specify"
           " server port");
-    }
 
     ci->port = amqp_port;
   }
 
   if (amqp_username) {
-    if (ci->user) {
+    if (ci->user)
       die("both --username and --url options specify"
           " AMQP username");
-    }
 
     ci->user = amqp_username;
   }
 
   if (amqp_password) {
-    if (ci->password) {
+    if (ci->password)
       die("both --password and --url options specify"
           " AMQP password");
-    }
 
     ci->password = amqp_password;
   }
 
   if (amqp_vhost) {
-    if (ci->vhost) {
+    if (ci->vhost)
       die("both --vhost and --url options specify"
           " AMQP vhost");
-    }
 
     ci->vhost = amqp_vhost;
-  }
-
-  amqp_default_connection_info(&defaults);
-
-  if (!ci->user) {
-    ci->user = defaults.user;
-  }
-  if (!ci->password) {
-    ci->password = defaults.password;
-  }
-  if (!ci->host) {
-    ci->host = defaults.host;
-  }
-  if (ci->port < 0) {
-    ci->port = defaults.port;
-  }
-  if (!ci->vhost) {
-    ci->vhost = defaults.vhost;
   }
 }
 
 amqp_connection_state_t make_connection(void)
 {
-  int s;
+  int status;
+  amqp_socket_t *socket = NULL;
   struct amqp_connection_info ci;
   amqp_connection_state_t conn;
 
   init_connection_info(&ci);
-
-  s = amqp_open_socket(ci.host, ci.port);
-  die_amqp_error(s, "opening socket to %s:%d", ci.host, ci.port);
-
   conn = amqp_new_connection();
-  amqp_set_sockfd(conn, s);
-
+  if (ci.ssl) {
+#ifdef WITH_SSL
+    socket = amqp_ssl_socket_new();
+    if (!socket) {
+      die("creating SSL/TLS socket");
+    }
+    if (amqp_cacert) {
+      amqp_ssl_socket_set_cacert(socket, amqp_cacert);
+    }
+    if (amqp_key) {
+      amqp_ssl_socket_set_key(socket, amqp_cert, amqp_key);
+    }
+#else
+    die("librabbitmq was not built with SSL/TLS support");
+#endif
+  } else {
+    socket = amqp_tcp_socket_new();
+    if (!socket) {
+      die("creating TCP socket (out of memory)");
+    }
+  }
+  status = amqp_socket_open(socket, ci.host, ci.port);
+  if (status) {
+    die("opening socket to %s:%d", ci.host, ci.port);
+  }
+  amqp_set_socket(conn, socket);
   die_rpc(amqp_login(conn, ci.vhost, 0, 131072, 0,
                      AMQP_SASL_METHOD_PLAIN,
                      ci.user, ci.password),
           "logging in to AMQP server");
-
   if (!amqp_channel_open(conn, 1)) {
     die_rpc(amqp_get_rpc_reply(conn), "opening channel");
   }
-
   return conn;
 }
 

@@ -38,8 +38,10 @@
 #include "config.h"
 #endif
 
+#include "amqp_tcp_socket.h"
 #include "amqp_private.h"
 #include <assert.h>
+#include <errno.h>
 #include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -89,7 +91,6 @@ amqp_connection_state_t amqp_new_connection(void)
      is also the minimum frame size */
   state->target_size = 8;
 
-  state->sockfd = -1;
   state->sock_inbound_buffer.len = INITIAL_INBOUND_SOCK_BUFFER_SIZE;
   state->sock_inbound_buffer.bytes = malloc(INITIAL_INBOUND_SOCK_BUFFER_SIZE);
   if (state->sock_inbound_buffer.bytes == NULL) {
@@ -108,13 +109,24 @@ out_nomem:
 
 int amqp_get_sockfd(amqp_connection_state_t state)
 {
-  return state->sockfd;
+  return state->socket ? amqp_socket_get_sockfd(state->socket) : -1;
 }
 
 void amqp_set_sockfd(amqp_connection_state_t state,
                      int sockfd)
 {
-  state->sockfd = sockfd;
+  amqp_socket_t *socket = amqp_tcp_socket_new();
+  if (!socket) {
+    amqp_abort("%s", strerror(errno));
+  }
+  amqp_tcp_socket_set_sockfd(socket, sockfd);
+  amqp_set_socket(state, socket);
+}
+
+void amqp_set_socket(amqp_connection_state_t state, amqp_socket_t *socket)
+{
+  amqp_socket_close(state->socket);
+  state->socket = socket;
 }
 
 int amqp_tune_connection(amqp_connection_state_t state,
@@ -152,19 +164,18 @@ int amqp_get_channel_max(amqp_connection_state_t state)
 
 int amqp_destroy_connection(amqp_connection_state_t state)
 {
-  int s = state->sockfd;
-
-  empty_amqp_pool(&state->frame_pool);
-  empty_amqp_pool(&state->decoding_pool);
-  free(state->outbound_buffer.bytes);
-  free(state->sock_inbound_buffer.bytes);
-  free(state);
-
-  if (s >= 0 && amqp_socket_close(s) < 0) {
-    return -amqp_socket_error();
-  } else {
-    return 0;
+  int status = 0;
+  if (state) {
+    empty_amqp_pool(&state->frame_pool);
+    empty_amqp_pool(&state->decoding_pool);
+    free(state->outbound_buffer.bytes);
+    free(state->sock_inbound_buffer.bytes);
+    if (amqp_socket_close(state->socket) < 0) {
+      status = -amqp_socket_error(state->socket);
+    }
+    free(state);
   }
+  return status;
 }
 
 static void return_to_idle(amqp_connection_state_t state)
@@ -392,7 +403,7 @@ int amqp_send_frame(amqp_connection_state_t state,
     iov[2].iov_base = &frame_end_byte;
     iov[2].iov_len = FOOTER_SIZE;
 
-    res = amqp_socket_writev(state->sockfd, iov, 3);
+    res = amqp_socket_writev(state->socket, iov, 3);
   } else {
     size_t out_frame_len;
     amqp_bytes_t encoded;
@@ -440,12 +451,13 @@ int amqp_send_frame(amqp_connection_state_t state,
 
     amqp_e32(out_frame, 3, out_frame_len);
     amqp_e8(out_frame, out_frame_len + HEADER_SIZE, AMQP_FRAME_END);
-    res = send(state->sockfd, out_frame,
-               out_frame_len + HEADER_SIZE + FOOTER_SIZE, MSG_NOSIGNAL);
+    res = amqp_socket_send(state->socket, out_frame,
+                           out_frame_len + HEADER_SIZE + FOOTER_SIZE,
+                           MSG_NOSIGNAL);
   }
 
   if (res < 0) {
-    return -amqp_socket_error();
+    return -amqp_socket_error(state->socket);
   } else {
     return 0;
   }

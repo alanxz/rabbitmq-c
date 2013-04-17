@@ -49,13 +49,14 @@
 
 static int called_wsastartup;
 
-int amqp_socket_init(void)
+int
+amqp_socket_init(void)
 {
   if (!called_wsastartup) {
     WSADATA data;
     int res = WSAStartup(0x0202, &data);
     if (res) {
-      return -res;
+      return (ERROR_CATEGORY_OS | res);
     }
 
     called_wsastartup = 1;
@@ -64,7 +65,8 @@ int amqp_socket_init(void)
   return 0;
 }
 
-char *amqp_os_error_string(int err)
+char *
+amqp_os_error_string(int err)
 {
   char *msg, *copy;
 
@@ -91,7 +93,13 @@ amqp_socket_setsockopt(int sock, int level, int optname,
 }
 
 int
-amqp_socket_writev(int sock, struct iovec *iov, int nvecs)
+amqp_os_socket_close(int sockfd)
+{
+  return closesocket(sockfd);
+}
+
+ssize_t
+amqp_os_socket_writev(int sock, struct iovec *iov, int nvecs)
 {
   DWORD ret;
   if (WSASend(sock, (LPWSABUF)iov, nvecs, &ret, 0, NULL, NULL) == 0) {
@@ -102,7 +110,7 @@ amqp_socket_writev(int sock, struct iovec *iov, int nvecs)
 }
 
 int
-amqp_socket_error(void)
+amqp_os_socket_error(void)
 {
   return WSAGetLastError() | ERROR_CATEGORY_OS;
 }
