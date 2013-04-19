@@ -78,25 +78,26 @@ add_definitions(-DHAVE_CONFIG_H)
 
 if (ENABLE_SSL_SUPPORT)
   add_definitions(-DWITH_SSL=1)
+  set(AMQP_SSL_SOCKET_H_PATH amqp_ssl_socket.h)
 
   if (SSL_ENGINE STREQUAL "OpenSSL")
-    set(AMQP_SSL_SRCS amqp_ssl_socket.h amqp_openssl.c)
+    set(AMQP_SSL_SRCS ${AMQP_SSL_SOCKET_H_PATH} amqp_openssl.c)
     include_directories(${OPENSSL_INCLUDE_DIR})
     set(AMQP_SSL_LIBS ${OPENSSL_LIBRARIES})
 
   elseif (SSL_ENGINE STREQUAL "cyaSSL")
-    set(AMQP_SSL_SRCS amqp_ssl_socket.h amqp_cyassl.c)
+    set(AMQP_SSL_SRCS ${AMQP_SSL_SOCKET_H_PATH} amqp_cyassl.c)
     include_directories(${CYASSL_INCLUDE_DIR})
     set(AMQP_SSL_LIBS ${CYASSL_LIBRARIES})
 
   elseif (SSL_ENGINE STREQUAL "GnuTLS")
-    set(AMQP_SSL_SRCS amqp_ssl_socket.h amqp_gnutls.c)
+    set(AMQP_SSL_SRCS ${AMQP_SSL_SOCKET_H_PATH} amqp_gnutls.c)
     include_directories(${GNUTLS_INCLUDE_DIR})
     add_definitions(${GNUTLS_DEFINITIONS})
     set(AMQP_SSL_LIBS ${GNUTLS_LIBRARIES})
 
   elseif (SSL_ENGINE STREQUAL "PolarSSL")
-    set(AMQP_SSL_SRCS amqp_ssl_socket.h amqp_polarssl.c)
+    set(AMQP_SSL_SRCS ${AMQP_SSL_SOCKET_H_PATH} amqp_polarssl.c)
     include_directories(${POLARSSL_INCLUDE_DIR})
     set(AMQP_SSL_LIBS ${POLARSSL_LIBRARIES})
 
@@ -172,8 +173,13 @@ if (BUILD_STATIC_LIBS)
     endif ()
 endif (BUILD_STATIC_LIBS)
 
-install(FILES amqp.h ${AMQP_FRAMING_H_PATH} ${STDINT_H_INSTALL_FILE}
-	DESTINATION include
+install(FILES
+  amqp.h
+  ${AMQP_FRAMING_H_PATH}
+  amqp_tcp_socket.h
+  ${AMQP_SSL_SOCKET_H_PATH}
+  ${STDINT_H_INSTALL_FILE}
+  DESTINATION include
     )
 
 set(RMQ_LIBRARY_TARGET ${RMQ_LIBRARY_TARGET} PARENT_SCOPE)
