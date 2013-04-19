@@ -127,22 +127,18 @@ add_definitions(-DAMQP_BUILD)
 
 include(InstallMacros)
 
+set(RMQ_LIBRARIES ${AMQP_SSL_LIBS} ${SOCKET_LIBRARIES} ${CMAKE_THREAD_LIBS_INIT})
+
 if (BUILD_SHARED_LIBS)
     add_library(rabbitmq SHARED ${RABBITMQ_SOURCES})
 
-    if (ENABLE_SSL_SUPPORT)
-        target_link_libraries(rabbitmq ${AMQP_SSL_LIBS} ${CMAKE_THREAD_LIBS_INIT})
-    endif()
+    target_link_libraries(rabbitmq ${RMQ_LIBRARIES})
 
     if (WIN32)
         set_target_properties(rabbitmq PROPERTIES VERSION ${RMQ_VERSION} OUTPUT_NAME rabbitmq.${RMQ_SOVERSION})
     else (WIN32)
         set_target_properties(rabbitmq PROPERTIES VERSION ${RMQ_VERSION} SOVERSION ${RMQ_SOVERSION})
     endif (WIN32)
-
-    if (DEFINED SOCKET_LIBRARIES)
-      target_link_libraries(rabbitmq ${SOCKET_LIBRARIES})
-    endif ()
 
     install(TARGETS rabbitmq
         RUNTIME DESTINATION bin
@@ -157,16 +153,14 @@ endif (BUILD_SHARED_LIBS)
 if (BUILD_STATIC_LIBS)
     add_library(rabbitmq-static STATIC ${RABBITMQ_SOURCES})
 
+    target_link_libraries(rabbitmq-static ${RMQ_LIBRARIES})
+
     set_target_properties(rabbitmq-static PROPERTIES COMPILE_DEFINITIONS AMQP_STATIC)
     if (WIN32)
         set_target_properties(rabbitmq-static PROPERTIES VERSION ${RMQ_VERSION} OUTPUT_NAME librabbitmq.${RMQ_SOVERSION})
     else (WIN32)
         set_target_properties(rabbitmq-static PROPERTIES VERSION ${RMQ_VERSION} SOVERSION ${RMQ_SOVERSION} OUTPUT_NAME rabbitmq)
     endif (WIN32)
-
-    if (DEFINED SOCKET_LIBRARIES)
-      target_link_libraries(rabbitmq-static ${SOCKET_LIBRARIES})
-    endif ()
 
     install(TARGETS rabbitmq-static
         ARCHIVE DESTINATION lib
