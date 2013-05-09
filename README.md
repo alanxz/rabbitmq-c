@@ -63,7 +63,7 @@ Other interesting flags that can be passed to CMake:
 ## Building and installing using autotools
 
 For legacy purposes, a GNU autotools based build system is also maintained. The required
-utilities you need are autoconf v2.59+, automake v1.9+, and libtool v2.2+
+utilities you need are autoconf v2.59+, automake v1.9+, libtool v2.2+, and pkg-config.
 
 From a fresh tarball you will need to run reconf:
 
