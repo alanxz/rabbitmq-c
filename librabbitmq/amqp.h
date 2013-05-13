@@ -82,7 +82,7 @@
 #elif defined(_WIN32) && defined(__MINGW32__)
 # if defined(AMQP_BUILD) && !defined(AMQP_STATIC)
 #  define AMQP_PUBLIC_FUNCTION __declspec(dllexport)
-#  define AMQP_PUBLIC_VARIABLE __declspec(dllexport)
+#  define AMQP_PUBLIC_VARIABLE __declspec(dllexport) extern
 # else
 #  define AMQP_PUBLIC_FUNCTION
 #  if !defined(AMQP_STATIC)
