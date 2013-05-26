@@ -697,11 +697,16 @@ amqp_rpc_reply_t amqp_login(amqp_connection_state_t state,
                             ...)
 {
   va_list vl;
+  amqp_rpc_reply_t ret;
 
   va_start(vl, sasl_method);
 
-  return amqp_login_inner(state, vhost, channel_max, frame_max, heartbeat,
-                          &amqp_empty_table, sasl_method, vl);
+  ret = amqp_login_inner(state, vhost, channel_max, frame_max, heartbeat,
+                         &amqp_empty_table, sasl_method, vl);
+
+  va_end(vl);
+
+  return ret;
 }
 
 amqp_rpc_reply_t amqp_login_with_properties(amqp_connection_state_t state,
@@ -714,9 +719,14 @@ amqp_rpc_reply_t amqp_login_with_properties(amqp_connection_state_t state,
     ...)
 {
   va_list vl;
+  amqp_rpc_reply_t ret;
 
   va_start(vl, sasl_method);
 
-  return amqp_login_inner(state, vhost, channel_max, frame_max, heartbeat,
-                          client_properties, sasl_method, vl);
+  ret = amqp_login_inner(state, vhost, channel_max, frame_max, heartbeat,
+                         client_properties, sasl_method, vl);
+
+  va_end(vl);
+
+  return ret;
 }
