@@ -56,13 +56,13 @@ amqp_socket_init(void)
     WSADATA data;
     int res = WSAStartup(0x0202, &data);
     if (res) {
-      return (ERROR_CATEGORY_OS | res);
+      return AMQP_STATUS_SOCKET_ERROR;
     }
 
     called_wsastartup = 1;
   }
 
-  return 0;
+  return AMQP_STATUS_OK;
 }
 
 char *
@@ -112,5 +112,5 @@ amqp_os_socket_writev(int sock, struct iovec *iov, int nvecs)
 int
 amqp_os_socket_error(void)
 {
-  return WSAGetLastError() | ERROR_CATEGORY_OS;
+  return AMQP_STATUS_SOCKET_ERROR;
 }

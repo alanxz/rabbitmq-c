@@ -76,7 +76,12 @@ amqp_tcp_socket_close(void *base)
     status = amqp_os_socket_close(self->sockfd);
     free(self);
   }
-  return status;
+
+  if (0 == status) {
+    return AMQP_STATUS_OK;
+  } else {
+    return AMQP_STATUS_SOCKET_ERROR;
+  }
 }
 
 static int

@@ -71,7 +71,7 @@ class BitDecoder(object):
         """Generate code to decode a value of the AMQP bit type into
         the given lvalue."""
         if self.bit == 0:
-            self.emitter.emit("if (!amqp_decode_8(encoded, &offset, &bit_buffer)) return -ERROR_BAD_AMQP_DATA;")
+            self.emitter.emit("if (!amqp_decode_8(encoded, &offset, &bit_buffer)) return AMQP_STATUS_BAD_AMQP_DATA;")
 
         self.emitter.emit("%s = (bit_buffer & (1 << %d)) ? 1 : 0;"
                                                         % (lvalue, self.bit))
@@ -91,7 +91,7 @@ class BitEncoder(object):
     def flush(self):
         """Flush the state associated with AMQP bit types."""
         if self.bit:
-            self.emitter.emit("if (!amqp_encode_8(encoded, &offset, bit_buffer)) return -ERROR_BAD_AMQP_DATA;")
+            self.emitter.emit("if (!amqp_encode_8(encoded, &offset, bit_buffer)) return AMQP_STATUS_BAD_AMQP_DATA;")
             self.bit = 0
 
     def emit(self, line):
@@ -120,10 +120,10 @@ class SimpleType(object):
         self.ctype = "uint%d_t" % (bits,)
 
     def decode(self, emitter, lvalue):
-        emitter.emit("if (!amqp_decode_%d(encoded, &offset, &%s)) return -ERROR_BAD_AMQP_DATA;" % (self.bits, lvalue))
+        emitter.emit("if (!amqp_decode_%d(encoded, &offset, &%s)) return AMQP_STATUS_BAD_AMQP_DATA;" % (self.bits, lvalue))
 
     def encode(self, emitter, value):
-        emitter.emit("if (!amqp_encode_%d(encoded, &offset, %s)) return -ERROR_BAD_AMQP_DATA;" % (self.bits, value))
+        emitter.emit("if (!amqp_encode_%d(encoded, &offset, %s)) return AMQP_STATUS_BAD_AMQP_DATA;" % (self.bits, value))
 
     def literal(self, value):
         return value
@@ -140,13 +140,13 @@ class StrType(object):
         emitter.emit("  uint%d_t len;" % (self.lenbits,))
         emitter.emit("  if (!amqp_decode_%d(encoded, &offset, &len)" % (self.lenbits,))
         emitter.emit("      || !amqp_decode_bytes(encoded, &offset, &%s, len))" % (lvalue,))
-        emitter.emit("    return -ERROR_BAD_AMQP_DATA;")
+        emitter.emit("    return AMQP_STATUS_BAD_AMQP_DATA;")
         emitter.emit("}")
 
     def encode(self, emitter, value):
         emitter.emit("if (!amqp_encode_%d(encoded, &offset, %s.len)" % (self.lenbits, value))
         emitter.emit("    || !amqp_encode_bytes(encoded, &offset, %s))" % (value,))
-        emitter.emit("  return -ERROR_BAD_AMQP_DATA;")
+        emitter.emit("  return AMQP_STATUS_BAD_AMQP_DATA;")
 
     def literal(self, value):
         if value != '':
@@ -280,7 +280,7 @@ def genErl(spec):
         if m.arguments:
             print "      %s *m = (%s *) amqp_pool_alloc(pool, sizeof(%s));" % \
                 (m.structName(), m.structName(), m.structName())
-            print "      if (m == NULL) { return -ERROR_NO_MEMORY; }"
+            print "      if (m == NULL) { return AMQP_STATUS_NO_MEMORY; }"
         else:
             print "      %s *m = NULL; /* no fields */" % (m.structName(),)
 
@@ -296,7 +296,7 @@ def genErl(spec):
         print "    case %d: {" % (c.index,)
         print "      %s *p = (%s *) amqp_pool_alloc(pool, sizeof(%s));" % \
               (c.structName(), c.structName(), c.structName())
-        print "      if (p == NULL) { return -ERROR_NO_MEMORY; }"
+        print "      if (p == NULL) { return AMQP_STATUS_NO_MEMORY; }"
         print "      p->_flags = flags;"
 
         emitter = Emitter("      ")
@@ -434,7 +434,7 @@ int amqp_decode_method(amqp_method_number_t methodNumber,
 
   switch (methodNumber) {"""
     for m in methods: genDecodeMethodFields(m)
-    print """    default: return -ERROR_UNKNOWN_METHOD;
+    print """    default: return AMQP_STATUS_UNKNOWN_METHOD;
   }
 }"""
 
@@ -452,14 +452,14 @@ int amqp_decode_properties(uint16_t class_id,
 
   do {
     if (!amqp_decode_16(encoded, &offset, &partial_flags))
-      return -ERROR_BAD_AMQP_DATA;
+      return AMQP_STATUS_BAD_AMQP_DATA;
     flags |= (partial_flags << (flagword_index * 16));
     flagword_index++;
   } while (partial_flags & 1);
 
   switch (class_id) {"""
     for c in spec.allClasses(): genDecodeProperties(c)
-    print """    default: return -ERROR_UNKNOWN_CLASS;
+    print """    default: return AMQP_STATUS_UNKNOWN_CLASS;
   }
 }"""
 
@@ -473,7 +473,7 @@ int amqp_encode_method(amqp_method_number_t methodNumber,
 
   switch (methodNumber) {"""
     for m in methods: genEncodeMethodFields(m)
-    print """    default: return -ERROR_UNKNOWN_METHOD;
+    print """    default: return AMQP_STATUS_UNKNOWN_METHOD;
   }
 }"""
 
@@ -497,14 +497,14 @@ int amqp_encode_properties(uint16_t class_id,
       uint16_t partial_flags = remaining_flags & 0xFFFE;
       if (remainder != 0) { partial_flags |= 1; }
       if (!amqp_encode_16(encoded, &offset, partial_flags))
-        return -ERROR_BAD_AMQP_DATA;
+        return AMQP_STATUS_BAD_AMQP_DATA;
       remaining_flags = remainder;
     } while (remaining_flags != 0);
   }
 
   switch (class_id) {"""
     for c in spec.allClasses(): genEncodeProperties(c)
-    print """    default: return -ERROR_UNKNOWN_CLASS;
+    print """    default: return AMQP_STATUS_UNKNOWN_CLASS;
   }
 }"""
 

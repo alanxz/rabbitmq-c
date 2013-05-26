@@ -50,7 +50,7 @@
 int
 amqp_socket_init(void)
 {
-  return 0;
+  return AMQP_STATUS_OK;
 }
 
 int
@@ -98,5 +98,5 @@ amqp_os_socket_writev(int sockfd, const struct iovec *iov,
 int
 amqp_os_socket_error(void)
 {
-  return errno | ERROR_CATEGORY_OS;
+  return errno;
 }

@@ -60,7 +60,7 @@ amqp_ssl_socket_send(void *base,
   self->last_error = 0;
   status = gnutls_record_send(self->session, buf, len);
   if (status < 0) {
-    self->last_error = ERROR_CATEGORY_SSL;
+    self->last_error = AMQP_STATUS_SSL_ERROR;
   }
   return status;
 }
@@ -85,7 +85,7 @@ amqp_ssl_socket_writev(void *base,
     self->buffer = malloc(bytes);
     if (!self->buffer) {
       self->length = 0;
-      self->last_error = ERROR_NO_MEMORY;
+      self->last_error = AMQP_STATUS_NO_MEMORY;
       goto exit;
     }
     self->length = 0;
@@ -112,7 +112,7 @@ amqp_ssl_socket_recv(void *base,
   self->last_error = 0;
   status = gnutls_record_recv(self->session, buf, len);
   if (status < 0) {
-    self->last_error = ERROR_CATEGORY_SSL;
+    self->last_error = AMQP_STATUS_SSL_ERROR;
   }
 
   return status;
@@ -128,7 +128,7 @@ amqp_ssl_socket_open(void *base, const char *host, int port)
   free(self->host);
   self->host = strdup(host);
   if (NULL == self->host) {
-    self->last_error = ERROR_NO_MEMORY;
+    self->last_error = AMQP_STATUS_NO_MEMORY;
     return -1;
   }
 
@@ -144,7 +144,7 @@ amqp_ssl_socket_open(void *base, const char *host, int port)
   } while (status < 0 && !gnutls_error_is_fatal(status));
 
   if (gnutls_error_is_fatal(status)) {
-    self->last_error = ERROR_CATEGORY_SSL;
+    self->last_error = AMQP_STATUS_SSL_ERROR;
   }
 
   return status;

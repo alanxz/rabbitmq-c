@@ -88,7 +88,7 @@ amqp_socket_close(amqp_socket_t *self)
     assert(self->klass->close);
     return self->klass->close(self);
   }
-  return 0;
+  return AMQP_STATUS_OK;
 }
 
 int
@@ -115,12 +115,12 @@ int amqp_open_socket(char const *hostname,
   struct addrinfo *addr;
   char portnumber_string[33];
   int sockfd = -1;
-  int last_error = 0;
+  int last_error = AMQP_STATUS_OK;
   int one = 1; /* for setsockopt */
 
   last_error = amqp_socket_init();
-  if (0 != last_error) {
-    return -last_error;
+  if (AMQP_STATUS_OK != last_error) {
+    return last_error;
   }
 
   memset(&hint, 0, sizeof(hint));
@@ -132,8 +132,8 @@ int amqp_open_socket(char const *hostname,
 
   last_error = getaddrinfo(hostname, portnumber_string, &hint, &address_list);
 
-  if (last_error != 0) {
-    return -ERROR_GETHOSTBYNAME_FAILED;
+  if (0 != last_error) {
+    return AMQP_STATUS_HOSTNAME_RESOLUTION_FAILED;
   }
 
   for (addr = address_list; addr; addr = addr->ai_next) {
@@ -143,29 +143,29 @@ int amqp_open_socket(char const *hostname,
     */
     sockfd = (int)socket(addr->ai_family, addr->ai_socktype, addr->ai_protocol);
     if (-1 == sockfd) {
-      last_error = -amqp_os_socket_error();
+      last_error = AMQP_STATUS_SOCKET_ERROR;
       continue;
     }
 #ifdef DISABLE_SIGPIPE_WITH_SETSOCKOPT
     if (0 != amqp_socket_setsockopt(sockfd, SOL_SOCKET, SO_NOSIGPIPE, &one, sizeof(one))) {
-      last_error = -amqp_os_socket_error();
+      last_error = AMQP_STATUS_SOCKET_ERROR;
       amqp_os_socket_close(sockfd);
       continue;
     }
 #endif /* DISABLE_SIGPIPE_WITH_SETSOCKOPT */
     if (0 != amqp_socket_setsockopt(sockfd, IPPROTO_TCP, TCP_NODELAY, &one, sizeof(one))
         || 0 != connect(sockfd, addr->ai_addr, addr->ai_addrlen)) {
-      last_error = -amqp_os_socket_error();
+      last_error = AMQP_STATUS_SOCKET_ERROR;
       amqp_os_socket_close(sockfd);
       continue;
     } else {
-      last_error = 0;
+      last_error = AMQP_STATUS_OK;
       break;
     }
   }
 
   freeaddrinfo(address_list);
-  if (last_error != 0) {
+  if (last_error != AMQP_STATUS_OK) {
     return last_error;
   }
 
@@ -269,7 +269,7 @@ static int wait_frame_inner(amqp_connection_state_t state,
 
       if (decoded_frame->frame_type != 0) {
         /* Complete frame was read. Return it. */
-        return 0;
+        return AMQP_STATUS_OK;
       }
 
       /* Incomplete or ignored frame. Keep processing input. */
@@ -280,9 +280,9 @@ static int wait_frame_inner(amqp_connection_state_t state,
                            state->sock_inbound_buffer.len, 0);
     if (res <= 0) {
       if (res == 0) {
-        return -ERROR_CONNECTION_CLOSED;
+        return AMQP_STATUS_CONNECTION_CLOSED;
       } else {
-        return -amqp_socket_error(state->socket);
+        return amqp_socket_error(state->socket);
       }
     }
 
@@ -301,7 +301,7 @@ int amqp_simple_wait_frame(amqp_connection_state_t state,
       state->last_queued_frame = NULL;
     }
     *decoded_frame = *f;
-    return 0;
+    return AMQP_STATUS_OK;
   } else {
     return wait_frame_inner(state, decoded_frame);
   }
@@ -337,7 +337,7 @@ int amqp_simple_wait_method(amqp_connection_state_t state,
                frame.payload.method.id);
   }
   *output = frame.payload.method;
-  return 0;
+  return AMQP_STATUS_OK;
 }
 
 int amqp_send_method(amqp_connection_state_t state,
@@ -379,7 +379,7 @@ amqp_rpc_reply_t amqp_simple_rpc(amqp_connection_state_t state,
   status = amqp_send_method(state, channel, request_id, decoded_request_method);
   if (status < 0) {
     result.reply_type = AMQP_RESPONSE_LIBRARY_EXCEPTION;
-    result.library_error = -status;
+    result.library_error = status;
     return result;
   }
 
@@ -390,7 +390,7 @@ retry:
     status = wait_frame_inner(state, &frame);
     if (status < 0) {
       result.reply_type = AMQP_RESPONSE_LIBRARY_EXCEPTION;
-      result.library_error = -status;
+      result.library_error = status;
       return result;
     }
 
@@ -417,7 +417,7 @@ retry:
 
       if (frame_copy == NULL || link == NULL) {
         result.reply_type = AMQP_RESPONSE_LIBRARY_EXCEPTION;
-        result.library_error = ERROR_NO_MEMORY;
+        result.library_error = AMQP_STATUS_NO_MEMORY;
         return result;
       }
 
@@ -520,7 +520,7 @@ static amqp_rpc_reply_t amqp_login_inner(amqp_connection_state_t state,
     amqp_connection_start_t *s = (amqp_connection_start_t *) method.decoded;
     if ((s->version_major != AMQP_PROTOCOL_VERSION_MAJOR)
         || (s->version_minor != AMQP_PROTOCOL_VERSION_MINOR)) {
-      res = -ERROR_INCOMPATIBLE_AMQP_VERSION;
+      res = AMQP_STATUS_INCOMPATIBLE_AMQP_VERSION;
       goto error_res;
     }
 
@@ -537,7 +537,7 @@ static amqp_rpc_reply_t amqp_login_inner(amqp_connection_state_t state,
                                   sasl_method, vl);
 
     if (response_bytes.bytes == NULL) {
-      res = -ERROR_NO_MEMORY;
+      res = AMQP_STATUS_NO_MEMORY;
       goto error_res;
     }
 
@@ -572,7 +572,7 @@ static amqp_rpc_reply_t amqp_login_inner(amqp_connection_state_t state,
       s.client_properties.entries = amqp_pool_alloc(&state->decoding_pool,
                                     sizeof(amqp_table_entry_t) * (default_table.num_entries + client_properties->num_entries));
       if (NULL == s.client_properties.entries) {
-        res = -ERROR_NO_MEMORY;
+        res = AMQP_STATUS_NO_MEMORY;
         goto error_res;
       }
       s.client_properties.num_entries = 0;

@@ -72,12 +72,12 @@ static int amqp_decode_array(amqp_bytes_t encoded,
   int res;
 
   if (!amqp_decode_32(encoded, offset, &arraysize)) {
-    return -ERROR_BAD_AMQP_DATA;
+    return AMQP_STATUS_BAD_AMQP_DATA;
   }
 
   entries = malloc(allocated_entries * sizeof(amqp_field_value_t));
   if (entries == NULL) {
-    return -ERROR_NO_MEMORY;
+    return AMQP_STATUS_NO_MEMORY;
   }
 
   limit = *offset + arraysize;
@@ -86,7 +86,7 @@ static int amqp_decode_array(amqp_bytes_t encoded,
       void *newentries;
       allocated_entries = allocated_entries * 2;
       newentries = realloc(entries, allocated_entries * sizeof(amqp_field_value_t));
-      res = -ERROR_NO_MEMORY;
+      res = AMQP_STATUS_NO_MEMORY;
       if (newentries == NULL) {
         goto out;
       }
@@ -105,7 +105,7 @@ static int amqp_decode_array(amqp_bytes_t encoded,
 
   output->num_entries = num_entries;
   output->entries = amqp_pool_alloc(pool, num_entries * sizeof(amqp_field_value_t));
-  res = -ERROR_NO_MEMORY;
+  res = AMQP_STATUS_NO_MEMORY;
   /* NULL is legitimate if we requested a zero-length block. */
   if (output->entries == NULL && num_entries > 0) {
     goto out;
@@ -132,19 +132,19 @@ int amqp_decode_table(amqp_bytes_t encoded,
   int res;
 
   if (!amqp_decode_32(encoded, offset, &tablesize)) {
-    return -ERROR_BAD_AMQP_DATA;
+    return AMQP_STATUS_BAD_AMQP_DATA;
   }
 
   entries = malloc(allocated_entries * sizeof(amqp_table_entry_t));
   if (entries == NULL) {
-    return -ERROR_NO_MEMORY;
+    return AMQP_STATUS_NO_MEMORY;
   }
 
   limit = *offset + tablesize;
   while (*offset < limit) {
     uint8_t keylen;
 
-    res = -ERROR_BAD_AMQP_DATA;
+    res = AMQP_STATUS_BAD_AMQP_DATA;
     if (!amqp_decode_8(encoded, offset, &keylen)) {
       goto out;
     }
@@ -153,7 +153,7 @@ int amqp_decode_table(amqp_bytes_t encoded,
       void *newentries;
       allocated_entries = allocated_entries * 2;
       newentries = realloc(entries, allocated_entries * sizeof(amqp_table_entry_t));
-      res = -ERROR_NO_MEMORY;
+      res = AMQP_STATUS_NO_MEMORY;
       if (newentries == NULL) {
         goto out;
       }
@@ -161,7 +161,7 @@ int amqp_decode_table(amqp_bytes_t encoded,
       entries = newentries;
     }
 
-    res = -ERROR_BAD_AMQP_DATA;
+    res = AMQP_STATUS_BAD_AMQP_DATA;
     if (!amqp_decode_bytes(encoded, offset, &entries[num_entries].key, keylen)) {
       goto out;
     }
@@ -177,14 +177,14 @@ int amqp_decode_table(amqp_bytes_t encoded,
 
   output->num_entries = num_entries;
   output->entries = amqp_pool_alloc(pool, num_entries * sizeof(amqp_table_entry_t));
-  res = -ERROR_NO_MEMORY;
+  res = AMQP_STATUS_NO_MEMORY;
   /* NULL is legitimate if we requested a zero-length block. */
   if (output->entries == NULL && num_entries > 0) {
     goto out;
   }
 
   memcpy(output->entries, entries, num_entries * sizeof(amqp_table_entry_t));
-  res = 0;
+  res = AMQP_STATUS_OK;
 
 out:
   free(entries);
@@ -196,7 +196,7 @@ static int amqp_decode_field_value(amqp_bytes_t encoded,
                                    amqp_field_value_t *entry,
                                    size_t *offset)
 {
-  int res = -ERROR_BAD_AMQP_DATA;
+  int res = AMQP_STATUS_BAD_AMQP_DATA;
 
   if (!amqp_decode_8(encoded, offset, &entry->kind)) {
     goto out;
@@ -275,7 +275,7 @@ static int amqp_decode_field_value(amqp_bytes_t encoded,
     goto out;
   }
 
-  res = 0;
+  res = AMQP_STATUS_OK;
 
 out:
   return res;
@@ -300,9 +300,9 @@ static int amqp_encode_array(amqp_bytes_t encoded,
   }
 
   if (amqp_encode_32(encoded, &start, *offset - start - 4)) {
-    res = 0;
+    res = AMQP_STATUS_OK;
   } else {
-    res = -ERROR_BAD_AMQP_DATA;
+    res = AMQP_STATUS_BAD_AMQP_DATA;
   }
 
 out:
@@ -336,9 +336,9 @@ int amqp_encode_table(amqp_bytes_t encoded,
   }
 
   if (amqp_encode_32(encoded, &start, *offset - start - 4)) {
-    res = 0;
+    res = AMQP_STATUS_OK;
   } else {
-    res = -ERROR_BAD_AMQP_DATA;
+    res = AMQP_STATUS_BAD_AMQP_DATA;
   }
 
 out:
@@ -349,7 +349,7 @@ static int amqp_encode_field_value(amqp_bytes_t encoded,
                                    amqp_field_value_t *entry,
                                    size_t *offset)
 {
-  int res = -ERROR_BAD_AMQP_DATA;
+  int res = AMQP_STATUS_BAD_AMQP_DATA;
 
   if (!amqp_encode_8(encoded, offset, entry->kind)) {
     goto out;
@@ -425,7 +425,7 @@ static int amqp_encode_field_value(amqp_bytes_t encoded,
     abort();
   }
 
-  res = 0;
+  res = AMQP_STATUS_OK;
 
 out:
   return res;

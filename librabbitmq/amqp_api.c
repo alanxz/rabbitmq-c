@@ -46,42 +46,31 @@
 #include <stdlib.h>
 #include <string.h>
 
-static const char *client_error_strings[ERROR_MAX] = {
-  "could not allocate memory", /* ERROR_NO_MEMORY */
-  "received bad AMQP data", /* ERROR_BAD_AQMP_DATA */
-  "unknown AMQP class id", /* ERROR_UNKOWN_CLASS */
-  "unknown AMQP method id", /* ERROR_UNKOWN_METHOD */
-  "unknown host", /* ERROR_GETHOSTBYNAME_FAILED */
-  "incompatible AMQP version", /* ERROR_INCOMPATIBLE_AMQP_VERSION */
-  "connection closed unexpectedly", /* ERROR_CONNECTION_CLOSED */
-  "could not parse AMQP URL", /* ERROR_BAD_AMQP_URL */
+static const char *client_error_strings[] = {
+  "operation completed successfully",   /* AMQP_STATUS_OK */
+  "could not allocate memory",          /* AMQP_STATUS_NO_MEMORY */
+  "received bad AMQP data",             /* AMQP_STATUS_BAD_AQMP_DATA */
+  "unknown AMQP class id",              /* AMQP_STATUS_UNKNOWN_CLASS */
+  "unknown AMQP method id",             /* AMQP_STATUS_UNKNOWN_METHOD */
+  "hostname lookup failed",             /* AMQP_STATUS_GETHOSTBYNAME_FAILED */
+  "incompatible AMQP version",          /* AMQP_STATUS_INCOMPATIBLE_AMQP_VERSION */
+  "connection closed unexpectedly",     /* AMQP_STATUS_CONNECTION_CLOSED */
+  "could not parse AMQP URL",           /* AMQP_STATUS_BAD_AMQP_URL */
+  "a socket error occurred",            /* AMQP_STATUS_SOCKET_ERROR */
+  "a SSL error occurred"                /* AMQP_STATUS_SSL_ERROR */
 };
 
 char *amqp_error_string(int err)
 {
   const char *str;
-  int category = (err & ERROR_CATEGORY_MASK);
-  err = (err & ~ERROR_CATEGORY_MASK);
+  const int max_error_index = sizeof(client_error_strings) / sizeof(char *);
 
-  switch (category) {
-  case ERROR_CATEGORY_CLIENT:
-    if (err < 1 || err > ERROR_MAX) {
-      str = "(undefined librabbitmq error)";
-    } else {
-      str = client_error_strings[err - 1];
-    }
-    break;
+  err = -err;
 
-  case ERROR_CATEGORY_OS:
-    return amqp_os_error_string(err);
-
-#ifdef WITH_SSL
-  case ERROR_CATEGORY_SSL:
-    return amqp_ssl_error_string(err);
-#endif
-
-  default:
-    str = "(undefined error category)";
+  if (err < 0 || err > max_error_index) {
+    str = "an unknown error occurred";
+  } else {
+    str = client_error_strings[err];
   }
 
   return strdup(str);
@@ -174,7 +163,7 @@ int amqp_basic_publish(amqp_connection_state_t state,
     }
   }
 
-  return 0;
+  return AMQP_STATUS_OK;
 }
 
 amqp_rpc_reply_t amqp_channel_close(amqp_connection_state_t state,

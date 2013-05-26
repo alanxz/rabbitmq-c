@@ -148,11 +148,11 @@ int amqp_tune_connection(amqp_connection_state_t state,
   newbuf = realloc(state->outbound_buffer.bytes, frame_max);
   if (newbuf == NULL) {
     amqp_destroy_connection(state);
-    return -ERROR_NO_MEMORY;
+    return AMQP_STATUS_NO_MEMORY;
   }
   state->outbound_buffer.bytes = newbuf;
 
-  return 0;
+  return AMQP_STATUS_OK;
 }
 
 int amqp_get_channel_max(amqp_connection_state_t state)
@@ -162,15 +162,13 @@ int amqp_get_channel_max(amqp_connection_state_t state)
 
 int amqp_destroy_connection(amqp_connection_state_t state)
 {
-  int status = 0;
+  int status = AMQP_STATUS_OK;
   if (state) {
     empty_amqp_pool(&state->frame_pool);
     empty_amqp_pool(&state->decoding_pool);
     free(state->outbound_buffer.bytes);
     free(state->sock_inbound_buffer.bytes);
-    if (amqp_socket_close(state->socket) < 0) {
-      status = -amqp_socket_error(state->socket);
-    }
+    status = amqp_socket_close(state->socket);
     free(state);
   }
   return status;
@@ -214,7 +212,7 @@ int amqp_handle_input(amqp_connection_state_t state,
   decoded_frame->frame_type = 0;
 
   if (received_data.len == 0) {
-    return 0;
+    return AMQP_STATUS_OK;
   }
 
   if (state->state == CONNECTION_STATE_IDLE) {
@@ -225,7 +223,7 @@ int amqp_handle_input(amqp_connection_state_t state,
       corresponds to frame_max, which is not permitted to be less
       than AMQP_FRAME_MIN_SIZE (currently 4096 bytes). */
     {
-      return -ERROR_NO_MEMORY;
+      return AMQP_STATUS_NO_MEMORY;
     }
 
     state->state = CONNECTION_STATE_HEADER;
@@ -286,7 +284,7 @@ int amqp_handle_input(amqp_connection_state_t state,
 
     /* Check frame end marker (footer) */
     if (amqp_d8(raw_frame, state->target_size - 1) != AMQP_FRAME_END) {
-      return -ERROR_BAD_AMQP_DATA;
+      return AMQP_STATUS_BAD_AMQP_DATA;
     }
 
     decoded_frame->frame_type = amqp_d8(raw_frame, 0);
@@ -455,8 +453,8 @@ int amqp_send_frame(amqp_connection_state_t state,
   }
 
   if (res < 0) {
-    return -amqp_socket_error(state->socket);
+    return amqp_socket_error(state->socket);
   } else {
-    return 0;
+    return AMQP_STATUS_OK;
   }
 }

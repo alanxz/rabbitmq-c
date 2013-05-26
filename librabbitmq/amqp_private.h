@@ -49,28 +49,6 @@
 #include <arpa/inet.h>
 #endif
 
-/* Error numbering: Because of differences in error numbering on
- * different platforms, we want to keep error numbers opaque for
- * client code.  Internally, we encode the category of an error
- * (i.e. where its number comes from) in the top bits of the number
- * (assuming that an int has at least 32 bits).
- */
-#define ERROR_CATEGORY_CLIENT (0 << 29) /* librabbitmq error codes */
-#define ERROR_CATEGORY_OS (1 << 29) /* OS-specific error codes */
-#define ERROR_CATEGORY_SSL (1 << 28) /* SSL-specific error codes */
-#define ERROR_CATEGORY_MASK (ERROR_CATEGORY_OS | ERROR_CATEGORY_SSL)
-
-/* librabbitmq error codes */
-#define ERROR_NO_MEMORY 1
-#define ERROR_BAD_AMQP_DATA 2
-#define ERROR_UNKNOWN_CLASS 3
-#define ERROR_UNKNOWN_METHOD 4
-#define ERROR_GETHOSTBYNAME_FAILED 5
-#define ERROR_INCOMPATIBLE_AMQP_VERSION 6
-#define ERROR_CONNECTION_CLOSED 7
-#define ERROR_BAD_AMQP_URL 8
-#define ERROR_MAX 8
-
 /* GCC attributes */
 #if __GNUC__ > 2 | (__GNUC__ == 2 && __GNUC_MINOR__ > 4)
 #define AMQP_NORETURN \

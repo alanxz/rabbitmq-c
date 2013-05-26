@@ -80,7 +80,7 @@ amqp_ssl_socket_send(void *base,
   self->last_error = 0;
   sent = SSL_write(self->ssl, buf, len);
   if (0 > sent) {
-    self->last_error = ERROR_CATEGORY_SSL;
+    self->last_error = AMQP_STATUS_SSL_ERROR;
     switch (SSL_get_error(self->ssl, sent)) {
     case SSL_ERROR_NONE:
     case SSL_ERROR_ZERO_RETURN:
@@ -113,7 +113,7 @@ amqp_ssl_socket_writev(void *base,
     self->buffer = malloc(bytes);
     if (!self->buffer) {
       self->length = 0;
-      self->last_error = ERROR_NO_MEMORY;
+      self->last_error = AMQP_STATUS_NO_MEMORY;
       goto exit;
     }
     self->length = bytes;
@@ -140,7 +140,7 @@ amqp_ssl_socket_recv(void *base,
   self->last_error = 0;
   received = SSL_read(self->ssl, buf, len);
   if (0 > received) {
-    self->last_error = ERROR_CATEGORY_SSL;
+    self->last_error = AMQP_STATUS_SSL_ERROR;
     switch(SSL_get_error(self->ssl, received)) {
     case SSL_ERROR_WANT_READ:
     case SSL_ERROR_WANT_WRITE:
@@ -225,7 +225,7 @@ amqp_ssl_socket_open(void *base, const char *host, int port)
   self->last_error = 0;
   self->ssl = SSL_new(self->ctx);
   if (!self->ssl) {
-    self->last_error = ERROR_CATEGORY_SSL;
+    self->last_error = AMQP_STATUS_SSL_ERROR;
     return -1;
   }
   SSL_set_mode(self->ssl, SSL_MODE_AUTO_RETRY);
@@ -236,23 +236,23 @@ amqp_ssl_socket_open(void *base, const char *host, int port)
   }
   status = SSL_set_fd(self->ssl, self->sockfd);
   if (!status) {
-    self->last_error = ERROR_CATEGORY_SSL;
+    self->last_error = AMQP_STATUS_SSL_ERROR;
     return -1;
   }
   status = SSL_connect(self->ssl);
   if (!status) {
-    self->last_error = ERROR_CATEGORY_SSL;
+    self->last_error = AMQP_STATUS_SSL_ERROR;
     return -1;
   }
   result = SSL_get_verify_result(self->ssl);
   if (X509_V_OK != result) {
-    self->last_error = ERROR_CATEGORY_SSL;
+    self->last_error = AMQP_STATUS_SSL_ERROR;
     return -1;
   }
   if (self->verify) {
     int status = amqp_ssl_socket_verify(self, host);
     if (status) {
-      self->last_error = ERROR_CATEGORY_SSL;
+      self->last_error = AMQP_STATUS_SSL_ERROR;
       return -1;
     }
   }
