@@ -341,6 +341,8 @@ typedef enum amqp_status_enum_
   AMQP_STATUS_CONNECTION_CLOSED =         -0x0007,
   AMQP_STATUS_BAD_URL =                   -0x0008,
   AMQP_STATUS_SOCKET_ERROR =              -0x0009,
+  AMQP_STATUS_INVALID_PARAMETER =         -0x000A,
+  AMQP_STATUS_TABLE_TOO_BIG =             -0x000B,
 
   AMQP_STATUS_SSL_ERROR =                 -0x0200
 } amqp_status_enum;

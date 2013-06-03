@@ -299,11 +299,12 @@ static int amqp_encode_array(amqp_bytes_t encoded,
     }
   }
 
-  if (amqp_encode_32(encoded, &start, *offset - start - 4)) {
-    res = AMQP_STATUS_OK;
-  } else {
-    res = AMQP_STATUS_BAD_AMQP_DATA;
+  if (!amqp_encode_32(encoded, &start, *offset - start - 4)) {
+    res = AMQP_STATUS_TABLE_TOO_BIG;
+    goto out;
   }
+
+  res = AMQP_STATUS_OK;
 
 out:
   return res;
@@ -319,13 +320,13 @@ int amqp_encode_table(amqp_bytes_t encoded,
   *offset += 4; /* size of the table gets filled in later on */
 
   for (i = 0; i < input->num_entries; i++) {
-    res = amqp_encode_8(encoded, offset, input->entries[i].key.len);
-    if (res < 0) {
+    if (!amqp_encode_8(encoded, offset, input->entries[i].key.len)) {
+      res = AMQP_STATUS_TABLE_TOO_BIG;
       goto out;
     }
 
-    res = amqp_encode_bytes(encoded, offset, input->entries[i].key);
-    if (res < 0) {
+    if (!amqp_encode_bytes(encoded, offset, input->entries[i].key)) {
+      res = AMQP_STATUS_TABLE_TOO_BIG;
       goto out;
     }
 
@@ -335,11 +336,12 @@ int amqp_encode_table(amqp_bytes_t encoded,
     }
   }
 
-  if (amqp_encode_32(encoded, &start, *offset - start - 4)) {
-    res = AMQP_STATUS_OK;
-  } else {
-    res = AMQP_STATUS_BAD_AMQP_DATA;
+  if (!amqp_encode_32(encoded, &start, *offset - start - 4)) {
+    res = AMQP_STATUS_TABLE_TOO_BIG;
+    goto out;
   }
+
+  res = AMQP_STATUS_OK;
 
 out:
   return res;
@@ -355,7 +357,11 @@ static int amqp_encode_field_value(amqp_bytes_t encoded,
     goto out;
   }
 
-#define FIELD_ENCODER(bits, val) if (!amqp_encode_##bits(encoded, offset, val)) goto out; break
+#define FIELD_ENCODER(bits, val) if (!amqp_encode_##bits(encoded, offset, val)) { \
+                                    res = AMQP_STATUS_TABLE_TOO_BIG;              \
+                                    goto out;                                     \
+                                  }                                               \
+                                  break
 
   switch (entry->kind) {
   case AMQP_FIELD_KIND_BOOLEAN:
@@ -392,6 +398,7 @@ static int amqp_encode_field_value(amqp_bytes_t encoded,
   case AMQP_FIELD_KIND_DECIMAL:
     if (!amqp_encode_8(encoded, offset, entry->value.decimal.decimals)
         || !amqp_encode_32(encoded, offset, entry->value.decimal.value)) {
+      res = AMQP_STATUS_TABLE_TOO_BIG;
       goto out;
     }
     break;
@@ -403,6 +410,7 @@ static int amqp_encode_field_value(amqp_bytes_t encoded,
   case AMQP_FIELD_KIND_BYTES:
     if (!amqp_encode_32(encoded, offset, entry->value.bytes.len)
         || !amqp_encode_bytes(encoded, offset, entry->value.bytes)) {
+      res = AMQP_STATUS_TABLE_TOO_BIG;
       goto out;
     }
     break;
@@ -422,7 +430,8 @@ static int amqp_encode_field_value(amqp_bytes_t encoded,
     break;
 
   default:
-    abort();
+    res = AMQP_STATUS_INVALID_PARAMETER;
+    goto out;
   }
 
   res = AMQP_STATUS_OK;
