@@ -70,7 +70,7 @@ librabbitmq_librabbitmq_la_CFLAGS += -I$(top_srcdir)/librabbitmq/win32/msinttype
 endif
 
 include_HEADERS = \
-	$(top_srcdir)/librabbitmq/amqp.h
+	$(top_srcdir)/librabbitmq/amqp.h \
 	$(top_builddir)/librabbitmq/amqp_tcp_socket.h
 
 if SSL
