@@ -442,7 +442,7 @@ int amqp_send_frame(amqp_connection_state_t state,
       break;
 
     default:
-      abort();
+      return AMQP_STATUS_INVALID_PARAMETER;
     }
 
     amqp_e32(out_frame, 3, out_frame_len);
