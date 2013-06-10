@@ -79,7 +79,7 @@ amqp_ssl_socket_send(void *base,
   ERR_clear_error();
   self->last_error = 0;
   sent = SSL_write(self->ssl, buf, len);
-  if (0 > sent) {
+  if (0 >= sent) {
     self->last_error = AMQP_STATUS_SSL_ERROR;
     switch (SSL_get_error(self->ssl, sent)) {
     case SSL_ERROR_NONE:
@@ -139,7 +139,7 @@ amqp_ssl_socket_recv(void *base,
   ERR_clear_error();
   self->last_error = 0;
   received = SSL_read(self->ssl, buf, len);
-  if (0 > received) {
+  if (0 >= received) {
     self->last_error = AMQP_STATUS_SSL_ERROR;
     switch(SSL_get_error(self->ssl, received)) {
     case SSL_ERROR_WANT_READ:
