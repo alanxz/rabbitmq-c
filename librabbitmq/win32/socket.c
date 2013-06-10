@@ -56,7 +56,7 @@ amqp_socket_init(void)
     WSADATA data;
     int res = WSAStartup(0x0202, &data);
     if (res) {
-      return AMQP_STATUS_SOCKET_ERROR;
+      return AMQP_STATUS_TCP_SOCKETLIB_INIT_ERROR;
     }
 
     called_wsastartup = 1;
