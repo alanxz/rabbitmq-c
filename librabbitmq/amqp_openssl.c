@@ -65,7 +65,7 @@ struct amqp_ssl_socket_t {
   char *buffer;
   size_t length;
   amqp_boolean_t verify;
-  int last_error;
+  int internal_error;
 };
 
 static ssize_t
@@ -152,7 +152,7 @@ amqp_ssl_socket_recv(void *base,
 }
 
 static int
-amqp_ssl_socket_verify(void *base, const char *host)
+amqp_ssl_socket_verify_hostname(void *base, const char *host)
 {
   struct amqp_ssl_socket_t *self = (struct amqp_ssl_socket_t *)base;
   unsigned char *utf8_value = NULL, *cp, ch;
@@ -222,41 +222,67 @@ amqp_ssl_socket_open(void *base, const char *host, int port)
   struct amqp_ssl_socket_t *self = (struct amqp_ssl_socket_t *)base;
   long result;
   int status;
-  self->last_error = 0;
+  ERR_clear_error();
+
   self->ssl = SSL_new(self->ctx);
   if (!self->ssl) {
-    self->last_error = AMQP_STATUS_SSL_ERROR;
-    return -1;
+    self->internal_error = ERR_peek_error();
+    status = AMQP_STATUS_SSL_ERROR;
+    goto exit;
   }
+
   SSL_set_mode(self->ssl, SSL_MODE_AUTO_RETRY);
   self->sockfd = amqp_open_socket(host, port);
   if (0 > self->sockfd) {
-    self->last_error = -self->sockfd;
-    return -1;
+    status = self->sockfd;
+    self->internal_error = amqp_os_socket_error();
+    self->sockfd = -1;
+    goto error_out1;
   }
+
   status = SSL_set_fd(self->ssl, self->sockfd);
   if (!status) {
-    self->last_error = AMQP_STATUS_SSL_ERROR;
-    return -1;
+    self->internal_error = SSL_get_error(self->ssl, status);
+    status = AMQP_STATUS_SSL_ERROR;
+    goto error_out2;
   }
+
   status = SSL_connect(self->ssl);
   if (!status) {
-    self->last_error = AMQP_STATUS_SSL_ERROR;
-    return -1;
+    self->internal_error = SSL_get_error(self->ssl, status);
+    status = AMQP_STATUS_SSL_CONNECTION_FAILED;
+    goto error_out2;
   }
+
   result = SSL_get_verify_result(self->ssl);
   if (X509_V_OK != result) {
-    self->last_error = AMQP_STATUS_SSL_ERROR;
-    return -1;
+    self->internal_error = result;
+    status = AMQP_STATUS_SSL_PEER_VERIFY_FAILED;
+    goto error_out3;
   }
   if (self->verify) {
-    int status = amqp_ssl_socket_verify(self, host);
+    int status = amqp_ssl_socket_verify_hostname(self, host);
     if (status) {
-      self->last_error = AMQP_STATUS_SSL_ERROR;
-      return -1;
+      self->internal_error = 0;
+      status = AMQP_STATUS_SSL_HOSTNAME_VERIFY_FAILED;
+      goto error_out3;
     }
   }
-  return 0;
+
+  self->internal_error = 0;
+  status = AMQP_STATUS_OK;
+
+exit:
+  return status;
+
+error_out3:
+  SSL_shutdown(self->ssl);
+error_out2:
+  amqp_os_socket_close(self->sockfd);
+  self->sockfd = -1;
+error_out1:
+  SSL_free(self->ssl);
+  goto exit;
 }
 
 static int
@@ -278,7 +304,7 @@ static int
 amqp_ssl_socket_error(void *base)
 {
   struct amqp_ssl_socket_t *self = (struct amqp_ssl_socket_t *)base;
-  return self->last_error;
+  return self->internal_error;
 }
 
 char *
@@ -340,9 +366,9 @@ amqp_ssl_socket_set_cacert(amqp_socket_t *base,
   self = (struct amqp_ssl_socket_t *)base;
   status = SSL_CTX_load_verify_locations(self->ctx, cacert, NULL);
   if (1 != status) {
-    return -1;
+    return AMQP_STATUS_SSL_ERROR;
   }
-  return 0;
+  return AMQP_STATUS_OK;
 }
 
 int
@@ -358,14 +384,14 @@ amqp_ssl_socket_set_key(amqp_socket_t *base,
   self = (struct amqp_ssl_socket_t *)base;
   status = SSL_CTX_use_certificate_chain_file(self->ctx, cert);
   if (1 != status) {
-    return -1;
+    return AMQP_STATUS_SSL_ERROR;
   }
   status = SSL_CTX_use_PrivateKey_file(self->ctx, key,
                                        SSL_FILETYPE_PEM);
   if (1 != status) {
-    return -1;
+    return AMQP_STATUS_SSL_ERROR;
   }
-  return 0;
+  return AMQP_STATUS_OK;
 }
 
 static int
@@ -384,7 +410,7 @@ amqp_ssl_socket_set_key_buffer(amqp_socket_t *base,
                                const void *key,
                                size_t n)
 {
-  int status = 0;
+  int status = AMQP_STATUS_OK;
   BIO *buf = NULL;
   RSA *rsa = NULL;
   struct amqp_ssl_socket_t *self;
@@ -394,7 +420,7 @@ amqp_ssl_socket_set_key_buffer(amqp_socket_t *base,
   self = (struct amqp_ssl_socket_t *)base;
   status = SSL_CTX_use_certificate_chain_file(self->ctx, cert);
   if (1 != status) {
-    return -1;
+    return AMQP_STATUS_SSL_ERROR;
   }
   buf = BIO_new_mem_buf((void *)key, n);
   if (!buf) {
@@ -413,7 +439,7 @@ exit:
   RSA_free(rsa);
   return status;
 error:
-  status = -1;
+  status = AMQP_STATUS_SSL_ERROR;
   goto exit;
 }
 
@@ -429,9 +455,9 @@ amqp_ssl_socket_set_cert(amqp_socket_t *base,
   self = (struct amqp_ssl_socket_t *)base;
   status = SSL_CTX_use_certificate_chain_file(self->ctx, cert);
   if (1 != status) {
-    return -1;
+    return AMQP_STATUS_SSL_ERROR;
   }
-  return 0;
+  return AMQP_STATUS_OK;
 }
 
 void
