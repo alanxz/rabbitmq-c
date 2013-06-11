@@ -71,49 +71,55 @@ struct amqp_ssl_socket_t {
 static ssize_t
 amqp_ssl_socket_send(void *base,
                      const void *buf,
-                     size_t len,
-                     AMQP_UNUSED int flags)
+                     size_t len)
 {
   struct amqp_ssl_socket_t *self = (struct amqp_ssl_socket_t *)base;
-  ssize_t sent;
+  ssize_t res;
   ERR_clear_error();
-  self->last_error = 0;
-  sent = SSL_write(self->ssl, buf, len);
-  if (0 >= sent) {
-    self->last_error = AMQP_STATUS_SSL_ERROR;
-    switch (SSL_get_error(self->ssl, sent)) {
-    case SSL_ERROR_NONE:
-    case SSL_ERROR_ZERO_RETURN:
-    case SSL_ERROR_WANT_READ:
-    case SSL_ERROR_WANT_WRITE:
-      sent = 0;
-      break;
+  self->internal_error = 0;
+
+  /* This will only return on error, or once the whole buffer has been
+   * written to the SSL stream. See SSL_MODE_ENABLE_PARTIAL_WRITE */
+  res = SSL_write(self->ssl, buf, len);
+  if (0 >= res) {
+    self->internal_error = SSL_get_error(self->ssl, res);
+    /* TODO: Close connection if it isn't already? */
+    /* TODO: Possibly be more intelligent in reporting WHAT went wrong */
+    switch (self->internal_error) {
+      case SSL_ERROR_ZERO_RETURN:
+        res = AMQP_STATUS_CONNECTION_CLOSED;
+        break;
+      default:
+        res = AMQP_STATUS_SSL_ERROR;
+        break;
     }
+  } else {
+    self->internal_error = 0;
+    res = AMQP_STATUS_OK;
   }
-  return sent;
+
+  return res;
 }
 
 static ssize_t
 amqp_ssl_socket_writev(void *base,
-                       const struct iovec *iov,
+                       struct iovec *iov,
                        int iovcnt)
 {
   struct amqp_ssl_socket_t *self = (struct amqp_ssl_socket_t *)base;
-  ssize_t written = -1;
+  ssize_t ret = -1;
   char *bufferp;
   size_t bytes;
   int i;
-  self->last_error = 0;
   bytes = 0;
   for (i = 0; i < iovcnt; ++i) {
     bytes += iov[i].iov_len;
   }
   if (self->length < bytes) {
-    free(self->buffer);
-    self->buffer = malloc(bytes);
+    self->buffer = realloc(self->buffer, bytes);
     if (!self->buffer) {
       self->length = 0;
-      self->last_error = AMQP_STATUS_NO_MEMORY;
+      ret = AMQP_STATUS_NO_MEMORY;
       goto exit;
     }
     self->length = bytes;
@@ -123,9 +129,9 @@ amqp_ssl_socket_writev(void *base,
     memcpy(bufferp, iov[i].iov_base, iov[i].iov_len);
     bufferp += iov[i].iov_len;
   }
-  written = amqp_ssl_socket_send(self, self->buffer, bytes, 0);
+  ret = amqp_ssl_socket_send(self, self->buffer, bytes);
 exit:
-  return written;
+  return ret;
 }
 
 static ssize_t
@@ -137,17 +143,21 @@ amqp_ssl_socket_recv(void *base,
   struct amqp_ssl_socket_t *self = (struct amqp_ssl_socket_t *)base;
   ssize_t received;
   ERR_clear_error();
-  self->last_error = 0;
+  self->internal_error = 0;
+
   received = SSL_read(self->ssl, buf, len);
   if (0 >= received) {
-    self->last_error = AMQP_STATUS_SSL_ERROR;
-    switch(SSL_get_error(self->ssl, received)) {
-    case SSL_ERROR_WANT_READ:
-    case SSL_ERROR_WANT_WRITE:
-      received = 0;
+    self->internal_error = SSL_get_error(self->ssl, received);
+    switch(self->internal_error) {
+    case SSL_ERROR_ZERO_RETURN:
+      received = AMQP_STATUS_CONNECTION_CLOSED;
+      break;
+    default:
+      received = AMQP_STATUS_SSL_ERROR;
       break;
     }
   }
+
   return received;
 }
 

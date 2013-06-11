@@ -50,7 +50,7 @@
 #include <string.h>
 
 ssize_t
-amqp_socket_writev(amqp_socket_t *self, const struct iovec *iov, int iovcnt)
+amqp_socket_writev(amqp_socket_t *self, struct iovec *iov, int iovcnt)
 {
   assert(self);
   assert(self->klass->writev);
@@ -58,11 +58,11 @@ amqp_socket_writev(amqp_socket_t *self, const struct iovec *iov, int iovcnt)
 }
 
 ssize_t
-amqp_socket_send(amqp_socket_t *self, const void *buf, size_t len, int flags)
+amqp_socket_send(amqp_socket_t *self, const void *buf, size_t len)
 {
   assert(self);
   assert(self->klass->send);
-  return self->klass->send(self, buf, len, flags);
+  return self->klass->send(self, buf, len);
 }
 
 ssize_t
@@ -179,7 +179,7 @@ int amqp_send_header(amqp_connection_state_t state)
                                      AMQP_PROTOCOL_VERSION_MINOR,
                                      AMQP_PROTOCOL_VERSION_REVISION
                                    };
-  return amqp_socket_send(state->socket, header, 8, MSG_NOSIGNAL);
+  return amqp_socket_send(state->socket, header, sizeof(header));
 }
 
 static amqp_bytes_t sasl_method_name(amqp_sasl_method_enum method)
@@ -496,7 +496,10 @@ static amqp_rpc_reply_t amqp_login_inner(amqp_connection_state_t state,
   uint16_t server_heartbeat;
   amqp_rpc_reply_t result;
 
-  amqp_send_header(state);
+  res = amqp_send_header(state);
+  if (AMQP_STATUS_OK != res) {
+    goto error_res;
+  }
 
   res = amqp_simple_wait_method(state, 0, AMQP_CONNECTION_START_METHOD,
                                 &method);
