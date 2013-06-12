@@ -318,23 +318,11 @@ int amqp_simple_wait_method(amqp_connection_state_t state,
     return res;
   }
 
-  if (frame.channel != expected_channel) {
-    amqp_abort("Expected 0x%08X method frame on channel %d, got frame on channel %d",
-               expected_method,
-               expected_channel,
-               frame.channel);
-  }
-  if (frame.frame_type != AMQP_FRAME_METHOD) {
-    amqp_abort("Expected 0x%08X method frame on channel %d, got frame type %d",
-               expected_method,
-               expected_channel,
-               frame.frame_type);
-  }
-  if (frame.payload.method.id != expected_method) {
-    amqp_abort("Expected method ID 0x%08X on channel %d, got ID 0x%08X",
-               expected_method,
-               expected_channel,
-               frame.payload.method.id);
+  if (frame.channel != expected_channel
+      || frame.frame_type != AMQP_FRAME_METHOD
+      || frame.payload.method.id != expected_method) {
+    amqp_socket_close(state->socket);
+    return AMQP_STATUS_WRONG_METHOD;
   }
   *output = frame.payload.method;
   return AMQP_STATUS_OK;
