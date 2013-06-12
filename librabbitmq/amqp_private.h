@@ -45,8 +45,10 @@
 #include "amqp_framing.h"
 #include <string.h>
 
-#ifdef HAVE_ARPA_INET_H
-#include <arpa/inet.h>
+#ifdef _WIN32
+# include <Winsock2.h>
+#else
+# include <arpa/inet.h>
 #endif
 
 /* GCC attributes */

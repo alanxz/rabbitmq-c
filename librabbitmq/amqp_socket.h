@@ -29,9 +29,18 @@
 #define AMQP_SOCKET_H
 
 #include "amqp.h"
-#include "socket.h"
+
+#ifdef _WIN32
+# include <WinSock2.h>
+#endif
 
 AMQP_BEGIN_DECLS
+
+int
+amqp_os_socket_error(void);
+
+int
+amqp_os_socket_close(int sockfd);
 
 /* Socket callbacks. */
 typedef ssize_t (*amqp_socket_writev_fn)(void *, struct iovec *, int);
@@ -57,6 +66,17 @@ struct amqp_socket_class_t {
 struct amqp_socket_t_ {
   const struct amqp_socket_class_t *klass;
 };
+
+
+#ifdef _WIN32
+/* WinSock2 calls iovec WSABUF with different parameter names.
+ * this is really a WSABUF with different names
+ */
+struct iovec {
+  u_long iov_len;
+  char FAR *iov_base;
+};
+#endif
 
 /**
  * Write to a socket.

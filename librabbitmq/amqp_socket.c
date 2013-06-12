@@ -40,14 +40,117 @@
 
 #include "amqp_private.h"
 
-#include "socket.h"
-
 #include <assert.h>
 #include <stdarg.h>
 #include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+
+#include <errno.h>
+
+#ifdef _WIN32
+# ifndef WIN32_LEAN_AND_MEAN
+#  define WIN32_LEAN_AND_MEAN
+# endif
+# include <Winsock2.h>
+# include <ws2tcpip.h>
+#else
+# include <sys/types.h>      /* On older BSD this must come before net includes */
+# include <netinet/in.h>
+# include <netinet/tcp.h>
+# include <sys/socket.h>
+# include <netdb.h>
+# include <sys/uio.h>
+# include <fcntl.h>
+# include <unistd.h>
+#endif
+
+static int
+amqp_os_socket_init(void)
+{
+#ifdef _WIN32
+  static called_wsastartup = 0;
+  if (!called_wsastartup) {
+    WSADATA data;
+    int res = WSAStartup(0x0202, &data);
+    if (res) {
+      return AMQP_STATUS_TCP_SOCKETLIB_INIT_ERROR;
+    }
+
+    called_wsastartup = 1;
+  }
+  return AMQP_STATUS_OK;
+
+#else
+  return AMQP_STATUS_OK;
+#endif
+}
+
+static int
+amqp_os_socket_socket(int domain, int type, int protocol)
+{
+#ifdef _WIN32
+    /*
+      This cast is to squash warnings on Win64, see:
+      http://stackoverflow.com/questions/1953639/is-it-safe-to-cast-socket-to-int-under-win64
+    */
+  return (int)socket(domain, type, protocol);
+#else
+  int flags;
+
+  int s = socket(domain, type, protocol);
+  if (s < 0) {
+    return s;
+  }
+
+  /* Always enable CLOEXEC on the socket */
+  flags = fcntl(s, F_GETFD);
+  if (flags == -1
+      || fcntl(s, F_SETFD, (long)(flags | FD_CLOEXEC)) == -1) {
+    int e = errno;
+    close(s);
+    errno = e;
+    return -1;
+  }
+
+  return s;
+
+#endif
+}
+
+static int
+amqp_os_socket_setsockopt(int sock, int level, int optname,
+                       const void *optval, size_t optlen)
+{
+#ifdef _WIN32
+  /* the winsock setsockopt function has its 4th argument as a
+     const char * */
+  return setsockopt(sock, level, optname, (const char *)optval, optlen);
+#else
+  return setsockopt(sock, level, optname, optval, optlen);
+#endif
+}
+
+int
+amqp_os_socket_error(void)
+{
+#ifdef _WIN32
+  return WSAGetLastError();
+#else
+  return errno;
+#endif
+}
+
+int
+amqp_os_socket_close(int sockfd)
+{
+#ifdef _WIN32
+  return closesocket(sockfd);
+#else
+  return close(sockfd);
+#endif
+}
 
 ssize_t
 amqp_socket_writev(amqp_socket_t *self, struct iovec *iov, int iovcnt)
@@ -118,7 +221,7 @@ int amqp_open_socket(char const *hostname,
   int last_error = AMQP_STATUS_OK;
   int one = 1; /* for setsockopt */
 
-  last_error = amqp_socket_init();
+  last_error = amqp_os_socket_init();
   if (AMQP_STATUS_OK != last_error) {
     return last_error;
   }
@@ -137,23 +240,19 @@ int amqp_open_socket(char const *hostname,
   }
 
   for (addr = address_list; addr; addr = addr->ai_next) {
-    /*
-      This cast is to squash warnings on Win64, see:
-      http://stackoverflow.com/questions/1953639/is-it-safe-to-cast-socket-to-int-under-win64
-    */
-    sockfd = (int)socket(addr->ai_family, addr->ai_socktype, addr->ai_protocol);
+    sockfd = amqp_os_socket_socket(addr->ai_family, addr->ai_socktype, addr->ai_protocol);
     if (-1 == sockfd) {
       last_error = AMQP_STATUS_SOCKET_ERROR;
       continue;
     }
 #ifdef DISABLE_SIGPIPE_WITH_SETSOCKOPT
-    if (0 != amqp_socket_setsockopt(sockfd, SOL_SOCKET, SO_NOSIGPIPE, &one, sizeof(one))) {
+    if (0 != amqp_os_socket_setsockopt(sockfd, SOL_SOCKET, SO_NOSIGPIPE, &one, sizeof(one))) {
       last_error = AMQP_STATUS_SOCKET_ERROR;
       amqp_os_socket_close(sockfd);
       continue;
     }
 #endif /* DISABLE_SIGPIPE_WITH_SETSOCKOPT */
-    if (0 != amqp_socket_setsockopt(sockfd, IPPROTO_TCP, TCP_NODELAY, &one, sizeof(one))
+    if (0 != amqp_os_socket_setsockopt(sockfd, IPPROTO_TCP, TCP_NODELAY, &one, sizeof(one))
         || 0 != connect(sockfd, addr->ai_addr, addr->ai_addrlen)) {
       last_error = AMQP_STATUS_SOCKET_ERROR;
       amqp_os_socket_close(sockfd);

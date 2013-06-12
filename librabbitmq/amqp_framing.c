@@ -39,7 +39,6 @@
 #endif
 
 #include "amqp_private.h"
-#include "socket.h"
 #include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>

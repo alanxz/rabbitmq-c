@@ -26,8 +26,10 @@
 #endif
 
 #include "amqp_ssl_socket.h"
+#include "amqp_socket.h"
 #include "amqp_private.h"
 #include "threads.h"
+
 #include <ctype.h>
 #include <openssl/conf.h>
 #include <openssl/err.h>
@@ -35,7 +37,6 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include "socket.h"
 
 static int initialize_openssl(void);
 static int destroy_openssl(void);
