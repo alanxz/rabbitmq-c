@@ -588,11 +588,10 @@ AMQP_CALL amqp_data_in_buffer(amqp_connection_state_t state);
 /*
  * Get the error string for the given error code.
  *
- * The returned string resides on the heap; the caller is responsible
- * for freeing it.
+ * Error string is statically allocated. (API changed in v0.4.0)
  */
 AMQP_PUBLIC_FUNCTION
-char *
+const char *
 AMQP_CALL amqp_error_string(int err);
 
 AMQP_PUBLIC_FUNCTION

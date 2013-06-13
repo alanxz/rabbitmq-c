@@ -59,9 +59,7 @@ void die(const char *fmt, ...)
 void die_on_error(int x, char const *context)
 {
   if (x < 0) {
-    char *errstr = amqp_error_string(-x);
-    fprintf(stderr, "%s: %s\n", context, errstr);
-    free(errstr);
+    fprintf(stderr, "%s: %s\n", context, amqp_error_string(x));
     exit(1);
   }
 }
