@@ -329,6 +329,31 @@ typedef struct amqp_connection_state_t_ *amqp_connection_state_t;
 
 typedef struct amqp_socket_t_ amqp_socket_t;
 
+typedef enum amqp_status_enum_
+{
+  AMQP_STATUS_OK =                         0x0,
+  AMQP_STATUS_NO_MEMORY =                 -0x0001,
+  AMQP_STATUS_BAD_AMQP_DATA =             -0x0002,
+  AMQP_STATUS_UNKNOWN_CLASS =             -0x0003,
+  AMQP_STATUS_UNKNOWN_METHOD =            -0x0004,
+  AMQP_STATUS_HOSTNAME_RESOLUTION_FAILED= -0x0005,
+  AMQP_STATUS_INCOMPATIBLE_AMQP_VERSION = -0x0006,
+  AMQP_STATUS_CONNECTION_CLOSED =         -0x0007,
+  AMQP_STATUS_BAD_URL =                   -0x0008,
+  AMQP_STATUS_SOCKET_ERROR =              -0x0009,
+  AMQP_STATUS_INVALID_PARAMETER =         -0x000A,
+  AMQP_STATUS_TABLE_TOO_BIG =             -0x000B,
+  AMQP_STATUS_WRONG_METHOD =              -0x000C,
+
+  AMQP_STATUS_TCP_ERROR =                 -0x0100,
+  AMQP_STATUS_TCP_SOCKETLIB_INIT_ERROR =  -0x0101,
+
+  AMQP_STATUS_SSL_ERROR =                 -0x0200,
+  AMQP_STATUS_SSL_HOSTNAME_VERIFY_FAILED= -0x0201,
+  AMQP_STATUS_SSL_PEER_VERIFY_FAILED =    -0x0202,
+  AMQP_STATUS_SSL_CONNECTION_FAILED =     -0x0203
+} amqp_status_enum;
+
 AMQP_PUBLIC_FUNCTION
 char const *
 AMQP_CALL amqp_version(void);
@@ -563,11 +588,10 @@ AMQP_CALL amqp_data_in_buffer(amqp_connection_state_t state);
 /*
  * Get the error string for the given error code.
  *
- * The returned string resides on the heap; the caller is responsible
- * for freeing it.
+ * Error string is statically allocated. (API changed in v0.4.0)
  */
 AMQP_PUBLIC_FUNCTION
-char *
+const char *
 AMQP_CALL amqp_error_string(int err);
 
 AMQP_PUBLIC_FUNCTION

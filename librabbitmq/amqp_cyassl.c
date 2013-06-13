@@ -58,7 +58,7 @@ amqp_ssl_socket_send(void *base,
   self->last_error = 0;
   status = CyaSSL_write(self->ssl, buf, len);
   if (status <= 0) {
-    self->last_error = ERROR_CATEGORY_SSL;
+    self->last_error = AMQP_STATUS_SSL_ERROR;
   }
 
   return status;
@@ -84,7 +84,7 @@ amqp_ssl_socket_writev(void *base,
     self->buffer = malloc(bytes);
     if (!self->buffer) {
       self->length = 0;
-      self->last_error = ERROR_NO_MEMORY;
+      self->last_error = AMQP_STATUS_NO_MEMORY;
       goto exit;
     }
     self->length = bytes;
@@ -111,7 +111,7 @@ amqp_ssl_socket_recv(void *base,
   self->last_error = 0;
   status = CyaSSL_read(self->ssl, buf, len);
   if (status <= 0) {
-    self->last_error = ERROR_CATEGORY_SSL;
+    self->last_error = AMQP_STATUS_SSL_ERROR;
   }
 
   return status;
@@ -163,7 +163,7 @@ amqp_ssl_socket_open(void *base, const char *host, int port)
 
   self->ssl = CyaSSL_new(self->ctx);
   if (NULL == self->ssl) {
-    self->last_error = ERROR_CATEGORY_SSL;
+    self->last_error = AMQP_STATUS_SSL_ERROR;
     return -1;
   }
 
@@ -175,7 +175,7 @@ amqp_ssl_socket_open(void *base, const char *host, int port)
   CyaSSL_set_fd(self->ssl, self->sockfd);
   status = CyaSSL_connect(self->ssl);
   if (SSL_SUCCESS != status) {
-    self->last_error = ERROR_CATEGORY_SSL;
+    self->last_error = AMQP_STATUS_SSL_ERROR;
     return -1;
   }
   return 0;

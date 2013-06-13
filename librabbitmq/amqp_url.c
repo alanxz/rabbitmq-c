@@ -110,7 +110,7 @@ static char find_delim(char **pp, int colon_and_at_sign_are_delims)
 /* Parse an AMQP URL into its component parts. */
 int amqp_parse_url(char *url, struct amqp_connection_info *parsed)
 {
-  int res = -ERROR_BAD_AMQP_URL;
+  int res = AMQP_STATUS_BAD_URL;
   char delim;
   char *start;
   char *host;
@@ -205,13 +205,13 @@ int amqp_parse_url(char *url, struct amqp_connection_info *parsed)
     }
 
     parsed->vhost = start;
-    res = 0;
+    res = AMQP_STATUS_OK;
   } else if (delim == 0) {
-    res = 0;
+    res = AMQP_STATUS_OK;
   }
 
   /* Any other delimiter is bad, and we will return
-     ERROR_BAD_AMQP_URL. */
+     AMQP_STATUS_BAD_AMQP_URL. */
 
 out:
   return res;

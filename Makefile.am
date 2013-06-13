@@ -55,15 +55,11 @@ librabbitmq_librabbitmq_la_LDFLAGS = \
 	$(SSL_LIBS)
 
 if OS_UNIX
-librabbitmq_librabbitmq_la_SOURCES += librabbitmq/unix/socket.c
-librabbitmq_librabbitmq_la_SOURCES += librabbitmq/unix/socket.h
 librabbitmq_librabbitmq_la_SOURCES += librabbitmq/unix/threads.h
 librabbitmq_librabbitmq_la_CFLAGS += -I$(top_srcdir)/librabbitmq/unix
 endif
 
 if OS_WIN32
-librabbitmq_librabbitmq_la_SOURCES += librabbitmq/win32/socket.c
-librabbitmq_librabbitmq_la_SOURCES += librabbitmq/win32/socket.h
 librabbitmq_librabbitmq_la_SOURCES += librabbitmq/win32/threads.h
 librabbitmq_librabbitmq_la_CFLAGS += -I$(top_srcdir)/librabbitmq/win32
 librabbitmq_librabbitmq_la_CFLAGS += -I$(top_srcdir)/librabbitmq/win32/msinttypes

@@ -67,7 +67,7 @@ amqp_ssl_socket_send(void *base,
   self->last_error = 0;
   status = ssl_write(self->ssl, buf, len);
   if (status < 0) {
-    self->last_error = ERROR_CATEGORY_SSL;
+    self->last_error = AMQP_STATUS_SSL_ERROR;
   }
 
   return status;
@@ -93,7 +93,7 @@ amqp_ssl_socket_writev(void *base,
     self->buffer = malloc(bytes);
     if (!self->buffer) {
       self->length = 0;
-      self->last_error = ERROR_NO_MEMORY;
+      self->last_error = AMQP_STATUS_NO_MEMORY;
       goto exit;
     }
     self->length = bytes;
@@ -121,7 +121,7 @@ amqp_ssl_socket_recv(void *base,
   self->last_error = 0;
   status = ssl_read(self->ssl, buf, len);
   if (status < 0) {
-    self->last_error = ERROR_CATEGORY_SSL;
+    self->last_error = AMQP_STATUS_SSL_ERROR;
   }
 
   return status;
@@ -139,7 +139,7 @@ amqp_ssl_socket_open(void *base, const char *host, int port)
     /* This isn't quite right. We should probably translate between
      * POLARSSL_ERR_* to our internal error codes
      */
-    self->last_error = ERROR_CATEGORY_SSL;
+    self->last_error = AMQP_STATUS_SSL_ERROR;
     return -1;
   }
   if (self->cacert) {
@@ -156,7 +156,7 @@ amqp_ssl_socket_open(void *base, const char *host, int port)
     case POLARSSL_ERR_NET_WANT_WRITE:
       continue;
     default:
-      self->last_error = ERROR_CATEGORY_SSL;
+      self->last_error = AMQP_STATUS_SSL_ERROR;
       break;
     }
   }
@@ -193,7 +193,7 @@ amqp_ssl_socket_close(void *base)
 static int
 amqp_ssl_socket_error(AMQP_UNUSED void *user_data)
 {
-  return ERROR_CATEGORY_SSL;
+  return AMQP_STATUS_SSL_ERROR;
 }
 
 char *
