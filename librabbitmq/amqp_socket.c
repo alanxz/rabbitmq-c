@@ -421,6 +421,7 @@ int amqp_simple_wait_method(amqp_connection_state_t state,
       || frame.frame_type != AMQP_FRAME_METHOD
       || frame.payload.method.id != expected_method) {
     amqp_socket_close(state->socket);
+    state->socket = NULL;
     return AMQP_STATUS_WRONG_METHOD;
   }
   *output = frame.payload.method;
