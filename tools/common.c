@@ -91,7 +91,7 @@ void die_amqp_error(int err, const char *fmt, ...)
   va_start(ap, fmt);
   vfprintf(stderr, fmt, ap);
   va_end(ap);
-  fprintf(stderr, ": %s\n", amqp_error_string(err));
+  fprintf(stderr, ": %s\n", amqp_error_string2(err));
   exit(1);
 }
 
@@ -140,7 +140,7 @@ const char *amqp_rpc_reply_string(amqp_rpc_reply_t r)
     return "missing RPC reply type";
 
   case AMQP_RESPONSE_LIBRARY_EXCEPTION:
-    return amqp_error_string(r.library_error);
+    return amqp_error_string2(r.library_error);
 
   case AMQP_RESPONSE_SERVER_EXCEPTION:
     return amqp_server_exception_string(r);

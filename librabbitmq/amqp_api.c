@@ -85,7 +85,7 @@ static const char *ssl_error_strings[] = {
 
 static const char *unknown_error_string = "(unknown error)";
 
-const char *amqp_error_string(int code)
+const char *amqp_error_string2(int code)
 {
   const char *error_string;
   size_t category = (((-code) & ERROR_CATEGORY_MASK) >> 16);
@@ -124,6 +124,11 @@ const char *amqp_error_string(int code)
   }
 
   return error_string;
+}
+
+char *amqp_error_string(int code)
+{
+  return strdup(amqp_error_string2(code));
 }
 
 void amqp_abort(const char *fmt, ...)

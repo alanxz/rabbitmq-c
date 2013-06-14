@@ -59,7 +59,7 @@ void die(const char *fmt, ...)
 void die_on_error(int x, char const *context)
 {
   if (x < 0) {
-    fprintf(stderr, "%s: %s\n", context, amqp_error_string(x));
+    fprintf(stderr, "%s: %s\n", context, amqp_error_string2(x));
     exit(1);
   }
 }
@@ -75,7 +75,7 @@ void die_on_amqp_error(amqp_rpc_reply_t x, char const *context)
     break;
 
   case AMQP_RESPONSE_LIBRARY_EXCEPTION:
-    fprintf(stderr, "%s: %s\n", context, amqp_error_string(x.library_error));
+    fprintf(stderr, "%s: %s\n", context, amqp_error_string2(x.library_error));
     break;
 
   case AMQP_RESPONSE_SERVER_EXCEPTION:

@@ -588,11 +588,24 @@ AMQP_CALL amqp_data_in_buffer(amqp_connection_state_t state);
 /*
  * Get the error string for the given error code.
  *
- * Error string is statically allocated. (API changed in v0.4.0)
+ * @deprecated This function has been deprecated in favor of
+ *  \ref amqp_error_string2() which returns statically allocated
+ *  string which do not need to be freed by the caller.
+ *
+ * The returned string resides on the heap; the caller is responsible
+ * for freeing it
+ *
  */
+AMQP_DEPRECATED(
+  AMQP_PUBLIC_FUNCTION
+  char *
+  AMQP_CALL amqp_error_string(int err)
+);
+
 AMQP_PUBLIC_FUNCTION
 const char *
-AMQP_CALL amqp_error_string(int err);
+AMQP_CALL amqp_error_string2(int err);
+
 
 AMQP_PUBLIC_FUNCTION
 int
