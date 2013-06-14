@@ -98,6 +98,7 @@ AC_SEARCH_LIBS([socket], [socket], [],
                              [LIBS="-lsocket -lnsl $LIBS"], 
                              [AC_MSG_ERROR([cannot find socket library (library with socket symbol)])],
                              [-lnsl])])
+AC_SEARCH_LIBS([clock_gettime], [rt])
 AC_CHECK_FUNCS([htonll])
 
 AC_ARG_ENABLE([regen-amqp-framing],

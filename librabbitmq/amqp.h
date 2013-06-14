@@ -152,6 +152,8 @@ typedef _W64 int ssize_t;
 #include <stddef.h>
 #include <stdint.h>
 
+struct timeval;
+
 AMQP_BEGIN_DECLS
 
 typedef int amqp_boolean_t;
@@ -344,6 +346,8 @@ typedef enum amqp_status_enum_
   AMQP_STATUS_INVALID_PARAMETER =         -0x000A,
   AMQP_STATUS_TABLE_TOO_BIG =             -0x000B,
   AMQP_STATUS_WRONG_METHOD =              -0x000C,
+  AMQP_STATUS_TIMEOUT =                   -0x000D,
+  AMQP_STATUS_TIMER_FAILURE =             -0x000E,
 
   AMQP_STATUS_TCP_ERROR =                 -0x0100,
   AMQP_STATUS_TCP_SOCKETLIB_INIT_ERROR =  -0x0101,
@@ -480,6 +484,12 @@ AMQP_PUBLIC_FUNCTION
 int
 AMQP_CALL amqp_simple_wait_frame(amqp_connection_state_t state,
                                  amqp_frame_t *decoded_frame);
+
+AMQP_PUBLIC_FUNCTION
+int
+AMQP_CALL amqp_simple_wait_frame_noblock(amqp_connection_state_t state,
+                                         amqp_frame_t *decoded_frame,
+                                         struct timeval *tv);
 
 AMQP_PUBLIC_FUNCTION
 int
