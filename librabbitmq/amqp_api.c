@@ -68,7 +68,9 @@ static const char *base_error_strings[] = {
   "a socket error occurred",            /* AMQP_STATUS_SOCKET_ERROR             -0x0009 */
   "invalid parameter",                  /* AMQP_STATUS_INVALID_PARAMETER        -0x000A */
   "table too large for buffer",         /* AMQP_STATUS_TABLE_TOO_BIG            -0x000B */
-  "unexpected method received"          /* AMQP_STATUS_WRONG_METHOD             -0x000C */
+  "unexpected method received",         /* AMQP_STATUS_WRONG_METHOD             -0x000C */
+  "request timed out",                  /* AMQP_STATUS_TIMEOUT                  -0x000D */
+  "system timer has failed"             /* AMQP_STATUS_TIMER_FAILED             -0x000E */
 };
 
 static const char *tcp_error_strings[] = {
