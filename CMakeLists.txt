@@ -101,6 +101,11 @@ else (WIN32)
 endif (WIN32)
 cmake_pop_check_state()
 
+check_library_exists(rt clock_gettime "time.h" CLOCK_GETTIME_NEEDS_LIBRT)
+if (CLOCK_GETTIME_NEEDS_LIBRT)
+  set(LIBRT rt)
+endif()
+
 option(REGENERATE_AMQP_FRAMING "Regenerate amqp_framing.h/amqp_framing.c sources (for developer use)" OFF)
 mark_as_advanced(REGENERATE_AMQP_FRAMING)
 
