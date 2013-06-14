@@ -369,7 +369,7 @@ static void test_table_codec(FILE *out)
     result = amqp_decode_table(decoding_bytes, &pool, &decoded,
                                &decoding_offset);
     if (result < 0) {
-      die("Table decoding failed: %s", amqp_error_string(-result));
+      die("Table decoding failed: %s", amqp_error_string2(result));
     }
 
     fprintf(out, "BBBBBBBBBB\n");
@@ -394,7 +394,7 @@ static void test_table_codec(FILE *out)
 
     result = amqp_encode_table(encoding_result, &table, &offset);
     if (result < 0) {
-      die("Table encoding failed: %s", amqp_error_string(-result));
+      die("Table encoding failed: %s", amqp_error_string2(result));
     }
 
     if (offset != sizeof(pre_encoded_table))

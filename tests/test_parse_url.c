@@ -78,7 +78,7 @@ static void parse_success(const char *url,
   if (res) {
     fprintf(stderr,
             "Expected to successfully parse URL, but didn't: %s (%s)\n",
-            url, amqp_error_string(-res));
+            url, amqp_error_string2(res));
     abort();
   }
 
