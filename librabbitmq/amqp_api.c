@@ -128,6 +128,16 @@ const char *amqp_error_string2(int code)
 
 char *amqp_error_string(int code)
 {
+  /* Previously sometimes clients had to flip the sign on a return value from a
+   * function to get the correct error code. Now, all error codes are negative.
+   * To keep people's legacy code running correctly, we map all error codes to
+   * negative values.
+   *
+   * This is only done with this deprecated function.
+   */
+  if (code > 0) {
+    code = -code;
+  }
   return strdup(amqp_error_string2(code));
 }
 
