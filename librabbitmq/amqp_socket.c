@@ -377,12 +377,8 @@ static int wait_frame_inner(amqp_connection_state_t state,
 
     res = amqp_socket_recv(state->socket, state->sock_inbound_buffer.bytes,
                            state->sock_inbound_buffer.len, 0);
-    if (res <= 0) {
-      if (res == 0) {
-        return AMQP_STATUS_CONNECTION_CLOSED;
-      } else {
-        return amqp_socket_error(state->socket);
-      }
+    if (res < 0) {
+      return res;
     }
 
     state->sock_inbound_limit = res;
@@ -413,7 +409,7 @@ int amqp_simple_wait_method(amqp_connection_state_t state,
 {
   amqp_frame_t frame;
   int res = amqp_simple_wait_frame(state, &frame);
-  if (res < 0) {
+  if (AMQP_STATUS_OK != res) {
     return res;
   }
 
@@ -774,7 +770,7 @@ error_res:
   result.reply_type = AMQP_RESPONSE_LIBRARY_EXCEPTION;
   result.reply.id = 0;
   result.reply.decoded = NULL;
-  result.library_error = -res;
+  result.library_error = res;
 
   goto out;
 }
