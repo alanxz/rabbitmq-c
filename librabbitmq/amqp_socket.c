@@ -392,6 +392,9 @@ static int wait_frame_inner(amqp_connection_state_t state,
         struct timeval tv;
 
         fd = amqp_get_sockfd(state);
+        if (-1 == fd) {
+          return AMQP_STATUS_CONNECTION_CLOSED;
+        }
 
         FD_ZERO(&read_fd);
         FD_SET(fd, &read_fd);
