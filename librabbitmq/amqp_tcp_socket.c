@@ -124,7 +124,7 @@ exit:
   struct iovec *iov_left = iov;
   int iovcnt_left = iovcnt;
 
-  for (int i = 0; i < iovcnt; ++i) {
+  for (i = 0; i < iovcnt; ++i) {
     len_left += iov[i].iov_len;
   }
 
