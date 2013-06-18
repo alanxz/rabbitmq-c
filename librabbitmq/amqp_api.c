@@ -90,7 +90,7 @@ static const char *unknown_error_string = "(unknown error)";
 const char *amqp_error_string2(int code)
 {
   const char *error_string;
-  size_t category = (((-code) & ERROR_CATEGORY_MASK) >> 16);
+  size_t category = (((-code) & ERROR_CATEGORY_MASK) >> 8);
   size_t error = (-code) & ERROR_MASK;
 
   switch (category) {
