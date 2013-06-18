@@ -70,6 +70,9 @@ amqp_get_monotonic_timestamp(void)
 
   if (s_timebase.denom == 0) {
     mach_timebase_info(&s_timebase);
+    if (0 == s_timebase.denom) {
+      return 0;
+    }
   }
 
   timestamp = timestamp * s_timebase.numer / s_timebase.denom;

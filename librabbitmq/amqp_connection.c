@@ -147,7 +147,6 @@ int amqp_tune_connection(amqp_connection_state_t state,
   state->outbound_buffer.len = frame_max;
   newbuf = realloc(state->outbound_buffer.bytes, frame_max);
   if (newbuf == NULL) {
-    amqp_destroy_connection(state);
     return AMQP_STATUS_NO_MEMORY;
   }
   state->outbound_buffer.bytes = newbuf;
