@@ -202,3 +202,46 @@ void amqp_bytes_free(amqp_bytes_t bytes)
 {
   free(bytes.bytes);
 }
+
+amqp_pool_t *amqp_get_or_create_channel_pool(amqp_connection_state_t state, amqp_channel_t channel)
+{
+  amqp_pool_table_entry_t *entry;
+  size_t index = channel % POOL_TABLE_SIZE;
+
+  entry = state->pool_table[index];
+
+  for ( ; NULL != entry; entry = entry->next) {
+    if (channel == entry->channel) {
+      return &entry->pool;
+    }
+  }
+
+  entry = malloc(sizeof(amqp_pool_table_entry_t));
+  if (NULL == entry) {
+    return NULL;
+  }
+
+  entry->channel = channel;
+  entry->next = state->pool_table[index];
+  state->pool_table[index] = entry;
+
+  init_amqp_pool(&entry->pool, state->frame_max);
+
+  return &entry->pool;
+}
+
+amqp_pool_t *amqp_get_channel_pool(amqp_connection_state_t state, amqp_channel_t channel)
+{
+  amqp_pool_table_entry_t *entry;
+  size_t index = channel % POOL_TABLE_SIZE;
+
+  entry = state->pool_table[index];
+
+  for ( ; NULL != entry; entry = entry->next) {
+    if (channel == entry->channel) {
+      return &entry->pool;
+    }
+  }
+
+  return NULL;
+}

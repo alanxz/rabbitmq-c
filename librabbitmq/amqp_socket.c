@@ -575,8 +575,19 @@ retry:
              && (frame.payload.method.id == AMQP_CONNECTION_CLOSE_METHOD))
           )
          )) {
-      amqp_frame_t *frame_copy = amqp_pool_alloc(&state->decoding_pool, sizeof(amqp_frame_t));
-      amqp_link_t *link = amqp_pool_alloc(&state->decoding_pool, sizeof(amqp_link_t));
+      amqp_pool_t *channel_pool;
+      amqp_frame_t *frame_copy;
+      amqp_link_t *link;
+
+      channel_pool = amqp_get_or_create_channel_pool(state, frame.channel);
+      if (NULL == channel_pool) {
+        result.reply_type = AMQP_RESPONSE_LIBRARY_EXCEPTION;
+        result.library_error = AMQP_STATUS_NO_MEMORY;
+        return result;
+      }
+
+      frame_copy = amqp_pool_alloc(channel_pool, sizeof(amqp_frame_t));
+      link = amqp_pool_alloc(channel_pool, sizeof(amqp_link_t));
 
       if (frame_copy == NULL || link == NULL) {
         result.reply_type = AMQP_RESPONSE_LIBRARY_EXCEPTION;
@@ -699,9 +710,17 @@ static amqp_rpc_reply_t amqp_login_inner(amqp_connection_state_t state,
     amqp_table_entry_t default_properties[2];
     amqp_table_t default_table;
     amqp_connection_start_ok_t s;
-    amqp_bytes_t response_bytes = sasl_response(&state->decoding_pool,
-                                  sasl_method, vl);
+    amqp_pool_t *channel_pool;
+    amqp_bytes_t response_bytes;
 
+    channel_pool = amqp_get_or_create_channel_pool(state, 0);
+    if (NULL == channel_pool) {
+      res = AMQP_STATUS_NO_MEMORY;
+      goto error_res;
+    }
+
+    response_bytes = sasl_response(channel_pool,
+                     sasl_method, vl);
     if (response_bytes.bytes == NULL) {
       res = AMQP_STATUS_NO_MEMORY;
       goto error_res;
@@ -735,7 +754,7 @@ static amqp_rpc_reply_t amqp_login_inner(amqp_connection_state_t state,
       int i;
       amqp_table_entry_t *current_entry;
 
-      s.client_properties.entries = amqp_pool_alloc(&state->decoding_pool,
+      s.client_properties.entries = amqp_pool_alloc(channel_pool,
                                     sizeof(amqp_table_entry_t) * (default_table.num_entries + client_properties->num_entries));
       if (NULL == s.client_properties.entries) {
         res = AMQP_STATUS_NO_MEMORY;
