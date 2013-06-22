@@ -461,6 +461,10 @@ void
 AMQP_CALL amqp_maybe_release_buffers(amqp_connection_state_t state);
 
 AMQP_PUBLIC_FUNCTION
+void
+AMQP_CALL amqp_maybe_release_buffers_on_channel(amqp_connection_state_t state, amqp_channel_t channel);
+
+AMQP_PUBLIC_FUNCTION
 int
 AMQP_CALL amqp_send_frame(amqp_connection_state_t state, amqp_frame_t const *frame);
 

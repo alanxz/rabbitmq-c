@@ -119,15 +119,27 @@ typedef struct amqp_link_t_ {
   void *data;
 } amqp_link_t;
 
+#define POOL_TABLE_SIZE 16
+
+typedef struct amqp_pool_table_entry_t_ {
+  struct amqp_pool_table_entry_t_ *next;
+  amqp_pool_t pool;
+  amqp_channel_t channel;
+} amqp_pool_table_entry_t;
+
 struct amqp_connection_state_t_ {
-  amqp_pool_t frame_pool;
-  amqp_pool_t decoding_pool;
+  amqp_pool_table_entry_t *pool_table[POOL_TABLE_SIZE];
 
   amqp_connection_state_enum state;
 
   int channel_max;
   int frame_max;
   int heartbeat;
+
+  /* buffer for holding frame headers.  Allows us to delay allocating
+   * the raw frame buffer until the type, channel, and size are all known
+   */
+  char header_buffer[HEADER_SIZE + 1];
   amqp_bytes_t inbound_buffer;
 
   size_t inbound_offset;
@@ -146,6 +158,9 @@ struct amqp_connection_state_t_ {
 
   amqp_rpc_reply_t most_recent_api_result;
 };
+
+amqp_pool_t *amqp_get_or_create_channel_pool(amqp_connection_state_t connection, amqp_channel_t channel);
+amqp_pool_t *amqp_get_channel_pool(amqp_connection_state_t state, amqp_channel_t channel);
 
 static inline void *amqp_offset(void *data, size_t offset)
 {
