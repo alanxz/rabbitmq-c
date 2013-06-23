@@ -28,6 +28,9 @@ target_link_libraries(amqp_listen ${RMQ_LIBRARY_TARGET})
 add_executable(amqp_producer amqp_producer.c ${COMMON_SRCS})
 target_link_libraries(amqp_producer ${RMQ_LIBRARY_TARGET})
 
+add_executable(amqp_connect_timeout amqp_connect_timeout.c ${COMMON_SRCS})
+target_link_libraries(amqp_connect_timeout ${RMQ_LIBRARY_TARGET})
+
 add_executable(amqp_consumer amqp_consumer.c ${COMMON_SRCS})
 target_link_libraries(amqp_consumer ${RMQ_LIBRARY_TARGET})
 
