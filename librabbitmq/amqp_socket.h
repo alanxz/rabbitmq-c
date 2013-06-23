@@ -46,7 +46,7 @@ amqp_os_socket_close(int sockfd);
 typedef ssize_t (*amqp_socket_writev_fn)(void *, struct iovec *, int);
 typedef ssize_t (*amqp_socket_send_fn)(void *, const void *, size_t);
 typedef ssize_t (*amqp_socket_recv_fn)(void *, void *, size_t, int);
-typedef int (*amqp_socket_open_fn)(void *, const char *, int);
+typedef int (*amqp_socket_open_fn)(void *, const char *, int, struct timeval *);
 typedef int (*amqp_socket_close_fn)(void *);
 typedef int (*amqp_socket_error_fn)(void *);
 typedef int (*amqp_socket_get_sockfd_fn)(void *);
@@ -126,6 +126,43 @@ amqp_socket_send(amqp_socket_t *self, const void *buf, size_t len);
  */
 ssize_t
 amqp_socket_recv(amqp_socket_t *self, void *buf, size_t len, int flags);
+
+
+/**
+ * Open a socket connection.
+ *
+ * This function opens a socket connection returned from amqp_tcp_socket_new()
+ * or amqp_ssl_socket_new(). This function should be called after setting
+ * socket options and prior to assigning the socket to an AMQP connection with
+ * amqp_set_socket().
+ *
+ * \param [in,out] self A socket object.
+ * \param [in] host Connect to this host.
+ * \param [in] port Connect on this remote port.
+ * \param [in] timeout Max allowed time to spent on opening. If NULL - run in blocking mode
+ *
+ * \return Zero upon success, non-zero otherwise.
+ */
+int
+amqp_socket_open_noblock(amqp_socket_t *self, const char *host, int port, struct timeval *timeout);
+
+/**
+ * Open a socket connection.
+ *
+ * This function opens a socket connection returned from amqp_tcp_socket_new()
+ * or amqp_ssl_socket_new(). This function should be called after setting
+ * socket options and prior to assigning the socket to an AMQP connection with
+ * amqp_set_socket().
+ *
+ * \param [in] host Connect to this host.
+ * \param [in] port Connect on this remote port.
+ * \param [in] timeout Max allowed time to spent on opening. If NULL - run in blocking mode
+ *
+ * \return File descriptor upon success, non-zero negative error code otherwise.
+ */
+int
+amqp_open_socket_noblock(char const *hostname, int portnumber,  struct timeval *timeout);
+
 
 AMQP_END_DECLS
 

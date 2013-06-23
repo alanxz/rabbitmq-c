@@ -25,12 +25,34 @@
 
 #include <stdint.h>
 
+#ifdef _WIN32
+# include <time.h>
+#else
+# include <sys/time.h>
+#endif
+
 #define AMQP_NS_PER_S 1000000000
 #define AMQP_NS_PER_US 1000
+
+#define AMQP_INIT_TIMER(structure) { \
+  structure.current_timestamp = 0;   \
+  structure.timeout_timestamp = 0;   \
+}
+
+typedef struct amqp_timer_t_ {
+  uint64_t current_timestamp;
+  uint64_t timeout_timestamp;
+  uint64_t ns_until_next_timeout;
+  struct timeval tv;
+} amqp_timer_t;
 
 /* Gets a monotonic timestamp in ns */
 uint64_t
 amqp_get_monotonic_timestamp(void);
+
+/* Prepare timeout value and modify timer state based on timer state. */
+int
+amqp_timer_update(amqp_timer_t *timer, struct timeval *timeout);
 
 #endif /* AMQP_TIMER_H */
 

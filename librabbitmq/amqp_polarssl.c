@@ -128,11 +128,19 @@ amqp_ssl_socket_recv(void *base,
 }
 
 static int
-amqp_ssl_socket_open(void *base, const char *host, int port)
+amqp_ssl_socket_open(void *base, const char *host, int port, struct timeval *timeout)
 {
   int status;
   struct amqp_ssl_socket_t *self = (struct amqp_ssl_socket_t *)base;
   self->last_error = 0;
+
+  if (timeout && (timeout->tv_sec != 0 || timeout->tv_usec != 0)) {
+    /* We don't support PolarSSL for now because it uses its own connect() wrapper
+     * It is not too hard to implement net_connect() with noblock support,
+     * but then we will have to maintain that piece of code and keep it synced with main PolarSSL code base
+     */
+    return AMQP_STATUS_INVALID_PARAMETER;
+  }
 
   status = net_connect(&self->sockfd, host, port);
   if (status) {
