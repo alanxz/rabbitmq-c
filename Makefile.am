@@ -154,6 +154,7 @@ endif
 noinst_PROGRAMS = \
 	examples/amqp_bind \
 	examples/amqp_consumer \
+	examples/amqp_connect_timeout \
 	examples/amqp_exchange_declare \
 	examples/amqp_listen \
 	examples/amqp_listenq \
@@ -183,6 +184,11 @@ examples_amqp_producer_LDADD = \
 	librabbitmq/librabbitmq.la
 
 examples_amqp_consumer_SOURCES = examples/amqp_consumer.c
+examples_amqp_consumer_LDADD = \
+	examples/libutils.la \
+	librabbitmq/librabbitmq.la
+
+examples_amqp_consumer_SOURCES = examples/amqp_connect_timeout.c
 examples_amqp_consumer_LDADD = \
 	examples/libutils.la \
 	librabbitmq/librabbitmq.la

@@ -47,6 +47,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <inttypes.h>
 
 #include <errno.h>
 
@@ -209,6 +210,203 @@ amqp_socket_get_sockfd(amqp_socket_t *self)
   assert(self);
   assert(self->klass->get_sockfd);
   return self->klass->get_sockfd(self);
+}
+
+int amqp_open_socket_noblock(char const *hostname,
+                     int portnumber,
+                     struct timeval *timeout)
+{
+  struct addrinfo hint;
+  struct addrinfo *address_list;
+  struct addrinfo *addr;
+  char portnumber_string[33];
+  int sockfd = -1;
+  int last_error = AMQP_STATUS_OK;
+  int one = 1; /* for setsockopt */
+
+  int res;
+  long arg;
+
+  uint64_t current_timestamp = 0;
+  uint64_t timeout_timestamp = 0;
+
+  if (timeout && (timeout->tv_sec < 0 || timeout->tv_usec < 0)) {
+    return AMQP_STATUS_INVALID_PARAMETER;
+  }
+
+  last_error = amqp_os_socket_init();
+  if (AMQP_STATUS_OK != last_error) {
+    return last_error;
+  }
+
+  memset(&hint, 0, sizeof(hint));
+  hint.ai_family = PF_UNSPEC; /* PF_INET or PF_INET6 */
+  hint.ai_socktype = SOCK_STREAM;
+  hint.ai_protocol = IPPROTO_TCP;
+
+  (void)sprintf(portnumber_string, "%d", portnumber);
+
+  last_error = getaddrinfo(hostname, portnumber_string, &hint, &address_list);
+
+  if (0 != last_error) {
+    return AMQP_STATUS_HOSTNAME_RESOLUTION_FAILED;
+  }
+
+    for (addr = address_list; addr; addr = addr->ai_next) {
+      if (-1 != sockfd) {
+        amqp_os_socket_close(sockfd);
+        sockfd = -1;
+      }
+
+      sockfd = amqp_os_socket_socket(addr->ai_family, addr->ai_socktype, addr->ai_protocol);
+
+      if (-1 == sockfd) {
+        last_error = AMQP_STATUS_SOCKET_ERROR;
+        continue;
+      }
+
+      if (timeout) {
+        /* Set non-blocking */
+        if ((arg = fcntl(sockfd, F_GETFL, NULL)) < 0) {
+          last_error = AMQP_STATUS_SOCKET_ERROR;
+          continue;
+        }
+
+        arg |= O_NONBLOCK;
+
+        if (fcntl(sockfd, F_SETFL, arg) < 0) {
+          last_error = AMQP_STATUS_SOCKET_ERROR;
+          continue;
+        }
+      }
+
+      #ifdef DISABLE_SIGPIPE_WITH_SETSOCKOPT
+            if (0 != amqp_os_socket_setsockopt(sockfd, SOL_SOCKET, SO_NOSIGPIPE, &one, sizeof(one))) {
+              last_error = AMQP_STATUS_SOCKET_ERROR;
+              continue;
+            }
+      #endif /* DISABLE_SIGPIPE_WITH_SETSOCKOPT */
+
+      if (0 != amqp_os_socket_setsockopt(sockfd, IPPROTO_TCP, TCP_NODELAY, &one, sizeof(one))) {
+        last_error = AMQP_STATUS_SOCKET_ERROR;
+        continue;
+      }
+
+      if (timeout) {
+        /* Trying to connect with timeout */
+        res = connect(sockfd, addr->ai_addr, addr->ai_addrlen);
+
+        if (errno == EINPROGRESS) {
+
+          while(1) {
+
+            uint64_t       ns_until_next_timeout;
+            struct timeval tv;
+            fd_set         write_fd;
+
+            FD_ZERO(&write_fd);
+            FD_SET(sockfd, &write_fd);
+
+            if (0 == current_timestamp) {
+              current_timestamp = amqp_get_monotonic_timestamp();
+
+              if (0 == current_timestamp) {
+                last_error = AMQP_STATUS_TIMER_FAILURE;
+                break;
+              }
+
+              timeout_timestamp = current_timestamp +
+                                  timeout->tv_sec * AMQP_NS_PER_S +
+                                  timeout->tv_usec * AMQP_NS_PER_US;
+
+            } else {
+              current_timestamp = amqp_get_monotonic_timestamp();
+
+              if (0 == current_timestamp) {
+                last_error = AMQP_STATUS_TIMER_FAILURE;
+                break;
+              }
+            }
+
+            if (current_timestamp > timeout_timestamp) {
+              last_error = AMQP_STATUS_TIMEOUT;
+              break;
+            }
+
+            ns_until_next_timeout = timeout_timestamp - current_timestamp;
+
+            memset(&tv, 0, sizeof(struct timeval));
+            tv.tv_sec = ns_until_next_timeout / AMQP_NS_PER_S;
+            tv.tv_usec = (ns_until_next_timeout % AMQP_NS_PER_S) / AMQP_NS_PER_US;
+
+            res = select(sockfd+1, NULL, &write_fd, NULL, &tv);
+
+            if (res > 0) {
+              /* socket is ready to be written to */
+
+              /* Set to blocking mode again */
+              if ((arg = fcntl(sockfd, F_GETFL, NULL)) < 0) {
+                last_error = AMQP_STATUS_SOCKET_ERROR;
+                break;
+              }
+
+              arg &= (~O_NONBLOCK);
+
+              if (fcntl(sockfd, F_SETFL, arg) < 0) {
+                last_error = AMQP_STATUS_SOCKET_ERROR;
+                break;
+              }
+
+              last_error = AMQP_STATUS_OK;
+              break;
+            } else if (0 == res) {
+              /* Timed out - return */
+              last_error = AMQP_STATUS_TIMEOUT;
+              break;
+            } else if (errno == EINTR) {
+              /* Try again */
+              continue;
+            } else {
+              /* Error connecting */
+              last_error = AMQP_STATUS_SOCKET_ERROR;
+              break;
+            }
+          } /* end while(1) loop */
+
+          if (last_error == AMQP_STATUS_OK || last_error == AMQP_STATUS_TIMEOUT) {
+              /* Exit for loop if timed out or connected */
+              break;
+          }
+
+        } else {
+          /* Error connecting */
+          last_error = AMQP_STATUS_SOCKET_ERROR;
+          break;
+
+        }
+
+      } else {
+        /* Connect in blocking mode */
+        if (0 != connect(sockfd, addr->ai_addr, addr->ai_addrlen)) {
+          last_error = AMQP_STATUS_SOCKET_ERROR;
+          continue;
+        } else {
+          last_error = AMQP_STATUS_OK;
+          break;
+        }
+      }
+    }
+
+    freeaddrinfo(address_list);
+    if (last_error != AMQP_STATUS_OK) {
+      if (-1 != sockfd) {
+        amqp_os_socket_close(sockfd);
+      }
+
+      return last_error;
+    }
+
+    return sockfd;
 }
 
 int amqp_open_socket(char const *hostname,
