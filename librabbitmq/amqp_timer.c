@@ -20,7 +20,9 @@
  * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
  * DEALINGS IN THE SOFTWARE.
  */
+#include "amqp.h"
 #include "amqp_timer.h"
+#include <string.h>
 
 #if (defined(_WIN32) || defined(__WIN32__) || defined(WIN32))
 # define AMQP_WIN_TIMER_API
@@ -95,3 +97,38 @@ amqp_get_monotonic_timestamp(void)
   return ((uint64_t)tp.tv_sec * AMQP_NS_PER_S + (uint64_t)tp.tv_nsec);
 }
 #endif /* AMQP_POSIX_TIMER_API */
+
+int
+amqp_timer_update(amqp_timer_t *timer, struct timeval *timeout)
+{
+  if (0 == timer->current_timestamp) {
+    timer->current_timestamp = amqp_get_monotonic_timestamp();
+
+    if (0 == timer->current_timestamp) {
+      return AMQP_STATUS_TIMER_FAILURE;
+    }
+
+    timer->timeout_timestamp = timer->current_timestamp +
+                               timeout->tv_sec * AMQP_NS_PER_S +
+                               timeout->tv_usec * AMQP_NS_PER_US;
+
+  } else {
+    timer->current_timestamp = amqp_get_monotonic_timestamp();
+
+    if (0 == timer->current_timestamp) {
+      return AMQP_STATUS_TIMER_FAILURE;
+    }
+  }
+
+  if (timer->current_timestamp > timer->timeout_timestamp) {
+    return AMQP_STATUS_TIMEOUT;
+  }
+
+  timer->ns_until_next_timeout = timer->timeout_timestamp - timer->current_timestamp;
+
+  memset(&timer->tv, 0, sizeof(struct timeval));
+  timer->tv.tv_sec = timer->ns_until_next_timeout / AMQP_NS_PER_S;
+  timer->tv.tv_usec = (timer->ns_until_next_timeout % AMQP_NS_PER_S) / AMQP_NS_PER_US;
+
+  return AMQP_STATUS_OK;
+}

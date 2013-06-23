@@ -154,6 +154,7 @@ endif
 noinst_PROGRAMS = \
 	examples/amqp_bind \
 	examples/amqp_consumer \
+	examples/amqp_connect_timeout \
 	examples/amqp_exchange_declare \
 	examples/amqp_listen \
 	examples/amqp_listenq \
@@ -187,6 +188,11 @@ examples_amqp_consumer_LDADD = \
 	examples/libutils.la \
 	librabbitmq/librabbitmq.la
 
+examples_amqp_connect_timeout_SOURCES = examples/amqp_connect_timeout.c
+examples_amqp_connect_timeout_LDADD = \
+	examples/libutils.la \
+	librabbitmq/librabbitmq.la
+
 examples_amqp_unbind_SOURCES = examples/amqp_unbind.c
 examples_amqp_unbind_LDADD = \
 	examples/libutils.la \
@@ -211,6 +217,7 @@ examples_amqp_rpc_sendstring_client_LDADD = \
 if SSL
 noinst_PROGRAMS += \
 	examples/amqps_bind \
+	examples/amqps_connect_timeout \
 	examples/amqps_consumer \
 	examples/amqps_exchange_declare \
 	examples/amqps_listen \
@@ -221,6 +228,11 @@ noinst_PROGRAMS += \
 
 examples_amqps_bind_SOURCES = examples/amqps_bind.c
 examples_amqps_bind_LDADD = \
+	examples/libutils.la \
+	librabbitmq/librabbitmq.la
+
+examples_amqps_connect_timeout_SOURCES = examples/amqps_connect_timeout.c
+examples_amqps_connect_timeout_LDADD = \
 	examples/libutils.la \
 	librabbitmq/librabbitmq.la
 

@@ -155,7 +155,7 @@ amqp_ssl_error_string(AMQP_UNUSED int err)
 }
 
 static int
-amqp_ssl_socket_open(void *base, const char *host, int port)
+amqp_ssl_socket_open(void *base, const char *host, int port, struct timeval *timeout)
 {
   struct amqp_ssl_socket_t *self = (struct amqp_ssl_socket_t *)base;
   int status;
@@ -167,7 +167,7 @@ amqp_ssl_socket_open(void *base, const char *host, int port)
     return -1;
   }
 
-  self->sockfd = amqp_open_socket(host, port);
+  self->sockfd = amqp_open_socket_noblock(host, port, timeout);
   if (0 > self->sockfd) {
     self->last_error = - self->sockfd;
     return -1;
