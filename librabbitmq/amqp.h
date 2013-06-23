@@ -478,6 +478,10 @@ AMQP_CALL amqp_open_socket(char const *hostname, int portnumber);
 
 AMQP_PUBLIC_FUNCTION
 int
+AMQP_CALL amqp_open_socket_noblock(char const *hostname, int portnumber,  struct timeval *timeout);
+
+AMQP_PUBLIC_FUNCTION
+int
 AMQP_CALL amqp_send_header(amqp_connection_state_t state);
 
 AMQP_PUBLIC_FUNCTION
