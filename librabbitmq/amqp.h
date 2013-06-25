@@ -348,6 +348,7 @@ typedef enum amqp_status_enum_
   AMQP_STATUS_WRONG_METHOD =              -0x000C,
   AMQP_STATUS_TIMEOUT =                   -0x000D,
   AMQP_STATUS_TIMER_FAILURE =             -0x000E,
+  AMQP_STATUS_HEARTBEAT_TIMEOUT =         -0x000F,
 
   AMQP_STATUS_TCP_ERROR =                 -0x0100,
   AMQP_STATUS_TCP_SOCKETLIB_INIT_ERROR =  -0x0101,

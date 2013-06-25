@@ -39,6 +39,7 @@
 #endif
 
 #include "amqp_private.h"
+#include "amqp_timer.h"
 #include <assert.h>
 #include <stdarg.h>
 #include <stdint.h>
@@ -70,7 +71,8 @@ static const char *base_error_strings[] = {
   "table too large for buffer",         /* AMQP_STATUS_TABLE_TOO_BIG            -0x000B */
   "unexpected method received",         /* AMQP_STATUS_WRONG_METHOD             -0x000C */
   "request timed out",                  /* AMQP_STATUS_TIMEOUT                  -0x000D */
-  "system timer has failed"             /* AMQP_STATUS_TIMER_FAILED             -0x000E */
+  "system timer has failed",            /* AMQP_STATUS_TIMER_FAILED             -0x000E */
+  "heartbeat timeout, connection closed"/* AMQP_STATUS_HEARTBEAT_TIMEOUT        -0x000F */
 };
 
 static const char *tcp_error_strings[] = {
@@ -184,6 +186,22 @@ int amqp_basic_publish(amqp_connection_state_t state,
   m.mandatory = mandatory;
   m.immediate = immediate;
   m.ticket = 0;
+
+  if (state->heartbeat > 0) {
+    uint64_t current_timestamp = amqp_get_monotonic_timestamp();
+    if (0 == current_timestamp) {
+      return AMQP_STATUS_TIMER_FAILURE;
+    }
+
+    if (current_timestamp > state->next_recv_heartbeat) {
+      res = amqp_try_recv(state, current_timestamp);
+      if (AMQP_STATUS_TIMEOUT == res) {
+        return AMQP_STATUS_HEARTBEAT_TIMEOUT;
+      } else if (AMQP_STATUS_OK != res) {
+        return res;
+      }
+    }
+  }
 
   res = amqp_send_method(state, channel, AMQP_BASIC_PUBLISH_METHOD, &m);
   if (res < 0) {

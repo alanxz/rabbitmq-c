@@ -157,10 +157,15 @@ struct amqp_connection_state_t_ {
   amqp_link_t *last_queued_frame;
 
   amqp_rpc_reply_t most_recent_api_result;
+
+  uint64_t next_recv_heartbeat;
+  uint64_t next_send_heartbeat;
 };
 
 amqp_pool_t *amqp_get_or_create_channel_pool(amqp_connection_state_t connection, amqp_channel_t channel);
 amqp_pool_t *amqp_get_channel_pool(amqp_connection_state_t state, amqp_channel_t channel);
+
+int amqp_try_recv(amqp_connection_state_t state, uint64_t current_time);
 
 static inline void *amqp_offset(void *data, size_t offset)
 {

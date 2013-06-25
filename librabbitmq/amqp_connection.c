@@ -40,6 +40,7 @@
 
 #include "amqp_tcp_socket.h"
 #include "amqp_private.h"
+#include "amqp_timer.h"
 #include <assert.h>
 #include <errno.h>
 #include <stdint.h>
@@ -132,6 +133,15 @@ int amqp_tune_connection(amqp_connection_state_t state,
   state->channel_max = channel_max;
   state->frame_max = frame_max;
   state->heartbeat = heartbeat;
+
+  if (state->heartbeat > 0) {
+    uint64_t current_time = amqp_get_monotonic_timestamp();
+    if (0 == current_time) {
+      return AMQP_STATUS_TIMER_FAILURE;
+    }
+    state->next_send_heartbeat = current_time + ((uint64_t)state->heartbeat * AMQP_NS_PER_S);
+    state->next_recv_heartbeat = current_time + (2 * (uint64_t)state->heartbeat * AMQP_NS_PER_S);
+  }
 
   state->outbound_buffer.len = frame_max;
   newbuf = realloc(state->outbound_buffer.bytes, frame_max);
@@ -489,6 +499,14 @@ int amqp_send_frame(amqp_connection_state_t state,
     amqp_e8(out_frame, out_frame_len + HEADER_SIZE, AMQP_FRAME_END);
     res = amqp_socket_send(state->socket, out_frame,
                            out_frame_len + HEADER_SIZE + FOOTER_SIZE);
+  }
+
+  if (state->heartbeat > 0) {
+    uint64_t current_time = amqp_get_monotonic_timestamp();
+    if (0 == current_time) {
+      return AMQP_STATUS_TIMER_FAILURE;
+    }
+    state->next_send_heartbeat = current_time + (state->heartbeat * AMQP_NS_PER_S);
   }
 
   return res;
