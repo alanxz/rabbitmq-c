@@ -1,0 +1,37 @@
+# rabbitmq-c on OpenVMS
+
+This rabbitmq-c has been tested and appears to work on OpenVMS v8.3 on the
+Alpha platform, with HP TCP/IP services v5.5
+running.  There is no reason to believe it won't work on OpenVMS v8.3 on
+IA-64 (Itanium, a.k.a., Integrety) with an equivalent version of TCP/IP.
+Or an older version of either of these pieces of software.
+
+NOTE: the maintainers of rabbitmq-c do not have access to an OpenVMS box to
+regularly build and test rabbitmq-c, so this code may not build out of the box
+and if it does it may not work correctly. However, the build system should
+serve as a good starting point for getting something that does work.
+
+# Pre-reqs for building:
+- HP C compiler
+
+# Instructions for building
+1. Extract this package somewhere where you have space.
+2. Run mms or mmk to run the build
+3. The result of the build are a library and header files:
+  [.librabbitmq]rabbitmq.OLB for the library
+  [.librabbitmq]amqp.h and [.librabbitmq]amqp_framing.h for the header files.
+To build against the library put these in a place where your compiler/linker can find them
+
+# Other notes about the build:
+- The library is built using IEEE float with denormals enabled. This can be
+  adjusted by editing the OPTFLAGS line in [.vms]include.mms
+
+  NOTE: the library takes no special care to translate vax-floats into IEEE-floats
+   so if you plan on compiling the library with vax-floats enabled you'll need
+   to make some changes
+
+- The library is built using /NAMES=(UPPER,TRUNC). Adjust OPTFLAGS line in [.vms]include.mms
+  as necessary to get the desired naming scheme.
+
+- The library is built using /POINTER=SHORT. Adjust OPTFLAGS line in [.vms]include.mms as
+  necessary to get the desired pointer size
