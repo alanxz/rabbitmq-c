@@ -220,10 +220,10 @@ start:
 }
 
 static int
-amqp_tcp_socket_open(void *base, const char *host, int port)
+amqp_tcp_socket_open(void *base, const char *host, int port, struct timeval *timeout)
 {
   struct amqp_tcp_socket_t *self = (struct amqp_tcp_socket_t *)base;
-  self->sockfd = amqp_open_socket(host, port);
+  self->sockfd = amqp_open_socket_noblock(host, port, timeout);
   if (0 > self->sockfd) {
     int err = self->sockfd;
     self->sockfd = -1;

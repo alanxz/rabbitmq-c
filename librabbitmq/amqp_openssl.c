@@ -30,6 +30,11 @@
 #include "amqp_private.h"
 #include "threads.h"
 
+#if (defined(machintosh) || defined(__APPLE__) || defined(__APPLE_CC__))
+# define __AVAILABILITYMACROS__
+# define DEPRECATED_IN_MAC_OS_X_VERSION_10_7_AND_LATER
+#endif
+
 #include <ctype.h>
 #include <openssl/conf.h>
 #include <openssl/err.h>
@@ -228,7 +233,7 @@ error:
 }
 
 static int
-amqp_ssl_socket_open(void *base, const char *host, int port)
+amqp_ssl_socket_open(void *base, const char *host, int port, struct timeval *timeout)
 {
   struct amqp_ssl_socket_t *self = (struct amqp_ssl_socket_t *)base;
   long result;
@@ -243,7 +248,7 @@ amqp_ssl_socket_open(void *base, const char *host, int port)
   }
 
   SSL_set_mode(self->ssl, SSL_MODE_AUTO_RETRY);
-  self->sockfd = amqp_open_socket(host, port);
+  self->sockfd = amqp_open_socket_noblock(host, port, timeout);
   if (0 > self->sockfd) {
     status = self->sockfd;
     self->internal_error = amqp_os_socket_error();

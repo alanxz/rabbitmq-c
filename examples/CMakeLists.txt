@@ -28,6 +28,9 @@ target_link_libraries(amqp_listen ${RMQ_LIBRARY_TARGET})
 add_executable(amqp_producer amqp_producer.c ${COMMON_SRCS})
 target_link_libraries(amqp_producer ${RMQ_LIBRARY_TARGET})
 
+add_executable(amqp_connect_timeout amqp_connect_timeout.c ${COMMON_SRCS})
+target_link_libraries(amqp_connect_timeout ${RMQ_LIBRARY_TARGET})
+
 add_executable(amqp_consumer amqp_consumer.c ${COMMON_SRCS})
 target_link_libraries(amqp_consumer ${RMQ_LIBRARY_TARGET})
 
@@ -41,6 +44,9 @@ add_executable(amqp_listenq amqp_listenq.c ${COMMON_SRCS})
 target_link_libraries(amqp_listenq ${RMQ_LIBRARY_TARGET})
 
 if (ENABLE_SSL_SUPPORT)
+add_executable(amqps_connect_timeout amqps_connect_timeout.c ${COMMON_SRCS})
+target_link_libraries(amqps_connect_timeout ${RMQ_LIBRARY_TARGET})
+
 add_executable(amqps_sendstring amqps_sendstring.c ${COMMON_SRCS})
 target_link_libraries(amqps_sendstring ${RMQ_LIBRARY_TARGET})
 
