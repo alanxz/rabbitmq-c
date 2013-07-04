@@ -30,6 +30,11 @@
 #include "amqp_private.h"
 #include "threads.h"
 
+#if (defined(machintosh) || defined(__APPLE__) || defined(__APPLE_CC__))
+# define __AVAILABILITYMACROS__
+# define DEPRECATED_IN_MAC_OS_X_VERSION_10_7_AND_LATER
+#endif
+
 #include <ctype.h>
 #include <openssl/conf.h>
 #include <openssl/err.h>
