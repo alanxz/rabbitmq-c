@@ -181,6 +181,13 @@ amqp_socket_delete(amqp_socket_t *self);
 int
 amqp_open_socket_noblock(char const *hostname, int portnumber, struct timeval *timeout);
 
+int
+amqp_queue_frame(amqp_connection_state_t state, amqp_frame_t *frame);
+
+int
+amqp_simple_wait_frame_on_channel(amqp_connection_state_t state,
+                                  amqp_channel_t channel,
+                                  amqp_frame_t *decoded_frame);
 
 AMQP_END_DECLS
 

@@ -462,3 +462,136 @@ int amqp_table_entry_cmp(void const *entry1, void const *entry2)
 
   return p1->key.len - p2->key.len;
 }
+
+static int
+amqp_field_value_clone(amqp_field_value_t *original, amqp_field_value_t *clone, amqp_pool_t *pool)
+{
+  int i;
+  int res;
+  clone->kind = original->kind;
+
+  switch (clone->kind) {
+    case AMQP_FIELD_KIND_BOOLEAN:
+      clone->value.boolean = original->value.boolean;
+      break;
+
+    case AMQP_FIELD_KIND_I8:
+      clone->value.i8 = original->value.i8;
+      break;
+
+    case AMQP_FIELD_KIND_U8:
+      clone->value.u8 = original->value.u8;
+      break;
+
+    case AMQP_FIELD_KIND_I16:
+      clone->value.i16 = original->value.i16;
+      break;
+
+    case AMQP_FIELD_KIND_U16:
+      clone->value.u16 = original->value.u16;
+      break;
+
+    case AMQP_FIELD_KIND_I32:
+      clone->value.i32 = original->value.i32;
+      break;
+
+    case AMQP_FIELD_KIND_U32:
+      clone->value.u32 = original->value.u32;
+      break;
+
+    case AMQP_FIELD_KIND_I64:
+      clone->value.i64 = original->value.i64;
+      break;
+
+    case AMQP_FIELD_KIND_U64:
+    case AMQP_FIELD_KIND_TIMESTAMP:
+      clone->value.u64 = original->value.u64;
+      break;
+
+    case AMQP_FIELD_KIND_F32:
+      clone->value.f32 = original->value.f32;
+      break;
+
+    case AMQP_FIELD_KIND_F64:
+      clone->value.f64 = original->value.f64;
+      break;
+
+    case AMQP_FIELD_KIND_DECIMAL:
+      clone->value.decimal = original->value.decimal;
+      break;
+
+    case AMQP_FIELD_KIND_UTF8:
+    case AMQP_FIELD_KIND_BYTES:
+      amqp_pool_alloc_bytes(pool, original->value.bytes.len, &clone->value.bytes);
+      if (NULL == clone->value.bytes.bytes) {
+        return AMQP_STATUS_NO_MEMORY;
+      }
+      memcpy(clone->value.bytes.bytes, original->value.bytes.bytes, clone->value.bytes.len);
+      break;
+
+    case AMQP_FIELD_KIND_ARRAY:
+      clone->value.array.num_entries = original->value.array.num_entries;
+      clone->value.array.entries = amqp_pool_alloc(pool, clone->value.array.num_entries * sizeof(amqp_field_value_t));
+      if (NULL == clone->value.array.entries) {
+        return AMQP_STATUS_NO_MEMORY;
+      }
+
+      for (i = 0; i < clone->value.array.num_entries; ++i) {
+        res = amqp_field_value_clone(&original->value.array.entries[i], &clone->value.array.entries[i], pool);
+        if (AMQP_STATUS_OK != res) {
+          return res;
+        }
+      }
+      break;
+
+    case AMQP_FIELD_KIND_TABLE:
+      return amqp_table_clone(&original->value.table, &clone->value.table, pool);
+
+    case AMQP_FIELD_KIND_VOID:
+      break;
+
+    default:
+      return AMQP_STATUS_INVALID_PARAMETER;
+  }
+
+  return AMQP_STATUS_OK;
+}
+
+
+static int
+amqp_table_entry_clone(amqp_table_entry_t *original, amqp_table_entry_t *clone, amqp_pool_t *pool)
+{
+  amqp_pool_alloc_bytes(pool, original->key.len, &clone->key);
+  if (NULL == clone->key.bytes) {
+    return AMQP_STATUS_NO_MEMORY;
+  }
+
+  memcpy(clone->key.bytes, original->key.bytes, clone->key.len);
+
+  return amqp_field_value_clone(&original->value, &clone->value, pool);
+}
+
+int
+amqp_table_clone(amqp_table_t *original, amqp_table_t *clone, amqp_pool_t *pool)
+{
+  int i;
+  int res;
+  clone->num_entries = original->num_entries;
+  clone->entries = amqp_pool_alloc(pool, clone->num_entries * sizeof(amqp_table_entry_t));
+
+  if (NULL == clone->entries) {
+    return AMQP_STATUS_NO_MEMORY;
+  }
+
+  for (i = 0; i < clone->num_entries; ++i) {
+    res = amqp_table_entry_clone(&original->entries[i], &clone->entries[i], pool);
+    if (AMQP_STATUS_OK != res) {
+      goto error_out1;
+    }
+  }
+
+  return AMQP_STATUS_OK;
+
+error_out1:
+  return res;
+}

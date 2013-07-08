@@ -349,6 +349,7 @@ typedef enum amqp_status_enum_
   AMQP_STATUS_TIMEOUT =                   -0x000D,
   AMQP_STATUS_TIMER_FAILURE =             -0x000E,
   AMQP_STATUS_HEARTBEAT_TIMEOUT =         -0x000F,
+  AMQP_STATUS_UNEXPECTED_STATE =          -0x0010,
 
   AMQP_STATUS_TCP_ERROR =                 -0x0100,
   AMQP_STATUS_TCP_SOCKETLIB_INIT_ERROR =  -0x0101,
@@ -358,6 +359,12 @@ typedef enum amqp_status_enum_
   AMQP_STATUS_SSL_PEER_VERIFY_FAILED =    -0x0202,
   AMQP_STATUS_SSL_CONNECTION_FAILED =     -0x0203
 } amqp_status_enum;
+
+AMQP_END_DECLS
+
+#include <amqp_framing.h>
+
+AMQP_BEGIN_DECLS
 
 AMQP_PUBLIC_FUNCTION
 char const *
@@ -627,6 +634,102 @@ AMQP_PUBLIC_FUNCTION
 int
 AMQP_CALL amqp_encode_table(amqp_bytes_t encoded, amqp_table_t *input, size_t *offset);
 
+AMQP_PUBLIC_FUNCTION
+int
+AMQP_CALL amqp_table_clone(amqp_table_t *original, amqp_table_t *clone, amqp_pool_t *pool);
+
+typedef struct amqp_message_t_ {
+  amqp_basic_properties_t properties;
+  amqp_bytes_t body;
+  amqp_pool_t pool;
+} amqp_message_t;
+
+/**
+ * Reads the next message on a channel
+ *
+ * Reads a complete message (header + body) on a specified channel. This
+ * function is intended to be used with amqp_basic_get() or when an
+ * AMQP_BASIC_DELIVERY_METHOD method is received.
+ *
+ * \param [in,out] state the connection object
+ * \param [in] channel the channel on which to read the message from
+ * \param [in,out] message a pointer to a amqp_message_t object. Caller should
+ *                 call amqp_message_destroy() when it is done using the
+ *                 fields in the message object.  The caller is responsible for
+ *                 allocating/destroying the amqp_message_t object itself.
+ * \param [in] flags pass in 0. Currently unused.
+ * \returns a amqp_rpc_reply_t object. ret.reply_type == AMQP_RESPONSE_NORMAL on success.
+ */
+AMQP_PUBLIC_FUNCTION
+amqp_rpc_reply_t
+AMQP_CALL amqp_read_message(amqp_connection_state_t state,
+                            amqp_channel_t channel,
+                            amqp_message_t *message, int flags);
+
+/**
+ * Frees memory associated with a amqp_message_t allocated in amqp_read_message
+ *
+ * \param [in] message
+ */
+AMQP_PUBLIC_FUNCTION
+void
+AMQP_CALL amqp_destroy_message(amqp_message_t *message);
+
+typedef struct amqp_envelope_t_ {
+  amqp_channel_t channel;
+  amqp_bytes_t consumer_tag;
+  uint64_t delivery_tag;
+  amqp_boolean_t redelivered;
+  amqp_bytes_t exchange;
+  amqp_bytes_t routing_key;
+  amqp_message_t message;
+} amqp_envelope_t;
+
+/**
+ * Wait for and consume a message
+ *
+ * Waits for a basic.deliver method on any channel, upon receipt of
+ * basic.deliver it reads that message, and returns. If any other method is
+ * received before basic.deliver, this function will return an amqp_rpc_reply_t
+ * with ret.reply_type == AMQP_RESPONSE_LIBRARY_EXCEPTION, and
+ * ret.library_error == AMQP_STATUS_UNEXPECTED_FRAME. The caller should then
+ * call amqp_simple_wait_frame() to read this frame and take appropriate action.
+ *
+ * This function should be used after starting a consumer with the
+ * amqp_basic_consume() funtion
+ *
+ * \param [in,out] state the connection object
+ * \param [in,out] envelope a pointer to a amqp_envelope_t object. Caller
+ *                 should call amqp_envelope_destroy() when it is done using
+ *                 the fields in the envelope object. The caller is responsible
+ *                 for allocating/destroying the amqp_envelope_t object itself.
+ * \param [in] timeout a timeout to wait for a message delivery. Passing in
+ *             NULL will result in blocking behavior.
+ * \param [in] flags pass in 0. Currently unused.
+ * \returns a amqp_rpc_reply_t object.  ret.reply_type == AMQP_RESPONSE_NORMAL
+ *          on success. If ret.reply_type == AMQP_RESPONSE_LIBRARY_EXCEPTION, and
+ *          ret.library_error == AMQP_STATUS_UNEXPECTED_FRAME, a frame other
+ *          than AMQP_BASIC_DELIVER_METHOD was received, the caller should call
+ *          amqp_simple_wait_frame() to read this frame and take appropriate
+ *          action.
+ */
+AMQP_PUBLIC_FUNCTION
+amqp_rpc_reply_t
+AMQP_CALL amqp_consume_message(amqp_connection_state_t state,
+                               amqp_envelope_t *envelope,
+                               struct timeval *timeout, int flags);
+
+/**
+ * Frees memory associated iwth a amqp_envelope_t allocated in amqp_consume_message
+ *
+ * \param [in] envelope
+ * \returns
+ */
+AMQP_PUBLIC_FUNCTION
+void
+AMQP_CALL amqp_destroy_envelope(amqp_envelope_t *envelope);
+
+
 struct amqp_connection_info {
   char *user;
   char *password;
@@ -707,6 +810,5 @@ amqp_get_socket(amqp_connection_state_t state);
 
 AMQP_END_DECLS
 
-#include <amqp_framing.h>
 
 #endif /* AMQP_H */

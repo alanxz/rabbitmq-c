@@ -22,7 +22,8 @@ librabbitmq_librabbitmq_la_SOURCES = \
 	librabbitmq/amqp_table.c \
 	librabbitmq/amqp_url.c \
 	librabbitmq/amqp_timer.h \
-	librabbitmq/amqp_timer.c
+	librabbitmq/amqp_timer.c \
+	librabbitmq/amqp_consumer.c
 
 if REGENERATE_AMQP_FRAMING
 librabbitmq_librabbitmq_la_SOURCES += librabbitmq/gen/amqp_framing.c
