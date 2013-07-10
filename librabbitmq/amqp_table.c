@@ -522,24 +522,32 @@ amqp_field_value_clone(amqp_field_value_t *original, amqp_field_value_t *clone, 
 
     case AMQP_FIELD_KIND_UTF8:
     case AMQP_FIELD_KIND_BYTES:
-      amqp_pool_alloc_bytes(pool, original->value.bytes.len, &clone->value.bytes);
-      if (NULL == clone->value.bytes.bytes) {
-        return AMQP_STATUS_NO_MEMORY;
+      if (0 == original->value.bytes.len) {
+        clone->value.bytes = amqp_empty_bytes;
+      } else {
+        amqp_pool_alloc_bytes(pool, original->value.bytes.len, &clone->value.bytes);
+        if (NULL == clone->value.bytes.bytes) {
+          return AMQP_STATUS_NO_MEMORY;
+        }
+        memcpy(clone->value.bytes.bytes, original->value.bytes.bytes, clone->value.bytes.len);
       }
-      memcpy(clone->value.bytes.bytes, original->value.bytes.bytes, clone->value.bytes.len);
       break;
 
     case AMQP_FIELD_KIND_ARRAY:
-      clone->value.array.num_entries = original->value.array.num_entries;
-      clone->value.array.entries = amqp_pool_alloc(pool, clone->value.array.num_entries * sizeof(amqp_field_value_t));
-      if (NULL == clone->value.array.entries) {
-        return AMQP_STATUS_NO_MEMORY;
-      }
+      if (0 == original->value.array.entries) {
+        clone->value.array = amqp_empty_array;
+      } else {
+        clone->value.array.num_entries = original->value.array.num_entries;
+        clone->value.array.entries = amqp_pool_alloc(pool, clone->value.array.num_entries * sizeof(amqp_field_value_t));
+        if (NULL == clone->value.array.entries) {
+          return AMQP_STATUS_NO_MEMORY;
+        }
 
-      for (i = 0; i < clone->value.array.num_entries; ++i) {
-        res = amqp_field_value_clone(&original->value.array.entries[i], &clone->value.array.entries[i], pool);
-        if (AMQP_STATUS_OK != res) {
-          return res;
+        for (i = 0; i < clone->value.array.num_entries; ++i) {
+          res = amqp_field_value_clone(&original->value.array.entries[i], &clone->value.array.entries[i], pool);
+          if (AMQP_STATUS_OK != res) {
+            return res;
+          }
         }
       }
       break;
@@ -561,6 +569,10 @@ amqp_field_value_clone(amqp_field_value_t *original, amqp_field_value_t *clone, 
 static int
 amqp_table_entry_clone(amqp_table_entry_t *original, amqp_table_entry_t *clone, amqp_pool_t *pool)
 {
+  if (0 == original->key.len) {
+    return AMQP_STATUS_INVALID_PARAMETER;
+  }
+
   amqp_pool_alloc_bytes(pool, original->key.len, &clone->key);
   if (NULL == clone->key.bytes) {
     return AMQP_STATUS_NO_MEMORY;
@@ -577,6 +589,11 @@ amqp_table_clone(amqp_table_t *original, amqp_table_t *clone, amqp_pool_t *pool)
   int i;
   int res;
   clone->num_entries = original->num_entries;
+  if (0 == clone->num_entries) {
+    *clone = amqp_empty_table;
+    return AMQP_STATUS_OK;
+  }
+
   clone->entries = amqp_pool_alloc(pool, clone->num_entries * sizeof(amqp_table_entry_t));
 
   if (NULL == clone->entries) {
