@@ -297,6 +297,7 @@ error_out2:
   self->sockfd = -1;
 error_out1:
   SSL_free(self->ssl);
+  self->ssl = NULL;
   goto exit;
 }
 
