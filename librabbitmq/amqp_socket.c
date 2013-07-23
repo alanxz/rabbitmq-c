@@ -251,6 +251,13 @@ amqp_socket_get_sockfd(amqp_socket_t *self)
   return self->klass->get_sockfd(self);
 }
 
+int
+amqp_open_socket(char const *hostname,
+                 int portnumber)
+{
+  return amqp_open_socket_noblock(hostname, portnumber, NULL);
+}
+
 int amqp_open_socket_noblock(char const *hostname,
                      int portnumber,
                      struct timeval *timeout)
