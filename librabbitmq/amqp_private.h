@@ -48,7 +48,7 @@
 #ifdef _WIN32
 # include <Winsock2.h>
 #else
-# include <arpa/inet.h>
+# include <lwip/inet.h>
 #endif
 
 /* GCC attributes */

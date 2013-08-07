@@ -60,7 +60,7 @@
 # include <sys/types.h>      /* On older BSD this must come before net includes */
 # include <netinet/in.h>
 # include <netinet/tcp.h>
-# include <sys/socket.h>
+# include <lwip/sockets.h>
 # include <netdb.h>
 # include <sys/uio.h>
 # include <fcntl.h>
@@ -106,7 +106,7 @@ amqp_os_socket_socket(int domain, int type, int protocol)
   }
 
   /* Always enable CLOEXEC on the socket */
-  flags = fcntl(s, F_GETFD);
+  flags = fcntl(s, F_GETFD, NULL);
   if (flags == -1
       || fcntl(s, F_SETFD, (long)(flags | FD_CLOEXEC)) == -1) {
     int e = errno;
@@ -190,56 +190,56 @@ ssize_t
 amqp_socket_writev(amqp_socket_t *self, struct iovec *iov, int iovcnt)
 {
   assert(self);
-  assert(self->klass->writev);
-  return self->klass->writev(self, iov, iovcnt);
+  assert(self->klass->writev_sockfn);
+  return self->klass->writev_sockfn(self, iov, iovcnt);
 }
 
 ssize_t
 amqp_socket_send(amqp_socket_t *self, const void *buf, size_t len)
 {
   assert(self);
-  assert(self->klass->send);
-  return self->klass->send(self, buf, len);
+  assert(self->klass->send_sockfn);
+  return self->klass->send_sockfn(self, buf, len);
 }
 
 ssize_t
 amqp_socket_recv(amqp_socket_t *self, void *buf, size_t len, int flags)
 {
   assert(self);
-  assert(self->klass->recv);
-  return self->klass->recv(self, buf, len, flags);
+  assert(self->klass->recv_sockfn);
+  return self->klass->recv_sockfn(self, buf, len, flags);
 }
 
 int
 amqp_socket_open(amqp_socket_t *self, const char *host, int port)
 {
   assert(self);
-  assert(self->klass->open);
-  return self->klass->open(self, host, port, NULL);
+  assert(self->klass->open_sockfn);
+  return self->klass->open_sockfn(self, host, port, NULL);
 }
 
 int
 amqp_socket_open_noblock(amqp_socket_t *self, const char *host, int port, struct timeval *timeout)
 {
   assert(self);
-  assert(self->klass->open);
-  return self->klass->open(self, host, port, timeout);
+  assert(self->klass->open_sockfn);
+  return self->klass->open_sockfn(self, host, port, timeout);
 }
 
 int
 amqp_socket_close(amqp_socket_t *self)
 {
   assert(self);
-  assert(self->klass->close);
-  return self->klass->close(self);
+  assert(self->klass->close_sockfn);
+  return self->klass->close_sockfn(self);
 }
 
 void
 amqp_socket_delete(amqp_socket_t *self)
 {
   if (self) {
-    assert(self->klass->delete);
-    self->klass->delete(self);
+    assert(self->klass->delete_sockfn);
+    self->klass->delete_sockfn(self);
   }
 }
 
@@ -247,8 +247,8 @@ int
 amqp_socket_get_sockfd(amqp_socket_t *self)
 {
   assert(self);
-  assert(self->klass->get_sockfd);
-  return self->klass->get_sockfd(self);
+  assert(self->klass->get_fd_sockfn);
+  return self->klass->get_fd_sockfn(self);
 }
 
 int

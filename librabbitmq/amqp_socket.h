@@ -53,13 +53,13 @@ typedef void (*amqp_socket_delete_fn)(void *);
 
 /** V-table for amqp_socket_t */
 struct amqp_socket_class_t {
-  amqp_socket_writev_fn writev;
-  amqp_socket_send_fn send;
-  amqp_socket_recv_fn recv;
-  amqp_socket_open_fn open;
-  amqp_socket_close_fn close;
-  amqp_socket_get_sockfd_fn get_sockfd;
-  amqp_socket_delete_fn delete;
+  amqp_socket_writev_fn      writev_sockfn;
+  amqp_socket_send_fn        send_sockfn;
+  amqp_socket_recv_fn        recv_sockfn;
+  amqp_socket_open_fn        open_sockfn;
+  amqp_socket_close_fn       close_sockfn;
+  amqp_socket_get_sockfd_fn  get_fd_sockfn;
+  amqp_socket_delete_fn      delete_sockfn;
 };
 
 /** Abstract base class for amqp_socket_t */

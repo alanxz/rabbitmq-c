@@ -22,6 +22,7 @@
  */
 #include "amqp.h"
 #include "amqp_timer.h"
+#include <posix/time.h>
 #include <string.h>
 
 #if (defined(_WIN32) || defined(__WIN32__) || defined(WIN32))
