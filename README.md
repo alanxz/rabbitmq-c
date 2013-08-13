@@ -4,44 +4,54 @@
 
 ## Introduction
 
-This is a C-language AMQP client library for use with AMQP servers
-speaking protocol versions 0-9-1.
+This is a C-language AMQP client library for use with v2.0+ of the
+[RabbitMQ](http://www.rabbitmq.com/) broker.
 
- - <http://www.rabbitmq.com/>
- - <http://www.amqp.org/>
  - <http://github.com/alanxz/rabbitmq-c>
 
 Announcements regarding the library are periodically made on the
-RabbitMQ mailing list and on the RabbitMQ blog.
+rabbitmq-discuss mailing list:
 
  - <http://lists.rabbitmq.com/cgi-bin/mailman/listinfo/rabbitmq-discuss>
- - <http://www.rabbitmq.com/blog/>
-
-API Documentation (rather incomplete at this point) can be found:
-- <http://alanxz.github.com/rabbitmq-c/docs/0.2/>
 
 ## Latest Stable Version
 
-The latest stable version of rabbitmq-c is v0.3.0 and can be downloaded from:
-https://github.com/alanxz/rabbitmq-c/archive/rabbitmq-c-v0.3.0.zip
+The latest stable version of rabbitmq-c is v0.4.0. A complete list of changes
+can be found in the [Change Log](ChangeLog.md)
 
-## Building and installing using CMake
+The v0.4.0 source tarball can be downloaded from:
+<https://github.com/alanxz/rabbitmq-c/>
 
-The rabbitmq-c library is built using CMake v2.6+ (http://www.cmake.org) on all
-platforms.
+API documentation for v0.4.0 can viewed here:
+<http://alanxz.github.io/rabbitmq-c/docs/0.4.0/>
 
-The library itself requires no external dependancies.
+## Getting started
 
-*OPTIONALLY*: A set of command line tools used to interact with the broker are
-included and require the Popt library (http://freecode.com/projects/popt).
-A matching set of man pages have been written in DocBook format and need
-the XmlTo (https://fedorahosted.org/xmlto/) utility to function correctly.
+### Building and installing
 
-On most systems the commands to build rabbitmq-c are:
+#### Prereqs:
+- [CMake v2.6 or better](http://www.cmake.org/)
+- A C compiler (GCC 4.4+, clang, and MSVC are test. Other compilers may also
+  work)
+- *Optionally* [OpenSSL](http://www.openssl.org/) v0.9.8+ to enable support for
+  connecting to RabbitMQ over SSL/TLS
+- *Optionally* [POpt](http://freecode.com/projects/popt) to build some handy
+  command-line tools.
+- *Optionally* [XmlTo](https://fedorahosted.org/xmlto/) to build man pages for
+  the handy command-line tools
+- *Optionally* [Doxygen](http://www.stack.nl/~dimitri/doxygen/) to build
+  developer API documentation.
+
+After downloading and extracting the source from a tarball to a directory.
+([see above][Latest Stable Version]), the commands to build rabbitmq-c on most
+systems are:
 
     mkdir build && cd build
     cmake ..
-    cmake --build .
+    cmake --build [--config Release] .
+
+The --config Release flag should be used in multi-configuration generators e.g.,
+Visual Studio or XCode.
 
 It is also possible to point the CMake GUI tool at the CMakeLists.txt in the root of
 the source tree and generate build projects or IDE workspace
@@ -49,25 +59,34 @@ the source tree and generate build projects or IDE workspace
 Installing the library and optionally specifying a prefix can be done with:
 
     cmake -DCMAKE_INSTALL_PREFIX=/usr/local ..
-    cmake --build . --target install
+    cmake --build . [--config Release] --target install
 
 More information on CMake can be found on its FAQ (http://www.cmake.org/Wiki/CMake_FAQ)
 
 Other interesting flags that can be passed to CMake:
-* `BUILD_EXAMPLES` - builds the example code
-* `BUILD_TOOLS` builds some command line tools for interacting with the broker
-* `BUILD_TOOLS_DOCS` is enabled and XmlTo is found
-* `BUILD_SHARED_LIBS` - build rabbitmq-c as a shared library
-* `BUILD_STATIC_LIBS` - build rabbitmq-c as a static library
 
-## Building and installing using autotools
+* `BUILD_EXAMPLES=ON/OFF` toggles building the examples. ON by default.
+* `BUILD_SHARED_LIBS=ON/OFF` toggles building rabbitmq-c as a shared library.
+   ON by default.
+* `BUILD_STATIC_LIBS=ON/OFF` toggles building rabbitmq-c as a static library.
+   OFF by default.
+* `BUILD_TESTS=ON/OFF` toggles building test code. ON by default.
+* `BUILD_TOOLS=ON/OFF` toggles building the command line tools. By default
+   this is ON if the build system can find the POpt header and library.
+* `BUILD_TOOLS_DOCS=ON/OFF` toggles building the man pages for the command line
+   tools. By default this is ON if BUILD_TOOLS is ON and the build system can
+   find the XmlTo utility.
+* `ENABLE_SSL_SUPPORT=ON/OFF` toggles building rabbitmq-c with SSL support. By
+   default this is ON if the OpenSSL headers and library can be found.
+* `ENABLE_THREAD_SAFETY=ON/OFF` toggles OpenSSL thread-safety. By default this
+   is ON
+* `BUILD_API_DOCS=ON/OFF` - toggles building the Doxygen API documentation, by
+   default this is OFF
+
+#### autotools
 
 For legacy purposes, a GNU autotools based build system is also maintained. The required
 utilities you need are autoconf v2.59+, automake v1.9+, libtool v2.2+, and pkg-config.
-
-From a fresh tarball you will need to run reconf:
-
-    autoreconf -i
 
 Then the standard autotools build procedure will build rabbitmq-c:
 

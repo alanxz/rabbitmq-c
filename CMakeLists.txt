@@ -4,10 +4,6 @@ project(rabbitmq-c "C")
 
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} ${CMAKE_CURRENT_SOURCE_DIR}/cmake)
 
-set(RMQ_VERSION_MAJOR 0)
-set(RMQ_VERSION_MINOR 3)
-set(RMQ_VERSION_PATCH 0)
-
 # Follow all steps below in order to calculate new ABI version when updating the library
 # NOTE: THIS IS UNRELATED to the actual project version
 #
@@ -26,8 +22,6 @@ math(EXPR RMQ_SOVERSION_PATCH "${RMQ_SOVERSION_REVISION}")
 
 set(RMQ_VERSION ${RMQ_SOVERSION_MAJOR}.${RMQ_SOVERSION_MINOR}.${RMQ_SOVERSION_PATCH})
 set(RMQ_SOVERSION ${RMQ_SOVERSION_MAJOR})
-
-set(VERSION ${RMQ_VERSION_MAJOR}.${RMQ_VERSION_MINOR}.${RMQ_VERSION_PATCH})
 
 if (MSVC)
   set(CMAKE_C_FLAGS "/W4 /nologo ${CMAKE_C_FLAGS}")
@@ -207,6 +201,7 @@ endif (REGENERATE_AMQP_FRAMING)
 
 find_package(POPT)
 find_package(XmlTo)
+find_package(Doxygen)
 
 if (POPT_FOUND AND XmlTo_FOUND)
   set(DO_DOCS ON)
@@ -221,6 +216,7 @@ option(BUILD_EXAMPLES "Build Examples" ON)
 option(BUILD_TOOLS "Build Tools (requires POPT Library)" ${POPT_FOUND})
 option(BUILD_TOOLS_DOCS "Build man pages for Tools (requires xmlto)" ${DO_DOCS})
 option(BUILD_TESTS "Build tests (run tests with make test)" ON)
+option(BUILD_API_DOCS "Build Doxygen API docs" ${DOXYGEN_FOUND})
 option(ENABLE_SSL_SUPPORT "Enable SSL support" ON)
 option(ENABLE_THREAD_SAFETY "Enable thread safety when using OpenSSL" ${Threads_FOUND})
 
@@ -271,6 +267,22 @@ if (BUILD_TESTS)
   enable_testing()
   add_subdirectory(tests)
 endif (BUILD_TESTS)
+
+if (BUILD_API_DOCS)
+  if (NOT DOXYGEN_FOUND)
+    message(FATAL_ERROR "Doxygen is required to build the API documentation")
+  endif ()
+  configure_file(${CMAKE_SOURCE_DIR}/docs/Doxyfile.in ${CMAKE_BINARY_DIR}/docs/Doxyfile @ONLY)
+
+  add_custom_target(docs
+    COMMAND ${DOXYGEN_EXECUTABLE}
+    VERBATIM
+    WORKING_DIRECTORY ${CMAKE_BINARY_DIR}/docs
+    DEPENDS rabbitmq
+    COMMENT "Generating API documentation"
+    SOURCES ${CMAKE_SOURCE_DIR}/docs/Doxyfile.in
+    )
+endif ()
 
 set(prefix ${CMAKE_INSTALL_PREFIX})
 set(exec_prefix ${CMAKE_INSTALL_PREFIX}/bin)

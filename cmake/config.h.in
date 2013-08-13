@@ -2,8 +2,6 @@
 #ifndef CONFIG_H
 #define CONFIG_H
 
-#define VERSION "${VERSION}"
-
 #ifndef __cplusplus
 # define inline ${C_INLINE_KEYWORD}
 #endif

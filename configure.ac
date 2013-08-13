@@ -2,7 +2,7 @@
 AC_PREREQ([2.59])
 
 m4_define([major_version], [0])
-m4_define([minor_version], [3])
+m4_define([minor_version], [4])
 m4_define([micro_version], [0])
 
 # Follow all steps below in order to calculate new ABI version when updating the library
@@ -17,7 +17,7 @@ m4_define([soversion_revision],  [1])
 m4_define([soversion_age],       [0])
 
 AC_INIT([rabbitmq-c], [major_version.minor_version.micro_version],
-	[https://github.com/alanxz/rabbitmq-c/issues], [librabbitmq],
+	[https://github.com/alanxz/rabbitmq-c/issues], [rabbitmq-c],
 	[http://www.rabbitmq.com/])
 AC_CONFIG_MACRO_DIR([m4])
 AM_INIT_AUTOMAKE([1.9 subdir-objects foreign -Wno-portability])
@@ -100,35 +100,6 @@ AC_SEARCH_LIBS([socket], [socket], [],
                              [-lnsl])])
 AC_SEARCH_LIBS([clock_gettime], [rt])
 AC_CHECK_FUNCS([htonll])
-
-AC_ARG_ENABLE([regen-amqp-framing],
-              [AS_HELP_STRING([--enable-regen-amqp-framing],
-                              [Regenerate amqp_framing.h/amqp_framing.c (for developer use)])])
-
-AM_CONDITIONAL([REGENERATE_AMQP_FRAMING], [test "x$enable_regen_amqp_framing" = "xyes"])
-
-AS_IF([test "x$enable_regen_amqp_framing" = "xyes"],
-      [AM_PATH_PYTHON([2.4],,AC_MSG_ERROR([--enable-regen-amqp-framing requires python]))
-
-       AX_PYTHON_MODULE([json], [])
-       AS_IF([test "x$HAVE_PYMOD_JSON" = "xno"],
-             [AX_PYTHON_MODULE([simplejson])])
-       AS_IF([test "x$HAVE_PYMOD_JSON" = "xno" && test "x$HAVE_PYMOD_SIMPLEJSON" = "xno"],
-             [AC_MSG_ERROR([Unable to find json or simplejson python modules])])
-
-       AS_VERSION_COMPARE([$PYTHON_VERSION],[3.0],
-                          [eval HAVE_PYTHON3=no],
-                          [eval HAVE_PYTHON3=yes],
-                          [eval HAVE_PYTHON3=yes])
-
-       AS_IF([test "x$HAVE_PYTHON3" = "xyes"],
-             [AC_PATH_PROG(PYTHON2TO3,[2to3])
-              AS_IF([test "x$PYTHON2TO3" = "x"],
-              AC_MSG_ERROR([Unable to find 2to3 python utility]))])
-
-       ],
-       [HAVE_PYTHON3=no])
-AM_CONDITIONAL([PYTHON3], [test "x$HAVE_PYTHON3" = "xyes"])
 
 # Configure SSL/TLS
 AC_ARG_WITH([ssl],

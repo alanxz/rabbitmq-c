@@ -48,7 +48,12 @@
 
 char const *amqp_version(void)
 {
-  return VERSION; /* defined in config.h */
+  return AMQP_VERSION_STRING;
+}
+
+uint32_t amqp_version_number(void)
+{
+  return AMQP_VERSION;
 }
 
 void init_amqp_pool(amqp_pool_t *pool, size_t pagesize)
