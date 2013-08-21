@@ -119,6 +119,21 @@
                         <option>--queue</option> option, but no
                         binding to an exchange is requested with the
                         <option>--exchange</option> option.
+                        Note: this option is deprecated and may be
+                        removed in a future version, use the
+                        <option>--exclusive</option> option to
+                        explicitly declare an exclusive queue.
+                    </para>
+                </listitem>
+            </varlistentry>
+            <varlistentry>
+                <term><option>-x</option></term>
+                <term><option>--exclusive</option></term>
+                <listitem>
+                    <para>
+                        Declared queues are non-exclusive by default,
+                        this option forces declaration of exclusive
+                        queues.
                     </para>
                 </listitem>
             </varlistentry>
