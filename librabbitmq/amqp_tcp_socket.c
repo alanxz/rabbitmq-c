@@ -55,7 +55,7 @@ amqp_tcp_socket_send_inner(void *base, const void *buf, size_t len, int flags)
 #endif
 
 start:
-  res = send(self->sockfd, buf, len, flags);
+  res = send(self->sockfd, buf_left, len_left, flags);
 
   if (res < 0) {
     self->internal_error = amqp_os_socket_error();
