@@ -51,9 +51,7 @@ These are the changes I had to make
         netinet/in.h
         netinet/tcp.h
     RESOLUTION:
-        Created gap/include/netinet/in.h (empty file).
-        Created gap/include/netinet/tcp.h (empty file).
-    @@@ may be better to just delete the #includes - it appears they are not needed.
+        Deleted these #includes - it appears they are not needed.
 
 (5) When compiling amqp_socket.c
     Cannot find include file(s):
@@ -81,7 +79,10 @@ These are the changes I had to make
     RESOLUTION:
         Changed member names by appending _sockfn to each member.
 
-(8) When compiling amqp_timer.c
+(8) When compiling amqp_socket.c
+        Had to ensure LWIP_DNS is defined in lwipopts.h
+
+(9) When compiling amqp_timer.c
         warning: implicit declaration of function 'clock_gettime' [-Wimplicit-function-declaration]
         error: 'CLOCK_MONOTONIC' undeclared
     RESOLUTION:
