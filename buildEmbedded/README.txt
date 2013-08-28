@@ -60,7 +60,7 @@ These are the changes I had to make
         Changed source file to include lwip/sockets.h instead.
 
 (6) When compiling amqp_socket.c
-    Call to fcntl now requires 3 arguments (LwIP); added NULL for third arg.
+    Call to fcntl requires 3 arguments (LwIP); added 0 for third arg.
 
 (7) When compiling amqp_socket.c
     Numerous errors due to the following structure members
@@ -86,7 +86,7 @@ These are the changes I had to make
         warning: implicit declaration of function 'clock_gettime' [-Wimplicit-function-declaration]
         error: 'CLOCK_MONOTONIC' undeclared
     RESOLUTION:
-        Created gap/include/posic/time.h
+        Created gap/include/posix/time.h
         with content (minimal) based on POSIX standard.
         Added #include <posix/time.h>
 

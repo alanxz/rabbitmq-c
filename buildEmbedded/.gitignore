@@ -1,0 +1,4 @@
+*.a
+objs/*.i
+objs/*.s
+objs/*.o

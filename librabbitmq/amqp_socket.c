@@ -104,7 +104,7 @@ amqp_os_socket_socket(int domain, int type, int protocol)
   }
 
   /* Always enable CLOEXEC on the socket */
-  flags = fcntl(s, F_GETFD, NULL);
+  flags = fcntl(s, F_GETFD, 0);
   if (flags == -1
       || fcntl(s, F_SETFD, (long)(flags | FD_CLOEXEC)) == -1) {
     int e = errno;
@@ -145,7 +145,7 @@ amqp_os_socket_setsockblock(int sock, int block)
 #else
   long arg;
 
-  if ((arg = fcntl(sock, F_GETFL, NULL)) < 0) {
+  if ((arg = fcntl(sock, F_GETFL, 0)) < 0) {
      return AMQP_STATUS_SOCKET_ERROR;
   }
 
