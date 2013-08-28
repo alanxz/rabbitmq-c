@@ -36,9 +36,12 @@ These are the changes I had to make
       Various quickstart dirs added to the include path.
 
 (2) Compilation cannot find include file: sys/uio.h
+    The sys/uio.h header file contains definitions for vector I/O operations.
     RESOLUTION:
-      Created gap/include/sys/uio.h (copied from GitHub).
-      License: Berkley
+      Created rabbitmq-c-lwip-freertos/librabbitmq/sys/uio.h
+      Copied from ???:
+      License: Berkley/GNU
+      Also available in the GNU C library.
 
 (3) When compiling amqp_private.c
     Cannot find include file(s):
@@ -86,11 +89,31 @@ These are the changes I had to make
         warning: implicit declaration of function 'clock_gettime' [-Wimplicit-function-declaration]
         error: 'CLOCK_MONOTONIC' undeclared
     RESOLUTION:
-        Created gap/include/posix/time.h
+        Created rabbitmq-c-lwip-freertos/librabbitmq/posix/time.h
         with content (minimal) based on POSIX standard.
+        Created rabbitmq-c-lwip-freertos/librabbitmq/posix/posix_time.c
         Added #include <posix/time.h>
 
-@@@ Note: some compilation warnings remain. @@@
+(10) When linking...
+    Missing symbols:
+        amqp_tcp_socket.c:206: undefined reference to `recv'
+        amqp_tcp_socket.c:132: undefined reference to `writev'
+    RESOLUTION:
+        Copied from https://github.com/macton/nativecolors/client/src/libraries/nativeblue/
+        To:
+            rabbitmq-c-lwip-freertos/librabbitmq/readv.c
+            rabbitmq-c-lwip-freertos/librabbitmq/writev.c
+        Added to rabbitmq makefile.
+
+(10) When linking...
+    Missing symbols:
+        amqp_tcp_socket.c:206: undefined reference to `recv'
+    RESOLUTION:
+        Added #include lwip/sockets.h to amqp_tcp_socket.c
+
+
+
+@@@ Also Note: some compilation warnings remain. @@@
 
 
 

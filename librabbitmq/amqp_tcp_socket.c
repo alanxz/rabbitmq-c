@@ -31,6 +31,7 @@
 #include <errno.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <lwip/sockets.h>
 
 struct amqp_tcp_socket_t {
   const struct amqp_socket_class_t *klass;

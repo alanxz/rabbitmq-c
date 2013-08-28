@@ -47,6 +47,9 @@ CSOURCE := \
     $(LIB_SRC_DIR)amqp_tcp_socket.c   \
     $(LIB_SRC_DIR)amqp_timer.c   \
     $(LIB_SRC_DIR)amqp_consumer.c   \
+    $(LIB_SRC_DIR)readv.c   \
+    $(LIB_SRC_DIR)writev.c   \
+    $(LIB_SRC_DIR)posix_time.c  \
 
 
 
@@ -149,6 +152,7 @@ $(BUILD_DIR)%.o : $(LIB_SRC_DIR)%.c
 	@echo "From:     $<"
 	@echo $(SEP)
 	$(CC) $(GCC_OPTS) -o $@ -c $<
+	@echo
 
 
 # --------------------------------------------------------------+-
@@ -161,6 +165,7 @@ $(TARGET_LIB_DIR)%.a:
 	@echo $(SEP)
 	$(AR) rcv $@ $^
 	$(RANLIB) $@
+	@echo
 
 
 
@@ -188,12 +193,11 @@ RM=/bin/rm
 clean :
 	@echo
 	@echo $(SEP)
-	@echo $(SEP)
 	@echo "AMQP Library Clean Build"
-	@echo $(SEP)
 	@echo $(SEP)
 	$(RM) -f $(BUILD_DIR)*.i
 	$(RM) -f $(BUILD_DIR)*.s
 	$(RM) -f $(BUILD_DIR)*.o
 	$(RM) -f $(TARGET_LIB_DIR)*.a
+	@echo
 
