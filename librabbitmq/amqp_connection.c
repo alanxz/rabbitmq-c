@@ -48,9 +48,9 @@
 #include <stdlib.h>
 #include <string.h>
 
-#define INITIAL_FRAME_POOL_PAGE_SIZE 65536
-#define INITIAL_DECODING_POOL_PAGE_SIZE 131072
-#define INITIAL_INBOUND_SOCK_BUFFER_SIZE 131072
+#define INITIAL_FRAME_POOL_PAGE_SIZE       4096
+#define INITIAL_DECODING_POOL_PAGE_SIZE  131072
+#define INITIAL_INBOUND_SOCK_BUFFER_SIZE   2048
 
 #define ENFORCE_STATE(statevec, statenum)                                                 \
   {                                                                                       \

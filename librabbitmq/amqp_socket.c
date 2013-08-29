@@ -104,6 +104,8 @@ amqp_os_socket_socket(int domain, int type, int protocol)
   }
 
   /* Always enable CLOEXEC on the socket */
+#if 0
+LWIP doesn't support fcntl
   flags = fcntl(s, F_GETFD, 0);
   if (flags == -1
       || fcntl(s, F_SETFD, (long)(flags | FD_CLOEXEC)) == -1) {
@@ -112,6 +114,7 @@ amqp_os_socket_socket(int domain, int type, int protocol)
     errno = e;
     return -1;
   }
+#endif
 
   return s;
 
