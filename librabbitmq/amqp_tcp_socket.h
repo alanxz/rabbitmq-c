@@ -1,4 +1,5 @@
 /* vim:set ft=c ts=2 sw=2 sts=2 et cindent: */
+/** \file */
 /*
  * Copyright 2012-2013 Michael Steinert
  *
@@ -38,6 +39,8 @@ AMQP_BEGIN_DECLS
  * Call amqp_socket_close() to release socket resources.
  *
  * \return A new socket object or NULL if an error occurred.
+ *
+ * \since v0.4.0
  */
 AMQP_PUBLIC_FUNCTION
 amqp_socket_t *
@@ -53,6 +56,8 @@ amqp_tcp_socket_new(amqp_connection_state_t state);
  *
  * \param [in,out] self A TCP socket object.
  * \param [in] sockfd An open socket descriptor.
+ *
+ * \since v0.4.0
  */
 AMQP_PUBLIC_FUNCTION
 void

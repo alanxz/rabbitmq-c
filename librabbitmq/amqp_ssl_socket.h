@@ -1,4 +1,5 @@
 /* vim:set ft=c ts=2 sw=2 sts=2 et cindent: */
+/** \file */
 /*
  * Copyright 2012-2013 Michael Steinert
  *
@@ -21,10 +22,6 @@
  * DEALINGS IN THE SOFTWARE.
  */
 
-/**
- * An SSL socket connection.
- */
-
 #ifndef AMQP_SSL_H
 #define AMQP_SSL_H
 
@@ -35,9 +32,23 @@ AMQP_BEGIN_DECLS
 /**
  * Create a new SSL/TLS socket object.
  *
- * Call amqp_socket_close() to release socket resources.
+ * The returned socket object is owned by the \ref amqp_connection_state_t object
+ * and will be destroyed when the state object is destroyed or a new socket
+ * object is created.
  *
+ * If the socket object creation fails, the \ref amqp_connection_state_t object
+ * will not be changed.
+ *
+ * The object returned by this function can be retrieved from the
+ * amqp_connection_state_t object later using the amqp_get_socket() function.
+ *
+ * Calling this function may result in the underlying SSL library being initialized.
+ * \sa amqp_set_initialize_ssl_library()
+ *
+ * \param [in,out] state The connection object that owns the SSL/TLS socket
  * \return A new socket object or NULL if an error occurred.
+ *
+ * \since v0.4.0
  */
 AMQP_PUBLIC_FUNCTION
 amqp_socket_t *
@@ -50,7 +61,9 @@ amqp_ssl_socket_new(amqp_connection_state_t state);
  * \param [in,out] self An SSL/TLS socket object.
  * \param [in] cacert Path to the CA cert file in PEM format.
  *
- * \return Zero if successful, -1 otherwise.
+ * \return \ref AMQP_STATUS_OK on success an enum
+ *
+ * \since v0.4.0
  */
 AMQP_PUBLIC_FUNCTION
 int
@@ -66,6 +79,8 @@ amqp_ssl_socket_set_cacert(amqp_socket_t *self,
  * \param [in] key Path to the client key in PEM format.
  *
  * \return Zero if successful, -1 otherwise.
+ *
+ * \since v0.4.0
  */
 AMQP_PUBLIC_FUNCTION
 int
@@ -83,6 +98,8 @@ amqp_ssl_socket_set_key(amqp_socket_t *self,
  * \param [in] n The length of the buffer.
  *
  * \return Zero if successful, -1 otherwise.
+ *
+ * \since v0.4.0
  */
 AMQP_PUBLIC_FUNCTION
 int
@@ -101,6 +118,8 @@ amqp_ssl_socket_set_key_buffer(amqp_socket_t *self,
  *
  * \param [in,out] self An SSL/TLS socket object.
  * \param [in] verify Enable or disable peer verification.
+ *
+ * \since v0.4.0
  */
 AMQP_PUBLIC_FUNCTION
 void
@@ -114,8 +133,8 @@ amqp_ssl_socket_set_verify(amqp_socket_t *self,
  * For SSL libraries that require a one-time initialization across
  * a whole program (e.g., OpenSSL) this sets whether or not rabbitmq-c
  * will initialize the SSL library when the first call to
- * amqp_open_ssl_socket() is made. You should call this function with
- * do_init = 0 if the underlying SSL library is intialized somewhere else
+ * amqp_open_socket() is made. You should call this function with
+ * do_init = 0 if the underlying SSL library is initialized somewhere else
  * the program.
  *
  * Failing to initialize or double initialization of the SSL library will
@@ -124,12 +143,13 @@ amqp_ssl_socket_set_verify(amqp_socket_t *self,
  * By default rabbitmq-c will initialize the underlying SSL library
  *
  * NOTE: calling this function after the first socket has been opened with
- * amqp_open_ssl_socket() will not have any effect.
+ * amqp_open_socket() will not have any effect.
  *
  * \param [in] do_initalize If 0 rabbitmq-c will not initialize the SSL
  *                          library, otherwise rabbitmq-c will initialize the
- *                          SL library
+ *                          SSL library
  *
+ * \since v0.4.0
  */
 AMQP_PUBLIC_FUNCTION
 void

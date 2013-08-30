@@ -151,9 +151,7 @@ amqp_socket_recv(amqp_socket_t *self, void *buf, size_t len, int flags);
  *
  * \return Zero upon success, non-zero otherwise.
  */
-AMQP_PUBLIC_FUNCTION
 int
-AMQP_CALL
 amqp_socket_close(amqp_socket_t *self);
 
 /**

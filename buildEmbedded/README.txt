@@ -33,7 +33,7 @@ These are the changes I had to make
 (1) Custom build script using rake.
       Too much time and effort would be needed to understand cmake.
       Cheaper to just use make/rake based on the output of the cmake build.
-      Various quickstart dirs added to the include path.
+      Changes to the include path to get the right platform stuff.
 
 (2) Compilation cannot find include file: sys/uio.h
     The sys/uio.h header file contains definitions for vector I/O operations.
@@ -105,7 +105,7 @@ These are the changes I had to make
             rabbitmq-c-lwip-freertos/librabbitmq/writev.c
         Added to rabbitmq makefile.
 
-(10) When linking...
+(11) When linking...
     Missing symbols:
         amqp_tcp_socket.c:206: undefined reference to `recv'
     RESOLUTION:

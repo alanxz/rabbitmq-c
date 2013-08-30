@@ -58,6 +58,8 @@
 # include <ws2tcpip.h>
 #else
 # include <sys/types.h>      /* On older BSD this must come before net includes */
+# include <netinet/in.h>
+# include <netinet/tcp.h>
 # include <lwip/sockets.h>
 # include <lwip/netdb.h>
 # include <sys/uio.h>

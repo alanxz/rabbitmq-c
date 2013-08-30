@@ -244,6 +244,10 @@ def methodApiPrototype(m):
     fn = m.fullName()
     info = apiMethodInfo.get(fn, [])
 
+    docs = "/**\n * %s\n *\n" % (fn)
+    docs += " * @param [in] state connection state\n"
+    docs += " * @param [in] channel the channel to do the RPC on\n"
+
     args = []
     for f in m.arguments:
         n = c_ize(f.name)
@@ -254,8 +258,12 @@ def methodApiPrototype(m):
         args.append(typeFor(m.klass.spec, f).ctype)
         args.append(" ")
         args.append(n)
+        docs += " * @param [in] %s %s\n" % (n, n)
 
-    return "AMQP_PUBLIC_FUNCTION %s_ok_t * AMQP_CALL %s(amqp_connection_state_t state, amqp_channel_t channel%s)" % (fn, fn, ''.join(args))
+    docs += " * @returns %s_ok_t\n" % (fn)
+    docs += " */\n"
+
+    return "%sAMQP_PUBLIC_FUNCTION\n%s_ok_t *\nAMQP_CALL %s(amqp_connection_state_t state, amqp_channel_t channel%s)" % (docs, fn, fn, ''.join(args))
 
 AmqpMethod.apiPrototype = methodApiPrototype
 
@@ -545,11 +553,11 @@ int amqp_encode_properties(uint16_t class_id,
 def genHrl(spec):
     def fieldDeclList(fields):
         if fields:
-            return ''.join(["  %s %s;\n" % (typeFor(spec, f).ctype,
-                                            c_ize(f.name))
+            return ''.join(["  %s %s; /**< %s */\n" % (typeFor(spec, f).ctype,
+                                            c_ize(f.name), f.name)
                             for f in fields])
         else:
-            return "  char dummy; /* Dummy field to avoid empty struct */\n"
+            return "  char dummy; /**< Dummy field to avoid empty struct */\n"
 
     def propDeclList(fields):
         return ''.join(["  %s %s;\n" % (typeFor(spec, f).ctype, c_ize(f.name))
@@ -594,6 +602,7 @@ def genHrl(spec):
  * ***** END LICENSE BLOCK *****
  */
 
+/** @file amqp_framing.h */
 #ifndef AMQP_FRAMING_H
 #define AMQP_FRAMING_H
 
@@ -601,33 +610,74 @@ def genHrl(spec):
 
 AMQP_BEGIN_DECLS
 """
-    print "#define AMQP_PROTOCOL_VERSION_MAJOR %d" % (spec.major)
-    print "#define AMQP_PROTOCOL_VERSION_MINOR %d" % (spec.minor)
-    print "#define AMQP_PROTOCOL_VERSION_REVISION %d" % (spec.revision)
-    print "#define AMQP_PROTOCOL_PORT %d" % (spec.port)
+    print "#define AMQP_PROTOCOL_VERSION_MAJOR %d     /**< AMQP protocol version major */" % (spec.major)
+    print "#define AMQP_PROTOCOL_VERSION_MINOR %d     /**< AMQP protocol version minor */" % (spec.minor)
+    print "#define AMQP_PROTOCOL_VERSION_REVISION %d  /**< AMQP protocol version revision */" % (spec.revision)
+    print "#define AMQP_PROTOCOL_PORT %d              /**< Default AMQP Port */" % (spec.port)
 
     for (c,v,cls) in spec.constants:
-        print "#define %s %s" % (cConstantName(c), v)
+        print "#define %s %s  /**< Constant: %s */" % (cConstantName(c), v, c)
     print
 
     print """/* Function prototypes. */
 
+/**
+ * Get constant name string from constant
+ *
+ * @param [in] constantNumber constant to get the name of
+ * @returns string describing the constant. String is managed by
+ *           the library and should not be free()'d by the program
+ */
 AMQP_PUBLIC_FUNCTION
 char const *
 AMQP_CALL amqp_constant_name(int constantNumber);
 
+/**
+ * Checks to see if a constant is a hard error
+ *
+ * A hard error occurs when something severe enough
+ * happens that the connection must be closed.
+ *
+ * @param [in] constantNumber the error constant
+ * @returns true if its a hard error, false otherwise
+ */
 AMQP_PUBLIC_FUNCTION
 amqp_boolean_t
 AMQP_CALL amqp_constant_is_hard_error(int constantNumber);
 
+/**
+ * Get method name string from method number
+ *
+ * @param [in] methodNumber the method number
+ * @returns method name string. String is managed by the library
+ *           and should not be freed()'d by the program
+ */
 AMQP_PUBLIC_FUNCTION
 char const *
 AMQP_CALL amqp_method_name(amqp_method_number_t methodNumber);
 
+/**
+ * Check whether a method has content
+ *
+ * A method that has content will receive the method frame
+ * a properties frame, then 1 to N body frames
+ *
+ * @param [in] methodNumber the method number
+ * @returns true if method has content, false otherwise
+ */
 AMQP_PUBLIC_FUNCTION
 amqp_boolean_t
 AMQP_CALL amqp_method_has_content(amqp_method_number_t methodNumber);
 
+/**
+ * Decodes a method from AMQP wireformat
+ *
+ * @param [in] methodNumber the method number for the decoded parameter
+ * @param [in] pool the memory pool to allocate the decoded method from
+ * @param [in] encoded the encoded byte string buffer
+ * @param [out] decoded pointer to the decoded method struct
+ * @returns 0 on success, an error code otherwise
+ */
 AMQP_PUBLIC_FUNCTION
 int
 AMQP_CALL amqp_decode_method(amqp_method_number_t methodNumber,
@@ -635,6 +685,15 @@ AMQP_CALL amqp_decode_method(amqp_method_number_t methodNumber,
 		   amqp_bytes_t encoded,
 		   void **decoded);
 
+/**
+ * Decodes a header frame properties structure from AMQP wireformat
+ *
+ * @param [in] class_id the class id for the decoded parameter
+ * @param [in] pool the memory pool to allocate the decoded properties from
+ * @param [in] encoded the encoded byte string buffer
+ * @param [out] decoded pointer to the decoded properties struct
+ * @returns 0 on success, an error code otherwise
+ */
 AMQP_PUBLIC_FUNCTION
 int
 AMQP_CALL amqp_decode_properties(uint16_t class_id,
@@ -642,12 +701,32 @@ AMQP_CALL amqp_decode_properties(uint16_t class_id,
             amqp_bytes_t encoded,
             void **decoded);
 
+/**
+ * Encodes a method structure in AMQP wireformat
+ *
+ * @param [in] methodNumber the method number for the decoded parameter
+ * @param [in] decoded the method structure (e.g., amqp_connection_start_t)
+ * @param [in] encoded an allocated byte buffer for the encoded method
+ *              structure to be written to. If the buffer isn't large enough
+ *              to hold the encoded method, an error code will be returned.
+ * @returns 0 on success, an error code otherwise.
+ */
 AMQP_PUBLIC_FUNCTION
 int
 AMQP_CALL amqp_encode_method(amqp_method_number_t methodNumber,
 		   void *decoded,
 		   amqp_bytes_t encoded);
 
+/**
+ * Encodes a properties structure in AMQP wireformat
+ *
+ * @param [in] class_id the class id for the decoded parameter
+ * @param [in] decoded the properties structure (e.g., amqp_basic_properties_t)
+ * @param [in] encoded an allocated byte buffer for the encoded properties to written to.
+ *              If the buffer isn't large enough to hold the encoded method, an
+ *              an error code will be returned
+ * @returns 0 on success, an error code otherwise.
+ */
 AMQP_PUBLIC_FUNCTION
 int
 AMQP_CALL amqp_encode_properties(uint16_t class_id,
@@ -658,19 +737,21 @@ AMQP_CALL amqp_encode_properties(uint16_t class_id,
     print "/* Method field records. */\n"
     for m in methods:
         methodid = m.klass.index << 16 | m.index
-        print "#define %s ((amqp_method_number_t) 0x%.08X) /* %d, %d; %d */" % \
+        print "#define %s ((amqp_method_number_t) 0x%.08X) /**< %s.%s method id @internal %d, %d; %d */" % \
               (m.defName(),
                methodid,
+               m.klass.name,
+               m.name,
                m.klass.index,
                m.index,
                methodid)
-        print "typedef struct %s_ {\n%s} %s;\n" % \
-              (m.structName(), fieldDeclList(m.arguments), m.structName())
+        print "/** %s.%s method fields */\ntypedef struct %s_ {\n%s} %s;\n" % \
+              (m.klass.name, m.name, m.structName(), fieldDeclList(m.arguments), m.structName())
 
     print "/* Class property records. */"
     for c in spec.allClasses():
-        print "#define %s (0x%.04X) /* %d */" % \
-              (cConstantName(c.name + "_class"), c.index, c.index)
+        print "#define %s (0x%.04X) /**< %s class id @internal %d */" % \
+              (cConstantName(c.name + "_class"), c.index, c.name, c.index)
         index = 0
         for f in c.fields:
             if index % 16 == 15:
@@ -678,10 +759,11 @@ AMQP_CALL amqp_encode_properties(uint16_t class_id,
             shortnum = index // 16
             partialindex = 15 - (index % 16)
             bitindex = shortnum * 16 + partialindex
-            print '#define %s (1 << %d)' % (cFlagName(c, f), bitindex)
+            print '#define %s (1 << %d) /**< %s.%s property flag */' % (cFlagName(c, f), bitindex, c.name, f.name)
             index = index + 1
-        print "typedef struct %s_ {\n  amqp_flags_t _flags;\n%s} %s;\n" % \
-              (c.structName(),
+        print "/** %s class properties */\ntypedef struct %s_ {\n  amqp_flags_t _flags; /**< bit-mask of set fields */\n%s} %s;\n" % \
+              (c.name,
+               c.structName(),
                fieldDeclList(c.fields),
                c.structName())
 
