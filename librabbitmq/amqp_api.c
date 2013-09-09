@@ -40,6 +40,8 @@
 
 #include "amqp_private.h"
 #include "amqp_timer.h"
+#include "error_handler.h"
+#include "logger.h"
 #include <assert.h>
 #include <stdarg.h>
 #include <stdint.h>
@@ -130,6 +132,8 @@ const char *amqp_error_string2(int code)
   return error_string;
 }
 
+#if 1
+// @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@|@
 char *amqp_error_string(int code)
 {
   /* Previously sometimes clients had to flip the sign on a return value from a
@@ -144,15 +148,17 @@ char *amqp_error_string(int code)
   }
   return strdup(amqp_error_string2(code));
 }
+// @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@|@
+#endif
 
 void amqp_abort(const char *fmt, ...)
 {
-  va_list ap;
-  va_start(ap, fmt);
-  vfprintf(stderr, fmt, ap);
-  va_end(ap);
-  fputc('\n', stderr);
-  abort();
+  /// /// va_list ap;
+  /// /// va_start(ap, fmt);
+  /// /// lprintf(fmt, ap);
+  /// /// va_end(ap);
+  /// /// lstr("\n");
+  error_handler_fatal();
 }
 
 const amqp_bytes_t amqp_empty_bytes = { 0, NULL };

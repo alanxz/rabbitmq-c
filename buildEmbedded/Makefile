@@ -5,7 +5,6 @@
 #
 # DESCRIPTION:
 #   Builds the rabbitmq-c static library.
-#   Includes a separate "makedefs" makefile for build rules.
 # ==============================================================================================#=
 
 
@@ -47,9 +46,9 @@ CSOURCE := \
     $(LIB_SRC_DIR)amqp_tcp_socket.c   \
     $(LIB_SRC_DIR)amqp_timer.c   \
     $(LIB_SRC_DIR)amqp_consumer.c   \
-    $(LIB_SRC_DIR)readv.c   \
-    $(LIB_SRC_DIR)writev.c   \
     $(LIB_SRC_DIR)posix_time.c  \
+    ### $(LIB_SRC_DIR)readv.c   \
+    ### $(LIB_SRC_DIR)writev.c   \
 
 
 
@@ -66,11 +65,11 @@ CSOURCE := \
 # ------------------------------------------------------------------------------+-
 INCLUDE_DIRS = \
     -I$(LIB_SRC_DIR) \
-    -I$(PROJ_ROOT_DIR)lwipdemo/Project/FreeRTOS/httpserver_socket/inc \
+    -I$(PROJ_ROOT_DIR)lwipdemo/include \
+    -I$(PROJ_ROOT_DIR)lwipdemo/source \
     -I$(PROJ_ROOT_DIR)lwip-contrib/ports/cross/src/include/LM3S \
     -I$(PROJ_ROOT_DIR)lwip/src/include \
     -I$(PROJ_ROOT_DIR)lwip/src/include/ipv4 \
-    -I$(PROJ_ROOT_DIR)gap/include
 
 
 
@@ -172,16 +171,17 @@ $(TARGET_LIB_DIR)%.a:
 # ==============================================================================#=
 # TARGETS
 # ==============================================================================#=
-.PHONY: all clean
-
 
 # --------------------------------------------------------------+-
 # Target: all
 # --------------------------------------------------------------+-
+.PHONY: all
 all : clean $(TARGET_LIB_DIR)$(LIB).a
 
+# ----------------------------------------------+-
+# target library
+# ----------------------------------------------+-
 OBJS = $(addprefix $(BUILD_DIR), $(notdir $(CSOURCE:.c=.o)))
-
 $(TARGET_LIB_DIR)$(LIB).a : $(OBJS)
 
 
@@ -190,6 +190,7 @@ $(TARGET_LIB_DIR)$(LIB).a : $(OBJS)
 # --------------------------------------------------------------+-
 RM=/bin/rm
 
+.PHONY: clean
 clean :
 	@echo
 	@echo $(SEP)

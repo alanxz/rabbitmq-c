@@ -82,7 +82,7 @@ amqp_ssl_socket_writev(void *base,
   }
   if (self->length < bytes) {
     free(self->buffer);
-    self->buffer = malloc(bytes);
+    self->buffer = rae_malloc(bytes);
     if (!self->buffer) {
       self->length = 0;
       self->last_error = AMQP_STATUS_NO_MEMORY;
@@ -254,7 +254,7 @@ static const struct amqp_socket_class_t amqp_ssl_socket_class = {
 amqp_socket_t *
 amqp_ssl_socket_new(void)
 {
-  struct amqp_ssl_socket_t *self = calloc(1, sizeof(*self));
+  struct amqp_ssl_socket_t *self = rae_calloc(1, sizeof(*self));
   const char *error;
   int status;
   if (!self) {

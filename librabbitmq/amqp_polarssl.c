@@ -90,7 +90,7 @@ amqp_ssl_socket_writev(void *base,
   }
   if (self->length < bytes) {
     free(self->buffer);
-    self->buffer = malloc(bytes);
+    self->buffer = rae_malloc(bytes);
     if (!self->buffer) {
       self->length = 0;
       self->last_error = AMQP_STATUS_NO_MEMORY;
@@ -230,18 +230,18 @@ static const struct amqp_socket_class_t amqp_ssl_socket_class = {
 amqp_socket_t *
 amqp_ssl_socket_new(void)
 {
-  struct amqp_ssl_socket_t *self = calloc(1, sizeof(*self));
+  struct amqp_ssl_socket_t *self = rae_calloc(1, sizeof(*self));
   int status;
   if (!self) {
     goto error;
   }
-  self->entropy = calloc(1, sizeof(*self->entropy));
+  self->entropy = rae_calloc(1, sizeof(*self->entropy));
   if (!self->entropy) {
     goto error;
   }
   self->sockfd = -1;
   entropy_init(self->entropy);
-  self->ctr_drbg = calloc(1, sizeof(*self->ctr_drbg));
+  self->ctr_drbg = rae_calloc(1, sizeof(*self->ctr_drbg));
   if (!self->ctr_drbg) {
     goto error;
   }
@@ -250,7 +250,7 @@ amqp_ssl_socket_new(void)
   if (status) {
     goto error;
   }
-  self->ssl = calloc(1, sizeof(*self->ssl));
+  self->ssl = rae_calloc(1, sizeof(*self->ssl));
   if (!self->ssl) {
     goto error;
   }
@@ -262,7 +262,7 @@ amqp_ssl_socket_new(void)
   ssl_set_rng(self->ssl, ctr_drbg_random, self->ctr_drbg);
   ssl_set_ciphersuites(self->ssl, ssl_default_ciphersuites);
   ssl_set_authmode(self->ssl, SSL_VERIFY_REQUIRED);
-  self->session = calloc(1, sizeof(*self->session));
+  self->session = rae_calloc(1, sizeof(*self->session));
   if (!self->session) {
     goto error;
   }
@@ -289,7 +289,7 @@ amqp_ssl_socket_set_cacert(amqp_socket_t *base,
     amqp_abort("<%p> is not of type amqp_ssl_socket_t", base);
   }
   self = (struct amqp_ssl_socket_t *)base;
-  self->cacert = calloc(1, sizeof(*self->cacert));
+  self->cacert = rae_calloc(1, sizeof(*self->cacert));
   if (!self->cacert) {
     return -1;
   }
@@ -311,7 +311,7 @@ amqp_ssl_socket_set_key(amqp_socket_t *base,
     amqp_abort("<%p> is not of type amqp_ssl_socket_t", base);
   }
   self = (struct amqp_ssl_socket_t *)base;
-  self->key = calloc(1, sizeof(*self->key));
+  self->key = rae_calloc(1, sizeof(*self->key));
   if (!self->key) {
     return -1;
   }
@@ -319,7 +319,7 @@ amqp_ssl_socket_set_key(amqp_socket_t *base,
   if (status) {
     return -1;
   }
-  self->cert = calloc(1, sizeof(*self->cert));
+  self->cert = rae_calloc(1, sizeof(*self->cert));
   if (!self->cert) {
     return -1;
   }

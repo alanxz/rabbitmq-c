@@ -66,7 +66,7 @@ amqp_connection_state_t amqp_new_connection(void)
 {
   int res;
   amqp_connection_state_t state =
-    (amqp_connection_state_t) calloc(1, sizeof(struct amqp_connection_state_t_));
+    (amqp_connection_state_t) rae_calloc(1, sizeof(struct amqp_connection_state_t_));
 
   if (state == NULL) {
     return NULL;
@@ -86,7 +86,7 @@ amqp_connection_state_t amqp_new_connection(void)
   state->target_size = 8;
 
   state->sock_inbound_buffer.len = INITIAL_INBOUND_SOCK_BUFFER_SIZE;
-  state->sock_inbound_buffer.bytes = malloc(INITIAL_INBOUND_SOCK_BUFFER_SIZE);
+  state->sock_inbound_buffer.bytes = rae_malloc(INITIAL_INBOUND_SOCK_BUFFER_SIZE);
   if (state->sock_inbound_buffer.bytes == NULL) {
     goto out_nomem;
   }
@@ -149,7 +149,7 @@ int amqp_tune_connection(amqp_connection_state_t state,
   }
 
   state->outbound_buffer.len = frame_max;
-  newbuf = realloc(state->outbound_buffer.bytes, frame_max);
+  newbuf = rae_realloc(state->outbound_buffer.bytes, frame_max);
   if (newbuf == NULL) {
     return AMQP_STATUS_NO_MEMORY;
   }

@@ -121,7 +121,7 @@ amqp_ssl_socket_writev(void *base,
     bytes += iov[i].iov_len;
   }
   if (self->length < bytes) {
-    self->buffer = realloc(self->buffer, bytes);
+    self->buffer = rae_realloc(self->buffer, bytes);
     if (!self->buffer) {
       self->length = 0;
       ret = AMQP_STATUS_NO_MEMORY;
@@ -358,7 +358,7 @@ static const struct amqp_socket_class_t amqp_ssl_socket_class = {
 amqp_socket_t *
 amqp_ssl_socket_new(amqp_connection_state_t state)
 {
-  struct amqp_ssl_socket_t *self = calloc(1, sizeof(*self));
+  struct amqp_ssl_socket_t *self = rae_calloc(1, sizeof(*self));
   int status;
   if (!self) {
     return NULL;
@@ -563,7 +563,7 @@ initialize_openssl(void)
 #ifdef ENABLE_THREAD_SAFETY
     if (NULL == amqp_openssl_lockarray) {
       int i = 0;
-      amqp_openssl_lockarray = calloc(CRYPTO_num_locks(), sizeof(pthread_mutex_t));
+      amqp_openssl_lockarray = rae_calloc(CRYPTO_num_locks(), sizeof(pthread_mutex_t));
       if (!amqp_openssl_lockarray) {
         pthread_mutex_unlock(&openssl_init_mutex);
         return -1;

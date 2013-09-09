@@ -110,7 +110,7 @@ amqp_os_socket_socket(int domain, int type, int protocol)
   /* Always enable CLOEXEC on the socket */
 #if 0
 @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
-LWIP doesn't support fcntl
+"LWIP doesn't support fcntl"
 @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
   flags = fcntl(s, F_GETFD, 0);
   if (flags == -1
