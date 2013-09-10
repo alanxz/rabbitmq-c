@@ -75,7 +75,7 @@ static int amqp_decode_array(amqp_bytes_t encoded,
     return AMQP_STATUS_BAD_AMQP_DATA;
   }
 
-  entries = rae_malloc(allocated_entries * sizeof(amqp_field_value_t));
+  entries = malloc(allocated_entries * sizeof(amqp_field_value_t));
   if (entries == NULL) {
     return AMQP_STATUS_NO_MEMORY;
   }
@@ -85,7 +85,7 @@ static int amqp_decode_array(amqp_bytes_t encoded,
     if (num_entries >= allocated_entries) {
       void *newentries;
       allocated_entries = allocated_entries * 2;
-      newentries = rae_realloc(entries, allocated_entries * sizeof(amqp_field_value_t));
+      newentries = realloc(entries, allocated_entries * sizeof(amqp_field_value_t));
       res = AMQP_STATUS_NO_MEMORY;
       if (newentries == NULL) {
         goto out;
@@ -135,7 +135,7 @@ int amqp_decode_table(amqp_bytes_t encoded,
     return AMQP_STATUS_BAD_AMQP_DATA;
   }
 
-  entries = rae_malloc(allocated_entries * sizeof(amqp_table_entry_t));
+  entries = malloc(allocated_entries * sizeof(amqp_table_entry_t));
   if (entries == NULL) {
     return AMQP_STATUS_NO_MEMORY;
   }
@@ -152,7 +152,7 @@ int amqp_decode_table(amqp_bytes_t encoded,
     if (num_entries >= allocated_entries) {
       void *newentries;
       allocated_entries = allocated_entries * 2;
-      newentries = rae_realloc(entries, allocated_entries * sizeof(amqp_table_entry_t));
+      newentries = realloc(entries, allocated_entries * sizeof(amqp_table_entry_t));
       res = AMQP_STATUS_NO_MEMORY;
       if (newentries == NULL) {
         goto out;

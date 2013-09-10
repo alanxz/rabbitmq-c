@@ -174,7 +174,7 @@ start:
   }
 
   if (self->buffer_length < bytes) {
-    self->buffer = rae_realloc(self->buffer, bytes);
+    self->buffer = realloc(self->buffer, bytes);
     if (NULL == self->buffer) {
       self->buffer_length = 0;
       self->internal_error = 0;
@@ -280,7 +280,7 @@ static const struct amqp_socket_class_t amqp_tcp_socket_class = {
 amqp_socket_t *
 amqp_tcp_socket_new(amqp_connection_state_t state)
 {
-  struct amqp_tcp_socket_t *self = rae_calloc(1, sizeof(*self));
+  struct amqp_tcp_socket_t *self = calloc(1, sizeof(*self));
   if (!self) {
     return NULL;
   }

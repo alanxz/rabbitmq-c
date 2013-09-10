@@ -105,12 +105,12 @@ static int record_pool_block(amqp_pool_blocklist_t *x, void *block)
   size_t blocklistlength = sizeof(void *) * (x->num_blocks + 1);
 
   if (x->blocklist == NULL) {
-    x->blocklist = rae_malloc(blocklistlength);
+    x->blocklist = malloc(blocklistlength);
     if (x->blocklist == NULL) {
       return 0;
     }
   } else {
-    void *newbl = rae_realloc(x->blocklist, blocklistlength);
+    void *newbl = realloc(x->blocklist, blocklistlength);
     if (newbl == NULL) {
       return 0;
     }
@@ -131,7 +131,7 @@ void *amqp_pool_alloc(amqp_pool_t *pool, size_t amount)
   amount = (amount + 7) & (~7); /* round up to nearest 8-byte boundary */
 
   if (amount > pool->pagesize) {
-    void *result = rae_calloc(1, amount);
+    void *result = calloc(1, amount);
     if (result == NULL) {
       return NULL;
     }
@@ -152,7 +152,7 @@ void *amqp_pool_alloc(amqp_pool_t *pool, size_t amount)
   }
 
   if (pool->next_page >= pool->pages.num_blocks) {
-    pool->alloc_block = rae_calloc(1, pool->pagesize);
+    pool->alloc_block = calloc(1, pool->pagesize);
     if (pool->alloc_block == NULL) {
       return NULL;
     }
@@ -188,7 +188,7 @@ amqp_bytes_t amqp_bytes_malloc_dup(amqp_bytes_t src)
 {
   amqp_bytes_t result;
   result.len = src.len;
-  result.bytes = rae_malloc(src.len);
+  result.bytes = malloc(src.len);
   if (result.bytes != NULL) {
     memcpy(result.bytes, src.bytes, src.len);
   }
@@ -199,7 +199,7 @@ amqp_bytes_t amqp_bytes_malloc(size_t amount)
 {
   amqp_bytes_t result;
   result.len = amount;
-  result.bytes = rae_malloc(amount); /* will return NULL if it fails */
+  result.bytes = malloc(amount); /* will return NULL if it fails */
   return result;
 }
 
@@ -221,7 +221,7 @@ amqp_pool_t *amqp_get_or_create_channel_pool(amqp_connection_state_t state, amqp
     }
   }
 
-  entry = rae_malloc(sizeof(amqp_pool_table_entry_t));
+  entry = malloc(sizeof(amqp_pool_table_entry_t));
   if (NULL == entry) {
     return NULL;
   }
