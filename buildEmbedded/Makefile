@@ -47,8 +47,8 @@ CSOURCE := \
     $(LIB_SRC_DIR)amqp_timer.c   \
     $(LIB_SRC_DIR)amqp_consumer.c   \
     $(LIB_SRC_DIR)posix_time.c  \
-    ### $(LIB_SRC_DIR)readv.c   \
-    ### $(LIB_SRC_DIR)writev.c   \
+    ### @@@ @@@ $(LIB_SRC_DIR)readv.c   \
+    ### @@@ @@@ $(LIB_SRC_DIR)writev.c   \
 
 
 
