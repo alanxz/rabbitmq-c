@@ -7,6 +7,73 @@
 #   Builds the rabbitmq-c static library.
 # ==============================================================================================#=
 
+# ------------------------------------------------------------------------------+-
+# make menuconfig
+#
+# Support integration with projects that use "make menuconfig" for project level
+# customization.
+#
+# The toplevel project Makefile creates a project-wide ".config" file for use
+# in lower level projects like this one.  The ".config" file is typically 
+# created via "make menuconfig", "make nconfig", or "make alldefconfig".
+#
+# ------------------------------------------------------------------------------+-
+
+-include ../$(DOT_CONFIG_FILE)
+
+#
+# Define a function to strip quotes from variables defined in .config
+#
+unquote = $(subst $\",,$1)
+
+
+ifeq ($(CONFIG_CONFIGURED),y)
+    ifeq ($(CONFIG_QUIET_BUILD),y)
+        export Q ?= @
+    else
+        export Q ?= #@
+    endif
+else
+     #
+     # When we don't have a command line Q setting
+     #   e.g. $ make help Q=@
+     # and we don't have a .config file
+     #   e.g. $ make nconfig
+     #        $ make help
+     # we default to a quiet make.
+     #
+     export Q ?= @
+endif
+
+
+ifeq ($(CONFIG_CONFIGURED),y)
+
+    #
+    # CONFIG_CONFIGURED==y when we have a .config file so use it's values
+    #
+    # Dequote the .config strings before use.  Defines in .config start
+    # with CONFIG_
+    #
+    CROSS_COMPILE ?= $(call unquote,$(CONFIG_CROSS_COMPILE))
+    TOOLCHAIN_MCPU_EQ        = $(call unquote,$(CONFIG_TOOLCHAIN_MCPU_EQ))
+    TOOLCHAIN_MARCH_EQ       = $(call unquote,$(CONFIG_TOOLCHAIN_MARCH_EQ))
+    TOOLCHAIN_MFLOAT_ABI_EQ  = $(call unquote,$(CONFIG_TOOLCHAIN_MFLOAT_ABI_EQ))
+    TOOLCHAIN_MFPU_EQ        = $(call unquote,$(CONFIG_TOOLCHAIN_MFPU_EQ))
+    TOOLCHAIN_OPTIMISATION   = $(call unquote,$(CONFIG_TOOLCHAIN_OPTIMISATION))
+
+else
+    #
+    # We don't have .config file so use good defaults
+    #
+    CROSS_COMPILE           ?= arm-none-eabi-
+    TOOLCHAIN_MCPU_EQ        = -mcpu=cortex-m3
+    TOOLCHAIN_MARCH_EQ       =
+    TOOLCHAIN_MFLOAT_ABI_EQ  =
+    TOOLCHAIN_MFPU_EQ        =
+    TOOLCHAIN_OPTIMISATION   =
+
+endif
+
 
 # ------------------------------------------------------------------------------+-
 # Project Directories
@@ -96,7 +163,7 @@ CPPFLAGS += \
 # Compilation Options
 # ------------------------------------------------------------------------------+-
 CFLAGS-y                              = 
-CFLAGS-$(CONFIG_TOOLCHAIN_USE_MTHUMB) += "-mthumb"
+CFLAGS-$(CONFIG_TOOLCHAIN_USE_MTHUMB) += -mthumb
 CFLAGS-y                              += $(TOOLCHAIN_MCPU_EQ)
 CFLAGS-y                              += $(TOOLCHAIN_MARCH_EQ)
 CFLAGS-y                              += $(TOOLCHAIN_MFLOAT_ABI_EQ)
