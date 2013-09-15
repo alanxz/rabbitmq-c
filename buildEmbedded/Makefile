@@ -19,7 +19,9 @@
 #
 # ------------------------------------------------------------------------------+-
 
+ifneq ($(DOT_CONFIG_FILE),)
 -include ../$(DOT_CONFIG_FILE)
+endif
 
 #
 # Define a function to strip quotes from variables defined in .config
@@ -71,6 +73,11 @@ else
     TOOLCHAIN_MFLOAT_ABI_EQ  =
     TOOLCHAIN_MFPU_EQ        =
     TOOLCHAIN_OPTIMISATION   =
+    CONFIG_TOOLCHAIN_USE_MTHUMB= y
+    CONFIG_TOOLCHAIN_WALL      = y
+    CONFIG_TOOLCHAIN_VERBOSE   =
+    CONFIG_TOOLCHAIN_PRTHEADERS=
+    CONFIG_TOOLCHAIN_DEBUG     =
 
 endif
 
@@ -91,7 +98,8 @@ endif
 # ------------------------------------------------------------------------------+-
 LIB := librabbitmq
 
-BUILD_DIR      := $(CURDIR)/objs/
+BUILD_DIR      := objs/
+PROJ_BUILD_DIR := objs/$(notdir $(CURDIR))/$(LIB)/
 LIB_ROOT_DIR   := $(dir $(CURDIR))
 PROJ_ROOT_DIR  := $(dir $(patsubst %/, %, $(LIB_ROOT_DIR)))
 LIB_SRC_DIR    := $(LIB_ROOT_DIR)$(LIB)/
@@ -103,19 +111,17 @@ TARGET_LIB_DIR := $(CURDIR)/
 # C Source Files
 # ------------------------------------------------------------------------------+-
 CSOURCE := \
-    $(LIB_SRC_DIR)amqp_framing.c  \
-    $(LIB_SRC_DIR)amqp_api.c   \
-    $(LIB_SRC_DIR)amqp_connection.c   \
-    $(LIB_SRC_DIR)amqp_mem.c   \
-    $(LIB_SRC_DIR)amqp_socket.c   \
-    $(LIB_SRC_DIR)amqp_table.c   \
-    $(LIB_SRC_DIR)amqp_url.c   \
-    $(LIB_SRC_DIR)amqp_tcp_socket.c   \
-    $(LIB_SRC_DIR)amqp_timer.c   \
-    $(LIB_SRC_DIR)amqp_consumer.c   \
-    $(LIB_SRC_DIR)posix_time.c  \
-    ### @@@ @@@ $(LIB_SRC_DIR)readv.c   \
-    ### @@@ @@@ $(LIB_SRC_DIR)writev.c   \
+    ../$(LIB)/amqp_framing.c  \
+    ../$(LIB)/amqp_api.c   \
+    ../$(LIB)/amqp_connection.c   \
+    ../$(LIB)/amqp_mem.c   \
+    ../$(LIB)/amqp_socket.c   \
+    ../$(LIB)/amqp_table.c   \
+    ../$(LIB)/amqp_url.c   \
+    ../$(LIB)/amqp_tcp_socket.c   \
+    ../$(LIB)/amqp_timer.c   \
+    ../$(LIB)/amqp_consumer.c   \
+    ../$(LIB)/posix_time.c  
 
 
 
@@ -210,11 +216,13 @@ AR     = $(CROSS_COMPILE)ar
 RANLIB = $(CROSS_COMPILE)ranlib
 
 
+
 # --------------------------------------------------------------+-
 # Compile.
 # --------------------------------------------------------------+-
-$(BUILD_DIR)%.o : $(LIB_SRC_DIR)%.c
+$(PROJ_BUILD_DIR)%.o : %.c
 	@echo "+--$(CC) $<"
+	$(Q)mkdir -p $(dir $@)
 	$(Q)$(CC) $(GCC_OPTS) -o $@ -c $<
 
 # --------------------------------------------------------------+-
@@ -225,6 +233,36 @@ $(TARGET_LIB_DIR)%.a:
 	$(Q)$(AR) rcv $@ $^
 	$(Q)$(RANLIB) $@
 
+# --------------------------------------------------------------+-
+# automatically generate dependency rules
+# --------------------------------------------------------------+-
+
+$(PROJ_BUILD_DIR)%.d : %.c
+	@echo "+--Generating Dependency $@"
+	$(Q)mkdir -p $(dir $@)
+	$(Q)$(CC) $(GCC_OPTS) -MF"$@" -MG -MM -MT"$@" -MT"$(@:.d=.o)" "$<"
+
+#
+# -MF  write the generated dependency rule to a file
+# -MG  assume missing headers will be generated and don't stop with an error
+# -MM  generate dependency rule for prerequisite, skipping system headers
+# -MP  add phony target for each header to prevent errors when header is missing
+# -MT  add a target to the generated dependency
+# 
+# "$@" is the target (the thing on the left side of the : )
+# "$<" is the prerequisite (the thing on the right side of the : ). 
+# The expression "$(<:.c=.o)" replaces the .c extension with .o.
+#
+# The trick here is to generate the rule with two targets by adding -MT twice; 
+# this makes both the .o file and the .d file depend on the source file 
+# and its headers; that way the dependency file gets automatically regenerated 
+# whenever any of the corresponding .c or .h files are changed.
+#
+# The -MG and -MP options keep make from freaking out if a header file is missing.
+#
+# We've removed the -MP option to keep make from infinite looping within the
+# dependency generation.
+#
 
 # ==============================================================================#=
 # TARGETS
@@ -234,13 +272,38 @@ $(TARGET_LIB_DIR)%.a:
 # Target: all
 # --------------------------------------------------------------+-
 .PHONY: all
-all : clean $(TARGET_LIB_DIR)$(LIB).a
+all : $(TARGET_LIB_DIR)$(LIB).a
 
 # ----------------------------------------------+-
 # target library
 # ----------------------------------------------+-
-OBJS = $(addprefix $(BUILD_DIR), $(notdir $(CSOURCE:.c=.o)))
+OBJS = $(addprefix $(PROJ_BUILD_DIR), $(CSOURCE:.c=.o))
+DEPS = $(addprefix $(PROJ_BUILD_DIR), $(CSOURCE:.c=.d))
+
+
 $(TARGET_LIB_DIR)$(LIB).a : $(OBJS)
+
+
+ifndef MAKECMDGOALS
+-include $(DEPS)
+else
+ifneq ($(MAKECMDGOALS),$(filter $(MAKECMDGOALS),\
+"help clean distclean"))
+#
+# Include the dependencies if they are available
+# and we are not invoked with one of the targets:
+#
+# help clean distclean
+#
+# .e.g.
+#
+# make clean
+# -or-
+# make distclean
+#
+-include $(DEPS)
+endif
+endif
 
 
 # --------------------------------------------------------------+-
@@ -250,13 +313,15 @@ RM=/bin/rm
 
 .PHONY: clean
 clean :
+ifneq ($(strip $(BUILD_DIR)),)
 	@echo
 	@echo $(SEP)
 	@echo "AMQP Library Clean Build"
 	@echo $(SEP)
-	$(RM) -f $(BUILD_DIR)*.i
-	$(RM) -f $(BUILD_DIR)*.s
-	$(RM) -f $(BUILD_DIR)*.o
+	$(RM) -fr $(BUILD_DIR)*
 	$(RM) -f $(TARGET_LIB_DIR)*.a
 	@echo
+else
+	$(Q)echo "BUILD_DIR is not defined or empty, can't clean."
+endif	
 
