@@ -95,36 +95,38 @@ CPPFLAGS += \
 # ------------------------------------------------------------------------------+-
 # Compilation Options
 # ------------------------------------------------------------------------------+-
-CFLAGS = \
-    -mthumb \
-    -mcpu=cortex-m3 \
-    -std=c99 \
-    -Wall \
-    -Wextra \
-    -pedantic \
-    -Wstrict-prototypes \
-    -Wcast-align \
-    -Wno-unused-function \
-    -fno-common \
-    -fvisibility=hidden \
-    -ffunction-sections \
-    -fdata-sections \
+CFLAGS-y                              = 
+CFLAGS-$(CONFIG_TOOLCHAIN_USE_MTHUMB) += "-mthumb"
+CFLAGS-y                              += $(TOOLCHAIN_MCPU_EQ)
+CFLAGS-y                              += $(TOOLCHAIN_MARCH_EQ)
+CFLAGS-y                              += $(TOOLCHAIN_MFLOAT_ABI_EQ)
+CFLAGS-y                              += $(TOOLCHAIN_MFPU_EQ)
+CFLAGS-y                              += $(TOOLCHAIN_OPTIMISATION)
+CFLAGS-y                              += -std=c99
+CFLAGS-y                              += -pedantic
+CFLAGS-$(CONFIG_TOOLCHAIN_WALL)       += -Wall
+CFLAGS-y                              += -Wextra
+CFLAGS-y                              += -Wstrict-prototypes
+CFLAGS-y                              += -Wcast-align
+CFLAGS-y                              += -Wno-unused-function
+CFLAGS-y                              += -fno-common
+CFLAGS-y                              += -fvisibility=hidden
+CFLAGS-y                              += -ffunction-sections
+CFLAGS-y                              += -fdata-sections
+CFLAGS-$(CONFIG_TOOLCHAIN_VERBOSE)    += -v
+CFLAGS-$(CONFIG_TOOLCHAIN_PRTHEADERS) += -H
+CFLAGS-$(CONFIG_TOOLCHAIN_DEBUG)      += -g
 
-DEBUG=-g
-
-OPTIM=-Os
+CFLAGS = $(CFLAGS-y)
 
 # ------------------------------------------------------------------------------+-
 # GCC Command Line Options
 # ------------------------------------------------------------------------------+-
 GCC_OPTS = \
-    -v \
-    -H \
     -save-temps=obj \
     $(CPPFLAGS) \
     $(CFLAGS) \
     $(DEBUG) \
-    $(OPTIM) \
 
 
 # ======================================================================#=
@@ -145,27 +147,16 @@ RANLIB = $(CROSS_COMPILE)ranlib
 # Compile.
 # --------------------------------------------------------------+-
 $(BUILD_DIR)%.o : $(LIB_SRC_DIR)%.c
-	@echo
-	@echo $(SEP)
-	@echo "Building: $@"
-	@echo "From:     $<"
-	@echo $(SEP)
-	$(CC) $(GCC_OPTS) -o $@ -c $<
-	@echo
-
+	@echo "+--$(CC) $<"
+	$(Q)$(CC) $(GCC_OPTS) -o $@ -c $<
 
 # --------------------------------------------------------------+-
 # Create an object library.
 # --------------------------------------------------------------+-
 $(TARGET_LIB_DIR)%.a:
-	@echo
-	@echo $(SEP)
-	@echo "Creating Library: $@"
-	@echo $(SEP)
-	$(AR) rcv $@ $^
-	$(RANLIB) $@
-	@echo
-
+	@echo "+--$(AR) $@"
+	$(Q)$(AR) rcv $@ $^
+	$(Q)$(RANLIB) $@
 
 
 # ==============================================================================#=
