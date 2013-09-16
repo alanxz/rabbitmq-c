@@ -273,6 +273,8 @@ $(PROJ_BUILD_DIR)%.d : %.c
 # --------------------------------------------------------------+-
 .PHONY: all
 all : $(TARGET_LIB_DIR)$(LIB).a
+	@# This line prevents warning when nothing to be done for all.
+
 
 # ----------------------------------------------+-
 # target library
@@ -287,19 +289,16 @@ $(TARGET_LIB_DIR)$(LIB).a : $(OBJS)
 ifndef MAKECMDGOALS
 -include $(DEPS)
 else
-ifneq ($(MAKECMDGOALS),$(filter $(MAKECMDGOALS),\
-"help clean distclean"))
+ifneq ($(MAKECMDGOALS),$(filter $(MAKECMDGOALS),"help clean "))
 #
 # Include the dependencies if they are available
 # and we are not invoked with one of the targets:
 #
-# help clean distclean
+# clean help
 #
 # .e.g.
 #
 # make clean
-# -or-
-# make distclean
 #
 -include $(DEPS)
 endif
@@ -314,13 +313,11 @@ RM=/bin/rm
 .PHONY: clean
 clean :
 ifneq ($(strip $(BUILD_DIR)),)
-	@echo
 	@echo $(SEP)
-	@echo "AMQP Library Clean Build"
+	@echo "+--AMQP Library clean"
 	@echo $(SEP)
 	$(RM) -fr $(BUILD_DIR)*
 	$(RM) -f $(TARGET_LIB_DIR)*.a
-	@echo
 else
 	$(Q)echo "BUILD_DIR is not defined or empty, can't clean."
 endif	
