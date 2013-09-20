@@ -40,7 +40,7 @@
 
 #include "amqp_private.h"
 #include "amqp_timer.h"
-#include "prolog/errors.h"
+#include "incidentLog/errors.h"
 #include "logger.h"
 #include <assert.h>
 #include <stdarg.h>
