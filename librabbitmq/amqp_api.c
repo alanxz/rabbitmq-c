@@ -40,7 +40,7 @@
 
 #include "amqp_private.h"
 #include "amqp_timer.h"
-#include "incidentLog/errors.h"
+#include "board/boardControl.h"
 #include "logger.h"
 #include <assert.h>
 #include <stdarg.h>
@@ -155,7 +155,7 @@ void amqp_abort(const char *fmt, ...)
   lprintf(fmt, ap);
   va_end(ap);
   lstr("\n");
-  errorLogFatal();
+  systemResetNow();
 }
 
 const amqp_bytes_t amqp_empty_bytes = { 0, NULL };
