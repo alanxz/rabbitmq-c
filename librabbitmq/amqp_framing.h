@@ -558,6 +558,17 @@ typedef struct amqp_queue_properties_t_ {
   char dummy; /* Dummy field to avoid empty struct */
 } amqp_queue_properties_t;
 
+/**
+ * AMQP delivery modes.
+ * Use these values for the #amqp_basic_properties_t::delivery_mode field.
+ *
+ * \since v0.5
+ */
+typedef enum {
+	AMQP_DELIVERY_NONPERSISTENT = 1, /**< Non-persistent message */
+	AMQP_DELIVERY_PERSISTENT = 2 /**< Persistent message */
+} amqp_delivery_mode_enum;
+
 #define AMQP_BASIC_CLASS (0x003C) /* 60 */
 #define AMQP_BASIC_CONTENT_TYPE_FLAG (1 << 15)
 #define AMQP_BASIC_CONTENT_ENCODING_FLAG (1 << 14)
