@@ -58,6 +58,6 @@ tools/doc/man-date.ent
 
 # Ignore editor swap files
 *~
-*.swp
+*.sw?
 .#*
 \#*#
