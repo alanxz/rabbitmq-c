@@ -144,8 +144,8 @@ if (BUILD_SHARED_LIBS)
 
     install(TARGETS rabbitmq
         RUNTIME DESTINATION bin
-        LIBRARY DESTINATION lib
-        ARCHIVE DESTINATION lib
+        LIBRARY DESTINATION lib${LIB_SUFFIX}
+        ARCHIVE DESTINATION lib${LIB_SUFFIX}
         )
     install_pdb(rabbitmq)
 
@@ -165,7 +165,7 @@ if (BUILD_STATIC_LIBS)
     endif (WIN32)
 
     install(TARGETS rabbitmq-static
-        ARCHIVE DESTINATION lib
+        ARCHIVE DESTINATION lib${LIB_SUFFIX}
         )
     install_pdb(rabbitmq-static)
 
