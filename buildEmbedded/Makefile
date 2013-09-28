@@ -138,8 +138,9 @@ CSOURCE := \
 # ------------------------------------------------------------------------------+-
 INCLUDE_DIRS = \
     -I$(LIB_SRC_DIR) \
-    -I$(PROJ_ROOT_DIR)lwipdemo/include \
-    -I$(PROJ_ROOT_DIR)lwipdemo/source \
+    -I$(PROJ_ROOT_DIR)$(PROJECT_DIR)/include \
+    -I$(PROJ_ROOT_DIR)$(PROJECT_DIR)/include/generated \
+    -I$(PROJ_ROOT_DIR)$(PROJECT_DIR)/source \
     -I$(PROJ_ROOT_DIR)lwip-contrib/ports/cross/src/include/LM3S \
     -I$(PROJ_ROOT_DIR)lwip/src/include \
     -I$(PROJ_ROOT_DIR)lwip/src/include/ipv4 \
