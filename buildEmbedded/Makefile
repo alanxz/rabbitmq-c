@@ -23,7 +23,7 @@ ifneq ($(DOT_CONFIG_FILE),)
 -include ../$(DOT_CONFIG_FILE)
 endif
 
-#
+
 # Define a function to strip quotes from variables defined in .config
 #
 unquote = $(subst $\",,$1)
@@ -31,9 +31,9 @@ unquote = $(subst $\",,$1)
 
 ifeq ($(CONFIG_CONFIGURED),y)
     ifeq ($(CONFIG_QUIET_BUILD),y)
-        export Q ?= @
+        Q ?= @
     else
-        export Q ?= #@
+        Q ?= #@
     endif
 else
      #
@@ -44,7 +44,7 @@ else
      #        $ make help
      # we default to a quiet make.
      #
-     export Q ?= @
+     Q ?= @
 endif
 
 
@@ -67,12 +67,12 @@ else
     #
     # We don't have .config file so use good defaults
     #
-    CROSS_COMPILE           ?= arm-none-eabi-
-    TOOLCHAIN_MCPU_EQ        = -mcpu=cortex-m3
-    TOOLCHAIN_MARCH_EQ       =
-    TOOLCHAIN_MFLOAT_ABI_EQ  =
-    TOOLCHAIN_MFPU_EQ        =
-    TOOLCHAIN_OPTIMISATION   =
+    CROSS_COMPILE             ?= arm-none-eabi-
+    TOOLCHAIN_MCPU_EQ          = -mcpu=cortex-m3
+    TOOLCHAIN_MARCH_EQ         =
+    TOOLCHAIN_MFLOAT_ABI_EQ    =
+    TOOLCHAIN_MFPU_EQ          =
+    TOOLCHAIN_OPTIMISATION     =
     CONFIG_TOOLCHAIN_USE_MTHUMB= y
     CONFIG_TOOLCHAIN_WALL      = y
     CONFIG_TOOLCHAIN_VERBOSE   =
@@ -136,14 +136,19 @@ CSOURCE := \
 # @@@@@@@@@@@@@@@@
 #
 # ------------------------------------------------------------------------------+-
-INCLUDE_DIRS = \
-    -I$(LIB_SRC_DIR) \
-    -I$(PROJ_ROOT_DIR)$(PROJECT_DIR)/include \
-    -I$(PROJ_ROOT_DIR)$(PROJECT_DIR)/include/generated \
-    -I$(PROJ_ROOT_DIR)$(PROJECT_DIR)/source \
-    -I$(PROJ_ROOT_DIR)lwip-contrib/ports/cross/src/include/LM3S \
-    -I$(PROJ_ROOT_DIR)lwip/src/include \
-    -I$(PROJ_ROOT_DIR)lwip/src/include/ipv4 \
+INCLUDE_DIRS-y                    =
+INCLUDE_DIRS-y                    += -I$(LIB_SRC_DIR)
+INCLUDE_DIRS-$(CONFIG_APP)        += -I$(PROJ_ROOT_DIR)$(APP_DIR)/include
+INCLUDE_DIRS-$(CONFIG_APP)        += -I$(PROJ_ROOT_DIR)$(APP_DIR)/include/generated
+INCLUDE_DIRS-$(CONFIG_APP)        += -I$(PROJ_ROOT_DIR)$(APP_DIR)/source
+INCLUDE_DIRS-$(CONFIG_QUICKSTART) += -I$(PROJ_ROOT_DIR)$(QUICKSTART_DIR)/include
+INCLUDE_DIRS-$(CONFIG_QUICKSTART) += -I$(PROJ_ROOT_DIR)$(QUICKSTART_DIR)/include/generated
+INCLUDE_DIRS-$(CONFIG_QUICKSTART) += -I$(PROJ_ROOT_DIR)$(QUICKSTART_DIR)/source
+INCLUDE_DIRS-y                    += -I$(PROJ_ROOT_DIR)lwip-contrib/ports/cross/src/include/LM3S
+INCLUDE_DIRS-y                    += -I$(PROJ_ROOT_DIR)lwip/src/include
+INCLUDE_DIRS-y                    += -I$(PROJ_ROOT_DIR)lwip/src/include/ipv4
+
+INCLUDE_DIRS = $(INCLUDE_DIRS-y)
 
 
 
