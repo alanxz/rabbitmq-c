@@ -1873,7 +1873,7 @@ AMQP_CALL amqp_connection_close(amqp_connection_state_t state, int code);
  *
  * \param [in] state the connection object
  * \param [in] channel the channel identifier
- * \param [in] delivery_tag the delivery take of the message to be ack'd
+ * \param [in] delivery_tag the delivery tag of the message to be ack'd
  * \param [in] multiple if true, ack all messages up to this delivery tag, if
  *              false ack only this delivery tag
  * \return 0 on success,  0 > on failing to send the ack to the broker.
