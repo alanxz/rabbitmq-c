@@ -62,7 +62,7 @@ amqp_tcp_socket_new(amqp_connection_state_t state);
 AMQP_PUBLIC_FUNCTION
 void
 AMQP_CALL
-amqp_tcp_socket_set_sockfd(amqp_socket_t *base, int sockfd);
+amqp_tcp_socket_set_sockfd(amqp_socket_t *self, int sockfd);
 
 AMQP_END_DECLS
 

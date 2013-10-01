@@ -2152,7 +2152,7 @@ typedef struct amqp_envelope_t_ {
  *
  * \param [in,out] state the connection object
  * \param [in,out] envelope a pointer to a amqp_envelope_t object. Caller
- *                 should call amqp_envelope_destroy() when it is done using
+ *                 should call #amqp_destroy_envelope() when it is done using
  *                 the fields in the envelope object. The caller is responsible
  *                 for allocating/destroying the amqp_envelope_t object itself.
  * \param [in] timeout a timeout to wait for a message delivery. Passing in

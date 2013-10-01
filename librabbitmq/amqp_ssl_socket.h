@@ -145,9 +145,9 @@ amqp_ssl_socket_set_verify(amqp_socket_t *self,
  * NOTE: calling this function after the first socket has been opened with
  * amqp_open_socket() will not have any effect.
  *
- * \param [in] do_initalize If 0 rabbitmq-c will not initialize the SSL
- *                          library, otherwise rabbitmq-c will initialize the
- *                          SSL library
+ * \param [in] do_initialize If 0 rabbitmq-c will not initialize the SSL
+ *                           library, otherwise rabbitmq-c will initialize the
+ *                           SSL library
  *
  * \since v0.4.0
  */
