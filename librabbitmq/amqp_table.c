@@ -244,8 +244,21 @@ static int amqp_decode_field_value(amqp_bytes_t encoded,
     }
     break;
 
-  case AMQP_FIELD_KIND_UTF8:
-    /* AMQP_FIELD_KIND_UTF8 and AMQP_FIELD_KIND_BYTES have the
+  case AMQP_FIELD_KIND_SHORTSTRING: {
+    uint8_t len;
+    if (!amqp_decode_8(encoded, offset, &len)
+        || !amqp_decode_bytes(encoded, offset, &entry->value.bytes, len)) {
+      goto out;
+    }
+    if (memchr(entry->value.bytes.bytes, '\0', len) != NULL) {
+      /* NUL chars not allowed in shortstring */
+      goto out;
+    }
+    break;
+  }
+
+  case AMQP_FIELD_KIND_LONGSTRING:
+    /* AMQP_FIELD_KIND_LONGSTRING and AMQP_FIELD_KIND_BYTES have the
        same implementation, but different interpretations. */
     /* fall through */
   case AMQP_FIELD_KIND_BYTES: {
@@ -403,8 +416,20 @@ static int amqp_encode_field_value(amqp_bytes_t encoded,
     }
     break;
 
-  case AMQP_FIELD_KIND_UTF8:
-    /* AMQP_FIELD_KIND_UTF8 and AMQP_FIELD_KIND_BYTES have the
+  case AMQP_FIELD_KIND_SHORTSTRING:
+    if (entry->value.bytes.len > 0xff) {
+      res = AMQP_STATUS_INVALID_PARAMETER;
+      goto out;
+    }
+    if (!amqp_encode_8(encoded, offset, entry->value.bytes.len)
+        || !amqp_encode_bytes(encoded, offset, entry->value.bytes)) {
+      res = AMQP_STATUS_TABLE_TOO_BIG;
+      goto out;
+    }
+    break;
+
+  case AMQP_FIELD_KIND_LONGSTRING:
+    /* AMQP_FIELD_KIND_LONGSTRING and AMQP_FIELD_KIND_BYTES have the
        same implementation, but different interpretations. */
     /* fall through */
   case AMQP_FIELD_KIND_BYTES:
@@ -520,7 +545,8 @@ amqp_field_value_clone(amqp_field_value_t *original, amqp_field_value_t *clone, 
       clone->value.decimal = original->value.decimal;
       break;
 
-    case AMQP_FIELD_KIND_UTF8:
+    case AMQP_FIELD_KIND_SHORTSTRING:
+    case AMQP_FIELD_KIND_LONGSTRING:
     case AMQP_FIELD_KIND_BYTES:
       if (0 == original->value.bytes.len) {
         clone->value.bytes = amqp_empty_bytes;

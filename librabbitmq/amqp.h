@@ -505,21 +505,53 @@ typedef enum {
   AMQP_FIELD_KIND_BOOLEAN = 't',  /**< boolean type. 0 = false, 1 = true @see amqp_boolean_t */
   AMQP_FIELD_KIND_I8 = 'b',       /**< 8-bit signed integer, datatype: int8_t */
   AMQP_FIELD_KIND_U8 = 'B',       /**< 8-bit unsigned integer, datatype: uint8_t */
-  AMQP_FIELD_KIND_I16 = 's',      /**< 16-bit signed integer, datatype: int16_t */
+  AMQP_FIELD_KIND_I16 = 'U',      /**< 16-bit signed integer, datatype: int16_t */
   AMQP_FIELD_KIND_U16 = 'u',      /**< 16-bit unsigned integer, datatype: uint16_t */
   AMQP_FIELD_KIND_I32 = 'I',      /**< 32-bit signed integer, datatype: int32_t */
   AMQP_FIELD_KIND_U32 = 'i',      /**< 32-bit unsigned integer, datatype: uint32_t */
-  AMQP_FIELD_KIND_I64 = 'l',      /**< 64-bit signed integer, datatype: int64_t */
-  AMQP_FIELD_KIND_U64 = 'L',      /**< 64-bit unsigned integer, datatype: uint64_t */
+  AMQP_FIELD_KIND_I64 = 'L',      /**< 64-bit signed integer, datatype: int64_t */
+  AMQP_FIELD_KIND_U64 = 'l',      /**< 64-bit unsigned integer, datatype: uint64_t */
   AMQP_FIELD_KIND_F32 = 'f',      /**< single-precision floating point value, datatype: float */
   AMQP_FIELD_KIND_F64 = 'd',      /**< double-precision floating point value, datatype: double */
   AMQP_FIELD_KIND_DECIMAL = 'D',  /**< amqp-decimal value, datatype: amqp_decimal_t */
-  AMQP_FIELD_KIND_UTF8 = 'S',     /**< UTF-8 null-terminated character string, datatype: amqp_bytes_t */
+
+  /**
+   * Short string.
+   * Data type: #amqp_bytes_t.
+   * The short string must not contain NUL characters.
+   * The length of the short string must not exceed 255 octets.
+   *
+   * \since v0.5
+   */
+  AMQP_FIELD_KIND_SHORTSTRING = 's',
+
+  /**
+   * UTF-8 null-terminated character string, datatype: #amqp_bytes_t
+   *
+   * \deprecated Please use #AMQP_FIELD_KIND_LONGSTRING instead.
+   */
+  AMQP_FIELD_KIND_UTF8 = 'S',
+
+  /**
+   * Long string.
+   * Datatype #amqp_bytes_t.
+   *
+   * \since v0.5
+   */
+  AMQP_FIELD_KIND_LONGSTRING = 'S',
+
   AMQP_FIELD_KIND_ARRAY = 'A',    /**< field array (repeated values of another datatype. datatype: amqp_array_t */
   AMQP_FIELD_KIND_TIMESTAMP = 'T',/**< 64-bit timestamp. datatype uint64_t */
   AMQP_FIELD_KIND_TABLE = 'F',    /**< field table. encapsulates a table inside a table entry. datatype: amqp_table_t */
   AMQP_FIELD_KIND_VOID = 'V',     /**< empty entry */
-  AMQP_FIELD_KIND_BYTES = 'x'     /**< unformatted byte string, datatype: amqp_bytes_t */
+
+  /**
+   * Unformatted byte string.
+   * Datatype: #amqp_bytes_t
+   *
+   * \warning This field value type is an extension and not part of AMQP 0-9-1.
+   */
+  AMQP_FIELD_KIND_BYTES = 'x'
 } amqp_field_value_kind_t;
 
 /**

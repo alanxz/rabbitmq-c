@@ -121,7 +121,8 @@ static void dump_value(int indent, amqp_field_value_t v, FILE *out)
             v.value.decimal.value);
     break;
 
-  case AMQP_FIELD_KIND_UTF8:
+  case AMQP_FIELD_KIND_SHORTSTRING:
+  case AMQP_FIELD_KIND_LONGSTRING:
     fprintf(out, " %.*s\n", (int)v.value.bytes.len,
             (char *)v.value.bytes.bytes);
     break;
@@ -176,15 +177,15 @@ static void test_dump_value(FILE *out)
   amqp_field_value_t val;
 
   entries[0].key = amqp_cstring_bytes("zebra");
-  entries[0].value.kind = AMQP_FIELD_KIND_UTF8;
+  entries[0].value.kind = AMQP_FIELD_KIND_LONGSTRING;
   entries[0].value.value.bytes = amqp_cstring_bytes("last");
 
   entries[1].key = amqp_cstring_bytes("aardvark");
-  entries[1].value.kind = AMQP_FIELD_KIND_UTF8;
+  entries[1].value.kind = AMQP_FIELD_KIND_LONGSTRING;
   entries[1].value.value.bytes = amqp_cstring_bytes("first");
 
   entries[2].key = amqp_cstring_bytes("middle");
-  entries[2].value.kind = AMQP_FIELD_KIND_UTF8;
+  entries[2].value.kind = AMQP_FIELD_KIND_LONGSTRING;
   entries[2].value.value.bytes = amqp_cstring_bytes("third");
 
   entries[3].key = amqp_cstring_bytes("number");
@@ -201,11 +202,11 @@ static void test_dump_value(FILE *out)
   entries[5].value.value.u64 = 1234123412341234;
 
   entries[6].key = amqp_cstring_bytes("beta");
-  entries[6].value.kind = AMQP_FIELD_KIND_UTF8;
+  entries[6].value.kind = AMQP_FIELD_KIND_LONGSTRING;
   entries[6].value.value.bytes = amqp_cstring_bytes("second");
 
   entries[7].key = amqp_cstring_bytes("wombat");
-  entries[7].value.kind = AMQP_FIELD_KIND_UTF8;
+  entries[7].value.kind = AMQP_FIELD_KIND_LONGSTRING;
   entries[7].value.value.bytes = amqp_cstring_bytes("fourth");
 
   table.num_entries = 8;
@@ -237,9 +238,9 @@ static uint8_t pre_encoded_table[] = {
   0x00, 0x00, 0x0d, 0x41, 0x20, 0x6c, 0x6f, 0x6e,
   0x67, 0x20, 0x73, 0x74, 0x72, 0x69, 0x6e, 0x67,
   0x04, 0x62, 0x79, 0x74, 0x65, 0x62, 0xff, 0x04,
-  0x6c, 0x6f, 0x6e, 0x67, 0x6c, 0x00, 0x00, 0x00,
+  0x6c, 0x6f, 0x6e, 0x67, 0x4c, 0x00, 0x00, 0x00,
   0x00, 0x49, 0x96, 0x02, 0xd2, 0x05, 0x73, 0x68,
-  0x6f, 0x72, 0x74, 0x73, 0x02, 0x8f, 0x04, 0x62,
+  0x6f, 0x72, 0x74, 0x55, 0x02, 0x8f, 0x04, 0x62,
   0x6f, 0x6f, 0x6c, 0x74, 0x01, 0x06, 0x62, 0x69,
   0x6e, 0x61, 0x72, 0x79, 0x78, 0x00, 0x00, 0x00,
   0x0f, 0x61, 0x20, 0x62, 0x69, 0x6e, 0x61, 0x72,
@@ -274,7 +275,7 @@ static void test_table_codec(FILE *out)
   inner_entries[0].value.value.i32 = 54321;
 
   inner_entries[1].key = amqp_cstring_bytes("two");
-  inner_entries[1].value.kind = AMQP_FIELD_KIND_UTF8;
+  inner_entries[1].value.kind = AMQP_FIELD_KIND_LONGSTRING;
   inner_entries[1].value.value.bytes = amqp_cstring_bytes("A long string");
 
   inner_table.num_entries = 2;
@@ -283,14 +284,14 @@ static void test_table_codec(FILE *out)
   inner_values[0].kind = AMQP_FIELD_KIND_I32;
   inner_values[0].value.i32 = 54321;
 
-  inner_values[1].kind = AMQP_FIELD_KIND_UTF8;
+  inner_values[1].kind = AMQP_FIELD_KIND_LONGSTRING;
   inner_values[1].value.bytes = amqp_cstring_bytes("A long string");
 
   inner_array.num_entries = 2;
   inner_array.entries = inner_values;
 
   entries[0].key = amqp_cstring_bytes("longstr");
-  entries[0].value.kind = AMQP_FIELD_KIND_UTF8;
+  entries[0].value.kind = AMQP_FIELD_KIND_LONGSTRING;
   entries[0].value.value.bytes = amqp_cstring_bytes("Here is a long string");
 
   entries[1].key = amqp_cstring_bytes("signedint");
