@@ -898,7 +898,6 @@ int amqp_simple_wait_method(amqp_connection_state_t state,
   amqp_frame_t frame;
   int res = amqp_simple_wait_frame(state, &frame);
   if (AMQP_STATUS_OK != res) {
-    lprintf("raedbg: line 901: amqp_simple_wait_frame() returns: %d \r\n", res);
     return res;
   }
 
@@ -1091,22 +1090,16 @@ static amqp_rpc_reply_t amqp_login_inner(amqp_connection_state_t state,
   uint16_t server_heartbeat;
   amqp_rpc_reply_t result;
 
-  lprintf("raedbg: amqp_login_inner():1094 Starting... \r\n");
-
   res = amqp_send_header(state);
   if (AMQP_STATUS_OK != res) {
-    lprintf("raedbg: line 1096: amqp_send_header() returns: %d \r\n", res);
     goto error_res;
   }
 
   res = amqp_simple_wait_method(state, 0, AMQP_CONNECTION_START_METHOD,
                                 &method);
   if (res < 0) {
-    lprintf("raedbg: line 1103: amqp_simple_wait_method() returns: %d \r\n", res);
     goto error_res;
   }
-
-  lprintf("raedbg: amqp_login_inner():1094 Rcvd connection start method from broker. \r\n");
 
   {
     amqp_connection_start_t *s = (amqp_connection_start_t *) method.decoded;
@@ -1130,7 +1123,6 @@ static amqp_rpc_reply_t amqp_login_inner(amqp_connection_state_t state,
 
     channel_pool = amqp_get_or_create_channel_pool(state, 0);
     if (NULL == channel_pool) {
-      lprintf("raedbg: line 1129: amqp_get_or_create_channel_pool() returns: NULL \r\n");
       res = AMQP_STATUS_NO_MEMORY;
       goto error_res;
     }
@@ -1138,7 +1130,6 @@ static amqp_rpc_reply_t amqp_login_inner(amqp_connection_state_t state,
     response_bytes = sasl_response(channel_pool,
                      sasl_method, vl);
     if (response_bytes.bytes == NULL) {
-      lprintf("raedbg: line 1134: sasl_response() returns: NULL \r\n");
       res = AMQP_STATUS_NO_MEMORY;
       goto error_res;
     }
@@ -1174,7 +1165,6 @@ static amqp_rpc_reply_t amqp_login_inner(amqp_connection_state_t state,
       s.client_properties.entries = amqp_pool_alloc(channel_pool,
                                     sizeof(amqp_table_entry_t) * (default_table.num_entries + client_properties->num_entries));
       if (NULL == s.client_properties.entries) {
-        lprintf("raedbg: line 1173: amqp_pool_alloc() returns: NULL \r\n");
         res = AMQP_STATUS_NO_MEMORY;
         goto error_res;
       }
@@ -1203,10 +1193,8 @@ static amqp_rpc_reply_t amqp_login_inner(amqp_connection_state_t state,
     s.locale.bytes = "en_US";
     s.locale.len = 5;
 
-    lprintf("raedbg: amqp_login_inner():1206 Sending connection start OK method to broker. \r\n");
     res = amqp_send_method(state, 0, AMQP_CONNECTION_START_OK_METHOD, &s);
     if (res < 0) {
-      lprintf("raedbg: line 1204: amqp_send_method() returns: %d \r\n", res);
       goto error_res;
     }
   }
@@ -1216,11 +1204,9 @@ static amqp_rpc_reply_t amqp_login_inner(amqp_connection_state_t state,
   res = amqp_simple_wait_method(state, 0, AMQP_CONNECTION_TUNE_METHOD,
                                 &method);
   if (res < 0) {
-    lprintf("raedbg: line 1214: amqp_simple_wait_method() returns: %d \r\n", res);
     goto error_res;
   }
 
-  lprintf("raedbg: amqp_login_inner():1223 Rcvd connection tune method from broker. \r\n");
 
   {
     amqp_connection_tune_t *s = (amqp_connection_tune_t *) method.decoded;
@@ -1241,10 +1227,8 @@ static amqp_rpc_reply_t amqp_login_inner(amqp_connection_state_t state,
     heartbeat = server_heartbeat;
   }
 
-  lprintf("raedbg: amqp_login_inner():1244 Calling amqp_tune_connection. \r\n");
   res = amqp_tune_connection(state, channel_max, frame_max, heartbeat);
   if (res < 0) {
-    lprintf("raedbg: line 1239: amqp_tune_connection() returns: %d \r\n", res);
     goto error_res;
   }
 
@@ -1256,7 +1240,6 @@ static amqp_rpc_reply_t amqp_login_inner(amqp_connection_state_t state,
 
     res = amqp_send_method(state, 0, AMQP_CONNECTION_TUNE_OK_METHOD, &s);
     if (res < 0) {
-      lprintf("raedbg: line 1251: amqp_send_method(TUNE OK) returns: %d \r\n", res);
       goto error_res;
     }
   }
@@ -1277,12 +1260,10 @@ static amqp_rpc_reply_t amqp_login_inner(amqp_connection_state_t state,
                              (amqp_method_number_t *) &replies,
                              &s);
     if (result.reply_type != AMQP_RESPONSE_NORMAL) {
-      lprintf("raedbg: line 1272: amqp_simple_rpc(OPEN) returns: OFF NOMINAL \r\n");
       goto out;
     }
   }
 
-  lprintf("raedbg: amqp_login_inner():1284 returning \r\n");
   result.reply_type = AMQP_RESPONSE_NORMAL;
   result.reply.id = 0;
   result.reply.decoded = NULL;
@@ -1293,7 +1274,6 @@ out:
   return result;
 
 error_res:
-  lprintf("raedbg: amqp_login_inner():1288 ERROR :-( \r\n");
   result.reply_type = AMQP_RESPONSE_LIBRARY_EXCEPTION;
   result.reply.id = 0;
   result.reply.decoded = NULL;
