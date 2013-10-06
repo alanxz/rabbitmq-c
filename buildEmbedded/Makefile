@@ -295,7 +295,7 @@ $(TARGET_LIB_DIR)$(LIB).a : $(OBJS)
 ifndef MAKECMDGOALS
 -include $(DEPS)
 else
-ifneq ($(MAKECMDGOALS),$(filter $(MAKECMDGOALS),"help clean "))
+ifneq ($(MAKECMDGOALS),$(filter $(MAKECMDGOALS),"help clean printincludedirs "))
 #
 # Include the dependencies if they are available
 # and we are not invoked with one of the targets:
@@ -327,4 +327,9 @@ ifneq ($(strip $(BUILD_DIR)),)
 else
 	$(Q)echo "BUILD_DIR is not defined or empty, can't clean."
 endif	
+
+export INCLUDE_DIRS
+.PHONY: printincludedirs
+printincludedirs :
+	$(Q)for i in $${INCLUDE_DIRS}; do echo $${i}; done
 
