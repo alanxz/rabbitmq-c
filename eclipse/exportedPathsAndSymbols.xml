@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<cdtprojectproperties>
+<section name="org.eclipse.cdt.internal.ui.wizards.settingswizards.IncludePaths">
+<language name="C Source File">
+<includepath>../chaney.aculink.bridge.app/include</includepath>
+<includepath>../chaney.aculink.bridge.app/include/generated</includepath>
+<includepath>../chaney.aculink.bridge.app/source</includepath>
+<includepath>../lwipdemo/include</includepath>
+<includepath>../lwipdemo/include/generated</includepath>
+<includepath>../lwipdemo/source</includepath>
+<includepath>../lwip-contrib/ports/cross/src/include/LM3S</includepath>
+<includepath>../lwip/src/include</includepath>
+<includepath>../lwip/src/include/ipv4</includepath>
+<includepath>/opt/ARM/bin/../lib/gcc/arm-none-eabi/4.7.4/include</includepath>
+<includepath>/opt/ARM/bin/../lib/gcc/arm-none-eabi/4.7.4/include-fixed</includepath>
+<includepath>/opt/ARM/bin/../lib/gcc/arm-none-eabi/4.7.4/../../../../arm-none-eabi/include</includepath>
+<includepath>../rabbitmq-c-lwip-freertos/librabbitmq</includepath>
+
+</language>
+<language name="Object File">
+
+</language>
+<language name="Assembly Source File">
+
+</language>
+</section>
+<section name="org.eclipse.cdt.internal.ui.wizards.settingswizards.Macros">
+<language name="C Source File">
+
+</language>
+<language name="Object File">
+
+</language>
+<language name="Assembly Source File">
+
+</language>
+</section>
+</cdtprojectproperties>
