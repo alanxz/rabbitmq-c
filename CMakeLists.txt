@@ -283,15 +283,15 @@ if (BUILD_API_DOCS)
   if (NOT DOXYGEN_FOUND)
     message(FATAL_ERROR "Doxygen is required to build the API documentation")
   endif ()
-  configure_file(${CMAKE_SOURCE_DIR}/docs/Doxyfile.in ${CMAKE_BINARY_DIR}/docs/Doxyfile @ONLY)
+  configure_file(${CMAKE_CURRENT_SOURCE_DIR}/docs/Doxyfile.in ${CMAKE_CURRENT_BINARY_DIR}/docs/Doxyfile @ONLY)
 
   add_custom_target(docs
     COMMAND ${DOXYGEN_EXECUTABLE}
     VERBATIM
-    WORKING_DIRECTORY ${CMAKE_BINARY_DIR}/docs
+    WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/docs
     DEPENDS rabbitmq
     COMMENT "Generating API documentation"
-    SOURCES ${CMAKE_SOURCE_DIR}/docs/Doxyfile.in
+    SOURCES ${CMAKE_CURRENT_SOURCE_DIR}/docs/Doxyfile.in
     )
 endif ()
 
