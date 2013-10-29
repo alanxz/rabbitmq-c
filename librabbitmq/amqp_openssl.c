@@ -539,6 +539,7 @@ amqp_ssl_locking_callback(int mode, int n,
 static int
 initialize_openssl(void)
 {
+#ifdef ENABLE_THREAD_SAFETY
 #ifdef _WIN32
   /* No such thing as PTHREAD_INITIALIZE_MUTEX macro on Win32, so we use this */
   if (NULL == openssl_init_mutex) {
@@ -554,7 +555,6 @@ initialize_openssl(void)
   }
 #endif /* _WIN32 */
 
-#ifdef ENABLE_THREAD_SAFETY
   if (pthread_mutex_lock(&openssl_init_mutex)) {
     return -1;
   }
