@@ -786,7 +786,7 @@ beginrecv:
   }
 }
 
-int amqp_queue_frame(amqp_connection_state_t state, amqp_frame_t *frame)
+static amqp_link_t * amqp_create_link_for_frame(amqp_connection_state_t state, amqp_frame_t *frame)
 {
   amqp_link_t *link;
   amqp_frame_t *frame_copy;
@@ -794,18 +794,28 @@ int amqp_queue_frame(amqp_connection_state_t state, amqp_frame_t *frame)
   amqp_pool_t *channel_pool = amqp_get_or_create_channel_pool(state, frame->channel);
 
   if (NULL == channel_pool) {
-    return AMQP_STATUS_NO_MEMORY;
+    return NULL;
   }
 
   link = amqp_pool_alloc(channel_pool, sizeof(amqp_link_t));
   frame_copy = amqp_pool_alloc(channel_pool, sizeof(amqp_frame_t));
 
   if (NULL == link || NULL == frame_copy) {
-    return AMQP_STATUS_NO_MEMORY;
+    return NULL;
   }
 
   *frame_copy = *frame;
   link->data = frame_copy;
+
+  return link;
+}
+
+int amqp_queue_frame(amqp_connection_state_t state, amqp_frame_t *frame)
+{
+  amqp_link_t *link = amqp_create_link_for_frame(state, frame);
+  if (NULL == link) {
+    return AMQP_STATUS_NO_MEMORY;
+  }
 
   if (NULL == state->first_queued_frame) {
     state->first_queued_frame = link;
@@ -815,6 +825,25 @@ int amqp_queue_frame(amqp_connection_state_t state, amqp_frame_t *frame)
 
   link->next = NULL;
   state->last_queued_frame = link;
+
+  return AMQP_STATUS_OK;
+}
+
+int amqp_put_back_frame(amqp_connection_state_t state, amqp_frame_t *frame)
+{
+  amqp_link_t *link = amqp_create_link_for_frame(state, frame);
+  if (NULL == link) {
+    return AMQP_STATUS_NO_MEMORY;
+  }
+
+  if (NULL == state->first_queued_frame) {
+    state->first_queued_frame = link;
+    state->last_queued_frame = link;
+    link->next = NULL;
+  } else {
+    link->next = state->first_queued_frame;
+    state->first_queued_frame = link;
+  }
 
   return AMQP_STATUS_OK;
 }

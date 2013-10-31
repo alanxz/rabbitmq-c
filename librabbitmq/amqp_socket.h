@@ -183,6 +183,9 @@ int
 amqp_queue_frame(amqp_connection_state_t state, amqp_frame_t *frame);
 
 int
+amqp_put_back_frame(amqp_connection_state_t state, amqp_frame_t *frame);
+
+int
 amqp_simple_wait_frame_on_channel(amqp_connection_state_t state,
                                   amqp_channel_t channel,
                                   amqp_frame_t *decoded_frame);
