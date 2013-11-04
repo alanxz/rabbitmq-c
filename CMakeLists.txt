@@ -56,6 +56,7 @@ include(CheckFunctionExists)
 include(CheckSymbolExists)
 include(CheckLibraryExists)
 include(CMakePushCheckState)
+include(GNUInstallDirs)
 
 # Detect if we need to link against a socket library:
 cmake_push_check_state()
@@ -295,10 +296,6 @@ if (BUILD_API_DOCS)
     )
 endif ()
 
-set(prefix ${CMAKE_INSTALL_PREFIX})
-set(exec_prefix "\${prefix}")
-set(libdir "\${exec_prefix}/lib${LIB_SUFFIX}")
-set(includedir "\${prefix}/include")
 set(libs_private ${SOCKET_LIBRARIES} ${LIBRT})
 if (ENABLE_SSL_SUPPORT)
   if (SSL_ENGINE STREQUAL "OpenSSL")
@@ -314,7 +311,7 @@ configure_file(librabbitmq.pc.in ${CMAKE_CURRENT_BINARY_DIR}/librabbitmq.pc @ONL
 
 install(FILES
   ${CMAKE_CURRENT_BINARY_DIR}/librabbitmq.pc
-  DESTINATION ${CMAKE_INSTALL_PREFIX}/lib${LIB_SUFFIX}/pkgconfig
+  DESTINATION ${CMAKE_INSTALL_LIBDIR}/pkgconfig
   )
 
 if (BUILD_SHARED_LIBS)
