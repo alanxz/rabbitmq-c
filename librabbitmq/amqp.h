@@ -222,8 +222,8 @@ AMQP_BEGIN_DECLS
  */
 
 #define AMQP_VERSION_MAJOR 0
-#define AMQP_VERSION_MINOR 4
-#define AMQP_VERSION_PATCH 1
+#define AMQP_VERSION_MINOR 5
+#define AMQP_VERSION_PATCH 0
 #define AMQP_VERSION_IS_RELEASE 0
 
 
@@ -714,6 +714,17 @@ typedef enum amqp_status_enum_
                                                         certificate failed. */
   AMQP_STATUS_SSL_CONNECTION_FAILED =     -0x0203  /**< SSL handshake failed. */
 } amqp_status_enum;
+
+/**
+ * AMQP delivery modes.
+ * Use these values for the #amqp_basic_properties_t::delivery_mode field.
+ *
+ * \since v0.5
+ */
+typedef enum {
+	AMQP_DELIVERY_NONPERSISTENT = 1, /**< Non-persistent message */
+	AMQP_DELIVERY_PERSISTENT = 2 /**< Persistent message */
+} amqp_delivery_mode_enum;
 
 AMQP_END_DECLS
 
@@ -1873,7 +1884,7 @@ AMQP_CALL amqp_connection_close(amqp_connection_state_t state, int code);
  *
  * \param [in] state the connection object
  * \param [in] channel the channel identifier
- * \param [in] delivery_tag the delivery take of the message to be ack'd
+ * \param [in] delivery_tag the delivery tag of the message to be ack'd
  * \param [in] multiple if true, ack all messages up to this delivery tag, if
  *              false ack only this delivery tag
  * \return 0 on success,  0 > on failing to send the ack to the broker.
@@ -1927,6 +1938,30 @@ int
 AMQP_CALL amqp_basic_reject(amqp_connection_state_t state, amqp_channel_t channel,
                             uint64_t delivery_tag, amqp_boolean_t requeue);
 
+/**
+ * Do a basic.nack
+ *
+ * Actively reject a message, this has the same effect as amqp_basic_reject()
+ * however, amqp_basic_nack() can negatively acknowledge multiple messages with
+ * one call much like amqp_basic_ack() can acknowledge mutliple messages with
+ * one call.
+ *
+ * \param [in] state the connection object
+ * \param [in] channel the channel identifier
+ * \param [in] delivery_tag the delivery tag of the message to reject
+ * \param [in] multiple if set to 1 negatively acknowledge all unacknowledged
+ *              messages on this channel.
+ * \param [in] requeue indicate to the broker whether it should requeue the
+ *              message or dead-letter it.
+ * \return AMQP_STATUS_OK on success, an amqp_status_enum value otherwise.
+ *
+ * \since v0.5.0
+ */
+AMQP_PUBLIC_FUNCTION
+int
+AMQP_CALL amqp_basic_nack(amqp_connection_state_t state, amqp_channel_t channel,
+                          uint64_t delivery_tag, amqp_boolean_t multiple,
+                          amqp_boolean_t requeue);
 /**
  * Check to see if there is data left in the receive buffer
  *
@@ -2128,7 +2163,7 @@ typedef struct amqp_envelope_t_ {
  *
  * \param [in,out] state the connection object
  * \param [in,out] envelope a pointer to a amqp_envelope_t object. Caller
- *                 should call amqp_envelope_destroy() when it is done using
+ *                 should call #amqp_destroy_envelope() when it is done using
  *                 the fields in the envelope object. The caller is responsible
  *                 for allocating/destroying the amqp_envelope_t object itself.
  * \param [in] timeout a timeout to wait for a message delivery. Passing in

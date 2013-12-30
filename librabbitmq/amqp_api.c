@@ -327,3 +327,14 @@ int amqp_basic_reject(amqp_connection_state_t state,
   req.requeue = requeue;
   return amqp_send_method(state, channel, AMQP_BASIC_REJECT_METHOD, &req);
 }
+
+int amqp_basic_nack(amqp_connection_state_t state, amqp_channel_t channel,
+                          uint64_t delivery_tag, amqp_boolean_t multiple,
+                          amqp_boolean_t requeue)
+{
+  amqp_basic_nack_t req;
+  req.delivery_tag = delivery_tag;
+  req.multiple = multiple;
+  req.requeue = requeue;
+  return amqp_send_method(state, channel, AMQP_BASIC_NACK_METHOD, &req);
+}

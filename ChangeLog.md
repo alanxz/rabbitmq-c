@@ -1,5 +1,15 @@
 # Change Log
 
+## Changes since v0.4.0:
+### Major changes:
+- Removed distro-specific packaging d285d01
+
+### Bug fixes:
+- `a642602` FIX: destroy amqp_envelop_t object in consumer example
+- `860dd71` FIX: correct generation of librabbitmq.pc under CMake
+- `bdda7ab` FIX: amqp_socket_close() should not be exported from shlib
+- `24f4131` FIX: Use correct buf/len vars when re-starting send()
+
 ## Changes since v0.3.0:
 ### New Features/Enhancements:
 - `amqp_login_with_properties()` function to connect to a broker sending a

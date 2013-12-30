@@ -136,6 +136,8 @@ static void run(amqp_connection_state_t conn)
         }
       }
 
+    } else {
+      amqp_destroy_envelope(&envelope);
     }
 
     received++;

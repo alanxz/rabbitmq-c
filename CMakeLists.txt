@@ -13,7 +13,7 @@ set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} ${CMAKE_CURRENT_SOURCE_DIR}/cmake)
 # 4. If any interfaces have been removed since the last public release, then set age to 0.
 
 set(RMQ_SOVERSION_CURRENT   2)
-set(RMQ_SOVERSION_REVISION  0)
+set(RMQ_SOVERSION_REVISION  1)
 set(RMQ_SOVERSION_AGE       1)
 
 math(EXPR RMQ_SOVERSION_MAJOR "${RMQ_SOVERSION_CURRENT} - ${RMQ_SOVERSION_AGE}")
@@ -22,6 +22,17 @@ math(EXPR RMQ_SOVERSION_PATCH "${RMQ_SOVERSION_REVISION}")
 
 set(RMQ_VERSION ${RMQ_SOVERSION_MAJOR}.${RMQ_SOVERSION_MINOR}.${RMQ_SOVERSION_PATCH})
 set(RMQ_SOVERSION ${RMQ_SOVERSION_MAJOR})
+
+file(STRINGS librabbitmq/amqp.h _API_VERSION_MAJOR REGEX "^#define AMQP_VERSION_MAJOR [0-9]+$")
+file(STRINGS librabbitmq/amqp.h _API_VERSION_MINOR REGEX "^#define AMQP_VERSION_MINOR [0-9]+$")
+file(STRINGS librabbitmq/amqp.h _API_VERSION_PATCH REGEX "^#define AMQP_VERSION_PATCH [0-9]+$")
+
+string(REGEX MATCH "[0-9]+" _API_VERSION_MAJOR ${_API_VERSION_MAJOR})
+string(REGEX MATCH "[0-9]+" _API_VERSION_MINOR ${_API_VERSION_MINOR})
+string(REGEX MATCH "[0-9]+" _API_VERSION_PATCH ${_API_VERSION_PATCH})
+
+# VERSION to match what is in autotools
+set(VERSION ${_API_VERSION_MAJOR}.${_API_VERSION_MINOR}.${_API_VERSION_PATCH})
 
 if (MSVC)
   set(CMAKE_C_FLAGS "/W4 /nologo ${CMAKE_C_FLAGS}")
@@ -45,6 +56,7 @@ include(CheckFunctionExists)
 include(CheckSymbolExists)
 include(CheckLibraryExists)
 include(CMakePushCheckState)
+include(GNUInstallDirs)
 
 # Detect if we need to link against a socket library:
 cmake_push_check_state()
@@ -272,29 +284,39 @@ if (BUILD_API_DOCS)
   if (NOT DOXYGEN_FOUND)
     message(FATAL_ERROR "Doxygen is required to build the API documentation")
   endif ()
-  configure_file(${CMAKE_SOURCE_DIR}/docs/Doxyfile.in ${CMAKE_BINARY_DIR}/docs/Doxyfile @ONLY)
+  configure_file(${CMAKE_CURRENT_SOURCE_DIR}/docs/Doxyfile.in ${CMAKE_CURRENT_BINARY_DIR}/docs/Doxyfile @ONLY)
 
   add_custom_target(docs
     COMMAND ${DOXYGEN_EXECUTABLE}
     VERBATIM
-    WORKING_DIRECTORY ${CMAKE_BINARY_DIR}/docs
+    WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/docs
     DEPENDS rabbitmq
     COMMENT "Generating API documentation"
-    SOURCES ${CMAKE_SOURCE_DIR}/docs/Doxyfile.in
+    SOURCES ${CMAKE_CURRENT_SOURCE_DIR}/docs/Doxyfile.in
     )
 endif ()
 
+set(libs_private ${SOCKET_LIBRARIES} ${LIBRT})
+if (ENABLE_SSL_SUPPORT)
+  if (SSL_ENGINE STREQUAL "OpenSSL")
+    set(requires_private "openssl")
+  endif()
+  if (ENABLE_THREAD_SAFETY)
+    set(libs_private ${libs_private} ${CMAKE_THREAD_LIBS_INIT})
+  endif()
+endif()
+
 set(prefix ${CMAKE_INSTALL_PREFIX})
-set(exec_prefix ${CMAKE_INSTALL_PREFIX}/bin)
-set(libdir ${CMAKE_INSTALL_PREFIX}/lib)
-set(includedir ${CMAKE_INSTALL_PREFIX}/include)
+set(exec_prefix "\${prefix}")
+set(libdir "\${exec_prefix}/${CMAKE_INSTALL_LIBDIR}")
+set(includedir "\${prefix}/${CMAKE_INSTALL_INCLUDEDIR}")
 
 configure_file(cmake/config.h.in ${CMAKE_CURRENT_BINARY_DIR}/librabbitmq/config.h)
 configure_file(librabbitmq.pc.in ${CMAKE_CURRENT_BINARY_DIR}/librabbitmq.pc @ONLY)
 
 install(FILES
   ${CMAKE_CURRENT_BINARY_DIR}/librabbitmq.pc
-  DESTINATION ${CMAKE_INSTALL_PREFIX}/lib/pkgconfig
+  DESTINATION ${CMAKE_INSTALL_LIBDIR}/pkgconfig
   )
 
 if (BUILD_SHARED_LIBS)

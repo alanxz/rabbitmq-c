@@ -105,6 +105,8 @@ char const *amqp_method_name(amqp_method_number_t methodNumber) {
     case AMQP_CONNECTION_OPEN_OK_METHOD: return "AMQP_CONNECTION_OPEN_OK_METHOD";
     case AMQP_CONNECTION_CLOSE_METHOD: return "AMQP_CONNECTION_CLOSE_METHOD";
     case AMQP_CONNECTION_CLOSE_OK_METHOD: return "AMQP_CONNECTION_CLOSE_OK_METHOD";
+    case AMQP_CONNECTION_BLOCKED_METHOD: return "AMQP_CONNECTION_BLOCKED_METHOD";
+    case AMQP_CONNECTION_UNBLOCKED_METHOD: return "AMQP_CONNECTION_UNBLOCKED_METHOD";
     case AMQP_CHANNEL_OPEN_METHOD: return "AMQP_CHANNEL_OPEN_METHOD";
     case AMQP_CHANNEL_OPEN_OK_METHOD: return "AMQP_CHANNEL_OPEN_OK_METHOD";
     case AMQP_CHANNEL_FLOW_METHOD: return "AMQP_CHANNEL_FLOW_METHOD";
@@ -323,6 +325,23 @@ int amqp_decode_method(amqp_method_number_t methodNumber,
     }
     case AMQP_CONNECTION_CLOSE_OK_METHOD: {
       amqp_connection_close_ok_t *m = NULL; /* no fields */
+      *decoded = m;
+      return 0;
+    }
+    case AMQP_CONNECTION_BLOCKED_METHOD: {
+      amqp_connection_blocked_t *m = (amqp_connection_blocked_t *) amqp_pool_alloc(pool, sizeof(amqp_connection_blocked_t));
+      if (m == NULL) { return AMQP_STATUS_NO_MEMORY; }
+      {
+        uint8_t len;
+        if (!amqp_decode_8(encoded, &offset, &len)
+            || !amqp_decode_bytes(encoded, &offset, &m->reason, len))
+          return AMQP_STATUS_BAD_AMQP_DATA;
+      }
+      *decoded = m;
+      return 0;
+    }
+    case AMQP_CONNECTION_UNBLOCKED_METHOD: {
+      amqp_connection_unblocked_t *m = NULL; /* no fields */
       *decoded = m;
       return 0;
     }
@@ -1265,6 +1284,16 @@ int amqp_encode_method(amqp_method_number_t methodNumber,
       return offset;
     }
     case AMQP_CONNECTION_CLOSE_OK_METHOD: {
+      return offset;
+    }
+    case AMQP_CONNECTION_BLOCKED_METHOD: {
+      amqp_connection_blocked_t *m = (amqp_connection_blocked_t *) decoded;
+      if (!amqp_encode_8(encoded, &offset, m->reason.len)
+          || !amqp_encode_bytes(encoded, &offset, m->reason))
+        return AMQP_STATUS_BAD_AMQP_DATA;
+      return offset;
+    }
+    case AMQP_CONNECTION_UNBLOCKED_METHOD: {
       return offset;
     }
     case AMQP_CHANNEL_OPEN_METHOD: {
