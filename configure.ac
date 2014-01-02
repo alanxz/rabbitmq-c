@@ -115,7 +115,8 @@ AS_IF([test "x$with_ssl" = "xcyassl"],
       [test "x$with_ssl" = "xgnutls"],
       [PKG_CHECK_MODULES([SSL], [gnutls],, [with_ssl=no])],
       [test "x$with_ssl" = "xopenssl"],
-      [PKG_CHECK_MODULES([SSL], [openssl >= 0.9.8],, [with_ssl=no])],
+      [PKG_CHECK_MODULES([SSL], [openssl >= 0.9.8], [ssl_pkg_required=openssl],
+                         [with_ssl=no])],
       [test "x$with_ssl" = "xpolarssl"],
       [AX_LIB_POLARSSL([SSL_CFLAGS=$POLARSSL_CFLAGS
 			SSL_LIBS=$POLARSSL_LIBS],
@@ -162,6 +163,8 @@ AC_ARG_ENABLE([examples],
 	      [enable_examples=yes])
 AM_CONDITIONAL([EXAMPLES], [test "x$enable_examples" = "xyes"])
 
+AC_SUBST([requires_private], [$ssl_pkg_required])
+AC_SUBST([libs_private], [$LIBS])
 AC_CONFIG_HEADERS([config.h])
 AC_CONFIG_FILES([
 	librabbitmq.pc
