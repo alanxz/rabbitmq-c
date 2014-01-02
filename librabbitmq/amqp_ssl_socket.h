@@ -61,7 +61,8 @@ amqp_ssl_socket_new(amqp_connection_state_t state);
  * \param [in,out] self An SSL/TLS socket object.
  * \param [in] cacert Path to the CA cert file in PEM format.
  *
- * \return \ref AMQP_STATUS_OK on success an enum
+ * \return \ref AMQP_STATUS_OK on success an \ref amqp_status_enum value on
+ *  failure.
  *
  * \since v0.4.0
  */
@@ -78,7 +79,8 @@ amqp_ssl_socket_set_cacert(amqp_socket_t *self,
  * \param [in] cert Path to the client certificate in PEM foramt.
  * \param [in] key Path to the client key in PEM format.
  *
- * \return Zero if successful, -1 otherwise.
+ * \return \ref AMQP_STATUS_OK on success an \ref amqp_status_enum value on
+ *  failure.
  *
  * \since v0.4.0
  */
@@ -97,7 +99,8 @@ amqp_ssl_socket_set_key(amqp_socket_t *self,
  * \param [in] key A buffer containing client key in PEM format.
  * \param [in] n The length of the buffer.
  *
- * \return Zero if successful, -1 otherwise.
+ * \return \ref AMQP_STATUS_OK on success an \ref amqp_status_enum value on
+ *  failure.
  *
  * \since v0.4.0
  */
