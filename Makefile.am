@@ -17,6 +17,7 @@ librabbitmq_librabbitmq_la_LDFLAGS = \
 include_HEADERS = \
 	librabbitmq/amqp.h \
 	librabbitmq/amqp_framing.h \
+	librabbitmq/amqp_socket.h \
 	librabbitmq/amqp_tcp_socket.h
 
 if SSL
