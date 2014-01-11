@@ -177,6 +177,7 @@ endif (BUILD_STATIC_LIBS)
 install(FILES
   amqp.h
   ${AMQP_FRAMING_H_PATH}
+  amqp_socket.h
   amqp_tcp_socket.h
   ${AMQP_SSL_SOCKET_H_PATH}
   ${STDINT_H_INSTALL_FILE}
