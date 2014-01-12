@@ -36,7 +36,7 @@ AMQP_BEGIN_DECLS
 /**
  * Create a new TCP socket.
  *
- * Call amqp_socket_close() to release socket resources.
+ * Call amqp_connection_close() to release socket resources.
  *
  * \return A new socket object or NULL if an error occurred.
  *
