@@ -182,11 +182,12 @@ CFLAGS-y                              += $(TOOLCHAIN_MFPU_EQ)
 CFLAGS-y                              += $(TOOLCHAIN_OPTIMISATION)
 CFLAGS-y                              += -std=c99
 CFLAGS-y                              += -pedantic
-CFLAGS-$(CONFIG_TOOLCHAIN_WALL)       += -Wall
+##CFLAGS-$(CONFIG_TOOLCHAIN_WALL)       += -Wall
 CFLAGS-y                              += -Wextra
 CFLAGS-y                              += -Wstrict-prototypes
 CFLAGS-y                              += -Wcast-align
 CFLAGS-y                              += -Wno-unused-function
+CFLAGS-$(CONFIG_TOOLCHAIN_WERROR)     += -Werror
 CFLAGS-y                              += -fno-common
 CFLAGS-y                              += -fvisibility=hidden
 CFLAGS-y                              += -ffunction-sections
