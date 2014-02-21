@@ -120,10 +120,7 @@ CSOURCE := \
     ../$(LIB)/amqp_url.c   \
     ../$(LIB)/amqp_tcp_socket.c   \
     ../$(LIB)/amqp_timer.c   \
-    ../$(LIB)/amqp_consumer.c   \
-    ../$(LIB)/posix_time.c  
-
-
+    ../$(LIB)/amqp_consumer.c
 
 # ------------------------------------------------------------------------------+-
 # Include Directories
@@ -158,18 +155,20 @@ INCLUDE_DIRS = $(INCLUDE_DIRS-y)
 COMPILER = GCC
 SUBARCH  = ARM_CM3
 
-CPPFLAGS = \
-    -DAMQP_BUILD \
-    -DAMQP_STATIC \
-    -DENABLE_THREAD_SAFETY \
-    -DWITH_SSL=1 \
-    -DLWIP_TIMEVAL_PRIVATE=0 \
-    -DNDEBUG \
-    -DVERSION=\"0.3.0\"
+CPPFLAGS                                         =
+CPPFLAGS-y                                       += $(CPPFLAGS_CMD_LINE)
+CPPFLAGS-y                                       += -DAMQP_BUILD
+CPPFLAGS-y                                       += -DAMQP_STATIC
+CPPFLAGS-y                                       += -DENABLE_THREAD_SAFETY
+CPPFLAGS-y                                       += -DWITH_SSL=1
+CPPFLAGS-y                                       += -DLWIP_TIMEVAL_PRIVATE=0
+CPPFLAGS-y                                       += -DNDEBUG
+CPPFLAGS-y                                       += -DVERSION=\"0.3.0\"
+CPPFLAGS-y                                       += $(INCLUDE_DIRS)
+CPPFLAGS-y                                       += -D $(COMPILER)_$(SUBARCH)
+CPPFLAGS-$(CONFIG_RABBITMQ_HAVE_CONFIG_H_ENA)    += -DHAVE_CONFIG_H
 
-CPPFLAGS += \
-    $(INCLUDE_DIRS) \
-    -D $(COMPILER)_$(SUBARCH)
+CPPFLAGS = $(CPPFLAGS-y)
 
 # ------------------------------------------------------------------------------+-
 # Compilation Options

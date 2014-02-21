@@ -40,6 +40,10 @@
 
 /** \cond HIDE_FROM_DOXYGEN */
 
+#ifdef HAVE_CONFIG_H
+#include "config.h"
+#endif
+
 #ifdef __cplusplus
 #define AMQP_BEGIN_DECLS extern "C" {
 #define AMQP_END_DECLS }
@@ -1943,6 +1947,7 @@ AMQP_PUBLIC_FUNCTION
 amqp_boolean_t
 AMQP_CALL amqp_data_in_buffer(amqp_connection_state_t state);
 
+#ifndef CONFIG_RABBITMQ_TINY_EMBEDDED_ENA
 /**
  * Get the error string for the given error code.
  *
@@ -1963,7 +1968,7 @@ AMQP_DEPRECATED(
   char *
   AMQP_CALL amqp_error_string(int err)
 );
-
+#endif
 
 /**
  * Get the error string for the given error code.

@@ -29,6 +29,8 @@
 # define AMQP_WIN_TIMER_API
 #elif (defined(machintosh) || defined(__APPLE__) || defined(__APPLE_CC__))
 # define AMQP_MAC_TIMER_API
+#elif defined(AMQP_64BIT_TIME_FUNC)
+# define AMQP_64BIT_TIME_API
 #else
 # define AMQP_POSIX_TIMER_API
 #endif
@@ -84,6 +86,15 @@ amqp_get_monotonic_timestamp(void)
   return timestamp;
 }
 #endif /* AMQP_MAC_TIMER_API */
+
+
+#ifdef AMQP_64BIT_TIME_API
+uint64_t
+amqp_get_monotonic_timestamp(void)
+{
+  return AMQP_64BIT_TIME_FUNC();
+}
+#endif
 
 #ifdef AMQP_POSIX_TIMER_API
 #include <time.h>

@@ -100,8 +100,9 @@ amqp_os_socket_socket(int domain, int type, int protocol)
     */
   return (int)socket(domain, type, protocol);
 #else
+#if 0
   int flags;
-
+#endif
   int s = socket(domain, type, protocol);
   if (s < 0) {
     return s;

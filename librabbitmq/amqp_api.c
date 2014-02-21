@@ -132,6 +132,7 @@ const char *amqp_error_string2(int code)
   return error_string;
 }
 
+#ifndef CONFIG_RABBITMQ_TINY_EMBEDDED_ENA
 char *amqp_error_string(int code)
 {
   /* Previously sometimes clients had to flip the sign on a return value from a
@@ -146,6 +147,7 @@ char *amqp_error_string(int code)
   }
   return strdup(amqp_error_string2(code));
 }
+#endif
 
 void amqp_abort(const char *fmt, ...)
 {

@@ -451,7 +451,7 @@ int amqp_send_frame(amqp_connection_state_t state,
     iov[0].iov_len = HEADER_SIZE;
     iov[1].iov_base = body->bytes;
     iov[1].iov_len = body->len;
-    iov[2].iov_base = &frame_end_byte;
+    iov[2].iov_base = (char *)&frame_end_byte;
     iov[2].iov_len = FOOTER_SIZE;
 
     res = amqp_socket_writev(state->socket, iov, 3);
