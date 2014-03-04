@@ -81,7 +81,11 @@ if (ENABLE_SSL_SUPPORT)
   set(AMQP_SSL_SOCKET_H_PATH amqp_ssl_socket.h)
 
   if (SSL_ENGINE STREQUAL "OpenSSL")
-    set(AMQP_SSL_SRCS ${AMQP_SSL_SOCKET_H_PATH} amqp_openssl.c)
+    set(AMQP_SSL_SRCS ${AMQP_SSL_SOCKET_H_PATH}
+        amqp_openssl.c
+        amqp_hostcheck.c
+        amqp_hostcheck.h
+    )
     include_directories(${OPENSSL_INCLUDE_DIR})
     set(AMQP_SSL_LIBS ${OPENSSL_LIBRARIES})
 

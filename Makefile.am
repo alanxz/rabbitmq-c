@@ -49,7 +49,10 @@ librabbitmq_librabbitmq_la_SOURCES += librabbitmq/amqp_gnutls.c
 endif
 
 if SSL_OPENSSL
-librabbitmq_librabbitmq_la_SOURCES += librabbitmq/amqp_openssl.c
+librabbitmq_librabbitmq_la_SOURCES += \
+  librabbitmq/amqp_hostcheck.c \
+  librabbitmq/amqp_hostcheck.h \
+  librabbitmq/amqp_openssl.c
 endif
 
 if SSL_POLARSSL
@@ -71,7 +74,8 @@ endif
 
 check_PROGRAMS = \
 	tests/test_tables \
-	tests/test_parse_url
+	tests/test_parse_url \
+	tests/test_hostcheck
 
 TESTS = $(check_PROGRAMS)
 
@@ -80,6 +84,10 @@ tests_test_tables_LDADD = librabbitmq/librabbitmq.la
 
 tests_test_parse_url_SOURCES = tests/test_parse_url.c
 tests_test_parse_url_LDADD = librabbitmq/librabbitmq.la
+
+tests_test_hostcheck_SOURCES = \
+  tests/test_hostcheck.c \
+	librabbitmq/amqp_hostcheck.c
 
 noinst_LTLIBRARIES =
 
