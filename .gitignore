@@ -6,6 +6,7 @@
 .libs
 /aclocal.m4
 /autom4te.cache
+/compile
 /config.guess
 /config.h
 /config.h.in
@@ -21,10 +22,12 @@
 /ltmain.sh
 /missing
 /stamp-h1
+/test-suite.log
 INSTALL
 Makefile
 Makefile.in
 examples/amqp_bind
+examples/amqp_connect_timeout
 examples/amqp_consumer
 examples/amqp_exchange_declare
 examples/amqp_listen
@@ -34,6 +37,7 @@ examples/amqp_rpc_sendstring_client
 examples/amqp_sendstring
 examples/amqp_unbind
 examples/amqps_bind
+examples/amqps_connect_timeout
 examples/amqps_consumer
 examples/amqps_exchange_declare
 examples/amqps_listen
@@ -43,6 +47,9 @@ examples/amqps_sendstring
 examples/amqps_unbind
 librabbitmq.pc
 test-driver
+tests/*.log
+tests/*.trs
+tests/test_hostcheck
 tests/test_parse_url
 tests/test_tables
 tools/amqp-consume

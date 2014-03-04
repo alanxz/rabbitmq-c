@@ -31,6 +31,7 @@
 
 #include "amqp_ssl_socket.h"
 #include "amqp_socket.h"
+#include "amqp_hostcheck.h"
 #include "amqp_private.h"
 #include "threads.h"
 
@@ -214,15 +215,9 @@ amqp_ssl_socket_verify_hostname(void *base, const char *host)
       goto error;
     }
   }
-#ifdef _MSC_VER
-#define strcasecmp _stricmp
-#endif
-  if (strcasecmp(host, (char *)utf8_value)) {
+  if (!amqp_hostcheck((char *)utf8_value, host)) {
     goto error;
   }
-#ifdef _MSC_VER
-#undef strcasecmp
-#endif
 exit:
   OPENSSL_free(utf8_value);
   return status;
