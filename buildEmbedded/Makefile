@@ -133,17 +133,20 @@ CSOURCE := \
 # @@@@@@@@@@@@@@@@
 #
 # ------------------------------------------------------------------------------+-
-INCLUDE_DIRS-y                    =
-INCLUDE_DIRS-y                    += -I$(LIB_SRC_DIR)
-INCLUDE_DIRS-$(CONFIG_APP)        += -I$(PROJ_ROOT_DIR)$(APP_DIR)/include
-INCLUDE_DIRS-$(CONFIG_APP)        += -I$(PROJ_ROOT_DIR)$(APP_DIR)/include/generated
-INCLUDE_DIRS-$(CONFIG_APP)        += -I$(PROJ_ROOT_DIR)$(APP_DIR)/source
-INCLUDE_DIRS-$(CONFIG_QUICKSTART) += -I$(PROJ_ROOT_DIR)$(QUICKSTART_DIR)/include
-INCLUDE_DIRS-$(CONFIG_QUICKSTART) += -I$(PROJ_ROOT_DIR)$(QUICKSTART_DIR)/include/generated
-INCLUDE_DIRS-$(CONFIG_QUICKSTART) += -I$(PROJ_ROOT_DIR)$(QUICKSTART_DIR)/source
-INCLUDE_DIRS-y                    += -I$(PROJ_ROOT_DIR)lwip-contrib/ports/cross/src/include/LM3S
-INCLUDE_DIRS-y                    += -I$(PROJ_ROOT_DIR)lwip/src/include
-INCLUDE_DIRS-y                    += -I$(PROJ_ROOT_DIR)lwip/src/include/ipv4
+INCLUDE_DIRS-y                                 =
+INCLUDE_DIRS-y                                 += -I$(LIB_SRC_DIR)
+INCLUDE_DIRS-$(CONFIG_APP)                     += -I$(PROJ_ROOT_DIR)$(APP_DIR)/include
+INCLUDE_DIRS-$(CONFIG_APP)                     += -I$(PROJ_ROOT_DIR)$(APP_DIR)/include/generated
+INCLUDE_DIRS-$(CONFIG_APP)                     += -I$(PROJ_ROOT_DIR)$(APP_DIR)/source
+INCLUDE_DIRS-$(CONFIG_QUICKSTART)              += -I$(PROJ_ROOT_DIR)$(QUICKSTART_DIR)/include
+INCLUDE_DIRS-$(CONFIG_QUICKSTART)              += -I$(PROJ_ROOT_DIR)$(QUICKSTART_DIR)/include/generated
+INCLUDE_DIRS-$(CONFIG_QUICKSTART)              += -I$(PROJ_ROOT_DIR)$(QUICKSTART_DIR)/source
+INCLUDE_DIRS-$(CONFIG_QUICKSTART)              += -I$(PROJ_ROOT_DIR)chaney.aculink.bridge.freertos/FreeRTOS/Source/include
+INCLUDE_DIRS-$(CONFIG_FREERTOS_PORT_ARM_CM3)   += -I$(PROJ_ROOT_DIR)chaney.aculink.bridge.freertos/FreeRTOS/Source/portable/GCC/ARM_CM3
+INCLUDE_DIRS-$(CONFIG_FREERTOS_PORT_ARM_CM4F)  += -I$(PROJ_ROOT_DIR)chaney.aculink.bridge.freertos/FreeRTOS/Source/portable/GCC/ARM_CM4F
+INCLUDE_DIRS-y                                 += -I$(PROJ_ROOT_DIR)lwip-contrib/ports/cross/src/include/LM3S
+INCLUDE_DIRS-y                                 += -I$(PROJ_ROOT_DIR)lwip/src/include
+INCLUDE_DIRS-y                                 += -I$(PROJ_ROOT_DIR)lwip/src/include/ipv4
 
 INCLUDE_DIRS = $(INCLUDE_DIRS-y)
 
