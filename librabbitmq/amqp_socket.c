@@ -701,6 +701,7 @@ static int wait_frame_inner(amqp_connection_state_t state,
 
       if (AMQP_FRAME_HEARTBEAT == decoded_frame->frame_type) {
         amqp_maybe_release_buffers_on_channel(state, 0);
+        RABBIT_INFO("received heartbeat on connection: 0x%08X", state);
         continue;
       }
 
@@ -728,6 +729,7 @@ beginrecv:
         if (AMQP_STATUS_OK != res) {
           return res;
         }
+        RABBIT_INFO("sent a heartbeat from connection: 0x%08X", state);
 
         current_timestamp = amqp_get_monotonic_timestamp();
         if (0 == current_timestamp) {

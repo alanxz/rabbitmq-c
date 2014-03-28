@@ -169,7 +169,8 @@ CPPFLAGS-y                                       += -DNDEBUG
 CPPFLAGS-y                                       += -DVERSION=\"0.3.0\"
 CPPFLAGS-y                                       += $(INCLUDE_DIRS)
 CPPFLAGS-y                                       += -D $(COMPILER)_$(SUBARCH)
-CPPFLAGS-$(CONFIG_RABBITMQ_HAVE_CONFIG_H_ENA)    += -DHAVE_CONFIG_H
+CPPFLAGS-$(CONFIG_RABBITMQ_HAVE_CONFIG_H_ENA)    += -D HAVE_CONFIG_H
+### CPPFLAGS-y                                       += -D DEBUG_RABBIT
 
 CPPFLAGS = $(CPPFLAGS-y)
 
