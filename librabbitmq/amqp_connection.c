@@ -138,6 +138,8 @@ int amqp_tune_connection(amqp_connection_state_t state,
   state->channel_max = channel_max;
   state->frame_max = frame_max;
   state->heartbeat = heartbeat;
+  RABBIT_INFO("on connection: 0x%08X...", state);
+  RABBIT_INFO("heartbeat is: %d", state->heartbeat);
 
   if (amqp_heartbeat_enabled(state)) {
     uint64_t current_time = amqp_get_monotonic_timestamp();
