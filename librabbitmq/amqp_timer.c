@@ -92,7 +92,11 @@ amqp_get_monotonic_timestamp(void)
 uint64_t
 amqp_get_monotonic_timestamp(void)
 {
-  return AMQP_64BIT_TIME_FUNC();
+  /* The library expects nanoseconds from this function.
+   * AMQP_64BIT_TIME_FUNC() is defined in
+   * lwipdemo/include/config.h  as usecSincePowerOn()
+   */
+  return AMQP_NS_PER_US * AMQP_64BIT_TIME_FUNC();
 }
 #endif
 

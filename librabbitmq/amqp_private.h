@@ -173,12 +173,14 @@ static inline amqp_boolean_t amqp_heartbeat_enabled(amqp_connection_state_t stat
 
 static inline uint64_t amqp_calc_next_send_heartbeat(amqp_connection_state_t state, uint64_t cur)
 {
-  return cur + ((uint64_t)state->heartbeat * AMQP_NS_PER_S);
+  /* send faster than the server is expecting */
+  return cur + ((uint64_t)state->heartbeat * 0.40 * AMQP_NS_PER_S);
 }
 
 static inline uint64_t amqp_calc_next_recv_heartbeat(amqp_connection_state_t state, uint64_t cur)
 {
-  return cur + ((uint64_t)state->heartbeat * 2 * AMQP_NS_PER_S);
+  /* allow for missing one heatbeat */
+  return cur + ((uint64_t)state->heartbeat * 2.10 * AMQP_NS_PER_S);
 }
 
 int amqp_try_recv(amqp_connection_state_t state, uint64_t current_time);
