@@ -25,7 +25,12 @@
 #ifndef AMQP_SSL_H
 #define AMQP_SSL_H
 
+#ifdef HAVE_CONFIG_H
+#include "config.h"
+#endif
+
 #include <amqp.h>
+#include <cyassl/ssl.h>
 
 AMQP_BEGIN_DECLS
 
@@ -55,6 +60,21 @@ amqp_socket_t *
 AMQP_CALL
 amqp_ssl_socket_new(amqp_connection_state_t state);
 
+#if defined CONFIG_RABBITMQ_USE_CYASSL && CONFIG_RABBITMQ_USE_CYASSL
+CYASSL_CTX *amqp_ssl_socket_get_cyassl_ctx(amqp_socket_t *base);
+CYASSL     *amqp_ssl_socket_get_cyassl_session_object(amqp_socket_t *base);
+#endif
+
+#if defined(CONFIG_RABBITMQ_USE_CYASSL_BUFFER) && CONFIG_RABBITMQ_USE_CYASSL_BUFFER
+int
+amqp_ssl_socket_set_cacert_buffer(amqp_socket_t *base,
+                           const char *cacert,
+                           size_t certSize,
+                           int type);
+#endif
+
+#if !defined(NO_FILESYSTEM) && !defined(NO_CERTS)
+
 /**
  * Set the CA certificate.
  *
@@ -70,7 +90,10 @@ int
 AMQP_CALL
 amqp_ssl_socket_set_cacert(amqp_socket_t *self,
                            const char *cacert);
+#endif
 
+
+#if !defined(NO_FILESYSTEM) && !defined(NO_CERTS)
 /**
  * Set the client key.
  *
@@ -88,6 +111,7 @@ AMQP_CALL
 amqp_ssl_socket_set_key(amqp_socket_t *self,
                         const char *cert,
                         const char *key);
+#endif
 
 /**
  * Set the client key from a buffer.
@@ -101,6 +125,7 @@ amqp_ssl_socket_set_key(amqp_socket_t *self,
  *
  * \since v0.4.0
  */
+#if 0
 AMQP_PUBLIC_FUNCTION
 int
 AMQP_CALL
@@ -108,6 +133,17 @@ amqp_ssl_socket_set_key_buffer(amqp_socket_t *self,
                                const char *cert,
                                const void *key,
                                size_t n);
+#endif
+
+#if defined(CONFIG_RABBITMQ_USE_CYASSL_BUFFER) && CONFIG_RABBITMQ_USE_CYASSL_BUFFER
+int
+amqp_ssl_socket_set_key_buffer(amqp_socket_t *base,
+                                   const char *cert,
+                                   const size_t certSize,
+                                   const char *key,
+                                   const size_t keySize,
+                                   const int keyType);
+#endif
 
 /**
  * Enable or disable peer verification.
