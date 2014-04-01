@@ -104,6 +104,7 @@ amqp_os_socket_socket(int domain, int type, int protocol)
   int flags;
 #endif
   int s = socket(domain, type, protocol);
+  RABBIT_INFO("Created socket: %d", s);
   if (s < 0) {
     return s;
   }
@@ -137,6 +138,7 @@ amqp_os_socket_setsockopt(int sock, int level, int optname,
      const char * */
   return setsockopt(sock, level, optname, (const char *)optval, optlen);
 #else
+  RABBIT_INFO("Calling setsockopt on: %d", sock);
   return setsockopt(sock, level, optname, optval, optlen);
 #endif
 }
@@ -165,6 +167,7 @@ amqp_os_socket_setsockblock(int sock, int block)
     arg |= O_NONBLOCK;
   }
 
+  RABBIT_INFO("Calling fcntl on: %d", sock);
   if (fcntl(sock, F_SETFL, arg) < 0) {
     return AMQP_STATUS_SOCKET_ERROR;
   }
@@ -190,6 +193,7 @@ amqp_os_socket_close(int sockfd)
 #ifdef _WIN32
   return closesocket(sockfd);
 #else
+  RABBIT_INFO("Calling close on: %d", sockfd);
   return close(sockfd);
 #endif
 }
