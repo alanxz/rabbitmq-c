@@ -26,7 +26,6 @@
 #endif
 
 #ifdef CONFIG_APP
-#define   MODULE_DEBUG_ENABLE 1
 #include  "incidentLog/log.h"
 #endif
 
@@ -232,19 +231,14 @@ amqp_ssl_socket_open(void *base, const char *host, int port, struct timeval *tim
     return AMQP_STATUS_SOCKET_ERROR;;
   }
   CyaSSL_set_fd(self->ssl, self->sockfd);
-#if 1
+
   int status = CyaSSL_connect(self->ssl);
   logDebug("%d=CyaSSL_connect",status);
   if (SSL_SUCCESS != status) {
+    logOffNominal( "CyaSSL_connect failed = %d", status );
     self->last_error = AMQP_STATUS_SSL_ERROR;
     return self->last_error;
   }
-#if 0
-#define  TEST_MSG_SSL_SEND_STR "Now is the time for all good men to come to the aid of their country.\n"
-  amqp_ssl_socket_send(base, TEST_MSG_SSL_SEND_STR, strlen(TEST_MSG_SSL_SEND_STR));
-
-#endif
-#endif
   return AMQP_STATUS_OK;
 }
 
