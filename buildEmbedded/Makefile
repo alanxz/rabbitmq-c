@@ -173,8 +173,8 @@ CPPFLAGS-y                                           += -DVERSION=\"0.3.0\"
 CPPFLAGS-y                                           += $(INCLUDE_DIRS)
 CPPFLAGS-y                                           += -D $(COMPILER)_$(SUBARCH)
 CPPFLAGS-$(CONFIG_RABBITMQ_HAVE_CONFIG_H_ENA)        += -D HAVE_CONFIG_H
-### CPPFLAGS-y                                           += -D DEBUG_RABBIT
-CPPFLAGS-$(CONFIG_AMQP_USE_UNTESTED_SSL_BACKEND_ENA) += -DAMQP_USE_UNTESTED_SSL_BACKEND
+CPPFLAGS-$(CONFIG_AMQP_USE_UNTESTED_SSL_BACKEND_ENA) += -D AMQP_USE_UNTESTED_SSL_BACKEND
+CPPFLAGS-$(CONFIG_INCDNTLOG_DEBUG_RABBITMQC_ENA)     += -D DEBUG_RABBIT
 
 CPPFLAGS = $(CPPFLAGS-y)
 
