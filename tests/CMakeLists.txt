@@ -8,6 +8,8 @@ if (MSVC)
   include_directories(win32/msinttypes)
 endif (MSVC)
 
+add_definitions(-DHAVE_CONFIG_H)
+
 add_executable(test_parse_url test_parse_url.c)
 target_link_libraries(test_parse_url ${RMQ_LIBRARY_TARGET})
 add_test(parse_url test_parse_url)
