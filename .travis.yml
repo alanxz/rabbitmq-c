@@ -15,8 +15,8 @@ env:
    #   via the "travis encrypt" command using the project repo's public key
    - secure: "gDwqo3jHj+HHGzFKnxL/nwZhbVeh2pItw0TbeaHcLtWubUZaf85ViEQRaXPyfnbG7l0OEQq+PjyhKAfvViVq2NP0lGeeu4VM5uMZJhsCLN594BJr39Y4XzOapg0O8mEMhQ0DU2u1Zo4LMgEcRz67aosVQOj6QV30tOzp9fnxn9U="
   matrix:
-   - PRE_CONFIGURE=true CONFIGURE="cmake .. -DCMAKE_INSTALL_PREFIX=../_install" BUILD_INSTALL="cmake --build . --target install"
-   - PRE_CONFIGURE="cd .. && autoreconf -i && cd _build" CONFIGURE="../configure --prefix=`pwd`/_install" BUILD_INSTALL="make install"
+   - BUILD_SYSTEM=cmake
+   - BUILD_SYSTEM=autotools
 
 # Make sure CMake is installed
 install:
@@ -28,9 +28,21 @@ before_script:
 
 # Run the Build script
 script:
-  - if [ ${COVERITY_SCAN_BRANCH} != 1 ]; then $PRE_CONFIGURE ; fi
-  - if [ ${COVERITY_SCAN_BRANCH} != 1 ]; then $CONFIGURE ; fi
-  - if [ ${COVERITY_SCAN_BRANCH} != 1 ]; then $BUILD_INSTALL ; fi
+  - if [ ${COVERITY_SCAN_BRANCH} != 1 ]; then
+      case $BUILD_SYSTEM in
+        cmake)
+          cmake .. -DCMAKE_INSTALL_PREFIX=`pwd`/_install &&
+          cmake --build . --target install
+          ;;
+        autotools)
+          cd .. &&
+          autoreconf -i &&
+          cd _build &&
+          ../configure --prefix=`pwd`/_install &&
+          make install
+          ;;
+      esac ;
+    fi
 
 # Run Tests
 after_script:
