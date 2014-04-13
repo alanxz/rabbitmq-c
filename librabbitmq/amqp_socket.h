@@ -28,11 +28,7 @@
 #ifndef AMQP_SOCKET_H
 #define AMQP_SOCKET_H
 
-#include "amqp.h"
-
-#ifdef _WIN32
-# include <WinSock2.h>
-#endif
+#include "amqp_private.h"
 
 AMQP_BEGIN_DECLS
 
