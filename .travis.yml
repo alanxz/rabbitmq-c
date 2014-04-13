@@ -10,23 +10,38 @@ compiler:
 
 # Settings to try
 env:
-    # OpenSSL
-  - PRE_CONFIGURE=true CONFIGURE="cmake .. -DCMAKE_INSTALL_PREFIX=../_install" BUILD_INSTALL="cmake --build . --target install"
-    # gnutls
-    #- PRE_CONFIGURE=true CONFIGURE="cmake .. -DSSL_ENGINE=GnuTLS -DCMAKE_INSTALL_PREFIX=../_install" BUILD_INSTALL="cmake --build . --target install"
-    # PolarSSL
-    #- PRE_CONFIGURE=true CONFIGURE="cmake .. -DSSL_ENGINE=PolarSSL -DCMAKE_INSTALL_PREFIX=../_install" BUILD_INSTALL="cmake --build . --target install"
-  - PRE_CONFIGURE="autoreconf -i" CONFIGURE="../configure --prefix=`pwd`/_install" BUILD_INSTALL="make install"
+  global:
+   # The next declaration is the encrypted COVERITY_SCAN_TOKEN, created
+   #   via the "travis encrypt" command using the project repo's public key
+   - secure: "gDwqo3jHj+HHGzFKnxL/nwZhbVeh2pItw0TbeaHcLtWubUZaf85ViEQRaXPyfnbG7l0OEQq+PjyhKAfvViVq2NP0lGeeu4VM5uMZJhsCLN594BJr39Y4XzOapg0O8mEMhQ0DU2u1Zo4LMgEcRz67aosVQOj6QV30tOzp9fnxn9U="
+  matrix:
+   - PRE_CONFIGURE=true CONFIGURE="cmake .. -DCMAKE_INSTALL_PREFIX=../_install" BUILD_INSTALL="cmake --build . --target install"
+   - PRE_CONFIGURE="cd .. && autoreconf -i && cd _build" CONFIGURE="../configure --prefix=`pwd`/_install" BUILD_INSTALL="make install"
 
 # Make sure CMake is installed
 install:
-  - sudo apt-get install cmake libpopt-dev libpolarssl-dev libgnutls-dev
+  - sudo apt-get install cmake libpopt-dev
+
+before_script:
+  - mkdir _build
+  - cd _build
 
 # Run the Build script
 script:
- - mkdir _build
- - $PRE_CONFIGURE && cd _build && $CONFIGURE && $BUILD_INSTALL
+  - if [ ${COVERITY_SCAN_BRANCH} != 1 ]; then $PRE_CONFIGURE ; fi
+  - if [ ${COVERITY_SCAN_BRANCH} != 1 ]; then $CONFIGURE ; fi
+  - if [ ${COVERITY_SCAN_BRANCH} != 1 ]; then $BUILD_INSTALL ; fi
 
 # Run Tests
 after_script:
- - if [ -f CTestTestfile.cmake ]; then ctest -V . ; fi
+- if [ -f CTestTestfile.cmake ]; then ctest -V . ; fi
+
+addons:
+  coverity_scan:
+    project:
+      name: "alanxz/rabbitmq-c"
+      description: "C AMQP client for RabbitMQ"
+    notification_email: alan.antonuk@gmail.com
+    build_command_prepend: cmake ..
+    build_command: cmake --build .
+    branch_pattern: coverity_scan
