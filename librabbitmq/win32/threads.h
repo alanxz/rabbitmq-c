@@ -24,6 +24,12 @@
 #ifndef AMQP_THREAD_H
 #define AMQP_THREAD_H
 
+#ifndef WINVER
+# define WINVER 0x0502
+#endif
+#ifndef WIN32_LEAN_AND_MEAN
+# define WIN32_LEAN_AND_MEAN
+#endif
 #include <Windows.h>
 
 typedef CRITICAL_SECTION *pthread_mutex_t;
