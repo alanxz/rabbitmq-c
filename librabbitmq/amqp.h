@@ -48,7 +48,35 @@
 #define AMQP_END_DECLS
 #endif
 
+/*
+ Probably not the right place to put this but...
+ 
+ After issuing 
+	cmake -G "MinGW Makefiles"   ..
+	cmake --build .
+ the linker complains about a missing getaddrinfo function.
 
+ This is due to the windef.h shipped with MinGW :
+
+		#ifndef WINVER
+		#define WINVER 0x0500
+
+		If you need Win32 API features newer the Win95 and WinNT then you must
+		define WINVER before including windows.h or any other method of including
+		the windef.h header.
+
+
+		#endif
+		
+ So I need a way to force WINVER to 0x0501, see http://support.microsoft.com/kb/955045
+
+*/
+
+#if defined(_WIN32) && defined(__MINGW32__)
+#ifndef WINVER
+#define WINVER 0x0501
+#endif
+#endif
 
 /*
  * \internal
@@ -154,6 +182,12 @@ typedef __int64 ssize_t;
 #else
 typedef _W64 int ssize_t;
 #endif
+#endif
+
+// include for defining missing ssize_t when compiling under MINGW
+
+#if defined(_WIN32) && defined(__MINGW32__)
+#include <sys/types.h>
 #endif
 
 /** \endcond */
