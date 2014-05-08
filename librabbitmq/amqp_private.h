@@ -57,6 +57,7 @@
 # include <Winsock2.h>
 #else
 # include <arpa/inet.h>
+# include <sys/uio.h>
 #endif
 
 /* GCC attributes */
