@@ -90,12 +90,16 @@ amqp_get_monotonic_timestamp(void)
 uint64_t
 amqp_get_monotonic_timestamp(void)
 {
+#ifdef __hpux
+  return (uint64_t)gethrtime();
+#else
   struct timespec tp;
   if (-1 == clock_gettime(CLOCK_MONOTONIC, &tp)) {
     return 0;
   }
 
   return ((uint64_t)tp.tv_sec * AMQP_NS_PER_S + (uint64_t)tp.tv_nsec);
+#endif
 }
 #endif /* AMQP_POSIX_TIMER_API */
 
