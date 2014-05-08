@@ -575,7 +575,7 @@ static int recv_with_timeout(amqp_connection_state_t state, uint64_t start, stru
       pfd.revents = 0;
 
       timeout_ms = timeout->tv_sec * AMQP_MS_PER_S +
-          timeout->tv_usec * AMQP_US_PER_MS;
+          timeout->tv_usec / AMQP_US_PER_MS;
 
       res = poll(&pfd, 1, timeout_ms);
 
