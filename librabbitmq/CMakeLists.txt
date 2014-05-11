@@ -143,9 +143,9 @@ if (BUILD_SHARED_LIBS)
     endif (WIN32)
 
     install(TARGETS rabbitmq
-        RUNTIME DESTINATION bin
-        LIBRARY DESTINATION lib
-        ARCHIVE DESTINATION lib
+        RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
+        LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
+        ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}
         )
     install_pdb(rabbitmq)
 
@@ -165,7 +165,7 @@ if (BUILD_STATIC_LIBS)
     endif (WIN32)
 
     install(TARGETS rabbitmq-static
-        ARCHIVE DESTINATION lib
+        ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}
         )
     install_pdb(rabbitmq-static)
 
@@ -180,7 +180,7 @@ install(FILES
   amqp_tcp_socket.h
   ${AMQP_SSL_SOCKET_H_PATH}
   ${STDINT_H_INSTALL_FILE}
-  DESTINATION include
+  DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}
     )
 
 set(RMQ_LIBRARY_TARGET ${RMQ_LIBRARY_TARGET} PARENT_SCOPE)

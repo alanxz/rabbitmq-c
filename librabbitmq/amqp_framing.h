@@ -183,6 +183,16 @@ typedef struct amqp_connection_close_ok_t_ {
   char dummy; /* Dummy field to avoid empty struct */
 } amqp_connection_close_ok_t;
 
+#define AMQP_CONNECTION_BLOCKED_METHOD ((amqp_method_number_t) 0x000A003C) /* 10, 60; 655420 */
+typedef struct amqp_connection_blocked_t_ {
+  amqp_bytes_t reason;
+} amqp_connection_blocked_t;
+
+#define AMQP_CONNECTION_UNBLOCKED_METHOD ((amqp_method_number_t) 0x000A003D) /* 10, 61; 655421 */
+typedef struct amqp_connection_unblocked_t_ {
+  char dummy; /* Dummy field to avoid empty struct */
+} amqp_connection_unblocked_t;
+
 #define AMQP_CHANNEL_OPEN_METHOD ((amqp_method_number_t) 0x0014000A) /* 20, 10; 1310730 */
 typedef struct amqp_channel_open_t_ {
   amqp_bytes_t out_of_band;

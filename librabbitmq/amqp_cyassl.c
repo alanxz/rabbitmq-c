@@ -24,11 +24,6 @@
 #ifdef HAVE_CONFIG_H
 #include "config.h"
 #endif
-
-#ifdef CONFIG_APP
-#include  "incidentLog/log.h"
-#endif
-
 #include "amqp_ssl_socket.h"
 #include "amqp_private.h"
 #include "lwip/sockets.h"

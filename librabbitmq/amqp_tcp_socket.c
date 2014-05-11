@@ -31,7 +31,10 @@
 #include <errno.h>
 #include <stdio.h>
 #include <stdlib.h>
+
+#ifdef RABBIT_USE_LWIP
 #include <lwip/sockets.h>
+#endif
 
 struct amqp_tcp_socket_t {
   const struct amqp_socket_class_t *klass;

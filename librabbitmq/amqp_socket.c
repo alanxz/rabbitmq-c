@@ -48,8 +48,6 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include "logger.h"
-
 #include <errno.h>
 
 #ifdef _WIN32
@@ -62,9 +60,14 @@
 # include <sys/types.h>      /* On older BSD this must come before net includes */
 # include <netinet/in.h>
 # include <netinet/tcp.h>
-# include <lwip/sockets.h>
-# include <lwip/netdb.h>
-# include <sys/uio.h>
+#    ifdef RABBIT_USE_LWIP
+#     include <lwip/sockets.h>
+#     include <lwip/netdb.h>
+#    else
+#     include <sys/socket.h>
+#     include <netdb.h>
+#     include <sys/uio.h>
+#    endif
 # include <fcntl.h>
 # include <unistd.h>
 #endif
@@ -100,9 +103,11 @@ amqp_os_socket_socket(int domain, int type, int protocol)
     */
   return (int)socket(domain, type, protocol);
 #else
-#if 0
+
+#ifndef RABBIT_USE_LWIP
   int flags;
 #endif
+
   int s = socket(domain, type, protocol);
   RABBIT_INFO("Created socket: %d", s);
   if (s < 0) {
@@ -110,11 +115,12 @@ amqp_os_socket_socket(int domain, int type, int protocol)
   }
 
   /* Always enable CLOEXEC on the socket */
-#if 0
-@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
-"LWIP doesn't support fcntl"
-@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
-  flags = fcntl(s, F_GETFD, 0);
+#ifndef RABBIT_USE_LWIP
+    /*
+	  LWIP doesn't support fcntl
+	*/
+
+  flags = fcntl(s, F_GETFD);
   if (flags == -1
       || fcntl(s, F_SETFD, (long)(flags | FD_CLOEXEC)) == -1) {
     int e = errno;
@@ -800,7 +806,7 @@ beginrecv:
   }
 }
 
-int amqp_queue_frame(amqp_connection_state_t state, amqp_frame_t *frame)
+static amqp_link_t * amqp_create_link_for_frame(amqp_connection_state_t state, amqp_frame_t *frame)
 {
   amqp_link_t *link;
   amqp_frame_t *frame_copy;
@@ -808,18 +814,28 @@ int amqp_queue_frame(amqp_connection_state_t state, amqp_frame_t *frame)
   amqp_pool_t *channel_pool = amqp_get_or_create_channel_pool(state, frame->channel);
 
   if (NULL == channel_pool) {
-    return AMQP_STATUS_NO_MEMORY;
+    return NULL;
   }
 
   link = amqp_pool_alloc(channel_pool, sizeof(amqp_link_t));
   frame_copy = amqp_pool_alloc(channel_pool, sizeof(amqp_frame_t));
 
   if (NULL == link || NULL == frame_copy) {
-    return AMQP_STATUS_NO_MEMORY;
+    return NULL;
   }
 
   *frame_copy = *frame;
   link->data = frame_copy;
+
+  return link;
+}
+
+int amqp_queue_frame(amqp_connection_state_t state, amqp_frame_t *frame)
+{
+  amqp_link_t *link = amqp_create_link_for_frame(state, frame);
+  if (NULL == link) {
+    return AMQP_STATUS_NO_MEMORY;
+  }
 
   if (NULL == state->first_queued_frame) {
     state->first_queued_frame = link;
@@ -829,6 +845,25 @@ int amqp_queue_frame(amqp_connection_state_t state, amqp_frame_t *frame)
 
   link->next = NULL;
   state->last_queued_frame = link;
+
+  return AMQP_STATUS_OK;
+}
+
+int amqp_put_back_frame(amqp_connection_state_t state, amqp_frame_t *frame)
+{
+  amqp_link_t *link = amqp_create_link_for_frame(state, frame);
+  if (NULL == link) {
+    return AMQP_STATUS_NO_MEMORY;
+  }
+
+  if (NULL == state->first_queued_frame) {
+    state->first_queued_frame = link;
+    state->last_queued_frame = link;
+    link->next = NULL;
+  } else {
+    link->next = state->first_queued_frame;
+    state->first_queued_frame = link;
+  }
 
   return AMQP_STATUS_OK;
 }
@@ -1116,6 +1151,13 @@ static amqp_rpc_reply_t amqp_login_inner(amqp_connection_state_t state,
       goto error_res;
     }
 
+    res = amqp_table_clone(&s->server_properties, &state->server_properties,
+                           &state->properties_pool);
+
+    if (AMQP_STATUS_OK != res) {
+      goto error_res;
+    }
+
     /* TODO: check that our chosen SASL mechanism is in the list of
        acceptable mechanisms. Or even let the application choose from
        the list! */
@@ -1213,7 +1255,6 @@ static amqp_rpc_reply_t amqp_login_inner(amqp_connection_state_t state,
   if (res < 0) {
     goto error_res;
   }
-
 
   {
     amqp_connection_tune_t *s = (amqp_connection_tune_t *) method.decoded;

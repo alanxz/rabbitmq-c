@@ -47,8 +47,10 @@
 
 #ifdef _WIN32
 # include <Winsock2.h>
-#else
+#elif defined RABBIT_USE_LWIP
 # include <lwip/inet.h>
+#else
+# include <arpa/inet.h>
 #endif
 
 /* GCC attributes */
@@ -161,6 +163,9 @@ struct amqp_connection_state_t_ {
 
   uint64_t next_recv_heartbeat;
   uint64_t next_send_heartbeat;
+
+  amqp_table_t server_properties;
+  amqp_pool_t properties_pool;
 };
 
 amqp_pool_t *amqp_get_or_create_channel_pool(amqp_connection_state_t connection, amqp_channel_t channel);
@@ -173,14 +178,14 @@ static inline amqp_boolean_t amqp_heartbeat_enabled(amqp_connection_state_t stat
 
 static inline uint64_t amqp_calc_next_send_heartbeat(amqp_connection_state_t state, uint64_t cur)
 {
-  /* send faster than the server is expecting */
-  return cur + ((uint64_t)state->heartbeat * 0.40 * AMQP_NS_PER_S);
+  /* send faster than the server is expecting so we have margin */
+  return cur + ((uint64_t)state->heartbeat * (uint64_t)AMQP_NS_PER_S * 4/10);
 }
 
 static inline uint64_t amqp_calc_next_recv_heartbeat(amqp_connection_state_t state, uint64_t cur)
 {
-  /* allow for missing one heatbeat */
-  return cur + ((uint64_t)state->heartbeat * 2.10 * AMQP_NS_PER_S);
+  /* allow for missing one heatbeat plus margin*/
+  return cur + ((uint64_t)state->heartbeat * (uint64_t)AMQP_NS_PER_S * 2 * 11/10);
 }
 
 int amqp_try_recv(amqp_connection_state_t state, uint64_t current_time);
@@ -342,9 +347,12 @@ static inline int amqp_decode_bytes(amqp_bytes_t encoded, size_t *offset,
     return 0;
   }
 }
+#ifndef CONFIG_RABBITMQ_TINY_EMBEDDED_ENA
 
 AMQP_NORETURN
 void
 amqp_abort(const char *fmt, ...);
+
+#endif
 
 #endif

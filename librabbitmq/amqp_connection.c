@@ -48,9 +48,18 @@
 #include <stdlib.h>
 #include <string.h>
 
-#define INITIAL_FRAME_POOL_PAGE_SIZE       4096
-#define INITIAL_DECODING_POOL_PAGE_SIZE  131072
-#define INITIAL_INBOUND_SOCK_BUFFER_SIZE   2048
+#ifndef INITIAL_FRAME_POOL_PAGE_SIZE
+#define INITIAL_FRAME_POOL_PAGE_SIZE 65536
+#endif
+
+#ifndef INITIAL_DECODING_POOL_PAGE_SIZE
+#define INITIAL_DECODING_POOL_PAGE_SIZE 131072
+#endif
+
+#ifndef INITIAL_INBOUND_SOCK_BUFFER_SIZE
+#define INITIAL_INBOUND_SOCK_BUFFER_SIZE 131072
+#endif
+
 
 #define ENFORCE_STATE(statevec, statenum)                                                 \
   {                                                                                       \
@@ -90,6 +99,8 @@ amqp_connection_state_t amqp_new_connection(void)
   if (state->sock_inbound_buffer.bytes == NULL) {
     goto out_nomem;
   }
+
+  init_amqp_pool(&state->properties_pool, 512);
 
   return state;
 
@@ -183,6 +194,7 @@ int amqp_destroy_connection(amqp_connection_state_t state)
     free(state->outbound_buffer.bytes);
     free(state->sock_inbound_buffer.bytes);
     amqp_socket_delete(state->socket);
+    empty_amqp_pool(&state->properties_pool);
     free(state);
   }
   return status;

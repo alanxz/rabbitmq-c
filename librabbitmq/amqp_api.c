@@ -40,8 +40,6 @@
 
 #include "amqp_private.h"
 #include "amqp_timer.h"
-#include "board/boardControl.h"
-#include "logger.h"
 #include <assert.h>
 #include <stdarg.h>
 #include <stdint.h>
@@ -149,17 +147,17 @@ char *amqp_error_string(int code)
 }
 #endif
 
+#ifndef CONFIG_RABBITMQ_TINY_EMBEDDED_ENA
 void amqp_abort(const char *fmt, ...)
 {
-  // NB: the vargs here doesn't seem to be working correctly. @@@ TODO @@@
   va_list ap;
   va_start(ap, fmt);
-  lprintf(fmt, ap);
+  vfprintf(stderr, fmt, ap);
   va_end(ap);
-  lstr("\n");
-  systemResetNow();
+  fputc('\n', stderr);
+  abort();
 }
-
+#endif
 const amqp_bytes_t amqp_empty_bytes = { 0, NULL };
 const amqp_table_t amqp_empty_table = { 0, NULL };
 const amqp_array_t amqp_empty_array = { 0, NULL };
@@ -331,4 +329,15 @@ int amqp_basic_reject(amqp_connection_state_t state,
   req.delivery_tag = delivery_tag;
   req.requeue = requeue;
   return amqp_send_method(state, channel, AMQP_BASIC_REJECT_METHOD, &req);
+}
+
+int amqp_basic_nack(amqp_connection_state_t state, amqp_channel_t channel,
+                          uint64_t delivery_tag, amqp_boolean_t multiple,
+                          amqp_boolean_t requeue)
+{
+  amqp_basic_nack_t req;
+  req.delivery_tag = delivery_tag;
+  req.multiple = multiple;
+  req.requeue = requeue;
+  return amqp_send_method(state, channel, AMQP_BASIC_NACK_METHOD, &req);
 }
