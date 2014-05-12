@@ -1,4 +1,27 @@
 # Change Log
+## Changes since v0.4.1 (a.k.a., v0.5.0):
+### Major changes:
+- Add amqp_get_broker_properties() function 5c7c40adc1
+- Remove distro-specific packaging a5749657ee
+- Add -x flag to amqp-consume utilty 1d9c5291ff
+- Add amqp_basic_nack() public API 9b168776fb
+- Add delivery mode constants to amqp.h 5f291ea772
+- Add support for connection.blocked/connection.unblocked methods ccbc24d270
+
+### Bug fixes:
+- `f8c6cee749` Examples: Destroy amqp_envelope_t in consumer example
+- `ac88db56d3` CMake: fix generation of librabbitmq.pc
+- `d5b35afa40` CMake: fix missing POPT_INCLUDE_DIRS variable in tools/
+- `5ea6a0945a` build: provide independent locations for x64 libs
+- `fac34656c0` Doc: documentation fixes
+- `715901d675` Lib: Correct OpenSSL initialization under threaded conditions
+- `ce64e57df8` Examples: Handle unexpected frames in amqp_consumer.c
+- `bcda3e933d` CMake: Use GnuInstallDirs to generate install dirs
+- `27245a4e15` Lib: correctly handle amqp_get_monotonic_timestamp on win32
+- `693662ef5b` Tools: honor --persistent flag in publish utility
+- `01d9c3ca60` Doc: improve documentation in amqp_ssl_socket functions
+- `02d5c58ae4` autoconf: correct librabbitmq.pc generation
+- `1f4e0cc48b` Doc: improve documentation in amqp_tcp_socket functions
 
 ## Changes since v0.4.0:
 ### Major changes:

@@ -12,9 +12,9 @@ set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} ${CMAKE_CURRENT_SOURCE_DIR}/cmake)
 # 3. If any interfaces have been added since the last public release, then increment age.
 # 4. If any interfaces have been removed since the last public release, then set age to 0.
 
-set(RMQ_SOVERSION_CURRENT   2)
-set(RMQ_SOVERSION_REVISION  1)
-set(RMQ_SOVERSION_AGE       1)
+set(RMQ_SOVERSION_CURRENT   3)
+set(RMQ_SOVERSION_REVISION  0)
+set(RMQ_SOVERSION_AGE       2)
 
 math(EXPR RMQ_SOVERSION_MAJOR "${RMQ_SOVERSION_CURRENT} - ${RMQ_SOVERSION_AGE}")
 math(EXPR RMQ_SOVERSION_MINOR "${RMQ_SOVERSION_AGE}")
@@ -56,6 +56,7 @@ include(CheckFunctionExists)
 include(CheckSymbolExists)
 include(CheckLibraryExists)
 include(CMakePushCheckState)
+include(GNUInstallDirs)
 
 # Detect if we need to link against a socket library:
 cmake_push_check_state()
@@ -283,22 +284,18 @@ if (BUILD_API_DOCS)
   if (NOT DOXYGEN_FOUND)
     message(FATAL_ERROR "Doxygen is required to build the API documentation")
   endif ()
-  configure_file(${CMAKE_SOURCE_DIR}/docs/Doxyfile.in ${CMAKE_BINARY_DIR}/docs/Doxyfile @ONLY)
+  configure_file(${CMAKE_CURRENT_SOURCE_DIR}/docs/Doxyfile.in ${CMAKE_CURRENT_BINARY_DIR}/docs/Doxyfile @ONLY)
 
   add_custom_target(docs
     COMMAND ${DOXYGEN_EXECUTABLE}
     VERBATIM
-    WORKING_DIRECTORY ${CMAKE_BINARY_DIR}/docs
+    WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/docs
     DEPENDS rabbitmq
     COMMENT "Generating API documentation"
-    SOURCES ${CMAKE_SOURCE_DIR}/docs/Doxyfile.in
+    SOURCES ${CMAKE_CURRENT_SOURCE_DIR}/docs/Doxyfile.in
     )
 endif ()
 
-set(prefix ${CMAKE_INSTALL_PREFIX})
-set(exec_prefix "\${prefix}")
-set(libdir "\${exec_prefix}/lib")
-set(includedir "\${prefix}/include")
 set(libs_private ${SOCKET_LIBRARIES} ${LIBRT})
 if (ENABLE_SSL_SUPPORT)
   if (SSL_ENGINE STREQUAL "OpenSSL")
@@ -309,12 +306,17 @@ if (ENABLE_SSL_SUPPORT)
   endif()
 endif()
 
+set(prefix ${CMAKE_INSTALL_PREFIX})
+set(exec_prefix "\${prefix}")
+set(libdir "\${exec_prefix}/${CMAKE_INSTALL_LIBDIR}")
+set(includedir "\${prefix}/${CMAKE_INSTALL_INCLUDEDIR}")
+
 configure_file(cmake/config.h.in ${CMAKE_CURRENT_BINARY_DIR}/librabbitmq/config.h)
 configure_file(librabbitmq.pc.in ${CMAKE_CURRENT_BINARY_DIR}/librabbitmq.pc @ONLY)
 
 install(FILES
   ${CMAKE_CURRENT_BINARY_DIR}/librabbitmq.pc
-  DESTINATION ${CMAKE_INSTALL_PREFIX}/lib/pkgconfig
+  DESTINATION ${CMAKE_INSTALL_LIBDIR}/pkgconfig
   )
 
 if (BUILD_SHARED_LIBS)

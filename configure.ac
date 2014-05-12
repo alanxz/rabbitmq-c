@@ -2,8 +2,8 @@
 AC_PREREQ([2.59])
 
 m4_define([major_version], [0])
-m4_define([minor_version], [4])
-m4_define([micro_version], [1])
+m4_define([minor_version], [5])
+m4_define([micro_version], [0])
 
 # Follow all steps below in order to calculate new ABI version when updating the library
 # NOTE: THIS IS UNRELATED to the actual project version
@@ -12,9 +12,9 @@ m4_define([micro_version], [1])
 # 2. If any interfaces have been added, removed, or changed since the last update, increment current and set revision to 0.
 # 3. If any interfaces have been added since the last public release, then increment age.
 # 4. If any interfaces have been removed since the last public release, then set age to 0.
-m4_define([soversion_current],   [2])
-m4_define([soversion_revision],  [1])
-m4_define([soversion_age],       [1])
+m4_define([soversion_current],   [3])
+m4_define([soversion_revision],  [0])
+m4_define([soversion_age],       [2])
 
 AC_INIT([rabbitmq-c], [major_version.minor_version.micro_version],
 	[https://github.com/alanxz/rabbitmq-c/issues], [rabbitmq-c],
@@ -115,7 +115,8 @@ AS_IF([test "x$with_ssl" = "xcyassl"],
       [test "x$with_ssl" = "xgnutls"],
       [PKG_CHECK_MODULES([SSL], [gnutls],, [with_ssl=no])],
       [test "x$with_ssl" = "xopenssl"],
-      [PKG_CHECK_MODULES([SSL], [openssl >= 0.9.8],, [with_ssl=no])],
+      [PKG_CHECK_MODULES([SSL], [openssl >= 0.9.8], [ssl_pkg_required=openssl],
+                         [with_ssl=no])],
       [test "x$with_ssl" = "xpolarssl"],
       [AX_LIB_POLARSSL([SSL_CFLAGS=$POLARSSL_CFLAGS
 			SSL_LIBS=$POLARSSL_LIBS],
@@ -162,6 +163,8 @@ AC_ARG_ENABLE([examples],
 	      [enable_examples=yes])
 AM_CONDITIONAL([EXAMPLES], [test "x$enable_examples" = "xyes"])
 
+AC_SUBST([requires_private], [$ssl_pkg_required])
+AC_SUBST([libs_private], [$LIBS])
 AC_CONFIG_HEADERS([config.h])
 AC_CONFIG_FILES([
 	librabbitmq.pc

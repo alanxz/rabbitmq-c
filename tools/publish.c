@@ -120,7 +120,7 @@ int main(int argc, const char **argv)
 
   memset(&props, 0, sizeof props);
   props._flags = AMQP_BASIC_DELIVERY_MODE_FLAG;
-  props.delivery_mode = 2; /* persistent delivery mode */
+  props.delivery_mode = delivery;
 
   if (content_type) {
     props._flags |= AMQP_BASIC_CONTENT_TYPE_FLAG;

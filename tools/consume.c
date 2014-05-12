@@ -75,7 +75,8 @@ static char *stringify_bytes(amqp_bytes_t bytes)
 
 static amqp_bytes_t setup_queue(amqp_connection_state_t conn,
                                 char *queue, char *exchange,
-                                char *routing_key, int declare)
+                                char *routing_key, int declare,
+                                int exclusive)
 {
   amqp_bytes_t queue_bytes = cstring_bytes(queue);
 
@@ -92,10 +93,10 @@ static amqp_bytes_t setup_queue(amqp_connection_state_t conn,
     exit(1);
   }
 
-  if (!queue || exchange || declare) {
+  if (!queue || exchange || declare || exclusive) {
     /* Declare the queue as auto-delete.  */
     amqp_queue_declare_ok_t *res = amqp_queue_declare(conn, 1,
-                                   queue_bytes, 0, 0, 1, 1,
+                                   queue_bytes, 0, 0, exclusive, 1,
                                    amqp_empty_table);
     if (!res) {
       die_rpc(amqp_get_rpc_reply(conn), "queue.declare");
@@ -193,6 +194,7 @@ int main(int argc, const char **argv)
   char *exchange = NULL;
   char *routing_key = NULL;
   int declare = 0;
+  int exclusive = 0;
   int no_ack = 0;
   int count = -1;
   amqp_bytes_t queue_bytes;
@@ -213,7 +215,11 @@ int main(int argc, const char **argv)
     },
     {
       "declare", 'd', POPT_ARG_NONE, &declare, 0,
-      "declare an exclusive queue", NULL
+      "declare an exclusive queue (deprecated, use --exclusive instead)", NULL
+    },
+    {
+      "exclusive", 'x', POPT_ARG_NONE, &exclusive, 0,
+      "declare the queue as exclusive", NULL
     },
     {
       "no-ack", 'A', POPT_ARG_NONE, &no_ack, 0,
@@ -239,7 +245,7 @@ int main(int argc, const char **argv)
   }
 
   conn = make_connection();
-  queue_bytes = setup_queue(conn, queue, exchange, routing_key, declare);
+  queue_bytes = setup_queue(conn, queue, exchange, routing_key, declare, exclusive);
   do_consume(conn, queue_bytes, no_ack, count, cmd_argv);
   close_connection(conn);
   return 0;

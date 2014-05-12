@@ -1,5 +1,5 @@
 # vim:set ts=2 sw=2 sts=2 et:
-include_directories(${CMAKE_CURRENT_SOURCE_DIR} ${LIBRABBITMQ_INCLUDE_DIRS} ${POPT_INCLUDE_DIRS})
+include_directories(${CMAKE_CURRENT_SOURCE_DIR} ${LIBRABBITMQ_INCLUDE_DIRS} ${POPT_INCLUDE_DIR})
 
 if (WIN32)
     set(PLATFORM_DIR win32)
