@@ -75,7 +75,9 @@ amqp_ssl_socket_send_inner(void *base, const void *buf, size_t len, int flags)
 #endif
 
 start:
+  RABBIT_INFO("send_inner: base=%08x, buf=%08x, len=%u flags=0x%08x", (uint32_t)base, (uint32_t)buf, len, flags);
   res = CyaSSL_send(self->ssl, buf_left, len_left, flags);
+  RABBIT_INFO("send_inner: CyaSSL_send res=%d", res);
 
   if (res < 0) {
     self->last_error = CyaSSL_get_error(self->ssl,res);
@@ -95,6 +97,7 @@ start:
     }
   }
 
+  RABBIT_INFO("send_inner: return res=%d", (int)res);
   return res;
 }
 
@@ -130,7 +133,9 @@ amqp_ssl_socket_recv(void *base, void *buf, size_t len, int flags)
   ssize_t ret;
 
 start:
+  RABBIT_INFO("socket_recv: base=%08x, buf=%08x, len=%u flags=0x%08x", (uint32_t)base, (uint32_t)buf, len, flags);
   ret = CyaSSL_recv(self->ssl, buf, len, flags);
+  RABBIT_INFO("socket_recv: CyaSSL_send ret=%d", ret);
 
   if (0 > ret) {
     self->last_error = CyaSSL_get_error(self->ssl,ret);
@@ -156,6 +161,7 @@ amqp_ssl_socket_get_sockfd(void *base)
 static int
 amqp_ssl_socket_close(void *base)
 {
+  RABBIT_INFO("socket_close: base=%08x", (uint32_t)base);
   int status = -1;
   struct amqp_ssl_socket_t *self = (struct amqp_ssl_socket_t *)base;
   if (self->sockfd >= 0) {
@@ -174,6 +180,7 @@ amqp_ssl_socket_close(void *base)
 
 static void amqp_ssl_socket_delete(void *base)
 {
+  RABBIT_INFO("socket_delete: base=%08x", (uint32_t)base);
   struct amqp_ssl_socket_t *self = (struct amqp_ssl_socket_t *)base;
 
   if (self) {
@@ -211,6 +218,7 @@ amqp_ssl_error_string(AMQP_UNUSED int err)
 static int
 amqp_ssl_socket_open(void *base, const char *host, int port, struct timeval *timeout)
 {
+  RABBIT_INFO("socket_open: base=%08x host=%s port=%d timeout=%d.%06d", (uint32_t)base, host, port, timeout->tv_sec, timeout->tv_usec);
   struct amqp_ssl_socket_t *self = (struct amqp_ssl_socket_t *)base;
   self->last_error = AMQP_STATUS_OK;
 
