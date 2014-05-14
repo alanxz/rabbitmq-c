@@ -77,7 +77,7 @@ amqp_ssl_socket_send_inner(void *base, const void *buf, size_t len, int flags)
 start:
   RABBIT_INFO("send_inner: base=%08x, buf=%08x, len=%u flags=0x%08x", (uint32_t)base, (uint32_t)buf, len, flags);
   res = CyaSSL_send(self->ssl, buf_left, len_left, flags);
-  RABBIT_INFO("send_inner: CyaSSL_send res=%d", res);
+  RABBIT_INFO("send_inner: base=%08x, CyaSSL_send res=%d", (uint32_t)base, res);
 
   if (res < 0) {
     self->last_error = CyaSSL_get_error(self->ssl,res);
@@ -97,7 +97,7 @@ start:
     }
   }
 
-  RABBIT_INFO("send_inner: return res=%d", (int)res);
+  RABBIT_INFO("send_inner: base=%08x, return res=%d", (uint32_t)base, (int)res);
   return res;
 }
 
@@ -135,7 +135,7 @@ amqp_ssl_socket_recv(void *base, void *buf, size_t len, int flags)
 start:
   RABBIT_INFO("socket_recv: base=%08x, buf=%08x, len=%u flags=0x%08x", (uint32_t)base, (uint32_t)buf, len, flags);
   ret = CyaSSL_recv(self->ssl, buf, len, flags);
-  RABBIT_INFO("socket_recv: CyaSSL_send ret=%d", ret);
+  RABBIT_INFO("socket_recv: base=%08x, CyaSSL_recv ret=%d", (uint32_t)base, ret);
 
   if (0 > ret) {
     self->last_error = CyaSSL_get_error(self->ssl,ret);
