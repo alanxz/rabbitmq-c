@@ -153,6 +153,7 @@ amqp_consume_message(amqp_connection_state_t state, amqp_envelope_t *envelope,
 
   if (AMQP_FRAME_METHOD != frame.frame_type
       || AMQP_BASIC_DELIVER_METHOD != frame.payload.method.id) {
+    RABBIT_DEBUG("AMQP_RESPONSE_LIBRARY_EXCEPTION: frame.frame_type=%u frame.payload.method.id=%u", (uint32_t)frame.frame_type, frame.payload.method.id);
     amqp_put_back_frame(state, &frame);
     ret.reply_type = AMQP_RESPONSE_LIBRARY_EXCEPTION;
     ret.library_error = AMQP_STATUS_UNEXPECTED_STATE;
@@ -224,6 +225,8 @@ amqp_rpc_reply_t amqp_read_message(amqp_connection_state_t state,
       ret.reply = frame.payload.method;
 
     } else {
+      RABBIT_DEBUG("AMQP_RESPONSE_LIBRARY_EXCEPTION: frame.frame_type=%u frame.payload.method.id=%u", (uint32_t)frame.frame_type, frame.payload.method.id);
+
       ret.reply_type = AMQP_RESPONSE_LIBRARY_EXCEPTION;
       ret.library_error = AMQP_STATUS_UNEXPECTED_STATE;
 
