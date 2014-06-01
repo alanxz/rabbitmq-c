@@ -74,10 +74,17 @@ amqp_ssl_socket_send_inner(void *base, const void *buf, size_t len, int flags)
   flags |= MSG_NOSIGNAL;
 #endif
 
+  uint64_t startTimeNs;
+
 start:
+  startTimeNs = amqp_get_monotonic_timestamp();
   RABBIT_INFO("send_inner: base=%08x, buf=%08x, len=%u flags=0x%08x", (uint32_t)base, (uint32_t)buf, len, flags);
   res = CyaSSL_send(self->ssl, buf_left, len_left, flags);
+  uint64_t endTimeNs = amqp_get_monotonic_timestamp();
   RABBIT_INFO("send_inner: base=%08x, CyaSSL_send res=%d", (uint32_t)base, res);
+  if (endTimeNs-startTimeNs > 7ULL*1000*1000*1000) {
+	  RABBIT_INFO( "send_inner-time %u sec", (uint32_t)((endTimeNs-startTimeNs)/1000/1000/1000));
+  }
 
   if (res < 0) {
     self->last_error = CyaSSL_get_error(self->ssl,res);
