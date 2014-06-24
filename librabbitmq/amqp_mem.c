@@ -215,10 +215,17 @@ amqp_pool_t *amqp_get_or_create_channel_pool(amqp_connection_state_t state, amqp
 
   entry = state->pool_table[index];
 
+  int channel_pool_count = 0;
   for ( ; NULL != entry; entry = entry->next) {
+    channel_pool_count++;
     if (channel == entry->channel) {
       return &entry->pool;
     }
+  }
+
+  if (state->channel_max && (channel_pool_count >= state->channel_max)) {
+    RABBIT_INFO( "%d >= %d", channel_pool_count, state->channel_max);
+    return NULL;
   }
 
   entry = malloc(sizeof(amqp_pool_table_entry_t));
