@@ -331,8 +331,8 @@ int amqp_handle_input(amqp_connection_state_t state,
         bytes_consumed += consume_data(state, &received_data);
 
         char * raw_char2 = state->inbound_buffer.bytes;
-        RABBIT_INFO( "state=%d inbound_offset=%d target_size=%d raw_frame=%08x: %02x %02x %02x %02x %02x %02x %02x %02x frame_type=%u channel=%d target_size=%d bytes_consumed=%d",
-            state->state, state->inbound_offset, state->target_size, (int)raw_frame,
+        RABBIT_INFO( "state=%d inbound_offset=%d target_size=%d raw_char2=%08x: %02x %02x %02x %02x %02x %02x %02x %02x frame_type=%u channel=%d target_size=%d bytes_consumed=%d",
+            state->state, state->inbound_offset, state->target_size, (int)raw_char2,
             (int)raw_char2[0], (int)raw_char2[1], (int)raw_char2[2], (int)raw_char2[3], (int)raw_char2[4], (int)raw_char2[5], (int)raw_char2[6], (int)raw_char2[7],
             (unsigned int)decoded_frame->frame_type, channel, new_target_size, bytes_consumed);
 

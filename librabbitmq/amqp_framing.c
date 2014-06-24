@@ -1006,7 +1006,9 @@ int amqp_decode_method(amqp_method_number_t methodNumber,
       *decoded = m;
       return 0;
     }
-    default: return AMQP_STATUS_UNKNOWN_METHOD;
+    default:
+      RABBIT_ERROR( "%d", methodNumber);
+      return AMQP_STATUS_UNKNOWN_METHOD;
   }
 }
 
