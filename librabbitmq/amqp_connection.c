@@ -249,8 +249,10 @@ int amqp_handle_input(amqp_connection_state_t state,
 
   bytes_consumed = consume_data(state, &received_data);
 
+#ifdef RABBIT_INFO_AVAILABLE
   char * raw_char = state->inbound_buffer.bytes;
   RABBIT_INFO( "state=%d inbound_offset=%d target_size=%d raw_char =%08x: %02x %02x %02x %02x %02x %02x %02x %02x", state->state, state->inbound_offset, state->target_size, (int)raw_char, (int)raw_char[0], (int)raw_char[1], (int)raw_char[2], (int)raw_char[3], (int)raw_char[4], (int)raw_char[5], (int)raw_char[6], (int)raw_char[7]);
+#endif
 
   /* do we have target_size data yet? if not, return with the
      expectation that more will arrive */
@@ -330,11 +332,13 @@ int amqp_handle_input(amqp_connection_state_t state,
 
         bytes_consumed += consume_data(state, &received_data);
 
+#ifdef RABBIT_INFO_AVAILABLE
         char * raw_char2 = state->inbound_buffer.bytes;
         RABBIT_INFO( "state=%d inbound_offset=%d target_size=%d raw_char2=%08x: %02x %02x %02x %02x %02x %02x %02x %02x frame_type=%u channel=%d target_size=%d bytes_consumed=%d",
             state->state, state->inbound_offset, state->target_size, (int)raw_char2,
             (int)raw_char2[0], (int)raw_char2[1], (int)raw_char2[2], (int)raw_char2[3], (int)raw_char2[4], (int)raw_char2[5], (int)raw_char2[6], (int)raw_char2[7],
             (unsigned int)decoded_frame->frame_type, channel, new_target_size, bytes_consumed);
+#endif
 
         /* do we have target_size data yet? if not, return with the
            expectation that more will arrive */
