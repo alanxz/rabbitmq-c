@@ -206,7 +206,9 @@ int amqp_basic_publish(amqp_connection_state_t state,
     }
   }
 
+  RABBIT_INFO("amqp_send_method(%08x,%d,AMQP_BASIC_PUBLISH_METHOD,%08x )", (int)state, channel, (int)&m);
   res = amqp_send_method(state, channel, AMQP_BASIC_PUBLISH_METHOD, &m);
+  RABBIT_INFO("amqp_send_method(%08x,%d,AMQP_BASIC_PUBLISH_METHOD,%08x ) res=%d", (int)state, channel, (int)&m, res);
   if (res < 0) {
     return res;
   }
@@ -222,7 +224,9 @@ int amqp_basic_publish(amqp_connection_state_t state,
   f.payload.properties.body_size = body.len;
   f.payload.properties.decoded = (void *) properties;
 
+  RABBIT_INFO("amqp_send_frame(%08x,%08x) len=%d", (int)state, (int)&f, body.len);
   res = amqp_send_frame(state, &f);
+  RABBIT_INFO("amqp_send_frame(%08x,%08x) len=%d res=%d", (int)state, (int)&f, body.len, res);
   if (res < 0) {
     return res;
   }
@@ -245,7 +249,9 @@ int amqp_basic_publish(amqp_connection_state_t state,
     }
 
     body_offset += f.payload.body_fragment.len;
+    RABBIT_INFO("amqp_send_frame(%08x,%08x) fragment.len=%d", (int)state, (int)&f, f.payload.body_fragment.len);
     res = amqp_send_frame(state, &f);
+    RABBIT_INFO("amqp_send_frame(%08x,%08x) fragment.len=%d res=%d", (int)state, (int)&f, f.payload.body_fragment.len, res);
     if (res < 0) {
       return res;
     }

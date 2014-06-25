@@ -145,7 +145,9 @@ amqp_os_socket_setsockopt(int sock, int level, int optname,
   return setsockopt(sock, level, optname, (const char *)optval, optlen);
 #else
   RABBIT_INFO("Calling setsockopt on: %d", sock);
-  return setsockopt(sock, level, optname, optval, optlen);
+  int result = setsockopt(sock, level, optname, optval, optlen);
+  RABBIT_INFO("setsockopt on: %d res=%d", sock, result);
+  return result;
 #endif
 }
 
@@ -174,7 +176,9 @@ amqp_os_socket_setsockblock(int sock, int block)
   }
 
   RABBIT_INFO("Calling fcntl on: %d", sock);
-  if (fcntl(sock, F_SETFL, arg) < 0) {
+  int result = fcntl(sock, F_SETFL, arg);
+  RABBIT_INFO("Calling fcntl on: %d res=%d", sock, result);
+  if (result < 0) {
     return AMQP_STATUS_SOCKET_ERROR;
   }
 
@@ -735,11 +739,12 @@ beginrecv:
         heartbeat.channel = 0;
         heartbeat.frame_type = AMQP_FRAME_HEARTBEAT;
 
+        RABBIT_INFO("senD a heartbeat from connection: 0x%08X", state);
         res = amqp_send_frame(state, &heartbeat);
         if (AMQP_STATUS_OK != res) {
           return res;
         }
-        RABBIT_INFO("sent a heartbeat from connection: 0x%08X", state);
+        RABBIT_INFO("sen a heartbeat from connection: 0x%08X", state);
 
         current_timestamp = amqp_get_monotonic_timestamp();
         if (0 == current_timestamp) {
@@ -1132,7 +1137,9 @@ static amqp_rpc_reply_t amqp_login_inner(amqp_connection_state_t state,
   uint16_t server_heartbeat;
   amqp_rpc_reply_t result;
 
+  RABBIT_INFO("amqp_send_header(%08x)", (int)state);
   res = amqp_send_header(state);
+  RABBIT_INFO("amqp_send_header(%08x) res=%d", (int)state, res);
   if (AMQP_STATUS_OK != res) {
     goto error_res;
   }
