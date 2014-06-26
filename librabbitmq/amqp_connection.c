@@ -262,6 +262,7 @@ int amqp_handle_input(amqp_connection_state_t state,
   }
 
   raw_frame = state->inbound_buffer.bytes;
+
   switch (state->state) {
   case CONNECTION_STATE_INITIAL:
     /* check for a protocol header from the server */
@@ -301,19 +302,17 @@ int amqp_handle_input(amqp_connection_state_t state,
       case AMQP_FRAME_HEARTBEAT: {
         amqp_channel_t channel;
         amqp_pool_t *channel_pool;
+        size_t new_target_size;
         /* frame length is 3 bytes in */
         channel = amqp_d16(raw_frame, 1);
-
 
         channel_pool = amqp_get_or_create_channel_pool(state, channel);
         if (NULL == channel_pool) {
           return AMQP_STATUS_NO_MEMORY;
         }
 
-        /*
-         * don't allow a corrupt frame size to allocate a huge block of memory.
-         */
-        size_t new_target_size = amqp_d32(raw_frame, 3) + HEADER_SIZE + FOOTER_SIZE;
+        /* don't allow a corrupt frame size to allocate a huge block of memory. */
+        new_target_size = amqp_d32(raw_frame, 3) + HEADER_SIZE + FOOTER_SIZE;
 
         if (new_target_size > (size_t) state->frame_max) {
            return AMQP_STATUS_BAD_AMQP_DATA;
@@ -349,7 +348,6 @@ int amqp_handle_input(amqp_connection_state_t state,
         /* fall through to process body */
       }
     }
-
 
   case CONNECTION_STATE_BODY: {
     amqp_bytes_t encoded;

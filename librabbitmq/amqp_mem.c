@@ -212,10 +212,10 @@ amqp_pool_t *amqp_get_or_create_channel_pool(amqp_connection_state_t state, amqp
 {
   amqp_pool_table_entry_t *entry;
   size_t index = channel % POOL_TABLE_SIZE;
+  int channel_pool_count = 0;
 
   entry = state->pool_table[index];
 
-  int channel_pool_count = 0;
   for ( ; NULL != entry; entry = entry->next) {
     channel_pool_count++;
     if (channel == entry->channel) {
@@ -223,6 +223,11 @@ amqp_pool_t *amqp_get_or_create_channel_pool(amqp_connection_state_t state, amqp
     }
   }
 
+  /* when amqp_new_connection allocates a new connection,
+   * the calloc of the state zeroes channel_max. We allow
+   * unlimited channel_pools to be allocated prior channel_max
+   * negotiation but then limit after negotiation.
+   */
   if (state->channel_max && (channel_pool_count >= state->channel_max)) {
     RABBIT_INFO( "%d >= %d", channel_pool_count, state->channel_max);
     return NULL;
