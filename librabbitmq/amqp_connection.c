@@ -48,9 +48,18 @@
 #include <stdlib.h>
 #include <string.h>
 
-#define INITIAL_FRAME_POOL_PAGE_SIZE 65536
-#define INITIAL_DECODING_POOL_PAGE_SIZE 131072
-#define INITIAL_INBOUND_SOCK_BUFFER_SIZE 131072
+#ifndef AMQP_INITIAL_FRAME_POOL_PAGE_SIZE
+#define AMQP_INITIAL_FRAME_POOL_PAGE_SIZE 65536
+#endif
+
+#ifndef AMQP_INITIAL_DECODING_POOL_PAGE_SIZE
+#define AMQP_INITIAL_DECODING_POOL_PAGE_SIZE 131072
+#endif
+
+#ifndef AMQP_INITIAL_INBOUND_SOCK_BUFFER_SIZE
+#define AMQP_INITIAL_INBOUND_SOCK_BUFFER_SIZE 131072
+#endif
+
 
 #define ENFORCE_STATE(statevec, statenum)                                                 \
   {                                                                                       \
@@ -72,7 +81,7 @@ amqp_connection_state_t amqp_new_connection(void)
     return NULL;
   }
 
-  res = amqp_tune_connection(state, 0, INITIAL_FRAME_POOL_PAGE_SIZE, 0);
+  res = amqp_tune_connection(state, 0, AMQP_INITIAL_FRAME_POOL_PAGE_SIZE, 0);
   if (0 != res) {
     goto out_nomem;
   }
@@ -85,8 +94,8 @@ amqp_connection_state_t amqp_new_connection(void)
      is also the minimum frame size */
   state->target_size = 8;
 
-  state->sock_inbound_buffer.len = INITIAL_INBOUND_SOCK_BUFFER_SIZE;
-  state->sock_inbound_buffer.bytes = malloc(INITIAL_INBOUND_SOCK_BUFFER_SIZE);
+  state->sock_inbound_buffer.len = AMQP_INITIAL_INBOUND_SOCK_BUFFER_SIZE;
+  state->sock_inbound_buffer.bytes = malloc(AMQP_INITIAL_INBOUND_SOCK_BUFFER_SIZE);
   if (state->sock_inbound_buffer.bytes == NULL) {
     goto out_nomem;
   }
