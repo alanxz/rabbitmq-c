@@ -48,16 +48,16 @@
 #include <stdlib.h>
 #include <string.h>
 
-#ifndef INITIAL_FRAME_POOL_PAGE_SIZE
-#define INITIAL_FRAME_POOL_PAGE_SIZE 65536
+#ifndef AMQP_INITIAL_FRAME_POOL_PAGE_SIZE
+#define AMQP_INITIAL_FRAME_POOL_PAGE_SIZE 65536
 #endif
 
-#ifndef INITIAL_DECODING_POOL_PAGE_SIZE
-#define INITIAL_DECODING_POOL_PAGE_SIZE 131072
+#ifndef AMQP_INITIAL_DECODING_POOL_PAGE_SIZE
+#define AMQP_INITIAL_DECODING_POOL_PAGE_SIZE 131072
 #endif
 
-#ifndef INITIAL_INBOUND_SOCK_BUFFER_SIZE
-#define INITIAL_INBOUND_SOCK_BUFFER_SIZE 131072
+#ifndef AMQP_INITIAL_INBOUND_SOCK_BUFFER_SIZE
+#define AMQP_INITIAL_INBOUND_SOCK_BUFFER_SIZE 131072
 #endif
 
 
@@ -81,7 +81,7 @@ amqp_connection_state_t amqp_new_connection(void)
     return NULL;
   }
 
-  res = amqp_tune_connection(state, 0, INITIAL_FRAME_POOL_PAGE_SIZE, 0);
+  res = amqp_tune_connection(state, 0, AMQP_INITIAL_FRAME_POOL_PAGE_SIZE, 0);
   if (0 != res) {
     goto out_nomem;
   }
@@ -94,8 +94,8 @@ amqp_connection_state_t amqp_new_connection(void)
      is also the minimum frame size */
   state->target_size = 8;
 
-  state->sock_inbound_buffer.len = INITIAL_INBOUND_SOCK_BUFFER_SIZE;
-  state->sock_inbound_buffer.bytes = malloc(INITIAL_INBOUND_SOCK_BUFFER_SIZE);
+  state->sock_inbound_buffer.len = AMQP_INITIAL_INBOUND_SOCK_BUFFER_SIZE;
+  state->sock_inbound_buffer.bytes = malloc(AMQP_INITIAL_INBOUND_SOCK_BUFFER_SIZE);
   if (state->sock_inbound_buffer.bytes == NULL) {
     goto out_nomem;
   }
@@ -287,67 +287,53 @@ int amqp_handle_input(amqp_connection_state_t state,
     /* it's not a protocol header; fall through to process it as a
        regular frame header */
 
-  case CONNECTION_STATE_HEADER:
-    switch (decoded_frame->frame_type) {
-      /* don't allow a corrupt frame type to allocate a huge block of memory.
-       */
-      default:
-        return AMQP_STATUS_BAD_AMQP_DATA;
-        break;
+  case CONNECTION_STATE_HEADER: {
+    amqp_channel_t channel;
+    amqp_pool_t *channel_pool;
+    size_t new_target_size;
+    /* frame length is 3 bytes in */
+    channel = amqp_d16(raw_frame, 1);
 
-      case 0:
-      case AMQP_FRAME_METHOD:
-      case AMQP_FRAME_HEADER:
-      case AMQP_FRAME_BODY:
-      case AMQP_FRAME_HEARTBEAT: {
-        amqp_channel_t channel;
-        amqp_pool_t *channel_pool;
-        size_t new_target_size;
-        /* frame length is 3 bytes in */
-        channel = amqp_d16(raw_frame, 1);
+    channel_pool = amqp_get_or_create_channel_pool(state, channel);
+    if (NULL == channel_pool) {
+      return AMQP_STATUS_NO_MEMORY;
+    }
 
-        channel_pool = amqp_get_or_create_channel_pool(state, channel);
-        if (NULL == channel_pool) {
-          return AMQP_STATUS_NO_MEMORY;
-        }
+    /* don't allow a corrupt frame size to allocate a huge block of memory. */
+    new_target_size = amqp_d32(raw_frame, 3) + HEADER_SIZE + FOOTER_SIZE;
+    if (new_target_size > (size_t) state->frame_max) {
+       return AMQP_STATUS_BAD_AMQP_DATA;
+    }
+    state->target_size = new_target_size;
 
-        /* don't allow a corrupt frame size to allocate a huge block of memory. */
-        new_target_size = amqp_d32(raw_frame, 3) + HEADER_SIZE + FOOTER_SIZE;
+    amqp_pool_alloc_bytes(channel_pool, state->target_size, &state->inbound_buffer);
+    if (NULL == state->inbound_buffer.bytes) {
+      return AMQP_STATUS_NO_MEMORY;
+    }
+    memcpy(state->inbound_buffer.bytes, state->header_buffer, HEADER_SIZE);
+    raw_frame = state->inbound_buffer.bytes;
 
-        if (new_target_size > (size_t) state->frame_max) {
-           return AMQP_STATUS_BAD_AMQP_DATA;
-        }
+    state->state = CONNECTION_STATE_BODY;
 
-        state->target_size = new_target_size;
-
-        amqp_pool_alloc_bytes(channel_pool, state->target_size, &state->inbound_buffer);
-        if (NULL == state->inbound_buffer.bytes) {
-          return AMQP_STATUS_NO_MEMORY;
-        }
-        memcpy(state->inbound_buffer.bytes, state->header_buffer, HEADER_SIZE);
-        raw_frame = state->inbound_buffer.bytes;
-
-        state->state = CONNECTION_STATE_BODY;
-
-        bytes_consumed += consume_data(state, &received_data);
+    bytes_consumed += consume_data(state, &received_data);
 
 #ifdef RABBIT_INFO_AVAILABLE
-        char * raw_char2 = state->inbound_buffer.bytes;
-        RABBIT_INFO( "state=%d inbound_offset=%d target_size=%d raw_char2=%08x: %02x %02x %02x %02x %02x %02x %02x %02x frame_type=%u channel=%d target_size=%d bytes_consumed=%d",
+    char * raw_char2 = state->inbound_buffer.bytes;
+    RABBIT_INFO( "state=%d inbound_offset=%d target_size=%d raw_char2=%08x: %02x %02x %02x %02x %02x %02x %02x %02x frame_type=%u channel=%d target_size=%d bytes_consumed=%d",
             state->state, state->inbound_offset, state->target_size, (int)raw_char2,
             (int)raw_char2[0], (int)raw_char2[1], (int)raw_char2[2], (int)raw_char2[3], (int)raw_char2[4], (int)raw_char2[5], (int)raw_char2[6], (int)raw_char2[7],
             (unsigned int)decoded_frame->frame_type, channel, new_target_size, bytes_consumed);
 #endif
 
-        /* do we have target_size data yet? if not, return with the
-           expectation that more will arrive */
-        if (state->inbound_offset < state->target_size) {
-          RABBIT_INFO("return %d", bytes_consumed);
-          return bytes_consumed;
-        }
-        /* fall through to process body */
-      }
+    /* do we have target_size data yet? if not, return with the
+       expectation that more will arrive */
+    if (state->inbound_offset < state->target_size) {
+      RABBIT_INFO("return %d", bytes_consumed);
+      return bytes_consumed;
     }
+
+  }
+    /* fall through to process body */
 
   case CONNECTION_STATE_BODY: {
     amqp_bytes_t encoded;
@@ -504,7 +490,7 @@ int amqp_send_frame(amqp_connection_state_t state,
     iov[0].iov_len = HEADER_SIZE;
     iov[1].iov_base = body->bytes;
     iov[1].iov_len = body->len;
-    iov[2].iov_base = (char *)&frame_end_byte;
+    iov[2].iov_base = &frame_end_byte;
     iov[2].iov_len = FOOTER_SIZE;
 
     RABBIT_INFO("writev body->len=%d", body->len);

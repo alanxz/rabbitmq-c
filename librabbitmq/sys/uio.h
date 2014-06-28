@@ -41,12 +41,8 @@
 #include <stddef.h>
 #include <sys/types.h>
 
-/*
- * XXX
- * iov_base should be a void *.
- */
 struct iovec {
-        char    *iov_base;      /* Base address. */
+        void    *iov_base;      /* Base address. */
         size_t   iov_len;       /* Length. */
 };
 
