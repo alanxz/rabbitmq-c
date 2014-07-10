@@ -268,7 +268,9 @@ amqp_ssl_socket_new(amqp_connection_state_t state)
   struct amqp_ssl_socket_t *self = calloc(1, sizeof(*self));
   assert(self);
   CyaSSL_Init();
-  self->ctx = CyaSSL_CTX_new(CyaTLSv1_2_client_method());
+
+  self->ctx = CYASSL_SINGLE_GLOBAL_CONTEXT();
+  //self->ctx = CyaSSL_CTX_new(CyaTLSv1_2_client_method());
   //self->ctx = CyaSSL_CTX_new(CyaSSLv23_client_method());
   assert(self->ctx);
   self->klass = &amqp_ssl_socket_class;
