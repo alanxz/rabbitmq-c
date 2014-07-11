@@ -131,6 +131,13 @@ void amqp_destroy_envelope(amqp_envelope_t *envelope)
   amqp_bytes_free(envelope->consumer_tag);
 }
 
+static
+int amqp_bytes_malloc_dup_failed(amqp_bytes_t bytes) {
+  if (bytes.len != 0 && bytes.bytes == NULL) {
+    return 1;
+  }
+  return 0;
+}
 
 amqp_rpc_reply_t
 amqp_consume_message(amqp_connection_state_t state, amqp_envelope_t *envelope,
@@ -168,9 +175,9 @@ amqp_consume_message(amqp_connection_state_t state, amqp_envelope_t *envelope,
   envelope->exchange = amqp_bytes_malloc_dup(delivery_method->exchange);
   envelope->routing_key = amqp_bytes_malloc_dup(delivery_method->routing_key);
 
-  if (NULL == envelope->consumer_tag.bytes ||
-      NULL == envelope->exchange.bytes ||
-      NULL == envelope->routing_key.bytes) {
+  if (amqp_bytes_malloc_dup_failed(envelope->consumer_tag) ||
+      amqp_bytes_malloc_dup_failed(envelope->exchange) ||
+      amqp_bytes_malloc_dup_failed(envelope->routing_key)) {
     ret.reply_type = AMQP_RESPONSE_LIBRARY_EXCEPTION;
     ret.library_error = AMQP_STATUS_NO_MEMORY;
     goto error_out2;
