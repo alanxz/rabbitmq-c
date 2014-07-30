@@ -468,6 +468,79 @@ void amqp_maybe_release_buffers_on_channel(amqp_connection_state_t state, amqp_c
   }
 }
 
+int amqp_send_frame_non_body(
+    amqp_connection_state_t state,
+    const amqp_frame_t *frame,
+    void *out_frame )
+{
+  size_t out_frame_len;
+  amqp_bytes_t encoded;
+  int res;
+
+  switch (frame->frame_type) {
+  case AMQP_FRAME_METHOD:
+    amqp_e32(out_frame, HEADER_SIZE, frame->payload.method.id);
+
+    encoded.bytes = amqp_offset(out_frame, HEADER_SIZE + 4);
+    encoded.len = state->outbound_buffer.len - HEADER_SIZE - 4 - FOOTER_SIZE;
+
+    RABBIT_INFO("amqp_encode_method out_frame=%08x len=%d method_id=%d decoded=%08x encoded=%08x",
+        (int)out_frame, (int)encoded.len, (int)frame->payload.method.id, (int)frame->payload.method.decoded, (int)&encoded);
+    res = amqp_encode_method(frame->payload.method.id,
+                             frame->payload.method.decoded, encoded);
+    RABBIT_INFO("amqp_encode_method out_frame=%08x len=%d method_id=%d decoded=%08x encoded=%08x res=%d",
+        (int)out_frame, (int)encoded.len, (int)frame->payload.method.id, (int)frame->payload.method.decoded, (int)&encoded, res);
+
+    if (res < 0) {
+      return res;
+    }
+
+    out_frame_len = res + 4;
+    break;
+
+  case AMQP_FRAME_HEADER:
+    amqp_e16(out_frame, HEADER_SIZE, frame->payload.properties.class_id);
+    amqp_e16(out_frame, HEADER_SIZE+2, 0); /* "weight" */
+    amqp_e64(out_frame, HEADER_SIZE+4, frame->payload.properties.body_size);
+
+    encoded.bytes = amqp_offset(out_frame, HEADER_SIZE + 12);
+    encoded.len = state->outbound_buffer.len - HEADER_SIZE - 12 - FOOTER_SIZE;
+
+    RABBIT_INFO("amqp_encode_properties out_frame=%08x len=%d class_id=%d decoded=%08x encoded=%08x",
+        (int)out_frame, encoded.len, (int)(frame->payload.properties.class_id), (int)(frame->payload.properties.decoded), (int)&encoded);
+
+    res = amqp_encode_properties(frame->payload.properties.class_id,
+                                 frame->payload.properties.decoded, encoded);
+    RABBIT_INFO("amqp_encode_properties out_frame=%08x len=%d class_id=%d decoded=%08x encoded=%08x res=%d",
+        (int)out_frame, encoded.len, (int)(frame->payload.properties.class_id), (int)(frame->payload.properties.decoded), (int)&encoded, res);
+
+    if (res < 0) {
+      return res;
+    }
+
+    out_frame_len = res + 12;
+    break;
+
+  case AMQP_FRAME_HEARTBEAT:
+    RABBIT_INFO("send heartbeat");
+    out_frame_len = 0;
+    break;
+
+  default:
+    RABBIT_INFO("");
+    return AMQP_STATUS_INVALID_PARAMETER;
+  }
+
+  amqp_e32(out_frame, 3, out_frame_len);
+  amqp_e8(out_frame, out_frame_len + HEADER_SIZE, AMQP_FRAME_END);
+  RABBIT_INFO("send socket=%08x, outframe=%08x, len=%d", state->socket, out_frame, out_frame_len + HEADER_SIZE + FOOTER_SIZE);
+  res = amqp_socket_send(state->socket, out_frame,
+                         out_frame_len + HEADER_SIZE + FOOTER_SIZE);
+  RABBIT_INFO("send socket=%08x, outframe=%08x, len=%d res=%d", state->socket, out_frame, out_frame_len + HEADER_SIZE + FOOTER_SIZE, res);
+  return res;
+}
+
+
 int amqp_send_frame(amqp_connection_state_t state,
                     const amqp_frame_t *frame)
 {
@@ -497,71 +570,58 @@ int amqp_send_frame(amqp_connection_state_t state,
     res = amqp_socket_writev(state->socket, iov, 3);
     RABBIT_INFO("writev body->len=%d res=%d", body->len, res);
   } else {
-    size_t out_frame_len;
-    amqp_bytes_t encoded;
-
-    switch (frame->frame_type) {
-    case AMQP_FRAME_METHOD:
-      amqp_e32(out_frame, HEADER_SIZE, frame->payload.method.id);
-
-      encoded.bytes = amqp_offset(out_frame, HEADER_SIZE + 4);
-      encoded.len = state->outbound_buffer.len - HEADER_SIZE - 4 - FOOTER_SIZE;
-
-      RABBIT_INFO("amqp_encode_method out_frame=%08x len=%d method_id=%d decoded=%08x encoded=%08x",
-          (int)out_frame, (int)encoded.len, (int)frame->payload.method.id, (int)frame->payload.method.decoded, (int)&encoded);
-      res = amqp_encode_method(frame->payload.method.id,
-                               frame->payload.method.decoded, encoded);
-      RABBIT_INFO("amqp_encode_method out_frame=%08x len=%d method_id=%d decoded=%08x encoded=%08x res=%d",
-          (int)out_frame, (int)encoded.len, (int)frame->payload.method.id, (int)frame->payload.method.decoded, (int)&encoded, res);
-
-      if (res < 0) {
-        return res;
-      }
-
-      out_frame_len = res + 4;
-      break;
-
-    case AMQP_FRAME_HEADER:
-      amqp_e16(out_frame, HEADER_SIZE, frame->payload.properties.class_id);
-      amqp_e16(out_frame, HEADER_SIZE+2, 0); /* "weight" */
-      amqp_e64(out_frame, HEADER_SIZE+4, frame->payload.properties.body_size);
-
-      encoded.bytes = amqp_offset(out_frame, HEADER_SIZE + 12);
-      encoded.len = state->outbound_buffer.len - HEADER_SIZE - 12 - FOOTER_SIZE;
-
-      RABBIT_INFO("amqp_encode_properties out_frame=%08x len=%d class_id=%d decoded=%08x encoded=%08x",
-          (int)out_frame, encoded.len, (int)(frame->payload.properties.class_id), (int)(frame->payload.properties.decoded), (int)&encoded);
-
-      res = amqp_encode_properties(frame->payload.properties.class_id,
-                                   frame->payload.properties.decoded, encoded);
-      RABBIT_INFO("amqp_encode_properties out_frame=%08x len=%d class_id=%d decoded=%08x encoded=%08x res=%d",
-          (int)out_frame, encoded.len, (int)(frame->payload.properties.class_id), (int)(frame->payload.properties.decoded), (int)&encoded, res);
-
-      if (res < 0) {
-        return res;
-      }
-
-      out_frame_len = res + 12;
-      break;
-
-    case AMQP_FRAME_HEARTBEAT:
-      RABBIT_INFO("send heartbeat");
-      out_frame_len = 0;
-      break;
-
-    default:
-      RABBIT_INFO("");
-      return AMQP_STATUS_INVALID_PARAMETER;
+    res = amqp_send_frame_non_body(state, frame, out_frame );
+    if (AMQP_STATUS_OK != res) {
+      return res;
     }
-
-    amqp_e32(out_frame, 3, out_frame_len);
-    amqp_e8(out_frame, out_frame_len + HEADER_SIZE, AMQP_FRAME_END);
-    RABBIT_INFO("send socket=%08x, outframe=%08x, len=%d", state->socket, out_frame, out_frame_len + HEADER_SIZE + FOOTER_SIZE);
-    res = amqp_socket_send(state->socket, out_frame,
-                           out_frame_len + HEADER_SIZE + FOOTER_SIZE);
-    RABBIT_INFO("send socket=%08x, outframe=%08x, len=%d res=%d", state->socket, out_frame, out_frame_len + HEADER_SIZE + FOOTER_SIZE, res);
   }
 
+  if (state->heartbeat > 0) {
+    uint64_t current_time = amqp_get_monotonic_timestamp();
+    if (0 == current_time) {
+      return AMQP_STATUS_TIMER_FAILURE;
+    }
+    state->next_send_heartbeat = amqp_calc_next_send_heartbeat(state, current_time);
+  }
+
+  return res;
+}
+
+int amqp_send_frame_streaming(
+    amqp_connection_state_t state,
+    const amqp_frame_t *frame)
+{
+  void *out_frame = state->outbound_buffer.bytes;
+  int res;
+
+  amqp_e8(out_frame, 0, frame->frame_type);
+  amqp_e16(out_frame, 1, frame->channel);
+
+  if (frame->frame_type == AMQP_FRAME_BODY) {
+
+    uint8_t frame_end_byte = AMQP_FRAME_END;
+    const amqp_bytes_t *body = &frame->payload.body_fragment;
+
+    amqp_e32(out_frame, 3, body->len);
+
+    res = amqp_socket_send(state->socket, out_frame, HEADER_SIZE);
+
+    if (AMQP_STATUS_OK == res) {
+      RABBIT_INFO("send body->len=%d", body->len);
+      res = amqp_socket_send(state->socket, body->bytes, body->len);
+    }
+
+    if (AMQP_STATUS_OK == res) {
+      res = amqp_socket_send(state->socket, &frame_end_byte, FOOTER_SIZE);
+    }
+    RABBIT_INFO("send body->len=%d res=%d", body->len, res);
+
+  } else {
+    res = amqp_send_frame_non_body(state, frame, out_frame );
+    if (AMQP_STATUS_OK != res) {
+      return res;
+    }
+  }
   if (state->heartbeat > 0) {
     uint64_t current_time = amqp_get_monotonic_timestamp();
     if (0 == current_time) {

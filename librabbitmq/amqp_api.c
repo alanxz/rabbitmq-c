@@ -167,18 +167,17 @@ const amqp_array_t amqp_empty_array = { 0, NULL };
    ? (replytype *) state->most_recent_api_result.reply.decoded\
    : NULL)
 
-int amqp_basic_publish(amqp_connection_state_t state,
+
+int amqp_basic_publish_method_and_header(amqp_connection_state_t state,
                        amqp_channel_t channel,
                        amqp_bytes_t exchange,
                        amqp_bytes_t routing_key,
                        amqp_boolean_t mandatory,
                        amqp_boolean_t immediate,
                        amqp_basic_properties_t const *properties,
-                       amqp_bytes_t body)
+                       amqp_bytes_t body,
+                       amqp_frame_t *fP)
 {
-  amqp_frame_t f;
-  size_t body_offset;
-  size_t usable_body_payload_size = state->frame_max - (HEADER_SIZE + FOOTER_SIZE);
   int res;
 
   amqp_basic_publish_t m;
@@ -218,16 +217,101 @@ int amqp_basic_publish(amqp_connection_state_t state,
     properties = &default_properties;
   }
 
-  f.frame_type = AMQP_FRAME_HEADER;
-  f.channel = channel;
-  f.payload.properties.class_id = AMQP_BASIC_CLASS;
-  f.payload.properties.body_size = body.len;
-  f.payload.properties.decoded = (void *) properties;
+  fP->frame_type = AMQP_FRAME_HEADER;
+  fP->channel = channel;
+  fP->payload.properties.class_id = AMQP_BASIC_CLASS;
+  fP->payload.properties.body_size = body.len;
+  fP->payload.properties.decoded = (void *) properties;
 
-  RABBIT_INFO("amqp_send_frame(%08x,%08x) len=%d", (int)state, (int)&f, body.len);
-  res = amqp_send_frame(state, &f);
-  RABBIT_INFO("amqp_send_frame(%08x,%08x) len=%d res=%d", (int)state, (int)&f, body.len, res);
-  if (res < 0) {
+  RABBIT_INFO("amqp_send_frame(%08x,%08x) len=%d", (int)state, (int)fP, body.len);
+  res = amqp_send_frame(state, fP);
+  RABBIT_INFO("amqp_send_frame(%08x,%08x) len=%d res=%d", (int)state, (int)fP, body.len, res);
+  return res;
+}
+
+int amqp_basic_publish(amqp_connection_state_t state,
+                       amqp_channel_t channel,
+                       amqp_bytes_t exchange,
+                       amqp_bytes_t routing_key,
+                       amqp_boolean_t mandatory,
+                       amqp_boolean_t immediate,
+                       amqp_basic_properties_t const *properties,
+                       amqp_bytes_t body)
+{
+  amqp_frame_t f;
+  size_t body_offset;
+  size_t usable_body_payload_size = state->frame_max - (HEADER_SIZE + FOOTER_SIZE);
+  int res;
+
+  res = amqp_basic_publish_method_and_header(state,
+                         channel,
+                         exchange,
+                         routing_key,
+                         mandatory,
+                         immediate,
+                         properties,
+                         body,
+                         &f);
+
+  if (AMQP_STATUS_OK != res) {
+    return res;
+  }
+
+
+  body_offset = 0;
+  while (body_offset < body.len) {
+    size_t remaining = body.len - body_offset;
+
+    if (remaining == 0) {
+      break;
+    }
+
+    f.frame_type = AMQP_FRAME_BODY;
+    f.channel = channel;
+    f.payload.body_fragment.bytes = amqp_offset(body.bytes, body_offset);
+    if (remaining >= usable_body_payload_size) {
+      f.payload.body_fragment.len = usable_body_payload_size;
+    } else {
+      f.payload.body_fragment.len = remaining;
+    }
+
+    body_offset += f.payload.body_fragment.len;
+    RABBIT_INFO("amqp_send_frame(%08x,%08x) fragment.len=%d", (int)state, (int)&f, f.payload.body_fragment.len);
+    res = amqp_send_frame(state, &f);
+    RABBIT_INFO("amqp_send_frame(%08x,%08x) fragment.len=%d res=%d", (int)state, (int)&f, f.payload.body_fragment.len, res);
+    if (res < 0) {
+      return res;
+    }
+  }
+
+  return AMQP_STATUS_OK;
+}
+
+int amqp_basic_publish_streaming(amqp_connection_state_t state,
+                       amqp_channel_t channel,
+                       amqp_bytes_t exchange,
+                       amqp_bytes_t routing_key,
+                       amqp_boolean_t mandatory,
+                       amqp_boolean_t immediate,
+                       amqp_basic_properties_t const *properties,
+                       amqp_bytes_t body)
+{
+  amqp_frame_t f;
+  size_t body_offset;
+  size_t usable_body_payload_size = state->frame_max - (HEADER_SIZE + FOOTER_SIZE);
+  int res;
+
+  res = amqp_basic_publish_method_and_header(state,
+                         channel,
+                         exchange,
+                         routing_key,
+                         mandatory,
+                         immediate,
+                         properties,
+                         body,
+                         &f);
+
+  if (AMQP_STATUS_OK != res) {
     return res;
   }
 
