@@ -162,6 +162,11 @@ typedef _W64 int ssize_t;
 
 /** \endcond */
 
+/**
+ * todo define when we include this.
+ */
+#include "lightStreams.h"
+
 #include <stddef.h>
 #include <stdint.h>
 
@@ -1279,6 +1284,14 @@ AMQP_CALL amqp_maybe_release_buffers_on_channel(amqp_connection_state_t state,
 AMQP_PUBLIC_FUNCTION
 int
 AMQP_CALL amqp_send_frame(amqp_connection_state_t state, amqp_frame_t const *frame);
+
+/**
+ * todo define this prototype.
+ */
+AMQP_PUBLIC_FUNCTION int amqp_send_frame_streaming(
+    amqp_connection_state_t state,
+    const amqp_frame_t *frame,
+    lightStreamAggregateP_t bodyStreamP);
 
 /**
  * Compare two table entries

@@ -589,7 +589,8 @@ int amqp_send_frame(amqp_connection_state_t state,
 
 int amqp_send_frame_streaming(
     amqp_connection_state_t state,
-    const amqp_frame_t *frame)
+    const amqp_frame_t *frame,
+    lightStreamAggregateP_t bodyStreamP)
 {
   void *out_frame = state->outbound_buffer.bytes;
   int res;
@@ -606,9 +607,21 @@ int amqp_send_frame_streaming(
 
     res = amqp_socket_send(state->socket, out_frame, HEADER_SIZE);
 
-    if (AMQP_STATUS_OK == res) {
-      RABBIT_INFO("send body->len=%d", body->len);
-      res = amqp_socket_send(state->socket, body->bytes, body->len);
+    size_t remaining = body->len;
+    while ((AMQP_STATUS_OK == res) && remaining) {
+      int len = lsAvailable(bodyStreamP);
+      if (len<=0) {
+        res = AMQP_STATUS_UNEXPECTED_STATE; // this error indicates that the bodyStream failed.
+        break;
+      }
+      if ((size_t)len>remaining) {
+        len = remaining;
+      }
+      RABBIT_INFO("send bytes=%d", len);
+      res = amqp_socket_send(state->socket, lsPeek(bodyStreamP), len);
+      if (AMQP_STATUS_OK == res) {
+        lsTookBytes(bodyStreamP, len);
+      }
     }
 
     if (AMQP_STATUS_OK == res) {
