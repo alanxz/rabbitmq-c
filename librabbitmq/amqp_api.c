@@ -177,7 +177,7 @@ int amqp_basic_publish_method_and_header(
     amqp_boolean_t mandatory,
     amqp_boolean_t immediate,
     amqp_basic_properties_t const *properties,
-    amqp_bytes_t body,
+    size_t body_len,
     amqp_frame_t *fP)
 {
   int res;
@@ -222,12 +222,12 @@ int amqp_basic_publish_method_and_header(
   fP->frame_type = AMQP_FRAME_HEADER;
   fP->channel = channel;
   fP->payload.properties.class_id = AMQP_BASIC_CLASS;
-  fP->payload.properties.body_size = body.len;
+  fP->payload.properties.body_size = body_len;
   fP->payload.properties.decoded = (void *) properties;
 
-  RABBIT_INFO("amqp_send_frame(%08x,%08x) len=%d", (int)state, (int)fP, body.len);
+  RABBIT_INFO("amqp_send_frame(%08x,%08x) len=%d", (int)state, (int)fP, body_len);
   res = amqp_send_frame(state, fP);
-  RABBIT_INFO("amqp_send_frame(%08x,%08x) len=%d res=%d", (int)state, (int)fP, body.len, res);
+  RABBIT_INFO("amqp_send_frame(%08x,%08x) len=%d res=%d", (int)state, (int)fP, body_len, res);
   return res;
 }
 
@@ -258,7 +258,7 @@ int amqp_basic_publish(
                          mandatory,
                          immediate,
                          properties,
-                         body,
+                         body.len,
                          &f);
 
   if (AMQP_STATUS_OK != res) {
@@ -312,7 +312,6 @@ int amqp_basic_publish_streaming(amqp_connection_state_t state,
                        amqp_boolean_t mandatory,
                        amqp_boolean_t immediate,
                        amqp_basic_properties_t const *properties,
-                       amqp_bytes_t body,
                        lightStreamAggregateP_t bodyStreamP)
 {
   amqp_frame_t f;
@@ -327,7 +326,7 @@ int amqp_basic_publish_streaming(amqp_connection_state_t state,
                          mandatory,
                          immediate,
                          properties,
-                         body,
+                         lsLen(bodyStreamP),
                          &f);
 
   if (AMQP_STATUS_OK != res) {
@@ -345,7 +344,7 @@ int amqp_basic_publish_streaming(amqp_connection_state_t state,
 
     f.frame_type = AMQP_FRAME_BODY;
     f.channel = channel;
-    f.payload.body_fragment.bytes = amqp_offset(body.bytes, body_offset);
+    // todo remove me, not used... f.payload.body_fragment.bytes = amqp_offset(lsLen(bodyStreamP), body_offset);
     if (remaining >= usable_body_payload_size) {
       f.payload.body_fragment.len = usable_body_payload_size;
     } else {

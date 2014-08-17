@@ -621,6 +621,7 @@ int amqp_send_frame_streaming(
       res = amqp_socket_send(state->socket, lsPeek(bodyStreamP), len);
       if (AMQP_STATUS_OK == res) {
         lsTookBytes(bodyStreamP, len);
+        remaining = remaining - len;
       }
     }
 

@@ -1863,6 +1863,17 @@ AMQP_CALL amqp_basic_publish(amqp_connection_state_t state, amqp_channel_t chann
                              amqp_bytes_t body);
 
 /**
+ * todo define interface here.
+ */
+AMQP_PUBLIC_FUNCTION
+int
+AMQP_CALL amqp_basic_publish_streaming(amqp_connection_state_t state, amqp_channel_t channel,
+                             amqp_bytes_t exchange, amqp_bytes_t routing_key,
+                             amqp_boolean_t mandatory, amqp_boolean_t immediate,
+                             struct amqp_basic_properties_t_ const *properties,
+                             lightStreamAggregateP_t bodyStreamP);
+
+/**
  * Closes an channel
  *
  * \param [in] state the connection object

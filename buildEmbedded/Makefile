@@ -111,6 +111,7 @@ TARGET_LIB_DIR := $(CURDIR)/
 # C Source Files
 # ------------------------------------------------------------------------------+-
 CSOURCE-y =
+CSOURCE-y                                           += ../$(LIB)/lightStreams.c
 CSOURCE-y                                           += ../$(LIB)/amqp_framing.c
 CSOURCE-y                                           += ../$(LIB)/amqp_api.c
 CSOURCE-y                                           += ../$(LIB)/amqp_connection.c
@@ -169,7 +170,6 @@ CPPFLAGS-y                                           += -DAMQP_STATIC
 CPPFLAGS-y                                           += -DENABLE_THREAD_SAFETY
 CPPFLAGS-y                                           += -DWITH_SSL=1
 CPPFLAGS-y                                           += -DLWIP_TIMEVAL_PRIVATE=0
-CPPFLAGS-y                                           += -DNDEBUG
 CPPFLAGS-y                                           += -DVERSION=\"0.3.0\"
 CPPFLAGS-y                                           += $(INCLUDE_DIRS)
 CPPFLAGS-y                                           += -D $(COMPILER)_$(SUBARCH)
