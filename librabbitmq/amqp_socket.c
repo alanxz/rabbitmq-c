@@ -67,8 +67,8 @@
 #     include <sys/socket.h>
 #     include <netdb.h>
 #     include <sys/uio.h>
+#     include <fcntl.h>
 #    endif
-# include <fcntl.h>
 # include <unistd.h>
 #endif
 
@@ -175,7 +175,7 @@ amqp_os_socket_setsockblock(int sock, int block)
     arg |= O_NONBLOCK;
   }
 
-  RABBIT_INFO("Calling fcntl on: %d", sock);
+  RABBIT_INFO("Calling fcntl on: %d %x %x", sock, F_SETFL, arg);
   int result = fcntl(sock, F_SETFL, arg);
   RABBIT_INFO("Calling fcntl on: %d res=%d", sock, result);
   if (result < 0) {
@@ -186,7 +186,21 @@ amqp_os_socket_setsockblock(int sock, int block)
 #endif
 }
 
+#if defined( RABBIT_USE_LWIP )
+int
+amqp_os_socket_error_lwip(int sd)
+{
 
+    int err;
+
+    socklen_t len = sizeof(err);
+
+    getsockopt(sd, SOL_SOCKET, SO_ERROR, &err, &len);
+
+    return err;
+}
+
+#else
 int
 amqp_os_socket_error(void)
 {
@@ -196,13 +210,17 @@ amqp_os_socket_error(void)
   return errno;
 #endif
 }
-
+#endif
 int
 amqp_os_socket_close(int sockfd)
 {
 #ifdef _WIN32
   return closesocket(sockfd);
 #else
+
+
+  RABBIT_INFO("todo rms setting fd to nonblocking prior to close: %d", sockfd);
+  amqp_os_socket_setsockblock(sockfd,0);
   RABBIT_INFO("Calling close on: %d", sockfd);
   return close(sockfd);
 #endif
@@ -353,6 +371,8 @@ int amqp_open_socket_noblock(char const *hostname,
 
       res = connect(sockfd, addr->ai_addr, addr->ai_addrlen);
 
+      RABBIT_INFO("connect sockfd=%d res=%d",sockfd, res);
+
       if (0 == res) {
         /* Connected immediately, set to blocking mode again */
         if (AMQP_STATUS_OK != amqp_os_socket_setsockblock(sockfd, 1)) {
@@ -366,6 +386,10 @@ int amqp_open_socket_noblock(char const *hostname,
 
 #ifdef _WIN32
       if (WSAEWOULDBLOCK == amqp_os_socket_error()) {
+#elif defined( RABBIT_USE_LWIP )
+      int error = amqp_os_socket_error_lwip(sockfd);
+      RABBIT_INFO(" amqp_os_socket_error(%d)=%d",sockfd,error);
+      if (EINPROGRESS == error) {
 #else
       if (EINPROGRESS == amqp_os_socket_error()) {
 #endif
@@ -382,6 +406,7 @@ int amqp_open_socket_noblock(char const *hostname,
 
           timer_error = amqp_timer_update(&timer, timeout);
 
+          RABBIT_INFO(" timer_error=%d",timer_error);
           if (timer_error < 0) {
             last_error = timer_error;
             break;
@@ -739,12 +764,12 @@ beginrecv:
         heartbeat.channel = 0;
         heartbeat.frame_type = AMQP_FRAME_HEARTBEAT;
 
-        RABBIT_INFO("senD a heartbeat from connection: 0x%08X", state);
+        RABBIT_INFO("send a heartbeat from connection: 0x%08X", state);
         res = amqp_send_frame(state, &heartbeat);
         if (AMQP_STATUS_OK != res) {
           return res;
         }
-        RABBIT_INFO("sen a heartbeat from connection: 0x%08X", state);
+        RABBIT_INFO("sent a heartbeat from connection: 0x%08X", state);
 
         current_timestamp = amqp_get_monotonic_timestamp();
         if (0 == current_timestamp) {

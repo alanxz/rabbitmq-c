@@ -178,9 +178,6 @@ amqp_ssl_socket_close(void *base)
     if (self->ssl) {
       CyaSSL_free(self->ssl);
     }
-    if (self->ctx) {
-      CyaSSL_CTX_free(self->ctx);
-    }
   }
   return status;
 }
@@ -192,6 +189,12 @@ static void amqp_ssl_socket_delete(void *base)
 
   if (self) {
     amqp_ssl_socket_close(self);
+
+#ifndef CONFIG_APP_CLOUD_MESSAGING_ENA
+    if (self->ctx) {
+      CyaSSL_CTX_free(self->ctx);
+    }
+#endif
     free(self->buffer);
     free(self);
   }
@@ -274,7 +277,6 @@ amqp_ssl_socket_new(amqp_connection_state_t state)
   CyaSSL_Init();
   self->ctx = CyaSSL_CTX_new(CyaTLSv1_2_client_method());
 #endif
-  //self->ctx = CyaSSL_CTX_new(CyaSSLv23_client_method());
   assert(self->ctx);
   self->klass = &amqp_ssl_socket_class;
   self->sockfd = -1;

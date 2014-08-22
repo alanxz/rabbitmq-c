@@ -51,11 +51,20 @@ size_t lsLenCommon(lightStreamAggregateP_t lsAggP)
 
 int lsSendCommon(lightStreamAggregateP_t lsAggP, const char *bufferPtr, size_t bufferLen)
 {
+  if ((LS_STATE_MESSAGE_OPEN!=lsAggP->messageState)||(lsAggP->bytesSent==0)) {
+    lsEmptyMailBox(lsAggP,&lsAggP->toTxerMailBoxInfo);
+  }
+
+  if (LS_STATE_MESSAGE_CLOSED==lsAggP->messageState) return LS_SEND_AND_CLOSED_BEFORE_POST;
+
   if (lsAggP->bufferLen) return lsSenderAbort(lsAggP, LS_SEND_WITH_NON_ZERO_BUFFER_LEN);
+
   if (LS_STATE_MESSAGE_OPEN!=lsAggP->messageState) return lsSenderAbort(lsAggP, LS_SEND_AND_NOT_OPEN_BEFORE_POST);
 
   lsAggP->bufferPtr = bufferPtr;
   lsAggP->bufferLen = bufferLen;
+
+  lsAggP->bytesSent += bufferLen;
 
   int result = lsPostToMailBox(lsAggP, &lsAggP->toRxerMailBoxInfo);
   if (LS_STATUS_OK != result) return result;
@@ -115,6 +124,9 @@ int lsTookBytesCommon(lightStreamAggregateP_t lsAggP, size_t tookLen)
 
 void lsOpenMessageCommon(lightStreamAggregateP_t lsAggP, size_t len)
 {
+  lsEmptyMailBox(lsAggP,&lsAggP->toTxerMailBoxInfo);
+
+  lsAggP->bytesSent = 0;
   lsAggP->len = len;
   lsAggP->bufferPtr = NULL;
   lsAggP->bufferLen = 0;
@@ -124,7 +136,7 @@ void lsOpenMessageCommon(lightStreamAggregateP_t lsAggP, size_t len)
 void lsCloseMessageCommon(lightStreamAggregateP_t lsAggP)
 {
   lsAggP->messageState = LS_STATE_MESSAGE_CLOSED;
-
+  lsPostToMailBox(lsAggP, &lsAggP->toTxerMailBoxInfo);
 }
 
 void lsSenderAbortMessageCommon(lightStreamAggregateP_t lsAggP)
@@ -132,6 +144,19 @@ void lsSenderAbortMessageCommon(lightStreamAggregateP_t lsAggP)
   if (LS_STATE_MESSAGE_OPEN == lsAggP->messageState) {
     lsAggP->messageState = LS_STATE_MESSAGE_SENDER_ABORT;
   }
+}
+
+int lsSenderWaitForCloseCommon(lightStreamAggregateP_t lsAggP)
+{
+  int attemptsLeft = 3;
+  while (( LS_STATE_MESSAGE_CLOSED != lsAggP->messageState)&&(attemptsLeft)) {
+    lsGetFromMailBox(lsAggP, &lsAggP->toTxerMailBoxInfo);
+    attemptsLeft--;
+  }
+
+  if ( LS_STATE_MESSAGE_CLOSED != lsAggP->messageState) return LS_TIMEOUT_WAITING_FOR_CLOSE;
+
+  return LS_STATUS_OK;
 }
 
 void lsReceiverAbortMessageCommon(lightStreamAggregateP_t lsAggP)
@@ -203,7 +228,7 @@ void lsOpenMessage(lightStreamAggregateP_t lsAggP, size_t len)
   assert(lsAggP);
   assert(lsAggP->klassP);
   assert(lsAggP->klassP->openMessageFn);
-  return lsAggP->klassP->openMessageFn(lsAggP, len);
+  lsAggP->klassP->openMessageFn(lsAggP, len);
 }
 
 void lsCloseMessage(lightStreamAggregateP_t lsAggP)
@@ -211,7 +236,7 @@ void lsCloseMessage(lightStreamAggregateP_t lsAggP)
   assert(lsAggP);
   assert(lsAggP->klassP);
   assert(lsAggP->klassP->closeMessageFn);
-  return lsAggP->klassP->closeMessageFn(lsAggP);
+  lsAggP->klassP->closeMessageFn(lsAggP);
 }
 
 void lsSenderAbortMessage(lightStreamAggregateP_t lsAggP)
@@ -219,15 +244,24 @@ void lsSenderAbortMessage(lightStreamAggregateP_t lsAggP)
   assert(lsAggP);
   assert(lsAggP->klassP);
   assert(lsAggP->klassP->senderAbortMessageFn);
-  return lsAggP->klassP->senderAbortMessageFn(lsAggP);
+  lsAggP->klassP->senderAbortMessageFn(lsAggP);
 }
+
+int lsSenderWaitForClose(lightStreamAggregateP_t lsAggP)
+{
+  assert(lsAggP);
+  assert(lsAggP->klassP);
+  assert(lsAggP->klassP->senderAbortMessageFn);
+  return lsAggP->klassP->senderWaitForCloseFn(lsAggP);
+}
+
 
 void lsReceiverAbortMessage(lightStreamAggregateP_t lsAggP)
 {
   assert(lsAggP);
   assert(lsAggP->klassP);
   assert(lsAggP->klassP->receiverAbortMessageFn);
-  return lsAggP->klassP->receiverAbortMessageFn(lsAggP);
+  lsAggP->klassP->receiverAbortMessageFn(lsAggP);
 }
 
 lightStreamMailBoxPubP_t lsMakeMailBox(lightStreamAggregateP_t lsAggP, uint32_t timeOutMs, const char *nameStr)
@@ -254,3 +288,10 @@ int lsGetFromMailBox(lightStreamAggregateP_t lsAggP, lightStreamMailBoxInfoP_t m
   return lsAggP->klassP->getFromMailBoxFn(lsAggP, mailBoxInfoP);
 }
 
+int lsEmptyMailBox(lightStreamAggregateP_t lsAggP, lightStreamMailBoxInfoP_t mailBoxInfoP)
+{
+  assert(lsAggP);
+  assert(lsAggP->klassP);
+  assert(lsAggP->klassP->emptyMailBoxFn);
+  return lsAggP->klassP->emptyMailBoxFn(lsAggP, mailBoxInfoP);
+}

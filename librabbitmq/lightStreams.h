@@ -14,6 +14,8 @@ typedef enum ls_status_enum {
   LS_SEND_GET_ERROR =                   -0x0006,
   LS_AVAILABLE_AND_NOT_OPEN =           -0x0007,
   LS_TOOK_AND_NOT_OPEN =                -0x0008,
+  LS_SEND_AND_CLOSED_BEFORE_POST =      -0x0009,
+  LS_TIMEOUT_WAITING_FOR_CLOSE  =       -0x000A,
 } ls_status_t;
 
 
@@ -57,10 +59,12 @@ typedef int (*tookBytesLs_fn_t)(lightStreamAggregateP_t lsAggP, size_t lenTook);
 typedef void (*openMessageLs_fn_t)(lightStreamAggregateP_t lsAggP, size_t len);
 typedef void (*closeMessageLs_fn_t)(lightStreamAggregateP_t lsAggP);
 typedef void (*senderAbortMessageLs_fn_t)(lightStreamAggregateP_t lsAggP);
+typedef int (*senderWaitForClose_fn_t)(lightStreamAggregateP_t lsAggP);
 typedef void (*receiverAbortMessageLs_fn_t)(lightStreamAggregateP_t lsAggP);
 typedef lightStreamMailBoxPubP_t (*makeMailBox_fn_t)(lightStreamAggregateP_t lsAggP, uint32_t timeOutMs, const char *nameStr);
 typedef int (*postToMailBox_fn_t)(lightStreamAggregateP_t lsAggP, lightStreamMailBoxInfoP_t mailBoxInfoP);
 typedef int (*getFromMailBox_fn_t)(lightStreamAggregateP_t lsAggP, lightStreamMailBoxInfoP_t mailBoxInfoP);
+typedef int (*emptyMailBox_fn_t)(lightStreamAggregateP_t lsAggP, lightStreamMailBoxInfoP_t mailBoxInfoP);
 
 struct lightStream_class_s {
   socketLs_fn_t socketFn;
@@ -73,10 +77,12 @@ struct lightStream_class_s {
   openMessageLs_fn_t openMessageFn;
   closeMessageLs_fn_t closeMessageFn;
   senderAbortMessageLs_fn_t senderAbortMessageFn;
+  senderWaitForClose_fn_t senderWaitForCloseFn;
   receiverAbortMessageLs_fn_t receiverAbortMessageFn;
   makeMailBox_fn_t makeMailBoxFn;
   postToMailBox_fn_t postToMailBoxFn;
   getFromMailBox_fn_t getFromMailBoxFn;
+  emptyMailBox_fn_t emptyMailBoxFn;
 };
 
 struct lightStreamAggregate_s {
@@ -84,6 +90,7 @@ struct lightStreamAggregate_s {
   void *userStateP;
   volatile ls_state_t messageState;
   volatile size_t len;
+  volatile size_t bytesSent;
   const char * volatile bufferPtr;
   volatile size_t bufferLen;
   struct lightStreamMailBoxInfo_s toRxerMailBoxInfo;
@@ -100,6 +107,7 @@ int lsTookBytesCommon(lightStreamAggregateP_t lsAggP, size_t tookLen);
 void lsOpenMessageCommon(lightStreamAggregateP_t lsAggP, size_t len);
 void lsCloseMessageCommon(lightStreamAggregateP_t lsAggP);
 void lsSenderAbortMessageCommon(lightStreamAggregateP_t lsAggP);
+int lsSenderWaitForCloseCommon(lightStreamAggregateP_t lsAggP);
 void lsReceiverAbortMessageCommon(lightStreamAggregateP_t lsAggP);
 
 
@@ -115,6 +123,7 @@ int lsTookBytes(lightStreamAggregateP_t lsAggP, size_t lenTook);
 void lsOpenMessage(lightStreamAggregateP_t lsAggP, size_t len);
 void lsCloseMessage(lightStreamAggregateP_t lsAggP);
 void lsSenderAbortMessage(lightStreamAggregateP_t lsAggP);
+int lsSenderWaitForClose(lightStreamAggregateP_t lsAggP);
 void lsReceiverAbortMessage(lightStreamAggregateP_t lsAggP);
 
 lightStreamMailBoxPubP_t lsMakeMailBox(lightStreamAggregateP_t lsAggP, uint32_t timeOutMs, const char *nameStr);
@@ -123,5 +132,6 @@ int lsPostToToTxMailBox(lightStreamAggregateP_t lsAggP);
 int lsPostToToRxMailBox(lightStreamAggregateP_t lsAggP);
 
 int lsGetFromMailBox(lightStreamAggregateP_t lsAggP, lightStreamMailBoxInfoP_t mailBoxInfoP);
+int lsEmptyMailBox(lightStreamAggregateP_t lsAggP, lightStreamMailBoxInfoP_t mailBoxInfoP);
 
 #endif

@@ -608,8 +608,14 @@ int amqp_send_frame_streaming(
     res = amqp_socket_send(state->socket, out_frame, HEADER_SIZE);
 
     size_t remaining = body->len;
+#if 0
+    lprintf("rabbit entering while remaining=%d lsAvailable=%d\n",remaining);
+#endif
     while ((AMQP_STATUS_OK == res) && remaining) {
       int len = lsAvailable(bodyStreamP);
+#if 0
+      lprintf("rabbit remaining=%d lsAvailable=%d\n",remaining, len);
+#endif
       if (len<=0) {
         res = AMQP_STATUS_UNEXPECTED_STATE; // this error indicates that the bodyStream failed.
         break;
@@ -620,6 +626,9 @@ int amqp_send_frame_streaming(
       RABBIT_INFO("send bytes=%d", len);
       res = amqp_socket_send(state->socket, lsPeek(bodyStreamP), len);
       if (AMQP_STATUS_OK == res) {
+#if 0
+        lprintf("taking len=%d\n",len);
+#endif
         lsTookBytes(bodyStreamP, len);
         remaining = remaining - len;
       }

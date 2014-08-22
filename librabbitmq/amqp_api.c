@@ -334,8 +334,14 @@ int amqp_basic_publish_streaming(amqp_connection_state_t state,
   }
 
   body_offset = 0;
+#if 0
+  lprintf("rabbit - entering while remaining=%d len=%d", lsLen(bodyStreamP));
+#endif
   while (body_offset < lsLen(bodyStreamP)) {
     size_t remaining = lsLen(bodyStreamP) - body_offset;
+#if 0
+    lprintf("rabbit - entering while remaining=%d len=%d", remaining, lsLen(bodyStreamP));
+#endif
 
     if (remaining == 0) {
       break;
@@ -344,7 +350,6 @@ int amqp_basic_publish_streaming(amqp_connection_state_t state,
 
     f.frame_type = AMQP_FRAME_BODY;
     f.channel = channel;
-    // todo remove me, not used... f.payload.body_fragment.bytes = amqp_offset(lsLen(bodyStreamP), body_offset);
     if (remaining >= usable_body_payload_size) {
       f.payload.body_fragment.len = usable_body_payload_size;
     } else {
