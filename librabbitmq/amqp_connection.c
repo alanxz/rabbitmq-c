@@ -613,6 +613,7 @@ int amqp_send_frame_streaming(
 #endif
     while ((AMQP_STATUS_OK == res) && remaining) {
       int len = lsAvailable(bodyStreamP);
+      RABBIT_INFO("lsAvailable len=%d",len);
 #if 0
       lprintf("rabbit remaining=%d lsAvailable=%d\n",remaining, len);
 #endif
