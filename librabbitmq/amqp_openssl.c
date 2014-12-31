@@ -168,24 +168,37 @@ amqp_ssl_socket_recv(void *base,
   return received;
 }
 
-// See section RFC 6125 Sections 2.4 and 3.1
-static int match(char *expr, const char *string)
+static int match(ASN1_STRING *entry_string, const char *string)
 {
-  unsigned int i, j;
-
-  for (i = 0, j = 0; i < strlen(expr); i++) {
-    if (expr[i] == '*') {
-      if (string[j] == '.')
-        return 0;
-      while (string[j] != '.')
-        j++;
-    }
-    else if (expr[i] != string[j])
-      return 0;
-    else
-      j++;
+  unsigned char *utf8_value = NULL, *cp, ch;
+  int utf8_length, status = 1;
+  utf8_length = ASN1_STRING_to_UTF8(&utf8_value, entry_string);
+  if (0 > utf8_length) {
+    goto error;
   }
-  return (j == strlen(string));
+  while (utf8_length > 0 && utf8_value[utf8_length - 1] == 0) {
+    --utf8_length;
+  }
+  if (utf8_length >= 256) {
+    goto error;
+  }
+  if ((size_t)utf8_length != strlen((char *)utf8_value)) {
+    goto error;
+  }
+  for (cp = utf8_value; (ch = *cp) != '\0'; ++cp) {
+    if (isascii(ch) && !isprint(ch)) {
+      goto error;
+    }
+  }
+  if (!amqp_hostcheck((char *)utf8_value, string)) {
+    goto error;
+  }
+exit:
+  OPENSSL_free(utf8_value);
+  return status;
+error:
+  status = 0;
+  goto exit;
 }
 
 /* Does this hostname match an entry in the subjectAltName extension?
@@ -205,7 +218,7 @@ static int hostname_matches_subject_alt_name(const char *hostname, X509 *cert)
 
     if (namePart->type == GEN_DNS) {
       found_any_entries = 1;
-      found_match = match((char*)ASN1_STRING_data(namePart->d.uniformResourceIdentifier), hostname);
+      found_match = match(namePart->d.uniformResourceIdentifier, hostname);
       if (found_match)
         return 1;
     }
@@ -219,6 +232,7 @@ static int hostname_matches_subject_common_name(const char *hostname, X509 *cert
   X509_NAME *name;
   X509_NAME_ENTRY *name_entry;
   int position;
+  ASN1_STRING *entry_string;
 
   name = X509_get_subject_name(cert);
   position = -1;
@@ -227,8 +241,8 @@ static int hostname_matches_subject_common_name(const char *hostname, X509 *cert
     if (position == -1)
       break;
     name_entry = X509_NAME_get_entry(name, position);
-    char *certname = (char*) X509_NAME_ENTRY_get_data(name_entry)->data;
-    if (match(certname, hostname))
+    entry_string = X509_NAME_ENTRY_get_data(name_entry);
+    if (match(entry_string, hostname))
       return 1;
   }
   return 0;
