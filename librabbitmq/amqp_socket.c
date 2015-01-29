@@ -784,7 +784,6 @@ beginrecv:
 
     if (AMQP_STATUS_TIMEOUT == res) {
       if (next_timestamp == state->next_recv_heartbeat) {
-        amqp_socket_close(state->socket);
         return AMQP_STATUS_HEARTBEAT_TIMEOUT;
       } else if (next_timestamp == timeout_timestamp) {
         return AMQP_STATUS_TIMEOUT;
@@ -940,7 +939,6 @@ int amqp_simple_wait_method(amqp_connection_state_t state,
   if (frame.channel != expected_channel
       || frame.frame_type != AMQP_FRAME_METHOD
       || frame.payload.method.id != expected_method) {
-    amqp_socket_close(state->socket);
     return AMQP_STATUS_WRONG_METHOD;
   }
   *output = frame.payload.method;
