@@ -40,6 +40,7 @@
 
 #include "amqp_private.h"
 #include "amqp_timer.h"
+#include "amqp_cfstream_socket.h"
 
 #include <assert.h>
 #include <limits.h>
@@ -551,6 +552,15 @@ static int consume_one_frame(amqp_connection_state_t state, amqp_frame_t *decode
 static int recv_with_timeout(amqp_connection_state_t state, uint64_t start, struct timeval *timeout)
 {
   int res;
+    
+#ifdef AMQP_CFSTREAM_SOCKET
+  if (amqp_using_cfstream_socket(state->socket)) {
+    res = amqp_cfstream_socket_wait_timeout(state, start, timeout);
+    if (res != AMQP_STATUS_OK) {
+      return res;
+    }
+  } else {
+#endif /* AMQP_CFSTREAM_SOCKET */
 
   if (timeout) {
     int fd;
@@ -609,6 +619,10 @@ static int recv_with_timeout(amqp_connection_state_t state, uint64_t start, stru
       }
     }
   }
+      
+#ifdef AMQP_CFSTREAM_SOCKET
+  }
+#endif /* AMQP_CFSTREAM_SOCKET */
 
   res = amqp_socket_recv(state->socket, state->sock_inbound_buffer.bytes,
                          state->sock_inbound_buffer.len, 0);
