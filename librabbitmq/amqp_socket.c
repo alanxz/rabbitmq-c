@@ -495,8 +495,8 @@ static int bytes_equal(amqp_bytes_t l, amqp_bytes_t r)
   return 0;
 }
 
-static int sasl_mechanism_in_list(amqp_bytes_t mechanisms,
-                                  amqp_sasl_method_enum method)
+int sasl_mechanism_in_list(amqp_bytes_t mechanisms,
+                           amqp_sasl_method_enum method)
 {
   amqp_bytes_t mechanism;
   amqp_bytes_t supported_mechanism;

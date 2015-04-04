@@ -79,7 +79,8 @@ check_PROGRAMS = \
 	tests/test_tables \
 	tests/test_parse_url \
 	tests/test_hostcheck \
-	tests/test_status_enum
+	tests/test_status_enum \
+	tests/test_sasl_mechanism
 
 TESTS = $(check_PROGRAMS)
 
@@ -95,6 +96,9 @@ tests_test_hostcheck_SOURCES = \
 
 tests_test_status_enum_SOURCES = tests/test_status_enum.c
 tests_test_status_enum_LDADD = librabbitmq/librabbitmq.a
+
+tests_test_sasl_mechanism_SOURCES = tests/test_sasl_mechanism.c
+tests_test_sasl_mechanism_LDADD = librabbitmq/librabbitmq.a
 
 noinst_LTLIBRARIES =
 

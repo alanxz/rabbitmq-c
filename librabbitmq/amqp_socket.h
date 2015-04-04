@@ -190,6 +190,9 @@ amqp_simple_wait_frame_on_channel(amqp_connection_state_t state,
                                   amqp_channel_t channel,
                                   amqp_frame_t *decoded_frame);
 
+int
+sasl_mechanism_in_list(amqp_bytes_t mechanisms, amqp_sasl_method_enum method);
+
 AMQP_END_DECLS
 
 #endif /* AMQP_SOCKET_H */
