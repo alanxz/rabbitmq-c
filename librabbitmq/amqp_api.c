@@ -75,7 +75,8 @@ static const char *base_error_strings[] = {
   "heartbeat timeout, connection closed",/* AMQP_STATUS_HEARTBEAT_TIMEOUT       -0x000F */
   "unexpected protocol state",          /* AMQP_STATUS_UNEXPECTED STATE         -0x0010 */
   "socket is closed",                   /* AMQP_STATUS_SOCKET_CLOSED            -0x0011 */
-  "socket already open"                 /* AMQP_STATUS_SOCKET_INUSE             -0x0012 */
+  "socket already open",                /* AMQP_STATUS_SOCKET_INUSE             -0x0012 */
+  "unsupported sasl method requested"   /* AMQP_STATUS_BROKER_UNSUPPORTED_SASL_METHOD -0x0013 */
 };
 
 static const char *tcp_error_strings[] = {

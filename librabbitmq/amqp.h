@@ -634,6 +634,7 @@ typedef struct amqp_rpc_reply_t_ {
  * \since v0.1
  */
 typedef enum amqp_sasl_method_enum_ {
+  AMQP_SASL_METHOD_UNDEFINED = -1, /**< Invalid SASL method */
   AMQP_SASL_METHOD_PLAIN = 0,      /**< the PLAIN SASL method for authentication to the broker */
   AMQP_SASL_METHOD_EXTERNAL = 1    /**< the EXTERNAL SASL method for authentication to the broker */
 } amqp_sasl_method_enum;
