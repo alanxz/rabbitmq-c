@@ -200,7 +200,7 @@ if (REGENERATE_AMQP_FRAMING)
   find_path(AMQP_CODEGEN_DIR
     amqp_codegen.py
     PATHS ${CMAKE_CURRENT_SOURCE_DIR}/codegen
-          ${CMAKE_CURRENT_SOURCE_DIR}/rabbitmq-codegen 
+          ${CMAKE_CURRENT_SOURCE_DIR}/rabbitmq-codegen
           ${CMAKE_CURRENT_SOURCE_DIR}/../rabbitmq-codegen
           DOC "Path to directory containing amqp_codegen.py (rabbitmq-codegen)"
           NO_DEFAULT_PATH
