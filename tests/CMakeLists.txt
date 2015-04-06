@@ -11,11 +11,11 @@ endif (MSVC)
 add_definitions(-DHAVE_CONFIG_H)
 
 add_executable(test_parse_url test_parse_url.c)
-target_link_libraries(test_parse_url ${RMQ_LIBRARY_TARGET})
+target_link_libraries(test_parse_url rabbitmq-static)
 add_test(parse_url test_parse_url)
 
 add_executable(test_tables test_tables.c)
-target_link_libraries(test_tables ${RMQ_LIBRARY_TARGET})
+target_link_libraries(test_tables rabbitmq-static)
 add_test(tables test_tables)
 configure_file(test_tables.expected ${CMAKE_CURRENT_BINARY_DIR}/tests/test_tables.expected COPY_ONLY)
 
@@ -26,5 +26,5 @@ add_test(hostcheck test_hostcheck)
 
 add_executable(test_status_enum
                test_status_enum.c)
-target_link_libraries(test_status_enum ${RMQ_LIBRARY_TARGET})
+target_link_libraries(test_status_enum rabbitmq-static)
 add_test(status_enum test_status_enum)

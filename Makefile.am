@@ -84,17 +84,17 @@ check_PROGRAMS = \
 TESTS = $(check_PROGRAMS)
 
 tests_test_tables_SOURCES = tests/test_tables.c
-tests_test_tables_LDADD = librabbitmq/librabbitmq.la
+tests_test_tables_LDADD = librabbitmq/librabbitmq.a
 
 tests_test_parse_url_SOURCES = tests/test_parse_url.c
-tests_test_parse_url_LDADD = librabbitmq/librabbitmq.la
+tests_test_parse_url_LDADD = librabbitmq/librabbitmq.a
 
 tests_test_hostcheck_SOURCES = \
   tests/test_hostcheck.c \
 	librabbitmq/amqp_hostcheck.c
 
 tests_test_status_enum_SOURCES = tests/test_status_enum.c
-tests_test_status_enum_LDADD = librabbitmq/librabbitmq.la
+tests_test_status_enum_LDADD = librabbitmq/librabbitmq.a
 
 noinst_LTLIBRARIES =
 

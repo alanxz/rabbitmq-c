@@ -224,7 +224,7 @@ endif()
 find_package(Threads)
 
 option(BUILD_SHARED_LIBS "Build rabbitmq-c as a shared library" ON)
-option(BUILD_STATIC_LIBS "Build rabbitmq-c as a static library" OFF)
+option(BUILD_STATIC_LIBS "Build rabbitmq-c as a static library" ON)
 
 option(BUILD_EXAMPLES "Build Examples" ON)
 option(BUILD_TOOLS "Build Tools (requires POPT Library)" ${POPT_FOUND})
@@ -278,6 +278,11 @@ if (BUILD_TOOLS)
 endif ()
 
 if (BUILD_TESTS)
+  if (NOT BUILD_STATIC_LIBS)
+    message(FATAL_ERROR
+      "Tests can only be built against static libraries "
+      "(set BUILD_STATIC_LIBS=ON)")
+  endif ()
   enable_testing()
   add_subdirectory(tests)
 endif (BUILD_TESTS)
