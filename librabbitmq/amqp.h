@@ -242,7 +242,7 @@ AMQP_BEGIN_DECLS
  * 0x02030401
  *
  * \sa amqp_version_number() AMQP_VERSION_MAJOR, AMQP_VERSION_MINOR,
- *     AMQP_VERSION_PATCH, AMQP_VERSION_IS_RELEASE
+ *     AMQP_VERSION_PATCH, AMQP_VERSION_IS_RELEASE, AMQP_VERSION_CODE
  *
  * \since v0.4.0
  */
@@ -250,6 +250,24 @@ AMQP_BEGIN_DECLS
                       (AMQP_VERSION_MINOR << 16) | \
                       (AMQP_VERSION_PATCH << 8)  | \
                       (AMQP_VERSION_IS_RELEASE))
+
+/**
+ * \def AMQP_VERSION_CODE
+ *
+ * Helper macro to geneate a packed version code suitable for
+ * comparison with AMQP_VERSION.
+ *
+ * \sa amqp_version_number() AMQP_VERSION_MAJOR, AMQP_VERSION_MINOR,
+ *     AMQP_VERSION_PATCH, AMQP_VERSION_IS_RELEASE, AMQP_VERSION
+ *
+ * \since v0.6.1
+ */
+#define AMQP_VERSION_CODE(major, minor, patch, release) \
+    ((major << 24) | \
+     (minor << 16) | \
+     (patch << 8)  | \
+     (release))
+
 
 /** \cond HIDE_FROM_DOXYGEN */
 #define AMQ_STRINGIFY(s) AMQ_STRINGIFY_HELPER(s)
