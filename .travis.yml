@@ -28,7 +28,7 @@ before_script:
 
 # Run the Build script
 script:
-  - if [ ${COVERITY_SCAN_BRANCH} != 1 ]; then
+  - if [ "${COVERITY_SCAN_BRANCH}" != 1 ]; then
       case $BUILD_SYSTEM in
         cmake)
           cmake .. -DCMAKE_INSTALL_PREFIX=`pwd`/_install &&
