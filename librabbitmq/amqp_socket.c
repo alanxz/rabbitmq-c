@@ -1145,7 +1145,6 @@ int amqp_merge_capabilities(const amqp_table_t *base, const amqp_table_t *add,
     if (NULL != e) {
       if (AMQP_FIELD_KIND_TABLE == add->entries[i].value.kind &&
           AMQP_FIELD_KIND_TABLE == e->value.kind) {
-        int res;
         amqp_table_entry_t *be =
             amqp_table_get_entry_by_key(base, add->entries[i].key);
 
