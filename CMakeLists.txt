@@ -59,6 +59,17 @@ include(CheckSymbolExists)
 include(CheckLibraryExists)
 include(CMakePushCheckState)
 include(GNUInstallDirs)
+include(CheckCCompilerFlag)
+
+CHECK_C_COMPILER_FLAG("-std=c99" HAVE_C99)
+if (HAVE_C99)
+  CHECK_C_COMPILER_FLAG("-std=gnu99" HAVE_GNU99)
+  if (HAVE_GNU99)
+    set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -std=gnu99")
+  else ()
+    set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -std=c99")
+  endif()
+endif()
 
 # Detect if we need to link against a socket library:
 cmake_push_check_state()
