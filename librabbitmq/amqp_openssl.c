@@ -300,7 +300,7 @@ amqp_ssl_socket_open(void *base, const char *host, int port, struct timeval *tim
 
 start_connect:
   status = SSL_connect(self->ssl);
-  if (!status) {
+  if (status != 1) {
     self->internal_error = SSL_get_error(self->ssl, status);
     switch (self->internal_error) {
       case SSL_ERROR_WANT_READ:
