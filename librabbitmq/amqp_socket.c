@@ -960,7 +960,8 @@ int amqp_simple_wait_method(amqp_connection_state_t state,
                             amqp_method_number_t expected_method,
                             amqp_method_t *output)
 {
-  amqp_method_number_t expected_methods[] = { expected_method, 0 };
+  amqp_method_number_t expected_methods[] = { 0, 0 };
+  expected_methods[0] = expected_method;
   return amqp_simple_wait_method_list(state, expected_channel, expected_methods,
                                       output);
 }
