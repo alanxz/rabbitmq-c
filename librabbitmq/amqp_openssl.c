@@ -113,7 +113,6 @@ amqp_ssl_socket_send(void *base,
     }
   } else {
     self->internal_error = 0;
-    res = AMQP_STATUS_OK;
   }
 
   return res;
