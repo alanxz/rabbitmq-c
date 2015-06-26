@@ -312,13 +312,14 @@ start_connect:
     goto error_out2;
   }
 
-  result = SSL_get_verify_result(self->ssl);
-  if (X509_V_OK != result) {
-    self->internal_error = result;
-    status = AMQP_STATUS_SSL_PEER_VERIFY_FAILED;
-    goto error_out3;
-  }
   if (self->verify) {
+    result = SSL_get_verify_result(self->ssl);
+    if (X509_V_OK != result) {
+      self->internal_error = result;
+      status = AMQP_STATUS_SSL_PEER_VERIFY_FAILED;
+      goto error_out3;
+    }
+
     int verify_status = amqp_ssl_socket_verify_hostname(self, host);
     if (verify_status) {
       self->internal_error = 0;
