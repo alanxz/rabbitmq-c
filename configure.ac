@@ -30,10 +30,10 @@ LT_PREREQ([2.2])
 LT_INIT([disable-static win32-dll])
 
 # Program checks
-m4_ifdef([AC_PROG_CC_89], [AC_PROG_CC_89],
-	 [AC_MSG_WARN([Attempt c89 workaround for old versions of autoconf])
+m4_ifdef([AC_PROG_CC_99], [AC_PROG_CC_99],
+	 [AC_MSG_WARN([Attempt c99 workaround for old versions of autoconf])
 	  AC_PROG_CC
-	  AX_TRY_CFLAGS([-std=gnu90], [AX_CFLAGS([-std=gnu90])])])
+	  AX_TRY_CFLAGS([-std=gnu99], [AX_CFLAGS([-std=gnu99])])])
 PKG_PROG_PKG_CONFIG([0.17])
 
 # Environment setup
