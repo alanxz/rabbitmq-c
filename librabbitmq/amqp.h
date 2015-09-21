@@ -1600,6 +1600,57 @@ AMQP_CALL amqp_simple_wait_method(amqp_connection_state_t state,
                                   amqp_method_t *output);
 
 /**
+ * Waits for a specific method from the broker with a timeout
+ *
+ * \warning You probably don't want to use this function. If this function
+ *  doesn't receive exactly the frame requested it closes the whole connection.
+ *
+ * Waits for a single method on a channel from the broker.
+ * If a frame is received that does not match expected_channel
+ * or expected_method the program will abort
+ *
+ * \param [in] state the connection object
+ * \param [in] expected_channel the channel that the method should be delivered on
+ * \param [in] expected_method the method to wait for
+ * \param [in] timeout a timeout to wait for a method. Passing in
+ *             NULL will result in blocking behavior.
+ * \param [out] output the method
+ * \returns AMQP_STATUS_OK on success. An amqp_status_enum value is returned
+ *  otherwise. Possible errors include:
+ *  - AMQP_STATUS_WRONG_METHOD a frame containing the wrong method, wrong frame
+ *    type or wrong channel was received. The connection is closed.
+ *  - AMQP_STATUS_NO_MEMORY failure in allocating memory. The library is likely in
+ *    an indeterminate state making recovery unlikely. Client should note the error
+ *    and terminate the application
+ *  - AMQP_STATUS_BAD_AMQP_DATA bad AMQP data was received. The connection
+ *    should be shutdown immediately
+ *  - AMQP_STATUS_UNKNOWN_METHOD: an unknown method was received from the
+ *    broker. This is likely a protocol error and the connection should be
+ *    shutdown immediately
+ *  - AMQP_STATUS_UNKNOWN_CLASS: a properties frame with an unknown class
+ *    was received from the broker. This is likely a protocol error and the
+ *    connection should be shutdown immediately
+ *  - AMQP_STATUS_HEARTBEAT_TIMEOUT timed out while waiting for heartbeat
+ *    from the broker. The connection has been closed.
+ *  - AMQP_STATUS_TIMEOUT the timeout was reached while waiting for a method.
+ *  - AMQP_STATUS_TIMER_FAILURE system timer indicated failure.
+ *  - AMQP_STATUS_SOCKET_ERROR a socket error occurred. The connection has
+ *    been closed
+ *  - AMQP_STATUS_SSL_ERROR a SSL socket error occurred. The connection has
+ *    been closed.
+ *
+ * \since v0.7.1
+ */
+
+AMQP_PUBLIC_FUNCTION
+int
+AMQP_CALL amqp_simple_wait_method_noblock(amqp_connection_state_t state,
+                                          amqp_channel_t expected_channel,
+                                          amqp_method_number_t expected_method,
+                                          struct timeval * timeout,
+                                          amqp_method_t *output);
+
+/**
  * Sends a method to the broker
  *
  * This is a thin wrapper around amqp_send_frame(), providing a way to send
@@ -1671,6 +1722,50 @@ AMQP_CALL amqp_simple_rpc(amqp_connection_state_t state,
                           amqp_method_number_t request_id,
                           amqp_method_number_t *expected_reply_ids,
                           void *decoded_request_method);
+
+/**
+ * Sends a method to the broker and waits for a method response
+ *
+ * \param [in] state the connection object
+ * \param [in] channel the channel object
+ * \param [in] request_id the method number of the request
+ * \param [in] expected_reply_ids a 0 terminated array of expected response
+ *             method numbers
+ * \param [in] decoded_request_method the method to be sent to the broker
+ * \param [in] timeout a timeout to wait for a RPC answer. Passing in
+ *             NULL will result in blocking behavior.
+ * \return a amqp_rpc_reply_t:
+ *  - r.reply_type == AMQP_RESPONSE_NORMAL. RPC completed successfully
+ *  - r.reply_type == AMQP_STATUS_TIMEOUT the timeout was reached while waiting for RPC answer.
+ *  - r.reply_type == AMQP_RESPONSE_SERVER_EXCEPTION. The broker returned an
+ *    exception:
+ *    - If r.reply.id == AMQP_CHANNEL_CLOSE_METHOD a channel exception
+ *      occurred, cast r.reply.decoded to amqp_channel_close_t* to see details
+ *      of the exception. The client should amqp_send_method() a
+ *      amqp_channel_close_ok_t. The channel must be re-opened before it
+ *      can be used again. Any resources associated with the channel
+ *      (auto-delete exchanges, auto-delete queues, consumers) are invalid
+ *      and must be recreated before attempting to use them again.
+ *    - If r.reply.id == AMQP_CONNECTION_CLOSE_METHOD a connection exception
+ *      occurred, cast r.reply.decoded to amqp_connection_close_t* to see
+ *      details of the exception. The client amqp_send_method() a
+ *      amqp_connection_close_ok_t and disconnect from the broker.
+ *  - r.reply_type == AMQP_RESPONSE_LIBRARY_EXCEPTION. An exception occurred
+ *    within the library. Examine r.library_error and compare it against
+ *    amqp_status_enum values to determine the error.
+ *
+ * \sa amqp_simple_rpc_decoded()
+ *
+ * \since v0.1
+ */
+AMQP_PUBLIC_FUNCTION
+amqp_rpc_reply_t
+AMQP_CALL amqp_simple_rpc_noblock(amqp_connection_state_t state,
+                                  amqp_channel_t channel,
+                                  amqp_method_number_t request_id,
+                                  amqp_method_number_t *expected_reply_ids,
+                                  void *decoded_request_method,
+                                  struct timeval *timeout);
 
 /**
  * Sends a method to the broker and waits for a method response
@@ -1796,6 +1891,66 @@ AMQP_CALL amqp_login(amqp_connection_state_t state, char const *vhost,
                      amqp_sasl_method_enum sasl_method, ...);
 
 /**
+ * Login to the broker with a timeout
+ *
+ * After using amqp_open_socket and amqp_set_sockfd, call
+ * amqp_login_noblock to complete connecting to the broker with a timeout
+ *
+ * \param [in] state the connection object
+ * \param [in] vhost the virtual host to connect to on the broker. The default
+ *              on most brokers is "/"
+ * \param [in] channel_max the limit for number of channels for the connection.
+ *              0 means no limit, and is a good default (AMQP_DEFAULT_MAX_CHANNELS)
+ *              Note that the maximum number of channels the protocol supports
+ *              is 65535 (2^16, with the 0-channel reserved)
+ * \param [in] frame_max the maximum size of an AMQP frame on the wire to
+ *              request of the broker for this connection. 4096 is the minimum
+ *              size, 2^31-1 is the maximum, a good default is 131072 (128KB), or
+ *              AMQP_DEFAULT_FRAME_SIZE
+ * \param [in] heartbeat the number of seconds between heartbeat frames to
+ *              request of the broker. A value of 0 disables heartbeats.
+ *              Note rabbitmq-c only has partial support for heartbeats, as of
+ *              v0.4.0 they are only serviced during amqp_basic_publish() and
+ *              amqp_simple_wait_frame()/amqp_simple_wait_frame_noblock()
+ * \param [in] timeout a timeout to wait for a start connection. Passing in
+ *             NULL will result in blocking behavior.
+ * \param [in] sasl_method the SASL method to authenticate with the broker.
+ *              followed by the authentication information.
+ *              For AMQP_SASL_METHOD_PLAIN, the AMQP_SASL_METHOD_PLAIN
+ *              should be followed by two arguments in this order:
+ *              const char* username, and const char* password.
+ * \return amqp_rpc_reply_t indicating success or failure.
+ *  - r.reply_type == AMQP_RESPONSE_NORMAL. Login completed successfully
+ *  - r.reply_type == AMQP_RESPONSE_LIBRARY_EXCEPTION. In most cases errors
+ *    from the broker when logging in will be represented by the broker closing
+ *    the socket. In this case r.library_error will be set to
+ *    AMQP_STATUS_CONNECTION_CLOSED. This error can represent a number of
+ *    error conditions including: invalid vhost, authentication failure.
+ *  - r.reply_type == AMQP_STATUS_TIMEOUT the timeout was reached while waiting for start
+ *    connection.
+ *  - r.reply_type == AMQP_RESPONSE_SERVER_EXCEPTION. The broker returned an
+ *    exception:
+ *    - If r.reply.id == AMQP_CHANNEL_CLOSE_METHOD a channel exception
+ *      occurred, cast r.reply.decoded to amqp_channel_close_t* to see details
+ *      of the exception. The client should amqp_send_method() a
+ *      amqp_channel_close_ok_t. The channel must be re-opened before it
+ *      can be used again. Any resources associated with the channel
+ *      (auto-delete exchanges, auto-delete queues, consumers) are invalid
+ *      and must be recreated before attempting to use them again.
+ *    - If r.reply.id == AMQP_CONNECTION_CLOSE_METHOD a connection exception
+ *      occurred, cast r.reply.decoded to amqp_connection_close_t* to see
+ *      details of the exception. The client amqp_send_method() a
+ *      amqp_connection_close_ok_t and disconnect from the broker.
+ *
+ * \since v0.7.1
+ */
+AMQP_PUBLIC_FUNCTION
+amqp_rpc_reply_t
+AMQP_CALL amqp_login_noblock(amqp_connection_state_t state, char const *vhost,
+                             int channel_max, int frame_max, int heartbeat, struct timeval *timeout,
+                             amqp_sasl_method_enum sasl_method, ...);
+
+/**
  * Login to the broker passing a properties table
  *
  * This function is similar to amqp_login() and differs in that it provides a
@@ -1854,6 +2009,68 @@ amqp_rpc_reply_t
 AMQP_CALL amqp_login_with_properties(amqp_connection_state_t state, char const *vhost,
                                      int channel_max, int frame_max, int heartbeat,
                                      const amqp_table_t *properties, amqp_sasl_method_enum sasl_method, ...);
+
+/**
+ * Login to the broker passing a properties table with a timeout
+ *
+ * This function is similar to amqp_login() and differs in that it provides a
+ * way to pass client properties to the broker. This is commonly used to
+ * negotiate newer protocol features as they are supported by the broker.
+ *
+ * \param [in] state the connection object
+ * \param [in] vhost the virtual host to connect to on the broker. The default
+ *              on most brokers is "/"
+ * \param [in] channel_max the limit for the number of channels for the connection.
+ *             0 means no limit, and is a good default (AMQP_DEFAULT_MAX_CHANNELS)
+ *             Note that the maximum number of channels the protocol supports
+ *             is 65535 (2^16, with the 0-channel reserved)
+ * \param [in] frame_max the maximum size of an AMQP frame ont he wire to
+ *              request of the broker for this connection. 4096 is the minimum
+ *              size, 2^31-1 is the maximum, a good default is 131072 (128KB), or
+ *              AMQP_DEFAULT_FRAME_SIZE
+ * \param [in] heartbeat the number of seconds between heartbeat frame to
+ *             request of the broker. A value of 0 disables heartbeats.
+ *             Note rabbitmq-c only has partial support for hearts, as of
+ *             v0.4.0 heartbeats are only serviced during amqp_basic_publish(),
+ *             and amqp_simple_wait_frame()/amqp_simple_wait_frame_noblock()
+ * \param [in] properties a table of properties to send the broker.
+ * \param [in] timeout a timeout to wait for a start connection. Passing in
+ *             NULL will result in blocking behavior.
+ * \param [in] sasl_method the SASL method to authenticate with the broker
+ *             followed by the authentication information.
+ *             For AMQP_SASL_METHOD_PLAN, the AMQP_SASL_METHOD_PLAIN parameter
+ *             should be followed by two arguments in this order:
+ *             const char* username, and const char* password.
+ * \return amqp_rpc_reply_t indicating success or failure.
+ *  - r.reply_type == AMQP_RESPONSE_NORMAL. Login completed successfully
+ *  - r.reply_type == AMQP_RESPONSE_LIBRARY_EXCEPTION. In most cases errors
+ *    from the broker when logging in will be represented by the broker closing
+ *    the socket. In this case r.library_error will be set to
+ *    AMQP_STATUS_CONNECTION_CLOSED. This error can represent a number of
+ *    error conditions including: invalid vhost, authentication failure.
+ *  - r.reply_type == AMQP_STATUS_TIMEOUT the timeout was reached while waiting for start
+ *    connection.
+ *  - r.reply_type == AMQP_RESPONSE_SERVER_EXCEPTION. The broker returned an
+ *    exception:
+ *    - If r.reply.id == AMQP_CHANNEL_CLOSE_METHOD a channel exception
+ *      occurred, cast r.reply.decoded to amqp_channel_close_t* to see details
+ *      of the exception. The client should amqp_send_method() a
+ *      amqp_channel_close_ok_t. The channel must be re-opened before it
+ *      can be used again. Any resources associated with the channel
+ *      (auto-delete exchanges, auto-delete queues, consumers) are invalid
+ *      and must be recreated before attempting to use them again.
+ *    - If r.reply.id == AMQP_CONNECTION_CLOSE_METHOD a connection exception
+ *      occurred, cast r.reply.decoded to amqp_connection_close_t* to see
+ *      details of the exception. The client amqp_send_method() a
+ *      amqp_connection_close_ok_t and disconnect from the broker.
+ *
+ * \since v0.7.1
+ */
+AMQP_PUBLIC_FUNCTION
+amqp_rpc_reply_t
+AMQP_CALL amqp_login_with_properties_noblock(amqp_connection_state_t state, char const *vhost,
+                                             int channel_max, int frame_max, int heartbeat, const amqp_table_t *properties,
+                                             struct timeval *timeout, amqp_sasl_method_enum sasl_method, ...);
 
 struct amqp_basic_properties_t_;
 
