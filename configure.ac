@@ -2,8 +2,8 @@
 AC_PREREQ([2.59])
 
 m4_define([major_version], [0])
-m4_define([minor_version], [7])
-m4_define([micro_version], [1])
+m4_define([minor_version], [8])
+m4_define([micro_version], [0])
 
 # Follow all steps below in order to calculate new ABI version when updating the library
 # NOTE: THIS IS UNRELATED to the actual project version
@@ -13,12 +13,12 @@ m4_define([micro_version], [1])
 # 3. If any interfaces have been added since the last public release, then increment age.
 # 4. If any interfaces have been removed since the last public release, then set age to 0.
 m4_define([soversion_current],   [5])
-m4_define([soversion_revision],  [2])
+m4_define([soversion_revision],  [4])
 m4_define([soversion_age],       [1])
 
 AC_INIT([rabbitmq-c], [major_version.minor_version.micro_version],
-	[https://github.com/alanxz/rabbitmq-c/issues], [rabbitmq-c],
-	[http://www.rabbitmq.com/])
+    [https://github.com/alanxz/rabbitmq-c/issues], [rabbitmq-c],
+    [http://www.rabbitmq.com/])
 AC_CONFIG_MACRO_DIR([m4])
 AM_INIT_AUTOMAKE([1.9 subdir-objects foreign -Wno-portability])
 m4_ifdef([AM_SILENT_RULES], [AM_SILENT_RULES([yes])])
@@ -31,9 +31,9 @@ LT_INIT([disable-static win32-dll])
 
 # Program checks
 m4_ifdef([AC_PROG_CC_89], [AC_PROG_CC_89],
-	 [AC_MSG_WARN([Attempt c89 workaround for old versions of autoconf])
-	  AC_PROG_CC
-	  AX_TRY_CFLAGS([-std=gnu90], [AX_CFLAGS([-std=gnu90])])])
+    [AC_MSG_WARN([Attempt c89 workaround for old versions of autoconf])
+    AC_PROG_CC
+    AX_TRY_CFLAGS([-std=gnu90], [AX_CFLAGS([-std=gnu90])])])
 PKG_PROG_PKG_CONFIG([0.17])
 
 # Environment setup
@@ -98,7 +98,7 @@ AC_SEARCH_LIBS([getaddrinfo], [socket], [],
                              [-lnsl])])
 AC_SEARCH_LIBS([socket], [socket], [],
                [AC_CHECK_LIB([socket], [socket],
-                             [LIBS="-lsocket -lnsl $LIBS"], 
+                             [LIBS="-lsocket -lnsl $LIBS"],
                              [AC_MSG_ERROR([cannot find socket library (library with socket symbol)])],
                              [-lnsl])])
 AC_SEARCH_LIBS([clock_gettime], [rt])
@@ -130,64 +130,53 @@ AX_HAVE_POLL([AC_DEFINE([HAVE_POLL], [], ["Have poll()"])],
 
 # Configure SSL/TLS
 AC_ARG_WITH([ssl],
-	    [AS_HELP_STRING([--with-ssl=@<:@cyassl/gnutls/no/openssl/polarssl/yes@:>@],
-			    [enable SSL/TLS support @<:@default=openssl@:>@])],
-	    [AS_CASE([$withval],
-		     [yes], [with_ssl=openssl],
-		     [*], [with_ssl=$withval])],
-	    [with_ssl=openssl])
+    [AS_HELP_STRING([--with-ssl=@<:@no/openssl/yes@:>@],
+                    [enable SSL/TLS support @<:@default=openssl@:>@])],
+    [AS_CASE([$withval],
+        [yes], [with_ssl=openssl],
+        [*], [with_ssl=$withval])],
+    [with_ssl=openssl])
 
-AS_IF([test "x$with_ssl" = "xcyassl"],
-      [PKG_CHECK_MODULES([SSL], [libcyassl],, [with_ssl=no])],
-      [test "x$with_ssl" = "xgnutls"],
-      [PKG_CHECK_MODULES([SSL], [gnutls],, [with_ssl=no])],
-      [test "x$with_ssl" = "xopenssl"],
+AS_IF([test "x$with_ssl" = "xopenssl"],
       [PKG_CHECK_MODULES([SSL], [openssl >= 0.9.8], [ssl_pkg_required=openssl],
                          [with_ssl=no])],
-      [test "x$with_ssl" = "xpolarssl"],
-      [AX_LIB_POLARSSL([SSL_CFLAGS=$POLARSSL_CFLAGS
-			SSL_LIBS=$POLARSSL_LIBS],
-		       [with_ssl=no])],
       [test "x$with_ssl" = "xno"],,
       [AC_MSG_ERROR([unknown SSL/TLS implementation: $with_ssl])])
-AM_CONDITIONAL([SSL_CYASSL], [test "x$with_ssl" = "xcyassl"])
-AM_CONDITIONAL([SSL_GNUTLS], [test "x$with_ssl" = "xgnutls"])
 AM_CONDITIONAL([SSL_OPENSSL], [test "x$with_ssl" = "xopenssl"])
-AM_CONDITIONAL([SSL_POLARSSL], [test "x$with_ssl" = "xpolarssl"])
 AM_CONDITIONAL([SSL], [test "x$with_ssl" != "xno"])
 AS_IF([test "x$with_ssl" != "xno"],
       [AC_DEFINE([WITH_SSL], [1], [Define to 1 if SSL/TLS is enabled.])])
 
 # Configure AMQP command-line tools
 AC_ARG_ENABLE([tools],
-	      [AS_HELP_STRING([--enable-tools],
-			      [build AMQP command-line tools @<:@auto@:>@])],,
-	      [enable_tools=auto])
+    [AS_HELP_STRING([--enable-tools],
+        [build AMQP command-line tools @<:@auto@:>@])],,
+    [enable_tools=auto])
 AS_IF([test "x$enable_tools" != "xno"],
       [AX_LIB_POPT([enable_tools=yes], [enable_tools=no])])
 AM_CONDITIONAL([TOOLS], [test "x$enable_tools" = "xyes"])
 
 # Configure command-line tool documentation
 AC_ARG_ENABLE([docs],
-	      [AS_HELP_STRING([--enable-docs],
-			[build command-line tool documentation @<:@auto@:>@])],,
-	       [AS_IF([test "x$enable_tools" = "xno"],
-		      [enable_docs=no],
-		      [enable_docs=auto])])
+    [AS_HELP_STRING([--enable-docs],
+        [build command-line tool documentation @<:@auto@:>@])],,
+    [AS_IF([test "x$enable_tools" = "xno"],
+        [enable_docs=no],
+        [enable_docs=auto])])
 AC_ARG_VAR([XMLTO], [xmlto command])
 AS_IF([test "x$enable_docs" != "xno"],
-      [AS_IF([test "x$XMLTO" = "x"],
-	     [AC_CHECK_PROGS([XMLTO], [xmlto])])
-       AS_IF([test "x$XMLTO" != "x"],
-	     [enable_docs=yes],
-	     [enable_docs=no])])
+    [AS_IF([test "x$XMLTO" = "x"],
+        [AC_CHECK_PROGS([XMLTO], [xmlto])])
+    AS_IF([test "x$XMLTO" != "x"],
+        [enable_docs=yes],
+        [enable_docs=no])])
 AM_CONDITIONAL([DOCS], [test "x$enable_docs" = "xyes"])
 
 # Configure examples
 AC_ARG_ENABLE([examples],
-	      [AS_HELP_STRING([--enable-examples],
-			      [build example code @<:@auto@:>@])],,
-	      [enable_examples=yes])
+    [AS_HELP_STRING([--enable-examples],
+        [build example code @<:@auto@:>@])],,
+    [enable_examples=yes])
 AM_CONDITIONAL([EXAMPLES], [test "x$enable_examples" = "xyes"])
 
 AC_SUBST([requires_private], [$ssl_pkg_required])
@@ -195,16 +184,16 @@ AC_SUBST([libs_private], [$LIBS])
 AC_DEFINE_UNQUOTED([AMQ_PLATFORM], ["$host_os"], [Host operating system string])
 AC_CONFIG_HEADERS([config.h])
 AC_CONFIG_FILES([
-	librabbitmq.pc
-	Makefile
+    librabbitmq.pc
+    Makefile
 ])
 AC_OUTPUT
 AC_MSG_RESULT([
 $PACKAGE_NAME build options:
-	Host: $host
-	Version: $VERSION
-	SSL/TLS: $with_ssl
-	Tools: $enable_tools
-	Documentation: $enable_docs
-	Examples: $enable_examples
+    Host: $host
+    Version: $VERSION
+    SSL/TLS: $with_ssl
+    Tools: $enable_tools
+    Documentation: $enable_docs
+    Examples: $enable_examples
 ])

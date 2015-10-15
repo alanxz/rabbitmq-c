@@ -1,4 +1,12 @@
 # Change Log
+## Changes since v0.7.0 (a.k.a., v0.7.1)
+- `41fa9df` Autoconf: add missing files in build system
+- `ef73c06` Win32: Use WSAEWOULDBLOCK instead of EWOULDBLOCK on Win32
+- `ceca348` CI: use travis-ci container based builds
+- `393e2df` Lib: if channel_max is 0 use server's channel_max
+- `ff47574` Lib: fix build on OpenBSD
+- `8429496...0ac6430` CI: enable CI on Mac OS X in travis-ci
+
 ## Changes since v0.6.0 (a.k.a., v0.7.0)
 - `3379812` Tools: Add support for heartbeats
 - `d7029db` CI: Add continuous integration on Win32 using Appveyor

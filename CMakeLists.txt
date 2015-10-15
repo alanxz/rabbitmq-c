@@ -13,7 +13,7 @@ set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} ${CMAKE_CURRENT_SOURCE_DIR}/cmake)
 # 4. If any interfaces have been removed since the last public release, then set age to 0.
 
 set(RMQ_SOVERSION_CURRENT   5)
-set(RMQ_SOVERSION_REVISION  2)
+set(RMQ_SOVERSION_REVISION  4)
 set(RMQ_SOVERSION_AGE       1)
 
 math(EXPR RMQ_SOVERSION_MAJOR "${RMQ_SOVERSION_CURRENT} - ${RMQ_SOVERSION_AGE}")
@@ -263,25 +263,8 @@ option(BUILD_API_DOCS "Build Doxygen API docs" ${DOXYGEN_FOUND})
 option(ENABLE_SSL_SUPPORT "Enable SSL support" ON)
 option(ENABLE_THREAD_SAFETY "Enable thread safety when using OpenSSL" ${Threads_FOUND})
 
-set(SSL_ENGINE "OpenSSL" CACHE STRING "SSL Backend to use, valid options: OpenSSL, cyaSSL, GnuTLS, PolarSSL")
-mark_as_advanced(SSL_ENGINE)
-
 if (ENABLE_SSL_SUPPORT)
-  if (SSL_ENGINE STREQUAL "OpenSSL")
-    find_package(OpenSSL 0.9.8 REQUIRED)
-
-  elseif (SSL_ENGINE STREQUAL "cyaSSL")
-    find_package(cyaSSL REQUIRED)
-
-  elseif (SSL_ENGINE STREQUAL "GnuTLS")
-    find_package(GnuTLS REQUIRED)
-
-  elseif (SSL_ENGINE STREQUAL "PolarSSL")
-    find_package(PolarSSL REQUIRED)
-
-  else()
-    message(FATAL_ERROR "Unsupported SSL_ENGINE ${SSL_ENGINE}, valid engines: OpenSSL, cyaSSL, GnuTLS, or PolarSSL")
-  endif()
+  find_package(OpenSSL 0.9.8 REQUIRED)
 endif()
 
 if (NOT BUILD_SHARED_LIBS AND NOT BUILD_STATIC_LIBS)

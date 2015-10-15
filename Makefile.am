@@ -40,15 +40,6 @@ librabbitmq_librabbitmq_la_SOURCES = \
 	librabbitmq/amqp_time.h \
 	librabbitmq/amqp_url.c
 
-
-if SSL_CYASSL
-librabbitmq_librabbitmq_la_SOURCES += librabbitmq/amqp_cyassl.c
-endif
-
-if SSL_GNUTLS
-librabbitmq_librabbitmq_la_SOURCES += librabbitmq/amqp_gnutls.c
-endif
-
 if SSL_OPENSSL
 librabbitmq_librabbitmq_la_SOURCES += \
   librabbitmq/amqp_hostcheck.c \
@@ -57,10 +48,6 @@ librabbitmq_librabbitmq_la_SOURCES += \
 if OS_APPLE
 librabbitmq_librabbitmq_la_CFLAGS += -Wno-deprecated-declarations
 endif
-endif
-
-if SSL_POLARSSL
-librabbitmq_librabbitmq_la_SOURCES += librabbitmq/amqp_polarssl.c
 endif
 
 if OS_UNIX
