@@ -144,6 +144,14 @@ int amqp_tune_connection(amqp_connection_state_t state,
   void *newbuf;
   int res;
 
+  if(channel_max<0 || channel_max>UINT16_MAX) {
+    return AMQP_STATUS_INVALID_PARAMETER;
+  }
+
+  if(frame_max<0) {
+    return AMQP_STATUS_INVALID_PARAMETER;
+  }
+
   ENFORCE_STATE(state, CONNECTION_STATE_IDLE);
 
   state->channel_max = channel_max;
@@ -165,8 +173,8 @@ int amqp_tune_connection(amqp_connection_state_t state,
     return res;
   }
 
-  state->outbound_buffer.len = frame_max;
-  newbuf = realloc(state->outbound_buffer.bytes, frame_max);
+  state->outbound_buffer.len = (size_t)(unsigned)frame_max;
+  newbuf = realloc(state->outbound_buffer.bytes, (size_t)(unsigned)frame_max);
   if (newbuf == NULL) {
     return AMQP_STATUS_NO_MEMORY;
   }
@@ -293,6 +301,7 @@ int amqp_handle_input(amqp_connection_state_t state,
     /* it's not a protocol header; fall through to process it as a
        regular frame header */
 
+    /*FALLTHROUGH*/
   case CONNECTION_STATE_HEADER: {
     amqp_channel_t channel;
     amqp_pool_t *channel_pool;
@@ -302,7 +311,7 @@ int amqp_handle_input(amqp_connection_state_t state,
     state->target_size
       = amqp_d32(raw_frame, 3) + HEADER_SIZE + FOOTER_SIZE;
 
-    if ((size_t)state->frame_max < state->target_size) {
+    if ((size_t)(unsigned)state->frame_max < state->target_size) {
       return AMQP_STATUS_BAD_AMQP_DATA;
     }
 
@@ -331,6 +340,7 @@ int amqp_handle_input(amqp_connection_state_t state,
   }
     /* fall through to process body */
 
+    /*FALLTHROUGH*/
   case CONNECTION_STATE_BODY: {
     amqp_bytes_t encoded;
     int res;
@@ -405,6 +415,7 @@ int amqp_handle_input(amqp_connection_state_t state,
 
   default:
     amqp_abort("Internal error: invalid amqp_connection_state_t->state %d", state->state);
+    /*NOTREACHED*/
     return (int)bytes_consumed;
   }
 }
@@ -493,7 +504,7 @@ static int amqp_frame_to_bytes(const amqp_frame_t *frame, amqp_bytes_t buffer,
         return res;
       }
 
-      out_frame_len = res + 4;
+      out_frame_len = (unsigned)(res + 4);
       break;
     }
 
@@ -511,7 +522,7 @@ static int amqp_frame_to_bytes(const amqp_frame_t *frame, amqp_bytes_t buffer,
         return res;
       }
 
-      out_frame_len = res + 12;
+      out_frame_len = (unsigned)(res + 12);
       break;
 
     case AMQP_FRAME_HEARTBEAT:
@@ -571,7 +582,7 @@ start_send:
     }
 
     encoded.bytes = (uint8_t*)encoded.bytes + sent;
-    encoded.len -= sent;
+    encoded.len -= (size_t)sent;
     goto start_send;
   }
 

@@ -37,7 +37,7 @@
  * ***** END LICENSE BLOCK *****
  */
 
-#ifdef HAVE_CONFIG_H
+#if defined(HAVE_CONFIG_H) && !defined(CONFIG_H)
 #include "config.h"
 #endif
 
@@ -45,7 +45,6 @@
                       " and Alan Antonuk."
 
 #include "amqp.h"
-#include "amqp_framing.h"
 #include <string.h>
 
 #ifdef _WIN32

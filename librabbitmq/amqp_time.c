@@ -156,7 +156,7 @@ int amqp_time_s_from_now(amqp_time_t *time, int seconds) {
     return AMQP_STATUS_TIMER_FAILURE;
   }
 
-  delta_ns = (uint64_t)seconds * AMQP_NS_PER_S;
+  delta_ns = (uint64_t)(unsigned)seconds * AMQP_NS_PER_S;
   time->time_point_ns = now_ns + delta_ns;
   if (now_ns > time->time_point_ns || delta_ns > time->time_point_ns) {
     return AMQP_STATUS_INVALID_PARAMETER;

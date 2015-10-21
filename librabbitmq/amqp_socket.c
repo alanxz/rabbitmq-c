@@ -80,7 +80,7 @@
 # include <unistd.h>
 #endif
 
-static int amqp_id_in_reply_list( amqp_method_number_t expected, amqp_method_number_t *list );
+static int amqp_id_in_reply_list( amqp_method_number_t expected, const amqp_method_number_t *list );
 
 static int
 amqp_os_socket_init(void)
@@ -300,7 +300,7 @@ start_poll:
         return AMQP_STATUS_SOCKET_ERROR;
     }
   }
-  return AMQP_STATUS_OK;
+  /*NOTREACHED*/
 #elif defined(HAVE_SELECT)
   fd_set fds;
   fd_set exceptfds;
@@ -351,7 +351,7 @@ start_select:
         return AMQP_STATUS_SOCKET_ERROR;
     }
   }
-  return AMQP_STATUS_OK;
+  /*NOTREACHED*/
 #else
 # error "poll() or select() is needed to compile rabbitmq-c"
 #endif
@@ -377,16 +377,15 @@ static ssize_t do_poll(amqp_connection_state_t state, ssize_t res,
 ssize_t amqp_try_send(amqp_connection_state_t state, const void *buf,
                       size_t len, amqp_time_t deadline, int flags) {
   ssize_t res;
-  void* buf_left = (void*)buf;
-  /* Assume that len is not going to be larger than ssize_t can hold. */
-  ssize_t len_left = (size_t)len;
+  const char* buf_left = (const char*)buf;
+  size_t len_left = len;
 
 start_send:
-  res = amqp_socket_send(state->socket, buf_left, len_left, flags);
+  res = amqp_socket_send(state->socket, buf_left, (size_t)len_left, flags);
 
   if (res > 0) {
-    len_left -= res;
-    buf_left = (char*)buf_left + res;
+    len_left -= (size_t)res;
+    buf_left += res;
     if (0 == len_left) {
       return (ssize_t)len;
     }
@@ -397,7 +396,7 @@ start_send:
     goto start_send;
   }
   if (AMQP_STATUS_TIMEOUT == res) {
-    return (ssize_t)len - len_left;
+    return (ssize_t)(len - len_left);
   }
   return res;
 }
@@ -454,7 +453,7 @@ int amqp_open_socket_inner(char const *hostname,
 
   for (addr = address_list; addr; addr = addr->ai_next) {
     if (-1 != sockfd) {
-      amqp_os_socket_close(sockfd);
+      (void)amqp_os_socket_close(sockfd);
     }
 
     sockfd = amqp_os_socket_socket(addr->ai_family, addr->ai_socktype, addr->ai_protocol);
@@ -533,7 +532,7 @@ int amqp_open_socket_inner(char const *hostname,
   freeaddrinfo(address_list);
   if (last_error != AMQP_STATUS_OK) {
     if (-1 != sockfd) {
-      amqp_os_socket_close(sockfd);
+      (void)amqp_os_socket_close(sockfd);
     }
 
     return last_error;
@@ -564,11 +563,11 @@ static amqp_bytes_t sasl_method_name(amqp_sasl_method_enum method)
 
   switch (method) {
   case AMQP_SASL_METHOD_PLAIN:
-    res.bytes = "PLAIN";
+    res.bytes = (void*)"PLAIN";
     res.len = 5;
     break;
   case AMQP_SASL_METHOD_EXTERNAL:
-    res.bytes = "EXTERNAL";
+    res.bytes = (void*)"EXTERNAL";
     res.len = 8;
     break;
 
@@ -807,7 +806,7 @@ static int wait_frame_inner(amqp_connection_state_t state,
     return res;
   }
 
-  while (1) {
+  for (;;) {
     int res;
 
     while (amqp_data_in_buffer(state)) {
@@ -868,7 +867,7 @@ beginrecv:
   }
 }
 
-static amqp_link_t * amqp_create_link_for_frame(amqp_connection_state_t state, amqp_frame_t *frame)
+static amqp_link_t * amqp_create_link_for_frame(amqp_connection_state_t state, const amqp_frame_t *frame)
 {
   amqp_link_t *link;
   amqp_frame_t *frame_copy;
@@ -953,7 +952,7 @@ int amqp_simple_wait_frame_on_channel(amqp_connection_state_t state,
     }
   }
 
-  while (1) {
+  for (;;) {
     res = wait_frame_inner(state, decoded_frame, NULL);
 
     if (AMQP_STATUS_OK != res) {
@@ -996,7 +995,7 @@ int amqp_simple_wait_frame_noblock(amqp_connection_state_t state,
 
 static int amqp_simple_wait_method_list(amqp_connection_state_t state,
                                         amqp_channel_t expected_channel,
-                                        amqp_method_number_t *expected_methods,
+                                        const amqp_method_number_t *expected_methods,
                                         amqp_method_t *output) {
   amqp_frame_t frame;
   int res = amqp_simple_wait_frame(state, &frame);
@@ -1041,7 +1040,7 @@ int amqp_send_method_inner(amqp_connection_state_t state,
   return amqp_send_frame_inner(state, &frame, flags);
 }
 
-static int amqp_id_in_reply_list( amqp_method_number_t expected, amqp_method_number_t *list )
+static int amqp_id_in_reply_list( amqp_method_number_t expected, const amqp_method_number_t *list )
 {
   while ( *list != 0 ) {
     if ( *list == expected ) {

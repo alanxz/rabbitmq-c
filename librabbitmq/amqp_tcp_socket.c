@@ -46,7 +46,9 @@ struct amqp_tcp_socket_t {
   const struct amqp_socket_class_t *klass;
   int sockfd;
   int internal_error;
+#if !defined(MSG_MORE) && defined(TCP_NOPUSH)
   int state;
+#endif
 };
 
 
@@ -208,7 +210,7 @@ amqp_tcp_socket_delete(void *base)
   struct amqp_tcp_socket_t *self = (struct amqp_tcp_socket_t *)base;
 
   if (self) {
-    amqp_tcp_socket_close(self);
+    (void)amqp_tcp_socket_close(self);
     free(self);
   }
 }
@@ -232,9 +234,9 @@ amqp_tcp_socket_new(amqp_connection_state_t state)
   self->klass = &amqp_tcp_socket_class;
   self->sockfd = -1;
 
-  amqp_set_socket(state, (amqp_socket_t *)self);
+  amqp_set_socket(state, (amqp_socket_t *)(void*)self);
 
-  return (amqp_socket_t *)self;
+  return (amqp_socket_t *)(void*)self;
 }
 
 void
@@ -244,6 +246,6 @@ amqp_tcp_socket_set_sockfd(amqp_socket_t *base, int sockfd)
   if (base->klass != &amqp_tcp_socket_class) {
     amqp_abort("<%p> is not of type amqp_tcp_socket_t", base);
   }
-  self = (struct amqp_tcp_socket_t *)base;
+  self = (struct amqp_tcp_socket_t *)(void*)base;
   self->sockfd = sockfd;
 }

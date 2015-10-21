@@ -285,7 +285,7 @@ out:
 /*---------------------------------------------------------------------------*/
 
 static int amqp_encode_array(amqp_bytes_t encoded,
-                             amqp_array_t *input,
+                             const amqp_array_t *input,
                              size_t *offset)
 {
   size_t start = *offset;

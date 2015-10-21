@@ -46,7 +46,7 @@
 
 
 static int initialize_openssl(void);
-static int destroy_openssl(void);
+static void destroy_openssl(void);
 
 static int open_ssl_connections = 0;
 static amqp_boolean_t do_initialize_openssl = 1;
@@ -337,9 +337,12 @@ exit:
   return status;
 
 error_out3:
-  SSL_shutdown(self->ssl);
+  /* SSL_shutdown() can technically fail and require a double-call if a
+   * bidirectional shutdown is required. But we are in the error path and
+   * don't really care */
+  (void)SSL_shutdown(self->ssl);
 error_out2:
-  amqp_os_socket_close(self->sockfd);
+  (void)amqp_os_socket_close(self->sockfd); /*we have no error strategy if close()/closesocket() fails*/
   self->sockfd = -1;
 error_out1:
   SSL_free(self->ssl);
@@ -400,7 +403,7 @@ amqp_ssl_socket_delete(void *base)
   struct amqp_ssl_socket_t *self = (struct amqp_ssl_socket_t *)base;
 
   if (self) {
-    amqp_ssl_socket_close(self);
+    (void)amqp_ssl_socket_close(self);
 
     SSL_CTX_free(self->ctx);
     free(self);
@@ -441,11 +444,11 @@ amqp_ssl_socket_new(amqp_connection_state_t state)
     goto error;
   }
 
-  amqp_set_socket(state, (amqp_socket_t *)self);
+  amqp_set_socket(state, (amqp_socket_t *)(void*)self);
 
-  return (amqp_socket_t *)self;
+  return (amqp_socket_t *)(void*)self;
 error:
-  amqp_ssl_socket_delete((amqp_socket_t *)self);
+  amqp_ssl_socket_delete((amqp_socket_t *)(void*)self);
   return NULL;
 }
 
@@ -458,7 +461,7 @@ amqp_ssl_socket_set_cacert(amqp_socket_t *base,
   if (base->klass != &amqp_ssl_socket_class) {
     amqp_abort("<%p> is not of type amqp_ssl_socket_t", base);
   }
-  self = (struct amqp_ssl_socket_t *)base;
+  self = (struct amqp_ssl_socket_t *)(void*)base;
   status = SSL_CTX_load_verify_locations(self->ctx, cacert, NULL);
   if (1 != status) {
     return AMQP_STATUS_SSL_ERROR;
@@ -476,7 +479,7 @@ amqp_ssl_socket_set_key(amqp_socket_t *base,
   if (base->klass != &amqp_ssl_socket_class) {
     amqp_abort("<%p> is not of type amqp_ssl_socket_t", base);
   }
-  self = (struct amqp_ssl_socket_t *)base;
+  self = (struct amqp_ssl_socket_t *)(void*)base;
   status = SSL_CTX_use_certificate_chain_file(self->ctx, cert);
   if (1 != status) {
     return AMQP_STATUS_SSL_ERROR;
@@ -496,6 +499,7 @@ password_cb(AMQP_UNUSED char *buffer,
             AMQP_UNUSED void *user_data)
 {
   amqp_abort("rabbitmq-c does not support password protected keys");
+  /*NOTREACHED*/
   return 0;
 }
 
@@ -512,7 +516,7 @@ amqp_ssl_socket_set_key_buffer(amqp_socket_t *base,
   if (base->klass != &amqp_ssl_socket_class) {
     amqp_abort("<%p> is not of type amqp_ssl_socket_t", base);
   }
-  self = (struct amqp_ssl_socket_t *)base;
+  self = (struct amqp_ssl_socket_t *)(void*)base;
   status = SSL_CTX_use_certificate_chain_file(self->ctx, cert);
   if (1 != status) {
     return AMQP_STATUS_SSL_ERROR;
@@ -547,7 +551,7 @@ amqp_ssl_socket_set_cert(amqp_socket_t *base,
   if (base->klass != &amqp_ssl_socket_class) {
     amqp_abort("<%p> is not of type amqp_ssl_socket_t", base);
   }
-  self = (struct amqp_ssl_socket_t *)base;
+  self = (struct amqp_ssl_socket_t *)(void*)base;
   status = SSL_CTX_use_certificate_chain_file(self->ctx, cert);
   if (1 != status) {
     return AMQP_STATUS_SSL_ERROR;
@@ -569,7 +573,7 @@ void amqp_ssl_socket_set_verify_peer(amqp_socket_t *base,
   if (base->klass != &amqp_ssl_socket_class) {
     amqp_abort("<%p> is not of type amqp_ssl_socket_t", base);
   }
-  self = (struct amqp_ssl_socket_t *)base;
+  self = (struct amqp_ssl_socket_t *)(void*)base;
   self->verify_peer = verify;
 }
 
@@ -579,7 +583,7 @@ void amqp_ssl_socket_set_verify_hostname(amqp_socket_t *base,
   if (base->klass != &amqp_ssl_socket_class) {
     amqp_abort("<%p> is not of type amqp_ssl_socket_t", base);
   }
-  self = (struct amqp_ssl_socket_t *)base;
+  self = (struct amqp_ssl_socket_t *)(void*)base;
   self->verify_hostname = verify;
 }
 
@@ -666,7 +670,7 @@ initialize_openssl(void)
     if (!openssl_initialized) {
       OPENSSL_config(NULL);
 
-      SSL_library_init();
+      (void)SSL_library_init(); /*always returns 1 and is safe to discard*/
       SSL_load_error_strings();
 
       openssl_initialized = 1;
@@ -681,12 +685,12 @@ initialize_openssl(void)
   return 0;
 }
 
-static int
+static void
 destroy_openssl(void)
 {
 #ifdef ENABLE_THREAD_SAFETY
   if (pthread_mutex_lock(&openssl_init_mutex)) {
-    return -1;
+    return;
   }
 #endif /* ENABLE_THREAD_SAFETY */
 
@@ -706,5 +710,4 @@ destroy_openssl(void)
 
   pthread_mutex_unlock(&openssl_init_mutex);
 #endif /* ENABLE_THREAD_SAFETY */
-  return 0;
 }

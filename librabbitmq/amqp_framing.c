@@ -1873,80 +1873,78 @@ int amqp_encode_properties(uint16_t class_id,
     }
     case 60: {
       amqp_basic_properties_t *p = (amqp_basic_properties_t *) decoded;
-            if (flags & AMQP_BASIC_CONTENT_TYPE_FLAG) {
-      if (UINT8_MAX < p->content_type.len
-          || !amqp_encode_8(encoded, &offset, (uint8_t)p->content_type.len)
-          || !amqp_encode_bytes(encoded, &offset, p->content_type))
-        return AMQP_STATUS_BAD_AMQP_DATA;
+      if (flags & AMQP_BASIC_CONTENT_TYPE_FLAG) {
+        if (UINT8_MAX < p->content_type.len
+            || !amqp_encode_8(encoded, &offset, (uint8_t)p->content_type.len)
+            || !amqp_encode_bytes(encoded, &offset, p->content_type))
+          return AMQP_STATUS_BAD_AMQP_DATA;
       }
-            if (flags & AMQP_BASIC_CONTENT_ENCODING_FLAG) {
-      if (UINT8_MAX < p->content_encoding.len
-          || !amqp_encode_8(encoded, &offset, (uint8_t)p->content_encoding.len)
-          || !amqp_encode_bytes(encoded, &offset, p->content_encoding))
-        return AMQP_STATUS_BAD_AMQP_DATA;
+      if (flags & AMQP_BASIC_CONTENT_ENCODING_FLAG) {
+        if (UINT8_MAX < p->content_encoding.len
+            || !amqp_encode_8(encoded, &offset, (uint8_t)p->content_encoding.len)
+            || !amqp_encode_bytes(encoded, &offset, p->content_encoding))
+          return AMQP_STATUS_BAD_AMQP_DATA;
       }
-            if (flags & AMQP_BASIC_HEADERS_FLAG) {
-      {
+      if (flags & AMQP_BASIC_HEADERS_FLAG) {
         int res = amqp_encode_table(encoded, &(p->headers), &offset);
         if (res < 0) return res;
       }
+      if (flags & AMQP_BASIC_DELIVERY_MODE_FLAG) {
+        if (!amqp_encode_8(encoded, &offset, p->delivery_mode)) return AMQP_STATUS_BAD_AMQP_DATA;
       }
-            if (flags & AMQP_BASIC_DELIVERY_MODE_FLAG) {
-      if (!amqp_encode_8(encoded, &offset, p->delivery_mode)) return AMQP_STATUS_BAD_AMQP_DATA;
+      if (flags & AMQP_BASIC_PRIORITY_FLAG) {
+        if (!amqp_encode_8(encoded, &offset, p->priority)) return AMQP_STATUS_BAD_AMQP_DATA;
       }
-            if (flags & AMQP_BASIC_PRIORITY_FLAG) {
-      if (!amqp_encode_8(encoded, &offset, p->priority)) return AMQP_STATUS_BAD_AMQP_DATA;
+      if (flags & AMQP_BASIC_CORRELATION_ID_FLAG) {
+        if (UINT8_MAX < p->correlation_id.len
+            || !amqp_encode_8(encoded, &offset, (uint8_t)p->correlation_id.len)
+            || !amqp_encode_bytes(encoded, &offset, p->correlation_id))
+          return AMQP_STATUS_BAD_AMQP_DATA;
       }
-            if (flags & AMQP_BASIC_CORRELATION_ID_FLAG) {
-      if (UINT8_MAX < p->correlation_id.len
-          || !amqp_encode_8(encoded, &offset, (uint8_t)p->correlation_id.len)
-          || !amqp_encode_bytes(encoded, &offset, p->correlation_id))
-        return AMQP_STATUS_BAD_AMQP_DATA;
+      if (flags & AMQP_BASIC_REPLY_TO_FLAG) {
+        if (UINT8_MAX < p->reply_to.len
+            || !amqp_encode_8(encoded, &offset, (uint8_t)p->reply_to.len)
+            || !amqp_encode_bytes(encoded, &offset, p->reply_to))
+          return AMQP_STATUS_BAD_AMQP_DATA;
       }
-            if (flags & AMQP_BASIC_REPLY_TO_FLAG) {
-      if (UINT8_MAX < p->reply_to.len
-          || !amqp_encode_8(encoded, &offset, (uint8_t)p->reply_to.len)
-          || !amqp_encode_bytes(encoded, &offset, p->reply_to))
-        return AMQP_STATUS_BAD_AMQP_DATA;
+      if (flags & AMQP_BASIC_EXPIRATION_FLAG) {
+        if (UINT8_MAX < p->expiration.len
+            || !amqp_encode_8(encoded, &offset, (uint8_t)p->expiration.len)
+            || !amqp_encode_bytes(encoded, &offset, p->expiration))
+          return AMQP_STATUS_BAD_AMQP_DATA;
       }
-            if (flags & AMQP_BASIC_EXPIRATION_FLAG) {
-      if (UINT8_MAX < p->expiration.len
-          || !amqp_encode_8(encoded, &offset, (uint8_t)p->expiration.len)
-          || !amqp_encode_bytes(encoded, &offset, p->expiration))
-        return AMQP_STATUS_BAD_AMQP_DATA;
+      if (flags & AMQP_BASIC_MESSAGE_ID_FLAG) {
+        if (UINT8_MAX < p->message_id.len
+            || !amqp_encode_8(encoded, &offset, (uint8_t)p->message_id.len)
+            || !amqp_encode_bytes(encoded, &offset, p->message_id))
+          return AMQP_STATUS_BAD_AMQP_DATA;
       }
-            if (flags & AMQP_BASIC_MESSAGE_ID_FLAG) {
-      if (UINT8_MAX < p->message_id.len
-          || !amqp_encode_8(encoded, &offset, (uint8_t)p->message_id.len)
-          || !amqp_encode_bytes(encoded, &offset, p->message_id))
-        return AMQP_STATUS_BAD_AMQP_DATA;
+      if (flags & AMQP_BASIC_TIMESTAMP_FLAG) {
+        if (!amqp_encode_64(encoded, &offset, p->timestamp)) return AMQP_STATUS_BAD_AMQP_DATA;
       }
-            if (flags & AMQP_BASIC_TIMESTAMP_FLAG) {
-      if (!amqp_encode_64(encoded, &offset, p->timestamp)) return AMQP_STATUS_BAD_AMQP_DATA;
+      if (flags & AMQP_BASIC_TYPE_FLAG) {
+        if (UINT8_MAX < p->type.len
+            || !amqp_encode_8(encoded, &offset, (uint8_t)p->type.len)
+            || !amqp_encode_bytes(encoded, &offset, p->type))
+          return AMQP_STATUS_BAD_AMQP_DATA;
       }
-            if (flags & AMQP_BASIC_TYPE_FLAG) {
-      if (UINT8_MAX < p->type.len
-          || !amqp_encode_8(encoded, &offset, (uint8_t)p->type.len)
-          || !amqp_encode_bytes(encoded, &offset, p->type))
-        return AMQP_STATUS_BAD_AMQP_DATA;
+      if (flags & AMQP_BASIC_USER_ID_FLAG) {
+        if (UINT8_MAX < p->user_id.len
+            || !amqp_encode_8(encoded, &offset, (uint8_t)p->user_id.len)
+            || !amqp_encode_bytes(encoded, &offset, p->user_id))
+          return AMQP_STATUS_BAD_AMQP_DATA;
       }
-            if (flags & AMQP_BASIC_USER_ID_FLAG) {
-      if (UINT8_MAX < p->user_id.len
-          || !amqp_encode_8(encoded, &offset, (uint8_t)p->user_id.len)
-          || !amqp_encode_bytes(encoded, &offset, p->user_id))
-        return AMQP_STATUS_BAD_AMQP_DATA;
+      if (flags & AMQP_BASIC_APP_ID_FLAG) {
+        if (UINT8_MAX < p->app_id.len
+            || !amqp_encode_8(encoded, &offset, (uint8_t)p->app_id.len)
+            || !amqp_encode_bytes(encoded, &offset, p->app_id))
+          return AMQP_STATUS_BAD_AMQP_DATA;
       }
-            if (flags & AMQP_BASIC_APP_ID_FLAG) {
-      if (UINT8_MAX < p->app_id.len
-          || !amqp_encode_8(encoded, &offset, (uint8_t)p->app_id.len)
-          || !amqp_encode_bytes(encoded, &offset, p->app_id))
-        return AMQP_STATUS_BAD_AMQP_DATA;
-      }
-            if (flags & AMQP_BASIC_CLUSTER_ID_FLAG) {
-      if (UINT8_MAX < p->cluster_id.len
-          || !amqp_encode_8(encoded, &offset, (uint8_t)p->cluster_id.len)
-          || !amqp_encode_bytes(encoded, &offset, p->cluster_id))
-        return AMQP_STATUS_BAD_AMQP_DATA;
+      if (flags & AMQP_BASIC_CLUSTER_ID_FLAG) {
+        if (UINT8_MAX < p->cluster_id.len
+            || !amqp_encode_8(encoded, &offset, (uint8_t)p->cluster_id.len)
+            || !amqp_encode_bytes(encoded, &offset, p->cluster_id))
+          return AMQP_STATUS_BAD_AMQP_DATA;
       }
       return (int)offset;
     }

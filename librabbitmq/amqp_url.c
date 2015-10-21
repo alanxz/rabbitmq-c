@@ -76,7 +76,7 @@ static char find_delim(char **pp, int colon_and_at_sign_are_delims)
         break;
       }
 
-      /* fall through */
+      /*FALLTHROUGH*/
     case 0:
     case '/':
     case '?':
@@ -99,7 +99,7 @@ static char find_delim(char **pp, int colon_and_at_sign_are_delims)
         return '%';
       }
 
-      *to++ = val;
+      *to++ = (char)val;
       from += 2;
       break;
     }
@@ -197,7 +197,7 @@ int amqp_parse_url(char *url, struct amqp_connection_info *parsed)
       goto out;
     }
 
-    parsed->port = portnum;
+    parsed->port = (int)portnum;   /*cast to squelch warning about loss of precision. Technically amqp_connection_info::port should be an in_port_t or a short. Or even better: a string*/
   }
 
   if (delim == '/') {
