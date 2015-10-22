@@ -103,7 +103,7 @@ static void send_batch(amqp_connection_state_t conn,
 
   {
     uint64_t stop_time = now_microseconds();
-    int total_delta = stop_time - start_time;
+    int total_delta = (int)(stop_time - start_time);
 
     printf("PRODUCER - Message count: %d\n", message_count);
     printf("Total time, milliseconds: %d\n", total_delta / 1000);
