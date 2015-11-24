@@ -183,7 +183,6 @@ amqp_ssl_socket_open(void *base, const char *host, int port, struct timeval *tim
   long result;
   int status;
   amqp_time_t deadline;
-  X509 *cert;
   if (-1 != self->sockfd) {
     return AMQP_STATUS_SOCKET_INUSE;
   }
@@ -237,6 +236,7 @@ start_connect:
   }
 
   if (self->verify_peer) {
+    X509 *cert;
     cert = SSL_get_peer_certificate(self->ssl);
     if (!cert) {
       self->internal_error = 0;
