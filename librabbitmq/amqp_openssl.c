@@ -245,7 +245,7 @@ start_connect:
   }
   if (self->verify_hostname) {
     int verify_status = amqp_ssl_socket_verify_hostname(self, host);
-    if (verify_status) {
+    if (!verify_status) {
       self->internal_error = 0;
       status = AMQP_STATUS_SSL_HOSTNAME_VERIFY_FAILED;
       goto error_out3;
