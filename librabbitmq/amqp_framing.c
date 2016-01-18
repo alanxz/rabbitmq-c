@@ -2697,7 +2697,7 @@ AMQP_PUBLIC_FUNCTION
 amqp_tx_commit_ok_t *
 AMQP_CALL amqp_tx_commit(amqp_connection_state_t state, amqp_channel_t channel)
 {
-  return amqp_tx_commit(state, channel, NULL);
+  return amqp_tx_commit_noblock(state, channel, NULL);
 }
 
 
