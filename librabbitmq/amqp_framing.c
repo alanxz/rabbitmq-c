@@ -1960,6 +1960,27 @@ int amqp_encode_properties(uint16_t class_id,
   }
 }
 
+
+/**
+ * amqp_channel_open_noblock
+ *
+ * @param [in] state connection state
+ * @param [in] channel the channel to do the RPC on
+ * @param [in] timeout a timeout to wait for opening a new channel. Passing in
+ *             NULL will result in blocking behavior.
+ * @returns amqp_channel_open_ok_t
+ */
+AMQP_PUBLIC_FUNCTION
+amqp_channel_open_ok_t *
+AMQP_CALL amqp_channel_open_noblock(amqp_connection_state_t state, amqp_channel_t channel, struct timeval *timeout)
+{
+  amqp_channel_open_t req;
+  req.out_of_band = amqp_empty_bytes;
+
+  return amqp_simple_rpc_decoded_noblock(state, channel, AMQP_CHANNEL_OPEN_METHOD, AMQP_CHANNEL_OPEN_OK_METHOD, &req, timeout);
+}
+
+
 /**
  * amqp_channel_open
  *
@@ -1971,10 +1992,28 @@ AMQP_PUBLIC_FUNCTION
 amqp_channel_open_ok_t *
 AMQP_CALL amqp_channel_open(amqp_connection_state_t state, amqp_channel_t channel)
 {
-  amqp_channel_open_t req;
-  req.out_of_band = amqp_empty_bytes;
+  return amqp_channel_open_noblock(state, channel, NULL);
+}
 
-  return amqp_simple_rpc_decoded(state, channel, AMQP_CHANNEL_OPEN_METHOD, AMQP_CHANNEL_OPEN_OK_METHOD, &req);
+
+/**
+ * amqp_channel_flow_noblock
+ *
+ * @param [in] state connection state
+ * @param [in] channel the channel to do the RPC on
+ * @param [in] active active
+ * @param [in] timeout a timeout to wait the end of the operation.
+ *             Passing in NULL will result in blocking behavior.
+ * @returns amqp_channel_flow_ok_t
+ */
+AMQP_PUBLIC_FUNCTION
+amqp_channel_flow_ok_t *
+AMQP_CALL amqp_channel_flow_noblock(amqp_connection_state_t state, amqp_channel_t channel, amqp_boolean_t active, struct timeval *timeout)
+{
+  amqp_channel_flow_t req;
+  req.active = active;
+
+  return amqp_simple_rpc_decoded_noblock(state, channel, AMQP_CHANNEL_FLOW_METHOD, AMQP_CHANNEL_FLOW_OK_METHOD, &req, timeout);
 }
 
 
@@ -1990,10 +2029,42 @@ AMQP_PUBLIC_FUNCTION
 amqp_channel_flow_ok_t *
 AMQP_CALL amqp_channel_flow(amqp_connection_state_t state, amqp_channel_t channel, amqp_boolean_t active)
 {
-  amqp_channel_flow_t req;
-  req.active = active;
+  return amqp_channel_flow_noblock(state, channel, active, NULL);
+}
 
-  return amqp_simple_rpc_decoded(state, channel, AMQP_CHANNEL_FLOW_METHOD, AMQP_CHANNEL_FLOW_OK_METHOD, &req);
+
+/**
+ * amqp_exchange_declare_noblock
+ *
+ * @param [in] state connection state
+ * @param [in] channel the channel to do the RPC on
+ * @param [in] exchange exchange
+ * @param [in] type type
+ * @param [in] passive passive
+ * @param [in] durable durable
+ * @param [in] auto_delete auto_delete
+ * @param [in] internal internal
+ * @param [in] arguments arguments
+ * @param [in] timeout a timeout to wait the end of the operation.
+ *             Passing in NULL will result in blocking behavior.
+ * @returns amqp_exchange_declare_ok_t
+ */
+AMQP_PUBLIC_FUNCTION
+amqp_exchange_declare_ok_t *
+AMQP_CALL amqp_exchange_declare_noblock(amqp_connection_state_t state, amqp_channel_t channel, amqp_bytes_t exchange, amqp_bytes_t type, amqp_boolean_t passive, amqp_boolean_t durable, amqp_boolean_t auto_delete, amqp_boolean_t internal, amqp_table_t arguments, struct timeval *timeout)
+{
+  amqp_exchange_declare_t req;
+  req.ticket = 0;
+  req.exchange = exchange;
+  req.type = type;
+  req.passive = passive;
+  req.durable = durable;
+  req.auto_delete = auto_delete;
+  req.internal = internal;
+  req.nowait = 0;
+  req.arguments = arguments;
+
+  return amqp_simple_rpc_decoded_noblock(state, channel, AMQP_EXCHANGE_DECLARE_METHOD, AMQP_EXCHANGE_DECLARE_OK_METHOD, &req, timeout);
 }
 
 
@@ -2015,18 +2086,32 @@ AMQP_PUBLIC_FUNCTION
 amqp_exchange_declare_ok_t *
 AMQP_CALL amqp_exchange_declare(amqp_connection_state_t state, amqp_channel_t channel, amqp_bytes_t exchange, amqp_bytes_t type, amqp_boolean_t passive, amqp_boolean_t durable, amqp_boolean_t auto_delete, amqp_boolean_t internal, amqp_table_t arguments)
 {
-  amqp_exchange_declare_t req;
+  return amqp_exchange_declare_noblock(state, channel, exchange, type, passive, durable, auto_delete, internal, arguments, NULL);
+}
+
+
+/**
+ * amqp_exchange_delete_noblock
+ *
+ * @param [in] state connection state
+ * @param [in] channel the channel to do the RPC on
+ * @param [in] exchange exchange
+ * @param [in] if_unused if_unused
+ * @param [in] timeout a timeout to wait the end of the operation.
+ *             Passing in NULL will result in blocking behavior.
+ * @returns amqp_exchange_delete_ok_t
+ */
+AMQP_PUBLIC_FUNCTION
+amqp_exchange_delete_ok_t *
+AMQP_CALL amqp_exchange_delete_noblock(amqp_connection_state_t state, amqp_channel_t channel, amqp_bytes_t exchange, amqp_boolean_t if_unused, struct timeval *timeout)
+{
+  amqp_exchange_delete_t req;
   req.ticket = 0;
   req.exchange = exchange;
-  req.type = type;
-  req.passive = passive;
-  req.durable = durable;
-  req.auto_delete = auto_delete;
-  req.internal = internal;
+  req.if_unused = if_unused;
   req.nowait = 0;
-  req.arguments = arguments;
 
-  return amqp_simple_rpc_decoded(state, channel, AMQP_EXCHANGE_DECLARE_METHOD, AMQP_EXCHANGE_DECLARE_OK_METHOD, &req);
+  return amqp_simple_rpc_decoded_noblock(state, channel, AMQP_EXCHANGE_DELETE_METHOD, AMQP_EXCHANGE_DELETE_OK_METHOD, &req, timeout);
 }
 
 
@@ -2043,13 +2128,36 @@ AMQP_PUBLIC_FUNCTION
 amqp_exchange_delete_ok_t *
 AMQP_CALL amqp_exchange_delete(amqp_connection_state_t state, amqp_channel_t channel, amqp_bytes_t exchange, amqp_boolean_t if_unused)
 {
-  amqp_exchange_delete_t req;
-  req.ticket = 0;
-  req.exchange = exchange;
-  req.if_unused = if_unused;
-  req.nowait = 0;
+  return amqp_exchange_delete_noblock(state, channel, exchange, if_unused, NULL);
+}
 
-  return amqp_simple_rpc_decoded(state, channel, AMQP_EXCHANGE_DELETE_METHOD, AMQP_EXCHANGE_DELETE_OK_METHOD, &req);
+
+/**
+ * amqp_exchange_bind_noblock
+ *
+ * @param [in] state connection state
+ * @param [in] channel the channel to do the RPC on
+ * @param [in] destination destination
+ * @param [in] source source
+ * @param [in] routing_key routing_key
+ * @param [in] arguments arguments
+ * @param [in] timeout a timeout to wait the end of the operation.
+ *             Passing in NULL will result in blocking behavior.
+ * @returns amqp_exchange_bind_ok_t
+ */
+AMQP_PUBLIC_FUNCTION
+amqp_exchange_bind_ok_t *
+AMQP_CALL amqp_exchange_bind_noblock(amqp_connection_state_t state, amqp_channel_t channel, amqp_bytes_t destination, amqp_bytes_t source, amqp_bytes_t routing_key, amqp_table_t arguments, struct timeval *timeout)
+{
+  amqp_exchange_bind_t req;
+  req.ticket = 0;
+  req.destination = destination;
+  req.source = source;
+  req.routing_key = routing_key;
+  req.nowait = 0;
+  req.arguments = arguments;
+
+  return amqp_simple_rpc_decoded_noblock(state, channel, AMQP_EXCHANGE_BIND_METHOD, AMQP_EXCHANGE_BIND_OK_METHOD, &req, timeout);
 }
 
 
@@ -2068,7 +2176,28 @@ AMQP_PUBLIC_FUNCTION
 amqp_exchange_bind_ok_t *
 AMQP_CALL amqp_exchange_bind(amqp_connection_state_t state, amqp_channel_t channel, amqp_bytes_t destination, amqp_bytes_t source, amqp_bytes_t routing_key, amqp_table_t arguments)
 {
-  amqp_exchange_bind_t req;
+  return amqp_exchange_bind_noblock(state, channel, destination, source, routing_key, arguments, NULL);
+}
+
+
+/**
+ * amqp_exchange_unbind_noblock
+ *
+ * @param [in] state connection state
+ * @param [in] channel the channel to do the RPC on
+ * @param [in] destination destination
+ * @param [in] source source
+ * @param [in] routing_key routing_key
+ * @param [in] arguments arguments
+ * @param [in] timeout a timeout to wait the end of the operation.
+ *             Passing in NULL will result in blocking behavior.
+ * @returns amqp_exchange_unbind_ok_t
+ */
+AMQP_PUBLIC_FUNCTION
+amqp_exchange_unbind_ok_t *
+AMQP_CALL amqp_exchange_unbind_noblock(amqp_connection_state_t state, amqp_channel_t channel, amqp_bytes_t destination, amqp_bytes_t source, amqp_bytes_t routing_key, amqp_table_t arguments, struct timeval *timeout)
+{
+  amqp_exchange_unbind_t req;
   req.ticket = 0;
   req.destination = destination;
   req.source = source;
@@ -2076,7 +2205,7 @@ AMQP_CALL amqp_exchange_bind(amqp_connection_state_t state, amqp_channel_t chann
   req.nowait = 0;
   req.arguments = arguments;
 
-  return amqp_simple_rpc_decoded(state, channel, AMQP_EXCHANGE_BIND_METHOD, AMQP_EXCHANGE_BIND_OK_METHOD, &req);
+  return amqp_simple_rpc_decoded_noblock(state, channel, AMQP_EXCHANGE_UNBIND_METHOD, AMQP_EXCHANGE_UNBIND_OK_METHOD, &req, timeout);
 }
 
 
@@ -2095,15 +2224,40 @@ AMQP_PUBLIC_FUNCTION
 amqp_exchange_unbind_ok_t *
 AMQP_CALL amqp_exchange_unbind(amqp_connection_state_t state, amqp_channel_t channel, amqp_bytes_t destination, amqp_bytes_t source, amqp_bytes_t routing_key, amqp_table_t arguments)
 {
-  amqp_exchange_unbind_t req;
+  return amqp_exchange_unbind_noblock(state, channel, destination, source, routing_key, arguments, NULL);
+}
+
+
+/**
+ * amqp_queue_declare_noblock
+ *
+ * @param [in] state connection state
+ * @param [in] channel the channel to do the RPC on
+ * @param [in] queue queue
+ * @param [in] passive passive
+ * @param [in] durable durable
+ * @param [in] exclusive exclusive
+ * @param [in] auto_delete auto_delete
+ * @param [in] arguments arguments
+ * @param [in] timeout a timeout to wait the end of the operation.
+ *             Passing in NULL will result in blocking behavior.
+ * @returns amqp_queue_declare_ok_t
+ */
+AMQP_PUBLIC_FUNCTION
+amqp_queue_declare_ok_t *
+AMQP_CALL amqp_queue_declare_noblock(amqp_connection_state_t state, amqp_channel_t channel, amqp_bytes_t queue, amqp_boolean_t passive, amqp_boolean_t durable, amqp_boolean_t exclusive, amqp_boolean_t auto_delete, amqp_table_t arguments, struct timeval *timeout)
+{
+  amqp_queue_declare_t req;
   req.ticket = 0;
-  req.destination = destination;
-  req.source = source;
-  req.routing_key = routing_key;
+  req.queue = queue;
+  req.passive = passive;
+  req.durable = durable;
+  req.exclusive = exclusive;
+  req.auto_delete = auto_delete;
   req.nowait = 0;
   req.arguments = arguments;
 
-  return amqp_simple_rpc_decoded(state, channel, AMQP_EXCHANGE_UNBIND_METHOD, AMQP_EXCHANGE_UNBIND_OK_METHOD, &req);
+  return amqp_simple_rpc_decoded_noblock(state, channel, AMQP_QUEUE_DECLARE_METHOD, AMQP_QUEUE_DECLARE_OK_METHOD, &req, timeout);
 }
 
 
@@ -2124,17 +2278,36 @@ AMQP_PUBLIC_FUNCTION
 amqp_queue_declare_ok_t *
 AMQP_CALL amqp_queue_declare(amqp_connection_state_t state, amqp_channel_t channel, amqp_bytes_t queue, amqp_boolean_t passive, amqp_boolean_t durable, amqp_boolean_t exclusive, amqp_boolean_t auto_delete, amqp_table_t arguments)
 {
-  amqp_queue_declare_t req;
+  return amqp_queue_declare_noblock(state, channel, queue, passive, durable, exclusive, auto_delete, arguments, NULL);
+}
+
+
+/**
+ * amqp_queue_bind_noblock
+ *
+ * @param [in] state connection state
+ * @param [in] channel the channel to do the RPC on
+ * @param [in] queue queue
+ * @param [in] exchange exchange
+ * @param [in] routing_key routing_key
+ * @param [in] arguments arguments
+ * @param [in] timeout a timeout to wait the end of the operation.
+ *             Passing in NULL will result in blocking behavior.
+ * @returns amqp_queue_bind_ok_t
+ */
+AMQP_PUBLIC_FUNCTION
+amqp_queue_bind_ok_t *
+AMQP_CALL amqp_queue_bind_noblock(amqp_connection_state_t state, amqp_channel_t channel, amqp_bytes_t queue, amqp_bytes_t exchange, amqp_bytes_t routing_key, amqp_table_t arguments, struct timeval *timeout)
+{
+  amqp_queue_bind_t req;
   req.ticket = 0;
   req.queue = queue;
-  req.passive = passive;
-  req.durable = durable;
-  req.exclusive = exclusive;
-  req.auto_delete = auto_delete;
+  req.exchange = exchange;
+  req.routing_key = routing_key;
   req.nowait = 0;
   req.arguments = arguments;
 
-  return amqp_simple_rpc_decoded(state, channel, AMQP_QUEUE_DECLARE_METHOD, AMQP_QUEUE_DECLARE_OK_METHOD, &req);
+  return amqp_simple_rpc_decoded_noblock(state, channel, AMQP_QUEUE_BIND_METHOD, AMQP_QUEUE_BIND_OK_METHOD, &req, timeout);
 }
 
 
@@ -2153,15 +2326,30 @@ AMQP_PUBLIC_FUNCTION
 amqp_queue_bind_ok_t *
 AMQP_CALL amqp_queue_bind(amqp_connection_state_t state, amqp_channel_t channel, amqp_bytes_t queue, amqp_bytes_t exchange, amqp_bytes_t routing_key, amqp_table_t arguments)
 {
-  amqp_queue_bind_t req;
+  return amqp_queue_bind_noblock(state, channel, queue, exchange, routing_key, arguments, NULL);
+}
+
+
+/**
+ * amqp_queue_purge_noblock
+ *
+ * @param [in] state connection state
+ * @param [in] channel the channel to do the RPC on
+ * @param [in] queue queue
+ * @param [in] timeout a timeout to wait the end of the operation.
+ *             Passing in NULL will result in blocking behavior.
+ * @returns amqp_queue_purge_ok_t
+ */
+AMQP_PUBLIC_FUNCTION
+amqp_queue_purge_ok_t *
+AMQP_CALL amqp_queue_purge_noblock(amqp_connection_state_t state, amqp_channel_t channel, amqp_bytes_t queue, struct timeval *timeout)
+{
+  amqp_queue_purge_t req;
   req.ticket = 0;
   req.queue = queue;
-  req.exchange = exchange;
-  req.routing_key = routing_key;
   req.nowait = 0;
-  req.arguments = arguments;
 
-  return amqp_simple_rpc_decoded(state, channel, AMQP_QUEUE_BIND_METHOD, AMQP_QUEUE_BIND_OK_METHOD, &req);
+  return amqp_simple_rpc_decoded_noblock(state, channel, AMQP_QUEUE_PURGE_METHOD, AMQP_QUEUE_PURGE_OK_METHOD, &req, timeout);
 }
 
 
@@ -2177,12 +2365,34 @@ AMQP_PUBLIC_FUNCTION
 amqp_queue_purge_ok_t *
 AMQP_CALL amqp_queue_purge(amqp_connection_state_t state, amqp_channel_t channel, amqp_bytes_t queue)
 {
-  amqp_queue_purge_t req;
+  return amqp_queue_purge_noblock(state, channel, queue, NULL);
+}
+
+
+/**
+ * amqp_queue_delete_noblock
+ *
+ * @param [in] state connection state
+ * @param [in] channel the channel to do the RPC on
+ * @param [in] queue queue
+ * @param [in] if_unused if_unused
+ * @param [in] if_empty if_empty
+ * @param [in] timeout a timeout to wait the end of the operation.
+ *             Passing in NULL will result in blocking behavior.
+ * @returns amqp_queue_delete_ok_t
+ */
+AMQP_PUBLIC_FUNCTION
+amqp_queue_delete_ok_t *
+AMQP_CALL amqp_queue_delete_noblock(amqp_connection_state_t state, amqp_channel_t channel, amqp_bytes_t queue, amqp_boolean_t if_unused, amqp_boolean_t if_empty, struct timeval *timeout)
+{
+  amqp_queue_delete_t req;
   req.ticket = 0;
   req.queue = queue;
+  req.if_unused = if_unused;
+  req.if_empty = if_empty;
   req.nowait = 0;
 
-  return amqp_simple_rpc_decoded(state, channel, AMQP_QUEUE_PURGE_METHOD, AMQP_QUEUE_PURGE_OK_METHOD, &req);
+  return amqp_simple_rpc_decoded_noblock(state, channel, AMQP_QUEUE_DELETE_METHOD, AMQP_QUEUE_DELETE_OK_METHOD, &req, timeout);
 }
 
 
@@ -2200,14 +2410,35 @@ AMQP_PUBLIC_FUNCTION
 amqp_queue_delete_ok_t *
 AMQP_CALL amqp_queue_delete(amqp_connection_state_t state, amqp_channel_t channel, amqp_bytes_t queue, amqp_boolean_t if_unused, amqp_boolean_t if_empty)
 {
-  amqp_queue_delete_t req;
+  return amqp_queue_delete_noblock(state, channel, queue, if_unused, if_empty, NULL);
+}
+
+
+/**
+ * amqp_queue_unbind_noblock
+ *
+ * @param [in] state connection state
+ * @param [in] channel the channel to do the RPC on
+ * @param [in] queue queue
+ * @param [in] exchange exchange
+ * @param [in] routing_key routing_key
+ * @param [in] arguments arguments
+ * @param [in] timeout a timeout to wait the end of the operation.
+ *             Passing in NULL will result in blocking behavior.
+ * @returns amqp_queue_unbind_ok_t
+ */
+AMQP_PUBLIC_FUNCTION
+amqp_queue_unbind_ok_t *
+AMQP_CALL amqp_queue_unbind_noblock(amqp_connection_state_t state, amqp_channel_t channel, amqp_bytes_t queue, amqp_bytes_t exchange, amqp_bytes_t routing_key, amqp_table_t arguments, struct timeval *timeout)
+{
+  amqp_queue_unbind_t req;
   req.ticket = 0;
   req.queue = queue;
-  req.if_unused = if_unused;
-  req.if_empty = if_empty;
-  req.nowait = 0;
+  req.exchange = exchange;
+  req.routing_key = routing_key;
+  req.arguments = arguments;
 
-  return amqp_simple_rpc_decoded(state, channel, AMQP_QUEUE_DELETE_METHOD, AMQP_QUEUE_DELETE_OK_METHOD, &req);
+  return amqp_simple_rpc_decoded_noblock(state, channel, AMQP_QUEUE_UNBIND_METHOD, AMQP_QUEUE_UNBIND_OK_METHOD, &req, timeout);
 }
 
 
@@ -2226,14 +2457,32 @@ AMQP_PUBLIC_FUNCTION
 amqp_queue_unbind_ok_t *
 AMQP_CALL amqp_queue_unbind(amqp_connection_state_t state, amqp_channel_t channel, amqp_bytes_t queue, amqp_bytes_t exchange, amqp_bytes_t routing_key, amqp_table_t arguments)
 {
-  amqp_queue_unbind_t req;
-  req.ticket = 0;
-  req.queue = queue;
-  req.exchange = exchange;
-  req.routing_key = routing_key;
-  req.arguments = arguments;
+  return amqp_queue_unbind_noblock(state, channel, queue, exchange, routing_key, arguments, NULL);
+}
 
-  return amqp_simple_rpc_decoded(state, channel, AMQP_QUEUE_UNBIND_METHOD, AMQP_QUEUE_UNBIND_OK_METHOD, &req);
+
+/**
+ * amqp_basic_qos_noblock
+ *
+ * @param [in] state connection state
+ * @param [in] channel the channel to do the RPC on
+ * @param [in] prefetch_size prefetch_size
+ * @param [in] prefetch_count prefetch_count
+ * @param [in] global global
+ * @param [in] timeout a timeout to wait the end of the operation.
+ *             Passing in NULL will result in blocking behavior.
+ * @returns amqp_basic_qos_ok_t
+ */
+AMQP_PUBLIC_FUNCTION
+amqp_basic_qos_ok_t *
+AMQP_CALL amqp_basic_qos_noblock(amqp_connection_state_t state, amqp_channel_t channel, uint32_t prefetch_size, uint16_t prefetch_count, amqp_boolean_t global, struct timeval *timeout)
+{
+  amqp_basic_qos_t req;
+  req.prefetch_size = prefetch_size;
+  req.prefetch_count = prefetch_count;
+  req.global = global;
+
+  return amqp_simple_rpc_decoded_noblock(state, channel, AMQP_BASIC_QOS_METHOD, AMQP_BASIC_QOS_OK_METHOD, &req, timeout);
 }
 
 
@@ -2251,12 +2500,40 @@ AMQP_PUBLIC_FUNCTION
 amqp_basic_qos_ok_t *
 AMQP_CALL amqp_basic_qos(amqp_connection_state_t state, amqp_channel_t channel, uint32_t prefetch_size, uint16_t prefetch_count, amqp_boolean_t global)
 {
-  amqp_basic_qos_t req;
-  req.prefetch_size = prefetch_size;
-  req.prefetch_count = prefetch_count;
-  req.global = global;
+  return amqp_basic_qos_noblock(state, channel, prefetch_size, prefetch_count, global, NULL);
+}
 
-  return amqp_simple_rpc_decoded(state, channel, AMQP_BASIC_QOS_METHOD, AMQP_BASIC_QOS_OK_METHOD, &req);
+
+/**
+ * amqp_basic_consume_noblock
+ *
+ * @param [in] state connection state
+ * @param [in] channel the channel to do the RPC on
+ * @param [in] queue queue
+ * @param [in] consumer_tag consumer_tag
+ * @param [in] no_local no_local
+ * @param [in] no_ack no_ack
+ * @param [in] exclusive exclusive
+ * @param [in] arguments arguments
+ * @param [in] timeout a timeout to wait the end of the operation.
+ *             Passing in NULL will result in blocking behavior.
+ * @returns amqp_basic_consume_ok_t
+ */
+AMQP_PUBLIC_FUNCTION
+amqp_basic_consume_ok_t *
+AMQP_CALL amqp_basic_consume_noblock(amqp_connection_state_t state, amqp_channel_t channel, amqp_bytes_t queue, amqp_bytes_t consumer_tag, amqp_boolean_t no_local, amqp_boolean_t no_ack, amqp_boolean_t exclusive, amqp_table_t arguments, struct timeval *timeout)
+{
+  amqp_basic_consume_t req;
+  req.ticket = 0;
+  req.queue = queue;
+  req.consumer_tag = consumer_tag;
+  req.no_local = no_local;
+  req.no_ack = no_ack;
+  req.exclusive = exclusive;
+  req.nowait = 0;
+  req.arguments = arguments;
+
+  return amqp_simple_rpc_decoded_noblock(state, channel, AMQP_BASIC_CONSUME_METHOD, AMQP_BASIC_CONSUME_OK_METHOD, &req, timeout);
 }
 
 
@@ -2277,17 +2554,29 @@ AMQP_PUBLIC_FUNCTION
 amqp_basic_consume_ok_t *
 AMQP_CALL amqp_basic_consume(amqp_connection_state_t state, amqp_channel_t channel, amqp_bytes_t queue, amqp_bytes_t consumer_tag, amqp_boolean_t no_local, amqp_boolean_t no_ack, amqp_boolean_t exclusive, amqp_table_t arguments)
 {
-  amqp_basic_consume_t req;
-  req.ticket = 0;
-  req.queue = queue;
-  req.consumer_tag = consumer_tag;
-  req.no_local = no_local;
-  req.no_ack = no_ack;
-  req.exclusive = exclusive;
-  req.nowait = 0;
-  req.arguments = arguments;
+  return amqp_basic_consume_noblock(state, channel, queue, consumer_tag, no_local, no_ack, exclusive, arguments, NULL);
+}
 
-  return amqp_simple_rpc_decoded(state, channel, AMQP_BASIC_CONSUME_METHOD, AMQP_BASIC_CONSUME_OK_METHOD, &req);
+
+/**
+ * amqp_basic_cancel_noblock
+ *
+ * @param [in] state connection state
+ * @param [in] channel the channel to do the RPC on
+ * @param [in] consumer_tag consumer_tag
+ * @param [in] timeout a timeout to wait the end of the operation.
+ *             Passing in NULL will result in blocking behavior.
+ * @returns amqp_basic_cancel_ok_t
+ */
+AMQP_PUBLIC_FUNCTION
+amqp_basic_cancel_ok_t *
+AMQP_CALL amqp_basic_cancel_noblock(amqp_connection_state_t state, amqp_channel_t channel, amqp_bytes_t consumer_tag, struct timeval *timeout)
+{
+  amqp_basic_cancel_t req;
+  req.consumer_tag = consumer_tag;
+  req.nowait = 0;
+
+  return amqp_simple_rpc_decoded_noblock(state, channel, AMQP_BASIC_CANCEL_METHOD, AMQP_BASIC_CANCEL_OK_METHOD, &req, timeout);
 }
 
 
@@ -2303,11 +2592,28 @@ AMQP_PUBLIC_FUNCTION
 amqp_basic_cancel_ok_t *
 AMQP_CALL amqp_basic_cancel(amqp_connection_state_t state, amqp_channel_t channel, amqp_bytes_t consumer_tag)
 {
-  amqp_basic_cancel_t req;
-  req.consumer_tag = consumer_tag;
-  req.nowait = 0;
+  return amqp_basic_cancel_noblock(state, channel, consumer_tag, NULL);
+}
 
-  return amqp_simple_rpc_decoded(state, channel, AMQP_BASIC_CANCEL_METHOD, AMQP_BASIC_CANCEL_OK_METHOD, &req);
+
+/**
+ * amqp_basic_recover_noblock
+ *
+ * @param [in] state connection state
+ * @param [in] channel the channel to do the RPC on
+ * @param [in] requeue requeue
+ * @param [in] timeout a timeout to wait the end of the operation.
+ *             Passing in NULL will result in blocking behavior.
+ * @returns amqp_basic_recover_ok_t
+ */
+AMQP_PUBLIC_FUNCTION
+amqp_basic_recover_ok_t *
+AMQP_CALL amqp_basic_recover_noblock(amqp_connection_state_t state, amqp_channel_t channel, amqp_boolean_t requeue, struct timeval *timeout)
+{
+  amqp_basic_recover_t req;
+  req.requeue = requeue;
+
+  return amqp_simple_rpc_decoded_noblock(state, channel, AMQP_BASIC_RECOVER_METHOD, AMQP_BASIC_RECOVER_OK_METHOD, &req, timeout);
 }
 
 
@@ -2323,10 +2629,26 @@ AMQP_PUBLIC_FUNCTION
 amqp_basic_recover_ok_t *
 AMQP_CALL amqp_basic_recover(amqp_connection_state_t state, amqp_channel_t channel, amqp_boolean_t requeue)
 {
-  amqp_basic_recover_t req;
-  req.requeue = requeue;
+  return amqp_basic_recover_noblock(state, channel, requeue, NULL);
+}
 
-  return amqp_simple_rpc_decoded(state, channel, AMQP_BASIC_RECOVER_METHOD, AMQP_BASIC_RECOVER_OK_METHOD, &req);
+
+/**
+ * amqp_tx_select_noblock
+ *
+ * @param [in] state connection state
+ * @param [in] channel the channel to do the RPC on
+ * @param [in] timeout a timeout to wait the end of the operation.
+ *             Passing in NULL will result in blocking behavior.
+ * @returns amqp_tx_select_ok_t
+ */
+AMQP_PUBLIC_FUNCTION
+amqp_tx_select_ok_t *
+AMQP_CALL amqp_tx_select_noblock(amqp_connection_state_t state, amqp_channel_t channel, struct timeval *timeout)
+{
+  amqp_tx_select_t req;
+
+  return amqp_simple_rpc_decoded_noblock(state, channel, AMQP_TX_SELECT_METHOD, AMQP_TX_SELECT_OK_METHOD, &req, timeout);
 }
 
 
@@ -2341,9 +2663,26 @@ AMQP_PUBLIC_FUNCTION
 amqp_tx_select_ok_t *
 AMQP_CALL amqp_tx_select(amqp_connection_state_t state, amqp_channel_t channel)
 {
-  amqp_tx_select_t req;
+  return amqp_tx_select_noblock(state, channel, NULL);
+}
 
-  return amqp_simple_rpc_decoded(state, channel, AMQP_TX_SELECT_METHOD, AMQP_TX_SELECT_OK_METHOD, &req);
+
+/**
+ * amqp_tx_commit_noblock
+ *
+ * @param [in] state connection state
+ * @param [in] channel the channel to do the RPC on
+ * @param [in] timeout a timeout to wait the end of the operation.
+ *             Passing in NULL will result in blocking behavior.
+ * @returns amqp_tx_commit_ok_t
+ */
+AMQP_PUBLIC_FUNCTION
+amqp_tx_commit_ok_t *
+AMQP_CALL amqp_tx_commit_noblock(amqp_connection_state_t state, amqp_channel_t channel, struct timeval *timeout)
+{
+  amqp_tx_commit_t req;
+
+  return amqp_simple_rpc_decoded_noblock(state, channel, AMQP_TX_COMMIT_METHOD, AMQP_TX_COMMIT_OK_METHOD, &req, timeout);
 }
 
 
@@ -2358,9 +2697,26 @@ AMQP_PUBLIC_FUNCTION
 amqp_tx_commit_ok_t *
 AMQP_CALL amqp_tx_commit(amqp_connection_state_t state, amqp_channel_t channel)
 {
-  amqp_tx_commit_t req;
+  return amqp_tx_commit(state, channel, NULL);
+}
 
-  return amqp_simple_rpc_decoded(state, channel, AMQP_TX_COMMIT_METHOD, AMQP_TX_COMMIT_OK_METHOD, &req);
+
+/**
+ * amqp_tx_rollback_noblock
+ *
+ * @param [in] state connection state
+ * @param [in] channel the channel to do the RPC on
+ * @param [in] timeout a timeout to wait the end of the operation.
+ *             Passing in NULL will result in blocking behavior.
+ * @returns amqp_tx_rollback_ok_t
+ */
+AMQP_PUBLIC_FUNCTION
+amqp_tx_rollback_ok_t *
+AMQP_CALL amqp_tx_rollback_noblock(amqp_connection_state_t state, amqp_channel_t channel, struct timeval *timeout)
+{
+  amqp_tx_rollback_t req;
+
+  return amqp_simple_rpc_decoded_noblock(state, channel, AMQP_TX_ROLLBACK_METHOD, AMQP_TX_ROLLBACK_OK_METHOD, &req, timeout);
 }
 
 
@@ -2375,9 +2731,27 @@ AMQP_PUBLIC_FUNCTION
 amqp_tx_rollback_ok_t *
 AMQP_CALL amqp_tx_rollback(amqp_connection_state_t state, amqp_channel_t channel)
 {
-  amqp_tx_rollback_t req;
+  return amqp_tx_rollback_noblock(state, channel, NULL);
+}
 
-  return amqp_simple_rpc_decoded(state, channel, AMQP_TX_ROLLBACK_METHOD, AMQP_TX_ROLLBACK_OK_METHOD, &req);
+
+/**
+ * amqp_confirm_select_noblock
+ *
+ * @param [in] state connection state
+ * @param [in] channel the channel to do the RPC on
+ * @param [in] timeout a timeout to wait the end of the operation.
+ *             Passing in NULL will result in blocking behavior.
+ * @returns amqp_confirm_select_ok_t
+ */
+AMQP_PUBLIC_FUNCTION
+amqp_confirm_select_ok_t *
+AMQP_CALL amqp_confirm_select_noblock(amqp_connection_state_t state, amqp_channel_t channel, struct timeval *timeout)
+{
+  amqp_confirm_select_t req;
+  req.nowait = 0;
+
+  return amqp_simple_rpc_decoded_noblock(state, channel, AMQP_CONFIRM_SELECT_METHOD, AMQP_CONFIRM_SELECT_OK_METHOD, &req, timeout);
 }
 
 
@@ -2392,9 +2766,6 @@ AMQP_PUBLIC_FUNCTION
 amqp_confirm_select_ok_t *
 AMQP_CALL amqp_confirm_select(amqp_connection_state_t state, amqp_channel_t channel)
 {
-  amqp_confirm_select_t req;
-  req.nowait = 0;
-
-  return amqp_simple_rpc_decoded(state, channel, AMQP_CONFIRM_SELECT_METHOD, AMQP_CONFIRM_SELECT_OK_METHOD, &req);
+  return amqp_confirm_select_noblock(state, channel, NULL);
 }
 

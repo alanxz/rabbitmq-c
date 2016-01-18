@@ -1738,7 +1738,8 @@ AMQP_CALL amqp_simple_rpc(amqp_connection_state_t state,
  *             NULL will result in blocking behavior.
  * \return a amqp_rpc_reply_t:
  *  - r.reply_type == AMQP_RESPONSE_NORMAL. RPC completed successfully
- *  - r.reply_type == AMQP_STATUS_TIMEOUT the timeout was reached while waiting for RPC answer.
+ *  - r.reply_type == AMQP_STATUS_TIMEOUT the timeout was reached while waiting
+ *    for RPC answer.
  *  - r.reply_type == AMQP_RESPONSE_SERVER_EXCEPTION. The broker returned an
  *    exception:
  *    - If r.reply.id == AMQP_CHANNEL_CLOSE_METHOD a channel exception
@@ -1756,9 +1757,9 @@ AMQP_CALL amqp_simple_rpc(amqp_connection_state_t state,
  *    within the library. Examine r.library_error and compare it against
  *    amqp_status_enum values to determine the error.
  *
- * \sa amqp_simple_rpc_decoded()
+ * \sa amqp_simple_rpc_decoded_noblock()
  *
- * \since v0.1
+ * \since v0.8.0
  */
 AMQP_PUBLIC_FUNCTION
 amqp_rpc_reply_t
@@ -1790,6 +1791,31 @@ AMQP_CALL amqp_simple_rpc_decoded(amqp_connection_state_t state,
                                   amqp_method_number_t request_id,
                                   amqp_method_number_t reply_id,
                                   void *decoded_request_method);
+
+/**
+ * Sends a method to the broker and waits for a method response
+ *
+ * \param [in] state the connection object
+ * \param [in] channel the channel object
+ * \param [in] request_id the method number of the request
+ * \param [in] reply_id the method number expected in response
+ * \param [in] decoded_request_method the request method
+ * \param [in] timeout a timeout to wait for a RPC answer. Passing in
+ *             NULL will result in blocking behavior.
+ * \return a pointer to the method returned from the broker, or NULL on error.
+ *  On error amqp_get_rpc_reply() will return an amqp_rpc_reply_t with
+ *  details on the error that occurred.
+ *
+ * \since v0.8.0
+ */
+AMQP_PUBLIC_FUNCTION
+void *
+AMQP_CALL amqp_simple_rpc_decoded_noblock(amqp_connection_state_t state,
+                                          amqp_channel_t channel,
+                                          amqp_method_number_t request_id,
+                                          amqp_method_number_t reply_id,
+                                          void *decoded_request_method,
+                                          struct timeval *timeout);
 
 /**
  * Get the last global amqp_rpc_reply
@@ -1928,8 +1954,8 @@ AMQP_CALL amqp_login(amqp_connection_state_t state, char const *vhost,
  *    the socket. In this case r.library_error will be set to
  *    AMQP_STATUS_CONNECTION_CLOSED. This error can represent a number of
  *    error conditions including: invalid vhost, authentication failure.
- *  - r.reply_type == AMQP_STATUS_TIMEOUT the timeout was reached while waiting for start
- *    connection.
+ *  - r.reply_type == AMQP_STATUS_TIMEOUT the timeout was reached while waiting
+ *    for start connection.
  *  - r.reply_type == AMQP_RESPONSE_SERVER_EXCEPTION. The broker returned an
  *    exception:
  *    - If r.reply.id == AMQP_CHANNEL_CLOSE_METHOD a channel exception
@@ -1944,12 +1970,16 @@ AMQP_CALL amqp_login(amqp_connection_state_t state, char const *vhost,
  *      details of the exception. The client amqp_send_method() a
  *      amqp_connection_close_ok_t and disconnect from the broker.
  *
- * \since v0.7.1
+ * \since v0.8.0
  */
 AMQP_PUBLIC_FUNCTION
 amqp_rpc_reply_t
-AMQP_CALL amqp_login_noblock(amqp_connection_state_t state, char const *vhost,
-                             int channel_max, int frame_max, int heartbeat, struct timeval *timeout,
+AMQP_CALL amqp_login_noblock(amqp_connection_state_t state,
+                             char const *vhost,
+                             int channel_max,
+                             int frame_max,
+                             int heartbeat,
+                             struct timeval *timeout,
                              amqp_sasl_method_enum sasl_method, ...);
 
 /**
@@ -2050,8 +2080,8 @@ AMQP_CALL amqp_login_with_properties(amqp_connection_state_t state, char const *
  *    the socket. In this case r.library_error will be set to
  *    AMQP_STATUS_CONNECTION_CLOSED. This error can represent a number of
  *    error conditions including: invalid vhost, authentication failure.
- *  - r.reply_type == AMQP_STATUS_TIMEOUT the timeout was reached while waiting for start
- *    connection.
+ *  - r.reply_type == AMQP_STATUS_TIMEOUT the timeout was reached while waiting
+ *    for start connection.
  *  - r.reply_type == AMQP_RESPONSE_SERVER_EXCEPTION. The broker returned an
  *    exception:
  *    - If r.reply.id == AMQP_CHANNEL_CLOSE_METHOD a channel exception
@@ -2066,13 +2096,18 @@ AMQP_CALL amqp_login_with_properties(amqp_connection_state_t state, char const *
  *      details of the exception. The client amqp_send_method() a
  *      amqp_connection_close_ok_t and disconnect from the broker.
  *
- * \since v0.7.1
+ * \since v0.8.0
  */
 AMQP_PUBLIC_FUNCTION
 amqp_rpc_reply_t
-AMQP_CALL amqp_login_with_properties_noblock(amqp_connection_state_t state, char const *vhost,
-                                             int channel_max, int frame_max, int heartbeat, const amqp_table_t *properties,
-                                             struct timeval *timeout, amqp_sasl_method_enum sasl_method, ...);
+AMQP_CALL amqp_login_with_properties_noblock(amqp_connection_state_t state,
+                                             char const *vhost,
+                                             int channel_max, int frame_max,
+                                             int heartbeat,
+                                             const amqp_table_t *properties,
+                                             struct timeval *timeout,
+                                             amqp_sasl_method_enum sasl_method,
+                                             ...);
 
 struct amqp_basic_properties_t_;
 

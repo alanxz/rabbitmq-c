@@ -1167,7 +1167,31 @@ amqp_rpc_reply_t amqp_simple_rpc(amqp_connection_state_t state,
                                  amqp_method_number_t *expected_reply_ids,
                                  void *decoded_request_method)
 {
-  return amqp_simple_rpc_noblock(state, channel, request_id, expected_reply_ids, decoded_request_method, NULL);
+  return amqp_simple_rpc_noblock(state, channel, request_id, 
+             expected_reply_ids, decoded_request_method, NULL);
+}
+
+void *amqp_simple_rpc_decoded_noblock(amqp_connection_state_t state,
+                                      amqp_channel_t channel,
+                                      amqp_method_number_t request_id,
+                                      amqp_method_number_t reply_id,
+                                      void *decoded_request_method,
+                                      struct timeval *timeout)
+{
+  amqp_method_number_t replies[2];
+
+  replies[0] = reply_id;
+  replies[1] = 0;
+
+  state->most_recent_api_result = amqp_simple_rpc_noblock(state, channel,
+                                      request_id, replies,
+                                      decoded_request_method, timeout);
+
+  if (state->most_recent_api_result.reply_type == AMQP_RESPONSE_NORMAL) {
+    return state->most_recent_api_result.reply.decoded;
+  } else {
+    return NULL;
+  }
 }
 
 
@@ -1177,19 +1201,8 @@ void *amqp_simple_rpc_decoded(amqp_connection_state_t state,
                               amqp_method_number_t reply_id,
                               void *decoded_request_method)
 {
-  amqp_method_number_t replies[2];
-
-  replies[0] = reply_id;
-  replies[1] = 0;
-
-  state->most_recent_api_result = amqp_simple_rpc(state, channel,
-                                  request_id, replies,
-                                  decoded_request_method);
-  if (state->most_recent_api_result.reply_type == AMQP_RESPONSE_NORMAL) {
-    return state->most_recent_api_result.reply.decoded;
-  } else {
-    return NULL;
-  }
+  return amqp_simple_rpc_decoded_noblock(state, channel, request_id, reply_id,
+                                         decoded_request_method, NULL);
 }
 
 amqp_rpc_reply_t amqp_get_rpc_reply(amqp_connection_state_t state)
@@ -1274,15 +1287,31 @@ static amqp_rpc_reply_t amqp_login_inner_noblock(amqp_connection_state_t state,
   uint16_t server_channel_max;
   uint16_t server_heartbeat;
   amqp_rpc_reply_t result;
+  amqp_time_t deadline;
+  struct timeval tv;
+  struct timeval *tvp;
+
+  res = amqp_time_from_now(&deadline, timeout);
+  if (AMQP_STATUS_OK != res) {
+    goto error_res;
+  }
 
   res = amqp_send_header(state);
   if (AMQP_STATUS_OK != res) {
     goto error_res;
   }
 
+  res = amqp_time_tv_until(deadline, &tv, &tvp);
+  if (AMQP_STATUS_OK != res) {
+    goto error_res;
+  }
+
   res = amqp_simple_wait_method_noblock(state, 0, AMQP_CONNECTION_START_METHOD,
-                                        timeout, &method);
-  if (res != AMQP_STATUS_OK) {
+                                        tvp, &method);
+  if (res < 0) {
+    if (AMQP_STATUS_TIMEOUT == res) {
+      amqp_socket_close(state->socket);
+    } 
     goto error_res;
   }
 
@@ -1378,8 +1407,17 @@ static amqp_rpc_reply_t amqp_login_inner_noblock(amqp_connection_state_t state,
   {
     amqp_method_number_t expected[] = { AMQP_CONNECTION_TUNE_METHOD,
                                       AMQP_CONNECTION_CLOSE_METHOD, 0 };
-    res = amqp_simple_wait_method_list_noblock(state, 0, expected, timeout, &method);
+
+    res = amqp_time_tv_until(deadline, &tv, &tvp);
     if (AMQP_STATUS_OK != res) {
+      goto error_res;
+    }
+
+    res = amqp_simple_wait_method_list_noblock(state, 0, expected, tvp, &method);
+    if (AMQP_STATUS_OK != res) {
+      if (AMQP_STATUS_TIMEOUT == res) {
+        amqp_socket_close(state->socket);
+      }
       goto error_res;
     }
   }
@@ -1440,13 +1478,22 @@ static amqp_rpc_reply_t amqp_login_inner_noblock(amqp_connection_state_t state,
     s.capabilities.bytes = NULL;
     s.insist = 1;
 
+    res = amqp_time_tv_until(deadline, &tv, &tvp);
+    if (AMQP_STATUS_OK != res) {
+      goto error_res;
+    }
+
     result = amqp_simple_rpc_noblock(state,
                                      0,
                                      AMQP_CONNECTION_OPEN_METHOD,
                              replies,
                                      &s,
-                                     timeout);
+                                     tvp);
     if (result.reply_type != AMQP_RESPONSE_NORMAL) {
+      if (AMQP_STATUS_TIMEOUT == result.library_error) {
+        amqp_socket_close(state->socket);
+      }
+
       goto out;
     }
   }
