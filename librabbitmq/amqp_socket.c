@@ -1310,7 +1310,7 @@ static amqp_rpc_reply_t amqp_login_inner_noblock(amqp_connection_state_t state,
                                         tvp, &method);
   if (res < 0) {
     if (AMQP_STATUS_TIMEOUT == res) {
-      amqp_socket_close(state->socket);
+      amqp_socket_close(state->socket, AMQP_SC_FORCE);
     } 
     goto error_res;
   }
@@ -1416,7 +1416,7 @@ static amqp_rpc_reply_t amqp_login_inner_noblock(amqp_connection_state_t state,
     res = amqp_simple_wait_method_list_noblock(state, 0, expected, tvp, &method);
     if (AMQP_STATUS_OK != res) {
       if (AMQP_STATUS_TIMEOUT == res) {
-        amqp_socket_close(state->socket);
+        amqp_socket_close(state->socket, AMQP_SC_FORCE);
       }
       goto error_res;
     }
@@ -1491,7 +1491,7 @@ static amqp_rpc_reply_t amqp_login_inner_noblock(amqp_connection_state_t state,
                                      tvp);
     if (result.reply_type != AMQP_RESPONSE_NORMAL) {
       if (AMQP_STATUS_TIMEOUT == result.library_error) {
-        amqp_socket_close(state->socket);
+        amqp_socket_close(state->socket, AMQP_SC_FORCE);
       }
 
       goto out;
