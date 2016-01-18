@@ -14,6 +14,8 @@ env:
 
 matrix:
   include:
+    # Note that the first compiler in the matrix must be gcc, so that the
+    # coverity_scan branch hack below works correctly.
     - compiler: gcc
       os: linux
       env: CONFIG=autotools
@@ -30,23 +32,42 @@ matrix:
       os: linux
       env: CONFIG=tsan
     - compiler: clang
+      os: linux
+      env: CONFIG=scan-build
+    - compiler: clang
       os: osx
       env: CONFIG=cmake
 
-# Run the Build script
+before_install:
+  # ugly hack; if running a coverity scan abort all except the 1st build
+  # see note re gcc compiler above needing to be 1st
+  # also note that branch_pattern & the TRAVIS_BRANCH check must match
+  # unfortunately COVERITY_SCAN_BRANCH isn't defined until later in the
+  # build process
+  - if ([[ "${TRAVIS_JOB_NUMBER##*.}" != "1" ]] && [[ "${TRAVIS_BRANCH}" == "coverity_scan" ]]); then false ; fi
+
 script:
-  - ./travis.sh $CONFIG
+  # Don't bother building if this is being done in the coverity_scan branch.
+  - if [ "${COVERITY_SCAN_BRANCH}" != 1 ]; then ./travis.sh $CONFIG ; fi
 
 addons:
   apt:
+    # List of whitelisted in travis packages for ubuntu-precise can be found here:
+    #   https://github.com/travis-ci/apt-package-whitelist/blob/master/ubuntu-precise
+    # List of whitelisted in travis apt-sources:
+    #   https://github.com/travis-ci/apt-source-whitelist/blob/master/ubuntu.json
+    sources:
+      - ubuntu-toolchain-r-test
+      - llvm-toolchain-precise-3.7
     packages:
       - libpopt-dev
+      - clang-3.7
 
   coverity_scan:
     project:
       name: "alanxz/rabbitmq-c"
       description: "C AMQP client for RabbitMQ"
     notification_email: alan.antonuk@gmail.com
-    build_command_prepend: cmake ..
-    build_command: cmake --build .
+    build_command_prepend: mkdir build && pushd build && cmake .. && popd
+    build_command: cmake --build ./build
     branch_pattern: coverity_scan

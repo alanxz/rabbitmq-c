@@ -64,7 +64,7 @@
 #endif
 
 /* GCC attributes */
-#if __GNUC__ > 2 | (__GNUC__ == 2 && __GNUC_MINOR__ > 4)
+#if __GNUC__ > 2 || (__GNUC__ == 2 && __GNUC_MINOR__ > 4)
 #define AMQP_NORETURN \
   __attribute__ ((__noreturn__))
 #define AMQP_UNUSED \

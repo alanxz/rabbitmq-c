@@ -726,7 +726,9 @@ typedef enum amqp_status_enum_
   AMQP_STATUS_BROKER_UNSUPPORTED_SASL_METHOD = -0x0013, /**< Broker does not
                                                           support the requested
                                                           SASL mechanism */
-  _AMQP_STATUS_NEXT_VALUE =               -0x0014, /**< Internal value */
+  AMQP_STATUS_UNSUPPORTED =               -0x0014, /**< Parameter is unsupported
+                                                     in this version */
+  _AMQP_STATUS_NEXT_VALUE =               -0x0015, /**< Internal value */
 
   AMQP_STATUS_TCP_ERROR =                 -0x0100, /**< A generic TCP error
                                                         occurred */
@@ -2520,6 +2522,10 @@ AMQP_CALL amqp_default_connection_info(struct amqp_connection_info *parsed);
  * Examples:
  *  amqp://guest:guest\@localhost:5672//
  *  amqp://guest:guest\@localhost/myvhost
+ *
+ *  Any missing parts of the URL will be set to the defaults specified in
+ *  amqp_default_connection_info. For amqps: URLs the default port will be set
+ *  to 5671 instead of 5672 for non-SSL URLs.
  *
  * \note This function modifies url parameter.
  *

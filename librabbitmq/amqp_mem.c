@@ -136,6 +136,7 @@ void *amqp_pool_alloc(amqp_pool_t *pool, size_t amount)
       return NULL;
     }
     if (!record_pool_block(&pool->large_blocks, result)) {
+      free(result);
       return NULL;
     }
     return result;

@@ -47,7 +47,6 @@
 
 #include "amqp_private.h"
 #include "amqp_time.h"
-#include <assert.h>
 #include <stdarg.h>
 #include <stdint.h>
 #include <stdio.h>
@@ -83,7 +82,8 @@ static const char *base_error_strings[] = {
   "unexpected protocol state",          /* AMQP_STATUS_UNEXPECTED STATE         -0x0010 */
   "socket is closed",                   /* AMQP_STATUS_SOCKET_CLOSED            -0x0011 */
   "socket already open",                /* AMQP_STATUS_SOCKET_INUSE             -0x0012 */
-  "unsupported sasl method requested"   /* AMQP_STATUS_BROKER_UNSUPPORTED_SASL_METHOD -0x0013 */
+  "unsupported sasl method requested",  /* AMQP_STATUS_BROKER_UNSUPPORTED_SASL_METHOD -0x0013 */
+  "parameter value is unsupported"      /* AMQP_STATUS_UNSUPPORTED -0x0014 */
 };
 
 static const char *tcp_error_strings[] = {
@@ -169,11 +169,6 @@ void amqp_abort(const char *fmt, ...)
 const amqp_bytes_t amqp_empty_bytes = { 0, NULL };
 const amqp_table_t amqp_empty_table = { 0, NULL };
 const amqp_array_t amqp_empty_array = { 0, NULL };
-
-#define RPC_REPLY(replytype)\
-  (state->most_recent_api_result.reply_type == AMQP_RESPONSE_NORMAL\
-   ? (replytype *) state->most_recent_api_result.reply.decoded\
-   : NULL)
 
 int amqp_basic_publish(amqp_connection_state_t state,
                        amqp_channel_t channel,

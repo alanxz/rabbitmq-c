@@ -1,16 +1,16 @@
 /* Functions to help coverity do static analysis on rabbitmq-c */
 
-void amqp_abort(const char *fmt, ...)
-{
-  __coverity_panic__();
-}
+typedef struct {} amqp_rpc_reply_t;
 
-void die_on_amqp_error(amqp_rpc_reply *r)
-{
-  __coverity_panic__();
-}
+/* librabbitmq/amqp_private.h */
+void amqp_abort(const char *fmt, ...) { __coverity_panic__(); }
 
-void die_on_error(int r)
-{
-  __coverity_panic__();
-}
+/* tools/common.h */
+void die(const char* fmt, ...) { __coverity_panic__(); }
+void die_errno(int err, const char* fmt, ...) { __coverity_panic__(); }
+void die_amqp_error(int err, const char* fmt, ...) { __coverity_panic__(); }
+void die_rpc(amqp_rpc_reply_t r, const char* fmt, ...) { __coverity_panic__(); }
+
+/* examples/utils.h */
+void die_on_amqp_error(amqp_rpc_reply_t *r) { __coverity_panic__(); }
+void die_on_error(int r) { __coverity_panic__(); }

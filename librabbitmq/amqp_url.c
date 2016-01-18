@@ -120,6 +120,8 @@ int amqp_parse_url(char *url, struct amqp_connection_info *parsed)
   char *host;
   char *port = NULL;
 
+  amqp_default_connection_info(parsed);
+
   /* check the prefix */
   if (!strncmp(url, "amqp://", 7)) {
     /* do nothing */

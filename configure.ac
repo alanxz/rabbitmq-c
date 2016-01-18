@@ -102,6 +102,7 @@ AC_SEARCH_LIBS([socket], [socket], [],
                              [AC_MSG_ERROR([cannot find socket library (library with socket symbol)])],
                              [-lnsl])])
 AC_SEARCH_LIBS([clock_gettime], [rt])
+AC_SEARCH_LIBS([posix_spawnp], [rt])
 AC_MSG_CHECKING([if htonll is defined])
 
 dnl # Check for htonll

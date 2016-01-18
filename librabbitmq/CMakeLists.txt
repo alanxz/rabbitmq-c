@@ -82,6 +82,8 @@ if (ENABLE_SSL_SUPPORT)
 
   set(AMQP_SSL_SRCS ${AMQP_SSL_SOCKET_H_PATH}
       amqp_openssl.c
+      amqp_openssl_hostname_validation.c
+      amqp_openssl_hostname_validation.h
       amqp_hostcheck.c
       amqp_hostcheck.h
   )

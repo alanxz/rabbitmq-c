@@ -234,11 +234,11 @@ amqp_socket_open_noblock(amqp_socket_t *self, const char *host, int port, struct
 }
 
 int
-amqp_socket_close(amqp_socket_t *self)
+amqp_socket_close(amqp_socket_t *self, amqp_socket_close_enum force)
 {
   assert(self);
   assert(self->klass->close);
-  return self->klass->close(self);
+  return self->klass->close(self, force);
 }
 
 void
@@ -303,27 +303,40 @@ start_poll:
   return AMQP_STATUS_OK;
 #elif defined(HAVE_SELECT)
   fd_set fds;
+  fd_set exceptfds;
+  fd_set *exceptfdsp;
   int res;
   struct timeval tv;
   struct timeval *tvp;
 
-  assert(event == AMQP_SF_POLLIN || event == AMQP_SF_POLLOUT);
+  assert((0 != (event & AMQP_SF_POLLIN)) || (0 != (event & AMQP_SF_POLLOUT)));
+#ifndef _WIN32
+  /* On Win32 connect() failure is indicated through the exceptfds, it does not
+   * make any sense to allow POLLERR on any other platform or condition */
+  assert(0 == (event & AMQP_SF_POLLERR));
+#endif
 
 start_select:
   FD_ZERO(&fds);
   FD_SET(fd, &fds);
+
+  if (event & AMQP_SF_POLLERR) {
+    FD_ZERO(&exceptfds);
+    FD_SET(fd, &exceptfds);
+    exceptfdsp = &exceptfds;
+  } else {
+    exceptfdsp = NULL;
+  }
 
   res = amqp_time_tv_until(deadline, &tv, &tvp);
   if (res != AMQP_STATUS_OK) {
     return res;
   }
 
-  switch (event) {
-    case AMQP_SF_POLLIN:
-      res = select(fd + 1, &fds, NULL, NULL, tvp);
-      break;
-    case AMQP_SF_POLLOUT:
-      res = select(fd + 1, NULL, &fds, NULL, tvp);
+  if (event & AMQP_SF_POLLIN) {
+      res = select(fd + 1, &fds, NULL, exceptfdsp, tvp);
+  } else if (event & AMQP_SF_POLLOUT) {
+      res = select(fd + 1, NULL, &fds, exceptfdsp, tvp);
   }
 
   if (0 < res) {
@@ -417,7 +430,7 @@ int amqp_open_socket_inner(char const *hostname,
   struct addrinfo *addr;
   char portnumber_string[33];
   int sockfd = -1;
-  int last_error = AMQP_STATUS_OK;
+  int last_error;
   int one = 1; /* for setsockopt */
   int res;
 
@@ -481,10 +494,12 @@ int amqp_open_socket_inner(char const *hostname,
 
 #ifdef _WIN32
     if (WSAEWOULDBLOCK == amqp_os_socket_error()) {
+      int event = AMQP_SF_POLLOUT | AMQP_SF_POLLERR;
 #else
     if (EINPROGRESS == amqp_os_socket_error()) {
+      int event = AMQP_SF_POLLOUT;
 #endif
-      last_error = amqp_poll(sockfd, AMQP_SF_POLLOUT, deadline);
+      last_error = amqp_poll(sockfd, event, deadline);
       if (AMQP_STATUS_OK == last_error) {
         int result;
         socklen_t result_len = sizeof(result);
@@ -549,12 +564,10 @@ static amqp_bytes_t sasl_method_name(amqp_sasl_method_enum method)
 
   switch (method) {
   case AMQP_SASL_METHOD_PLAIN:
-    res.bytes = "PLAIN";
-    res.len = 5;
+    res = amqp_cstring_bytes("PLAIN");
     break;
   case AMQP_SASL_METHOD_EXTERNAL:
-    res.bytes = "EXTERNAL";
-    res.len = 8;
+    res = amqp_cstring_bytes("EXTERNAL");
     break;
 
   default:
@@ -837,7 +850,7 @@ beginrecv:
 
     if (AMQP_STATUS_TIMEOUT == res) {
       if (amqp_time_equal(deadline, state->next_recv_heartbeat)) {
-        amqp_socket_close(state->socket);
+        amqp_socket_close(state->socket, AMQP_SC_FORCE);
         return AMQP_STATUS_HEARTBEAT_TIMEOUT;
       } else if (amqp_time_equal(deadline, timeout_deadline)) {
         return AMQP_STATUS_TIMEOUT;
@@ -1269,7 +1282,7 @@ static amqp_rpc_reply_t amqp_login_inner_noblock(amqp_connection_state_t state,
 
   res = amqp_simple_wait_method_noblock(state, 0, AMQP_CONNECTION_START_METHOD,
                                         timeout, &method);
-  if (res < 0) {
+  if (res != AMQP_STATUS_OK) {
     goto error_res;
   }
 
@@ -1430,7 +1443,7 @@ static amqp_rpc_reply_t amqp_login_inner_noblock(amqp_connection_state_t state,
     result = amqp_simple_rpc_noblock(state,
                                      0,
                                      AMQP_CONNECTION_OPEN_METHOD,
-                                     (amqp_method_number_t *) &replies,
+                             replies,
                                      &s,
                                      timeout);
     if (result.reply_type != AMQP_RESPONSE_NORMAL) {

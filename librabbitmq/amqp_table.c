@@ -106,14 +106,18 @@ static int amqp_decode_array(amqp_bytes_t encoded,
 
   output->num_entries = num_entries;
   output->entries = amqp_pool_alloc(pool, num_entries * sizeof(amqp_field_value_t));
-  res = AMQP_STATUS_NO_MEMORY;
   /* NULL is legitimate if we requested a zero-length block. */
-  if (output->entries == NULL && num_entries > 0) {
+  if (output->entries == NULL) {
+    if (num_entries == 0) {
+      res = AMQP_STATUS_OK;
+    } else {
+      res = AMQP_STATUS_NO_MEMORY;
+    }
     goto out;
   }
 
   memcpy(output->entries, entries, num_entries * sizeof(amqp_field_value_t));
-  res = 0;
+  res = AMQP_STATUS_OK;
 
 out:
   free(entries);
@@ -178,9 +182,13 @@ int amqp_decode_table(amqp_bytes_t encoded,
 
   output->num_entries = num_entries;
   output->entries = amqp_pool_alloc(pool, num_entries * sizeof(amqp_table_entry_t));
-  res = AMQP_STATUS_NO_MEMORY;
   /* NULL is legitimate if we requested a zero-length block. */
-  if (output->entries == NULL && num_entries > 0) {
+  if (output->entries == NULL) {
+    if (num_entries == 0) {
+      res = AMQP_STATUS_OK;
+    } else {
+      res = AMQP_STATUS_NO_MEMORY;
+    }
     goto out;
   }
 

@@ -23,6 +23,8 @@
 
 #include "threads.h"
 
+#include <stdlib.h>
+
 DWORD
 pthread_self(void)
 {

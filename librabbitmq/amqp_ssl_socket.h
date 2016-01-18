@@ -119,6 +119,9 @@ amqp_ssl_socket_set_key_buffer(amqp_socket_t *self,
 /**
  * Enable or disable peer verification.
  *
+ * \deprecated use \amqp_ssl_socket_set_verify_peer and
+ * \amqp_ssl_socket_set_verify_hostname instead.
+ *
  * If peer verification is enabled then the common name in the server
  * certificate must match the server name. Peer verification is enabled by
  * default.
@@ -128,11 +131,72 @@ amqp_ssl_socket_set_key_buffer(amqp_socket_t *self,
  *
  * \since v0.4.0
  */
+AMQP_DEPRECATED(
+    AMQP_PUBLIC_FUNCTION
+    void
+    AMQP_CALL
+    amqp_ssl_socket_set_verify(amqp_socket_t *self, amqp_boolean_t verify)
+);
+
+/**
+ * Enable or disable peer verification.
+ *
+ * Peer verification validates the certificate chain that is sent by the broker.
+ * Hostname validation is controlled by \amqp_ssl_socket_set_verify_peer.
+ *
+ * \param [in,out] self An SSL/TLS socket object.
+ * \param [in] verify enable or disable peer validation
+ *
+ * \since v0.8.0
+ */
 AMQP_PUBLIC_FUNCTION
 void
 AMQP_CALL
-amqp_ssl_socket_set_verify(amqp_socket_t *self,
-                           amqp_boolean_t verify);
+amqp_ssl_socket_set_verify_peer(amqp_socket_t *self, amqp_boolean_t verify);
+
+/**
+ * Enable or disable hostname verification.
+ *
+ * Hostname verification checks the broker cert for a CN or SAN that matches the
+ * hostname that amqp_socket_open() is presented. Peer verification is
+ * controlled by \amqp_ssl_socket_set_verify_peer
+ *
+ * \since v0.8.0
+ */
+AMQP_PUBLIC_FUNCTION
+void
+AMQP_CALL
+amqp_ssl_socket_set_verify_hostname(amqp_socket_t *self, amqp_boolean_t verify);
+
+typedef enum {
+  AMQP_TLSv1 = 1,
+  AMQP_TLSv1_1 = 2,
+  AMQP_TLSv1_2 = 3,
+  AMQP_TLSvLATEST = 0xFFFF
+} amqp_tls_version_t;
+
+/**
+ * Set min and max TLS versions.
+ *
+ * Set the oldest and newest acceptable TLS versions that are acceptable when
+ * connecting to the broker. Set min == max to restrict to just that
+ * version.
+ *
+ * \param [in,out] self An SSL/TLS socket object.
+ * \param [in] min the minimum acceptable TLS version
+ * \param [in] max the maxmium acceptable TLS version
+ * \returns AMQP_STATUS_OK on success, AMQP_STATUS_UNSUPPORTED if OpenSSL does
+ * not support the requested TLS version, AMQP_STATUS_INVALID_PARAMETER if an
+ * invalid combination of parameters is passed.
+ *
+ * \since v0.8.0
+ */
+AMQP_PUBLIC_FUNCTION
+int
+AMQP_CALL
+amqp_ssl_socket_set_ssl_versions(amqp_socket_t *self,
+                                 amqp_tls_version_t min,
+                                 amqp_tls_version_t max);
 
 /**
  * Sets whether rabbitmq-c initializes the underlying SSL library.

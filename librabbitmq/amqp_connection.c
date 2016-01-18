@@ -45,7 +45,6 @@
 #include "amqp_tcp_socket.h"
 #include "amqp_private.h"
 #include "amqp_time.h"
-#include <assert.h>
 #include <errno.h>
 #include <stdint.h>
 #include <stdio.h>
@@ -498,22 +497,26 @@ static int amqp_frame_to_bytes(const amqp_frame_t *frame, amqp_bytes_t buffer,
       break;
     }
 
-    case AMQP_FRAME_HEADER:
+    case AMQP_FRAME_HEADER: {
+      amqp_bytes_t properties_encoded;
+
       amqp_e16(out_frame, HEADER_SIZE, frame->payload.properties.class_id);
       amqp_e16(out_frame, HEADER_SIZE + 2, 0); /* "weight" */
       amqp_e64(out_frame, HEADER_SIZE + 4, frame->payload.properties.body_size);
 
-      encoded->bytes = amqp_offset(out_frame, HEADER_SIZE + 12);
-      encoded->len = buffer.len - HEADER_SIZE - 12 - FOOTER_SIZE;
+      properties_encoded.bytes = amqp_offset(out_frame, HEADER_SIZE + 12);
+      properties_encoded.len = buffer.len - HEADER_SIZE - 12 - FOOTER_SIZE;
 
       res = amqp_encode_properties(frame->payload.properties.class_id,
-                                   frame->payload.properties.decoded, *encoded);
+                                   frame->payload.properties.decoded,
+                                   properties_encoded);
       if (res < 0) {
         return res;
       }
 
       out_frame_len = res + 12;
       break;
+    }
 
     case AMQP_FRAME_HEARTBEAT:
       out_frame_len = 0;

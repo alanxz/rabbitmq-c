@@ -39,7 +39,7 @@ int amqp_basic_properties_clone(amqp_basic_properties_t *original,
                                 amqp_basic_properties_t *clone,
                                 amqp_pool_t *pool)
 {
-  memset(clone, 0, sizeof(amqp_basic_properties_t));
+  memset(clone, 0, sizeof(*clone));
   clone->_flags = original->_flags;
 
 #define CLONE_BYTES_POOL(original, clone, pool)         \
@@ -148,8 +148,8 @@ amqp_consume_message(amqp_connection_state_t state, amqp_envelope_t *envelope,
   amqp_basic_deliver_t *delivery_method;
   amqp_rpc_reply_t ret;
 
-  memset(&ret, 0, sizeof(amqp_rpc_reply_t));
-  memset(envelope, 0, sizeof(amqp_envelope_t));
+  memset(&ret, 0, sizeof(ret));
+  memset(envelope, 0, sizeof(*envelope));
 
   res = amqp_simple_wait_frame_noblock(state, &frame, timeout);
   if (AMQP_STATUS_OK != res) {
@@ -211,8 +211,8 @@ amqp_rpc_reply_t amqp_read_message(amqp_connection_state_t state,
   char *body_read_ptr;
   int res;
 
-  memset(&ret, 0, sizeof(amqp_rpc_reply_t));
-  memset(message, 0, sizeof(amqp_message_t));
+  memset(&ret, 0, sizeof(ret));
+  memset(message, 0, sizeof(*message));
 
   res = amqp_simple_wait_frame_on_channel(state, channel, &frame);
   if (AMQP_STATUS_OK != res) {

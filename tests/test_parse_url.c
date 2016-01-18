@@ -78,7 +78,6 @@ static void parse_success(const char *url,
   struct amqp_connection_info ci;
   int res;
 
-  amqp_default_connection_info(&ci);
   res = amqp_parse_url(s, &ci);
   if (res) {
     fprintf(stderr,

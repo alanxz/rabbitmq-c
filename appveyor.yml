@@ -1,13 +1,36 @@
 # appveyor configuration
 version: '{build}'
 
+# Limit history cloned. This matches what travis-CI currently does.
+clone_depth: 50
+
 environment:
   matrix:
     - GENERATOR: Visual Studio 12 Win64
+      BITS: 64
     - GENERATOR: Visual Studio 12
+      BITS: 32
+
+cache:
+  - c:\deps -> appveyor.yml
+
+install:
+  - ps: $file = "Win${env:BITS}OpenSSL-1_0_2e.exe"
+  - ps: $dir = "c:\deps"
+  - ps: $exists = Test-Path "$dir\$file"
+  - ps: >-
+      If ($exists -ne $True) {
+        Write-Host "Downloading: $dir\$file."
+        New-Item -Path $dir -type directory -force
+        Start-FileDownload "http://slproweb.com/download/$file" -FileName "$dir\$file"
+      } Else {
+        Write-Host "Reusing cached: $dir\$file."
+      }
+  - ps: >-
+      & "$dir\$file" /silent /verysilent /sp- /suppressmsgboxes /dir="c:\OpenSSL"
 
 before_build:
-  - cmake -DBUILD_SHARED_LIBS=ON -DBUILD_STATIC_LIBS=ON -DBUILD_TESTS=ON -DENABLE_SSL_SUPPORT=False -G"%GENERATOR%" .
+  - cmake -DBUILD_SHARED_LIBS=ON -DBUILD_STATIC_LIBS=ON -DBUILD_TESTS=ON -DENABLE_SSL_SUPPORT=True -G"%GENERATOR%" .
 
 build:
   project: ALL_BUILD.vcxproj
