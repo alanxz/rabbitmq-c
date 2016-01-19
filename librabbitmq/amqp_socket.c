@@ -1271,7 +1271,7 @@ error_out:
   return res;
 }
 
-static amqp_rpc_reply_t amqp_login_inner_noblock(amqp_connection_state_t state,
+static amqp_rpc_reply_t amqp_login_inner(amqp_connection_state_t state,
     char const *vhost,
     int channel_max,
     int frame_max,
@@ -1308,10 +1308,7 @@ static amqp_rpc_reply_t amqp_login_inner_noblock(amqp_connection_state_t state,
 
   res = amqp_simple_wait_method_noblock(state, 0, AMQP_CONNECTION_START_METHOD,
                                         tvp, &method);
-  if (res < 0) {
-    if (AMQP_STATUS_TIMEOUT == res) {
-      amqp_socket_close(state->socket, AMQP_SC_FORCE);
-    } 
+  if (AMQP_STATUS_OK != res) {
     goto error_res;
   }
 
@@ -1415,9 +1412,6 @@ static amqp_rpc_reply_t amqp_login_inner_noblock(amqp_connection_state_t state,
 
     res = amqp_simple_wait_method_list_noblock(state, 0, expected, tvp, &method);
     if (AMQP_STATUS_OK != res) {
-      if (AMQP_STATUS_TIMEOUT == res) {
-        amqp_socket_close(state->socket, AMQP_SC_FORCE);
-      }
       goto error_res;
     }
   }
@@ -1486,14 +1480,10 @@ static amqp_rpc_reply_t amqp_login_inner_noblock(amqp_connection_state_t state,
     result = amqp_simple_rpc_noblock(state,
                                      0,
                                      AMQP_CONNECTION_OPEN_METHOD,
-                             replies,
+                                     replies,
                                      &s,
                                      tvp);
     if (result.reply_type != AMQP_RESPONSE_NORMAL) {
-      if (AMQP_STATUS_TIMEOUT == result.library_error) {
-        amqp_socket_close(state->socket, AMQP_SC_FORCE);
-      }
-
       goto out;
     }
   }
@@ -1516,18 +1506,6 @@ error_res:
   goto out;
 }
 
-static amqp_rpc_reply_t amqp_login_inner(amqp_connection_state_t state,
-                                         char const *vhost,
-                                         int channel_max,
-                                         int frame_max,
-                                         int heartbeat,
-                                         const amqp_table_t *client_properties,
-                                         amqp_sasl_method_enum sasl_method,
-                                         va_list vl)
-{
-  return amqp_login_inner_noblock(state, vhost, channel_max, frame_max, heartbeat,
-                                  client_properties, NULL, sasl_method, vl);
-}
 
 amqp_rpc_reply_t amqp_login(amqp_connection_state_t state,
                             char const *vhost,
@@ -1543,34 +1521,13 @@ amqp_rpc_reply_t amqp_login(amqp_connection_state_t state,
   va_start(vl, sasl_method);
 
   ret = amqp_login_inner(state, vhost, channel_max, frame_max, heartbeat,
-    &amqp_empty_table, sasl_method, vl);
+    &amqp_empty_table, NULL, sasl_method, vl);
 
   va_end(vl);
 
   return ret;
 }
 
-amqp_rpc_reply_t amqp_login_noblock(amqp_connection_state_t state,
-                                    char const *vhost,
-                                    int channel_max,
-                                    int frame_max,
-                                    int heartbeat,
-                                    struct timeval *timeout,
-                                    amqp_sasl_method_enum sasl_method,
-                                    ...)
-{
-  va_list vl;
-  amqp_rpc_reply_t ret;
-
-  va_start(vl, sasl_method);
-
-  ret = amqp_login_inner_noblock(state, vhost, channel_max, frame_max, heartbeat,
-                                 &amqp_empty_table, timeout, sasl_method, vl);
-
-  va_end(vl);
-
-  return ret;
-}
 
 amqp_rpc_reply_t amqp_login_with_properties(amqp_connection_state_t state,
                                             char const *vhost,
@@ -1587,29 +1544,30 @@ amqp_rpc_reply_t amqp_login_with_properties(amqp_connection_state_t state,
   va_start(vl, sasl_method);
 
   ret = amqp_login_inner(state, vhost, channel_max, frame_max, heartbeat,
-    client_properties, sasl_method, vl);
+    client_properties, NULL, sasl_method, vl);
 
   va_end(vl);
 
   return ret;
 }
 
-amqp_rpc_reply_t amqp_login_with_properties_noblock(amqp_connection_state_t state,
-    char const *vhost,
-    int channel_max,
-    int frame_max,
-    int heartbeat,
-    const amqp_table_t *client_properties,
-    struct timeval *timeout,
-    amqp_sasl_method_enum sasl_method,
-    ...)
+amqp_rpc_reply_t amqp_login_with_properties_noblock(
+                      amqp_connection_state_t state,
+                      char const *vhost,
+                      int channel_max,
+                      int frame_max,
+                      int heartbeat,
+                      const amqp_table_t *client_properties,
+                      struct timeval *timeout,
+                      amqp_sasl_method_enum sasl_method,
+                      ...)
 {
   va_list vl;
   amqp_rpc_reply_t ret;
 
   va_start(vl, sasl_method);
 
-  ret = amqp_login_inner_noblock(state, vhost, channel_max, frame_max, heartbeat,
+  ret = amqp_login_inner(state, vhost, channel_max, frame_max, heartbeat,
                          client_properties, timeout, sasl_method, vl);
 
   va_end(vl);
