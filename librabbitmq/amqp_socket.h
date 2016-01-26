@@ -177,6 +177,117 @@ int amqp_open_socket_inner(char const *hostname, int portnumber,
  * event (AMQP_SF_POLLIN, AMQP_SF_POLLOUT) */
 int amqp_poll(int fd, int event, amqp_time_t deadline);
 
+
+/**
+ * Waits for a specific method from the broker with a timeout
+ *
+ * \warning You probably don't want to use this function. If this function
+ *  doesn't receive exactly the frame requested it closes the whole connection.
+ *
+ * Waits for a single method on a channel from the broker.
+ * If a frame is received that does not match expected_channel
+ * or expected_method the program will abort
+ *
+ * \param [in] state the connection object
+ * \param [in] expected_channel the channel that the method should be delivered on
+ * \param [in] expected_method the method to wait for
+ * \param [in] timeout a timeout to wait for a method. Passing in
+ *             NULL will result in blocking behavior.
+ * \param [out] output the method
+ * \returns AMQP_STATUS_OK on success. An amqp_status_enum value is returned
+ *  otherwise. Possible errors include:
+ *  - AMQP_STATUS_WRONG_METHOD a frame containing the wrong method, wrong frame
+ *    type or wrong channel was received. The connection is closed.
+ *  - AMQP_STATUS_NO_MEMORY failure in allocating memory. The library is likely in
+ *    an indeterminate state making recovery unlikely. Client should note the error
+ *    and terminate the application
+ *  - AMQP_STATUS_BAD_AMQP_DATA bad AMQP data was received. The connection
+ *    should be shutdown immediately
+ *  - AMQP_STATUS_UNKNOWN_METHOD: an unknown method was received from the
+ *    broker. This is likely a protocol error and the connection should be
+ *    shutdown immediately
+ *  - AMQP_STATUS_UNKNOWN_CLASS: a properties frame with an unknown class
+ *    was received from the broker. This is likely a protocol error and the
+ *    connection should be shutdown immediately
+ *  - AMQP_STATUS_HEARTBEAT_TIMEOUT timed out while waiting for heartbeat
+ *    from the broker. The connection has been closed.
+ *  - AMQP_STATUS_TIMEOUT the timeout was reached while waiting for a method.
+ *  - AMQP_STATUS_TIMER_FAILURE system timer indicated failure.
+ *  - AMQP_STATUS_SOCKET_ERROR a socket error occurred. The connection has
+ *    been closed
+ *  - AMQP_STATUS_SSL_ERROR a SSL socket error occurred. The connection has
+ *    been closed.
+ */
+int amqp_simple_wait_method_noblock(amqp_connection_state_t state,
+                                    amqp_channel_t expected_channel,
+                                    amqp_method_number_t expected_method,
+                                    struct timeval * timeout,
+                                    amqp_method_t *output);
+
+
+/**
+ * Sends a method to the broker and waits for a method response
+ *
+ * \param [in] state the connection object
+ * \param [in] channel the channel object
+ * \param [in] request_id the method number of the request
+ * \param [in] expected_reply_ids a 0 terminated array of expected response
+ *             method numbers
+ * \param [in] decoded_request_method the method to be sent to the broker
+ * \param [in] timeout a timeout to wait for a RPC answer. Passing in
+ *             NULL will result in blocking behavior.
+ * \return a amqp_rpc_reply_t:
+ *  - r.reply_type == AMQP_RESPONSE_NORMAL. RPC completed successfully
+ *  - r.reply_type == AMQP_STATUS_TIMEOUT the timeout was reached while waiting
+ *    for RPC answer.
+ *  - r.reply_type == AMQP_RESPONSE_SERVER_EXCEPTION. The broker returned an
+ *    exception:
+ *    - If r.reply.id == AMQP_CHANNEL_CLOSE_METHOD a channel exception
+ *      occurred, cast r.reply.decoded to amqp_channel_close_t* to see details
+ *      of the exception. The client should amqp_send_method() a
+ *      amqp_channel_close_ok_t. The channel must be re-opened before it
+ *      can be used again. Any resources associated with the channel
+ *      (auto-delete exchanges, auto-delete queues, consumers) are invalid
+ *      and must be recreated before attempting to use them again.
+ *    - If r.reply.id == AMQP_CONNECTION_CLOSE_METHOD a connection exception
+ *      occurred, cast r.reply.decoded to amqp_connection_close_t* to see
+ *      details of the exception. The client amqp_send_method() a
+ *      amqp_connection_close_ok_t and disconnect from the broker.
+ *  - r.reply_type == AMQP_RESPONSE_LIBRARY_EXCEPTION. An exception occurred
+ *    within the library. Examine r.library_error and compare it against
+ *    amqp_status_enum values to determine the error.
+ */
+amqp_rpc_reply_t
+AMQP_CALL amqp_simple_rpc_noblock(amqp_connection_state_t state,
+                                  amqp_channel_t channel,
+                                  amqp_method_number_t request_id,
+                                  amqp_method_number_t *expected_reply_ids,
+                                  void *decoded_request_method,
+                                  struct timeval *timeout);
+
+
+/**
+ * Sends a method to the broker and waits for a method response
+ *
+ * \param [in] state the connection object
+ * \param [in] channel the channel object
+ * \param [in] request_id the method number of the request
+ * \param [in] reply_id the method number expected in response
+ * \param [in] decoded_request_method the request method
+ * \param [in] timeout a timeout to wait for a RPC answer. Passing in
+ *             NULL will result in blocking behavior.
+ * \return a pointer to the method returned from the broker, or NULL on error.
+ *  On error amqp_get_rpc_reply() will return an amqp_rpc_reply_t with
+ *  details on the error that occurred.
+ */
+void *
+amqp_simple_rpc_decoded_noblock(amqp_connection_state_t state,
+                                amqp_channel_t channel,
+                                amqp_method_number_t request_id,
+                                amqp_method_number_t reply_id,
+                                void *decoded_request_method,
+                                struct timeval *timeout);
+
 int amqp_send_method_inner(amqp_connection_state_t state,
                            amqp_channel_t channel, amqp_method_number_t id,
                            void *decoded, int flags);
