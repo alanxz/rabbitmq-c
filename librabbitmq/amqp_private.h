@@ -69,6 +69,10 @@
   __attribute__ ((__noreturn__))
 #define AMQP_UNUSED \
   __attribute__ ((__unused__))
+#elif defined(_MSC_VER)
+#define AMQP_NORETURN \
+  __declspec(noreturn)
+#define AMQP_UNUSED
 #else
 #define AMQP_NORETURN
 #define AMQP_UNUSED
