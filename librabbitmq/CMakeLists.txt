@@ -89,6 +89,10 @@ if (ENABLE_SSL_SUPPORT)
   )
   include_directories(${OPENSSL_INCLUDE_DIR})
   set(AMQP_SSL_LIBS ${OPENSSL_LIBRARIES})
+  if (WIN32)
+	  set(AMQP_SSL_LIBS ${AMQP_SSL_LIBS} "Crypt32.lib")
+  endif ()
+
   if (APPLE)
     # Apple has deprecated OpenSSL in 10.7+. This disables that warning.
     set_source_files_properties(${AMQP_SSL_SRCS}
