@@ -204,6 +204,13 @@ amqp_ssl_socket_open(void *base, const char *host, int port, struct timeval *tim
     goto error_out2;
   }
 
+  status = SSL_set_tlsext_host_name(self->ssl, host);
+  if (!status) {
+    self->internal_error = SSL_get_error(self->ssl, status);
+    status = AMQP_STATUS_SSL_ERROR;
+    goto error_out2;
+  }
+
 start_connect:
   status = SSL_connect(self->ssl);
   if (status != 1) {
