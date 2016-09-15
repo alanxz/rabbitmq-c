@@ -93,6 +93,9 @@ if (ENABLE_SSL_SUPPORT)
     # Apple has deprecated OpenSSL in 10.7+. This disables that warning.
     set_source_files_properties(${AMQP_SSL_SRCS}
       PROPERTIES COMPILE_FLAGS -Wno-deprecated-declarations)
+  elseif (WIN32)
+    # linking with static OpenSSL requires CRYPT32.LIB https://git.openssl.org/?p=openssl.git;a=blob;f=NOTES.WIN
+    list(APPEND AMQP_SSL_LIBS "crypt32")
   endif()
 
   if (ENABLE_THREAD_SAFETY)
