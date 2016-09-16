@@ -149,14 +149,14 @@ if (BUILD_STATIC_LIBS)
         set_target_properties(rabbitmq-static PROPERTIES
           VERSION ${RMQ_VERSION}
           OUTPUT_NAME librabbitmq.${RMQ_SOVERSION})
-		
-		if(MSVC)
-			set_target_properties(rabbitmq-static PROPERTIES
-			# Embed debugging info in the library itself instead of generating
-			# a .pdb file.
-			COMPILE_OPTIONS "/Z7")
-		endif(MSVC)
-		
+        
+        if(MSVC)
+            set_target_properties(rabbitmq-static PROPERTIES
+            # Embed debugging info in the library itself instead of generating
+            # a .pdb file.
+            COMPILE_OPTIONS "/Z7")
+        endif(MSVC)
+        
     else (WIN32)
         set_target_properties(rabbitmq-static PROPERTIES VERSION ${RMQ_VERSION} SOVERSION ${RMQ_SOVERSION} OUTPUT_NAME rabbitmq)
     endif (WIN32)
