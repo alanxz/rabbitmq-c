@@ -27,7 +27,7 @@
 #include <limits.h>
 #include <string.h>
 
-#if (defined(_WIN32) || defined(__WIN32__) || defined(WIN32))
+#if (defined(_WIN32) || defined(__WIN32__) || defined(WIN32) || defined(__MINGW32__) || defined(__MINGW64__))
 # define AMQP_WIN_TIMER_API
 #elif (defined(machintosh) || defined(__APPLE__) || defined(__APPLE_CC__))
 # define AMQP_MAC_TIMER_API
@@ -40,7 +40,12 @@
 #ifndef WIN32_LEAN_AND_MEAN
 # define WIN32_LEAN_AND_MEAN
 #endif
+
+#if (defined(__MINGW32__) || defined(__MINGW64__))
+#include <windows.h>
+#else
 #include <Windows.h>
+#endif // MINGW check
 
 uint64_t
 amqp_get_monotonic_timestamp(void)
