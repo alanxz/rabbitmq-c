@@ -64,6 +64,7 @@ int main(int argc, char const *const *argv)
   int port;
   amqp_socket_t *socket;
   amqp_connection_state_t conn;
+  struct timeval tval;
   struct timeval *tv;
 
   if (argc < 3) {
@@ -72,7 +73,7 @@ int main(int argc, char const *const *argv)
   }
 
   if (argc > 3) {
-    tv = malloc(sizeof(struct timeval));
+    tv = &tval;
 
     tv->tv_sec = atoi(argv[3]);
 

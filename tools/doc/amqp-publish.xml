@@ -118,6 +118,15 @@
                     </para>
                 </listitem>
             </varlistentry>
+            <varlistentry>
+                <term><option>-H</option></term>
+                <term><option>--header</option>=<replaceable class="parameter">header</replaceable></term>
+                <listitem>
+                    <para>
+                        Specifies an optional header in the form "key: value".
+                    </para>
+                </listitem>
+            </varlistentry>
         </variablelist>
     </refsect1>
 

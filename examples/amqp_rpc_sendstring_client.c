@@ -160,7 +160,7 @@ int main(int argc, char *argv[])
       size_t body_target;
       size_t body_received;
 
-      while (1) {
+      for (;;) {
         amqp_maybe_release_buffers(conn);
         result = amqp_simple_wait_frame(conn, &frame);
         printf("Result: %d\n", result);
@@ -168,7 +168,7 @@ int main(int argc, char *argv[])
           break;
         }
 
-        printf("Frame type: %d channel: %d\n", frame.frame_type, frame.channel);
+        printf("Frame type: %u channel: %u\n", frame.frame_type, frame.channel);
         if (frame.frame_type != AMQP_FRAME_METHOD) {
           continue;
         }

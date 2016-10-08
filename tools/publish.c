@@ -64,12 +64,14 @@ int main(int argc, const char **argv)
   static char *routing_key = NULL;
   static char *content_type = NULL;
   static char *content_encoding = NULL;
+  static char **headers = NULL;
   static char *reply_to = NULL;
   static char *body = NULL;
   amqp_basic_properties_t props;
   amqp_bytes_t body_bytes;
   static int delivery = 1; /* non-persistent by default */
   static int line_buffered = 0;
+  static char **pos;
 
   struct poptOption options[] = {
     INCLUDE_OPTIONS(connect_options),
@@ -101,6 +103,10 @@ int main(int argc, const char **argv)
       "content-encoding", 'E', POPT_ARG_STRING,
       &content_encoding, 0,
       "the content-encoding for the message", "content encoding"
+    },
+    {
+      "header", 'H', POPT_ARG_ARGV, &headers, 0,
+      "set a message header (may be specified multiple times)", "\"key: value\""
     },
     {
       "body", 'b', POPT_ARG_STRING, &body, 0,
@@ -137,6 +143,35 @@ int main(int argc, const char **argv)
     props.reply_to = amqp_cstring_bytes(reply_to);
   }
 
+  if (headers) {
+    int num = 0;
+    for (pos = headers; *pos; pos++) {
+      num++;
+    }
+
+    if (num > 0) {
+      amqp_table_t *table = &props.headers;
+      table->num_entries = num;
+      table->entries = calloc(num, sizeof(amqp_table_entry_t));
+      int i = 0;
+      for (pos = headers; *pos; pos++) {
+        char *colon = strchr(*pos, ':');
+        if (colon) {
+          *colon++ = '\0';
+          while (*colon == ' ') colon++;
+          table->entries[i].key = amqp_cstring_bytes(*pos);
+          table->entries[i].value.kind = AMQP_FIELD_KIND_UTF8;
+          table->entries[i].value.value.bytes = amqp_cstring_bytes(colon);
+          i++;
+        }
+        else {
+          fprintf(stderr, "Ignored header definition missing ':' delimiter in \"%s\"\n", *pos);
+        }
+      }
+      props._flags |= AMQP_BASIC_HEADERS_FLAG;
+    }
+  }
+
   conn = make_connection();
 
   if (body) {
@@ -155,6 +190,10 @@ int main(int argc, const char **argv)
 
   if ( !line_buffered ) {
     do_publish(conn, exchange, routing_key, &props, body_bytes);
+  }
+
+  if (props.headers.num_entries > 0) {
+    free(props.headers.entries);
   }
 
   if (!body) {

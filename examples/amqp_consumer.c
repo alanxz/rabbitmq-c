@@ -61,7 +61,7 @@ static void run(amqp_connection_state_t conn)
 
   uint64_t now;
 
-  while (1) {
+  for (;;) {
     amqp_rpc_reply_t ret;
     amqp_envelope_t envelope;
 
@@ -130,7 +130,7 @@ static void run(amqp_connection_state_t conn)
               return;
 
             default:
-              fprintf(stderr ,"An unexpected method was received %d\n", frame.payload.method.id);
+              fprintf(stderr ,"An unexpected method was received %u\n", frame.payload.method.id);
               return;
           }
         }

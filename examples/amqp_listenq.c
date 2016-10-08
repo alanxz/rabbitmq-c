@@ -85,7 +85,7 @@ int main(int argc, char const *const *argv)
   die_on_amqp_error(amqp_get_rpc_reply(conn), "Consuming");
 
   {
-    while (1) {
+    for (;;) {
       amqp_rpc_reply_t res;
       amqp_envelope_t envelope;
 

@@ -247,9 +247,9 @@ static void init_connection_info(struct amqp_connection_info *ci)
 
   if (amqp_server) {
     char *colon;
-    if (ci->host)
-      die("both --server and --url options specify"
-          " server host");
+    if (amqp_url) {
+      die("--server and --url options cannot be used at the same time");
+    }
 
     /* parse the server string into a hostname and a port */
     colon = strchr(amqp_server, ':');
@@ -260,7 +260,7 @@ static void init_connection_info(struct amqp_connection_info *ci)
       /* Deprecate specifying the port number with the
          --server option, because it is not ipv6 friendly.
          --url now allows connection options to be
-         specificied concisely. */
+         specified concisely. */
       fprintf(stderr, "Specifying the port number with"
               " --server is deprecated\n");
 
@@ -269,12 +269,9 @@ static void init_connection_info(struct amqp_connection_info *ci)
       memcpy(ci->host, amqp_server, host_len);
       ci->host[host_len] = 0;
 
-      if (ci->port >= 0)
-        die("both --server and --url options specify"
-            " server port");
-      if (amqp_port >= 0)
-        die("both --server and --port options specify"
-            " server port");
+      if (amqp_port >= 0) {
+        die("both --server and --port options specify server port");
+      }
 
       ci->port = strtol(colon+1, &port_end, 10);
       if (ci->port < 0
@@ -288,39 +285,39 @@ static void init_connection_info(struct amqp_connection_info *ci)
 #if WITH_SSL
     if (amqp_ssl && !ci->ssl) {
       die("the --ssl option specifies an SSL connection"
-          " but the --server option does not");
+          " but the --url option does not");
     }
 #endif
   }
 
   if (amqp_port >= 0) {
-    if (ci->port >= 0)
-      die("both --port and --url options specify"
-          " server port");
+    if (amqp_url) {
+      die("--port and --url options cannot be used at the same time");
+    }
 
     ci->port = amqp_port;
   }
 
   if (amqp_username) {
-    if (ci->user)
-      die("both --username and --url options specify"
-          " AMQP username");
+    if (amqp_url) {
+      die("--username and --url options cannot be used at the same time");
+    }
 
     ci->user = amqp_username;
   }
 
   if (amqp_password) {
-    if (ci->password)
-      die("both --password and --url options specify"
-          " AMQP password");
+    if (amqp_url) {
+      die("--password and --url options cannot be used at the same time");
+    }
 
     ci->password = amqp_password;
   }
 
   if (amqp_vhost) {
-    if (ci->vhost)
-      die("both --vhost and --url options specify"
-          " AMQP vhost");
+    if (amqp_url) {
+      die("--vhost and --url options cannot be used at the same time");
+    }
 
     ci->vhost = amqp_vhost;
   }

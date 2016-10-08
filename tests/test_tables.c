@@ -119,7 +119,7 @@ static void dump_value(int indent, amqp_field_value_t v, FILE *out)
     break;
 
   case AMQP_FIELD_KIND_DECIMAL:
-    fprintf(out, " %d:::%u\n", v.value.decimal.decimals,
+    fprintf(out, " %u:::%u\n", v.value.decimal.decimals,
             v.value.decimal.value);
     break;
 
@@ -314,7 +314,7 @@ static void test_table_codec(FILE *out)
 
   entries[5].key = amqp_cstring_bytes("byte");
   entries[5].value.kind = AMQP_FIELD_KIND_I8;
-  entries[5].value.value.i8 = (int8_t)255;
+  entries[5].value.value.i8 = (int8_t)-1;
 
   entries[6].key = amqp_cstring_bytes("long");
   entries[6].value.kind = AMQP_FIELD_KIND_I64;
@@ -465,6 +465,9 @@ int main(void)
   }
 
   expected_path = malloc(strlen(srcdir) + strlen(expected_file_name) + 2);
+  if (!expected_path) {
+    die("out of memory");
+  }
   sprintf(expected_path, "%s/%s", srcdir, expected_file_name);
   expected = fopen(expected_path, "r");
   if (!expected) {

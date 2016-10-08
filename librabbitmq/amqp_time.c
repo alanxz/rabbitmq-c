@@ -37,7 +37,9 @@
 
 
 #ifdef AMQP_WIN_TIMER_API
-#define WIN32_LEAN_AND_MEAN
+#ifndef WIN32_LEAN_AND_MEAN
+# define WIN32_LEAN_AND_MEAN
+#endif
 #include <Windows.h>
 
 uint64_t

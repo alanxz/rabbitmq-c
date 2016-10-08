@@ -59,15 +59,15 @@
 #define AMQP_INITIAL_INBOUND_SOCK_BUFFER_SIZE 131072
 #endif
 
-
-#define ENFORCE_STATE(statevec, statenum)                                                 \
-  {                                                                                       \
-    amqp_connection_state_t _check_state = (statevec);                                    \
-    size_t _wanted_state = (statenum);                                                    \
-    if (_check_state->state != _wanted_state)                                             \
-      amqp_abort("Programming error: invalid AMQP connection state: expected %d, got %d", \
-                 _wanted_state,                                                           \
-                 _check_state->state);                                                    \
+#define ENFORCE_STATE(statevec, statenum)                                   \
+  {                                                                         \
+    amqp_connection_state_t _check_state = (statevec);                      \
+    amqp_connection_state_enum _wanted_state = (statenum);                  \
+    if (_check_state->state != _wanted_state)                               \
+      amqp_abort(                                                           \
+          "Programming error: invalid AMQP connection state: expected %d, " \
+          "got %d",                                                         \
+          _wanted_state, _check_state->state);                              \
   }
 
 amqp_connection_state_t amqp_new_connection(void)
@@ -404,8 +404,8 @@ int amqp_handle_input(amqp_connection_state_t state,
   }
 
   default:
-    amqp_abort("Internal error: invalid amqp_connection_state_t->state %d", state->state);
-    return (int)bytes_consumed;
+    amqp_abort("Internal error: invalid amqp_connection_state_t->state %d",
+               state->state);
   }
 }
 

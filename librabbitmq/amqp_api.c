@@ -267,7 +267,11 @@ amqp_rpc_reply_t amqp_channel_close(amqp_connection_state_t state,
   amqp_method_number_t replies[2] = { AMQP_CHANNEL_CLOSE_OK_METHOD, 0};
   amqp_channel_close_t req;
 
-  req.reply_code = code;
+  if (code < 0 || code > UINT16_MAX) {
+    return amqp_rpc_reply_error(AMQP_STATUS_INVALID_PARAMETER);
+  }
+
+  req.reply_code = (uint16_t)code;
   req.reply_text.bytes = codestr;
   req.reply_text.len = sprintf(codestr, "%d", code);
   req.class_id = 0;
@@ -284,7 +288,11 @@ amqp_rpc_reply_t amqp_connection_close(amqp_connection_state_t state,
   amqp_method_number_t replies[2] = { AMQP_CONNECTION_CLOSE_OK_METHOD, 0};
   amqp_channel_close_t req;
 
-  req.reply_code = code;
+  if (code < 0 || code > UINT16_MAX) {
+    return amqp_rpc_reply_error(AMQP_STATUS_INVALID_PARAMETER);
+  }
+
+  req.reply_code = (uint16_t)code;
   req.reply_text.bytes = codestr;
   req.reply_text.len = sprintf(codestr, "%d", code);
   req.class_id = 0;

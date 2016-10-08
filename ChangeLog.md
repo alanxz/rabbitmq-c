@@ -1,4 +1,34 @@
 # Change Log
+## v0.8.0 - 2016-04-09
+### Added:
+- SSL: peer certificate and hostname validation can now be controlled separately
+  using `amqp_ssl_socket_set_verify_peer` and
+  `amqp_ssl_socket_set_verify_hostname`.
+- SSL: the desire SSL version range can now be specified using the
+  `amqp_ssl_socket_set_ssl_versions` function.
+- Add flags to SSL examples on controlling hostname verification.
+
+### Changed:
+- SSL: SSLv2, and SSLv3 have been disabled by default.
+- SSL: OpenSSL hostname validation has been improved.
+- Win32 debug information is built with /Z7 on MSVC to embed debug info instead
+  of using a .pdb
+
+### Fixed:
+- Connection failure results in hang on Win32 (#297, #346)
+- Rabbitmq-c may block when attempting to close an SSL socket (#313)
+- amqp_parse_url does not correctly initialize default parameters (#319)
+- x509 objects are leaked in verify_hostname (#323)
+- TCP_NOPUSH doesn't work under cygwin (#335)
+
+### Deprecated
+- SSL: `amqp_ssl_socket_set_verify` is being replaced by
+  `amqp_ssl_socket_set_verify_peer` and `amqp_ssl_socket_set_verify_hostname`.
+
+### Removed:
+- OpenVMS build system and related files.
+- Unmaintained PolarSSL, CyaSSL, and gnuTLS SSL backends
+
 ## Changes since v0.7.0 (a.k.a., v0.7.1)
 - `41fa9df` Autoconf: add missing files in build system
 - `ef73c06` Win32: Use WSAEWOULDBLOCK instead of EWOULDBLOCK on Win32

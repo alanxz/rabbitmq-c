@@ -82,7 +82,7 @@ void die_on_amqp_error(amqp_rpc_reply_t x, char const *context)
     switch (x.reply.id) {
     case AMQP_CONNECTION_CLOSE_METHOD: {
       amqp_connection_close_t *m = (amqp_connection_close_t *) x.reply.decoded;
-      fprintf(stderr, "%s: server connection error %d, message: %.*s\n",
+      fprintf(stderr, "%s: server connection error %uh, message: %.*s\n",
               context,
               m->reply_code,
               (int) m->reply_text.len, (char *) m->reply_text.bytes);
@@ -90,7 +90,7 @@ void die_on_amqp_error(amqp_rpc_reply_t x, char const *context)
     }
     case AMQP_CHANNEL_CLOSE_METHOD: {
       amqp_channel_close_t *m = (amqp_channel_close_t *) x.reply.decoded;
-      fprintf(stderr, "%s: server channel error %d, message: %.*s\n",
+      fprintf(stderr, "%s: server channel error %uh, message: %.*s\n",
               context,
               m->reply_code,
               (int) m->reply_text.len, (char *) m->reply_text.bytes);
@@ -163,7 +163,7 @@ void amqp_dump(void const *buffer, size_t len)
     int ch = buf[i];
 
     if (numinrow == 16) {
-      int i;
+      int j;
 
       if (rows_eq(oldchs, chs)) {
         if (!showed_dots) {
@@ -175,8 +175,8 @@ void amqp_dump(void const *buffer, size_t len)
         dump_row(count, numinrow, chs);
       }
 
-      for (i=0; i<16; i++) {
-        oldchs[i] = chs[i];
+      for (j=0; j<16; j++) {
+        oldchs[j] = chs[j];
       }
 
       numinrow = 0;

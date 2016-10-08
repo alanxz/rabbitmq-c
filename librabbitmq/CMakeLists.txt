@@ -117,8 +117,6 @@ set(RABBITMQ_SOURCES
 
 add_definitions(-DAMQP_BUILD)
 
-include(InstallMacros)
-
 set(RMQ_LIBRARIES ${AMQP_SSL_LIBS} ${SOCKET_LIBRARIES} ${LIBRT} ${CMAKE_THREAD_LIBS_INIT})
 
 if (BUILD_SHARED_LIBS)
@@ -137,7 +135,6 @@ if (BUILD_SHARED_LIBS)
         LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
         ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}
         )
-    install_pdb(rabbitmq)
 
     set(RMQ_LIBRARY_TARGET rabbitmq)
 endif (BUILD_SHARED_LIBS)
@@ -149,7 +146,17 @@ if (BUILD_STATIC_LIBS)
 
     set_target_properties(rabbitmq-static PROPERTIES COMPILE_DEFINITIONS AMQP_STATIC)
     if (WIN32)
-        set_target_properties(rabbitmq-static PROPERTIES VERSION ${RMQ_VERSION} OUTPUT_NAME librabbitmq.${RMQ_SOVERSION})
+        set_target_properties(rabbitmq-static PROPERTIES
+          VERSION ${RMQ_VERSION}
+          OUTPUT_NAME librabbitmq.${RMQ_SOVERSION})
+        
+        if(MSVC)
+            set_target_properties(rabbitmq-static PROPERTIES
+            # Embed debugging info in the library itself instead of generating
+            # a .pdb file.
+            COMPILE_OPTIONS "/Z7")
+        endif(MSVC)
+        
     else (WIN32)
         set_target_properties(rabbitmq-static PROPERTIES VERSION ${RMQ_VERSION} SOVERSION ${RMQ_SOVERSION} OUTPUT_NAME rabbitmq)
     endif (WIN32)
@@ -157,7 +164,6 @@ if (BUILD_STATIC_LIBS)
     install(TARGETS rabbitmq-static
         ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}
         )
-    install_pdb(rabbitmq-static)
 
     if (NOT DEFINED RMQ_LIBRARY_TARGET)
         set(RMQ_LIBRARY_TARGET rabbitmq-static)

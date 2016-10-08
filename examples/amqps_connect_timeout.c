@@ -63,33 +63,31 @@
 
 int main(int argc, char const *const *argv)
 {
-  char const nofile[2] = "-";
   char const *hostname;
-  int port, status;
+  int port;
+  int timeout;
   amqp_socket_t *socket;
   amqp_connection_state_t conn;
+  struct timeval tval;
   struct timeval *tv;
 
   if (argc < 3) {
-    fprintf(stderr, "Usage: amqps_connect_timeout host port "
-            "[cacert.pem [key.pem cert.pem [timeout_sec [timeout_usec=0]]]]\n");
+    fprintf(
+        stderr,
+        "Usage: amqps_connect_timeout host port timeout_sec "
+        "[cacert.pem [verifypeer] [verifyhostname] [key.pem cert.pem]]\n");
     return 1;
   }
 
   hostname = argv[1];
   port = atoi(argv[2]);
 
-  if (argc > 6) {
-    tv = malloc(sizeof(struct timeval));
+  timeout = atoi(argv[3]);
+  if (timeout > 0) {
+    tv = &tval;
 
-    tv->tv_sec = atoi(argv[6]);
-
-    if (argc > 7 ) {
-      tv->tv_usec = atoi(argv[7]);
-    } else {
-      tv->tv_usec = 0;
-    }
-
+    tv->tv_sec = timeout;
+    tv->tv_usec = 0;
   } else {
     tv = NULL;
   }
@@ -101,21 +99,25 @@ int main(int argc, char const *const *argv)
     die("creating SSL/TLS socket");
   }
 
-  if (argc > 3 && strcmp(nofile, argv[3])) {
-    die_on_error(amqp_ssl_socket_set_cacert(socket, argv[3]), "setting CA certificate");
-  }
+  amqp_ssl_socket_set_verify_peer(socket, 0);
+  amqp_ssl_socket_set_verify_hostname(socket, 0);
 
   if (argc > 5) {
-    if (!strcmp(nofile, argv[5]) && !strcmp(nofile, argv[4])) {
-      status = 0;
-    } else if (!strcmp(nofile, argv[5]) || !strcmp(nofile, argv[4])) {
-      status = -1;
-    } else {
-      status = amqp_ssl_socket_set_key(socket, argv[5], argv[4]);
+    int nextarg = 6;
+    die_on_error(amqp_ssl_socket_set_cacert(socket, argv[5]),
+                 "setting CA certificate");
+    if (argc > nextarg && !strcmp("verifypeer", argv[nextarg])) {
+      amqp_ssl_socket_set_verify_peer(socket, 1);
+      nextarg++;
     }
-
-    if (status) {
-      die("setting client key");
+    if (argc > nextarg && !strcmp("verifyhostname", argv[nextarg])) {
+      amqp_ssl_socket_set_verify_hostname(socket, 1);
+      nextarg++;
+    }
+    if (argc > nextarg + 1) {
+      die_on_error(
+          amqp_ssl_socket_set_key(socket, argv[nextarg + 1], argv[nextarg]),
+          "setting client key");
     }
   }
 

@@ -17,9 +17,9 @@ set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} ${CMAKE_CURRENT_SOURCE_DIR}/cmake)
 # 3. If any interfaces have been added since the last public release, then increment age.
 # 4. If any interfaces have been removed since the last public release, then set age to 0.
 
-set(RMQ_SOVERSION_CURRENT   5)
-set(RMQ_SOVERSION_REVISION  4)
-set(RMQ_SOVERSION_AGE       1)
+set(RMQ_SOVERSION_CURRENT   6)
+set(RMQ_SOVERSION_REVISION  1)
+set(RMQ_SOVERSION_AGE       2)
 
 math(EXPR RMQ_SOVERSION_MAJOR "${RMQ_SOVERSION_CURRENT} - ${RMQ_SOVERSION_AGE}")
 math(EXPR RMQ_SOVERSION_MINOR "${RMQ_SOVERSION_AGE}")

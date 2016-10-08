@@ -69,6 +69,10 @@
   __attribute__ ((__noreturn__))
 #define AMQP_UNUSED \
   __attribute__ ((__unused__))
+#elif defined(_MSC_VER)
+#define AMQP_NORETURN \
+  __declspec(noreturn)
+#define AMQP_UNUSED
 #else
 #define AMQP_NORETURN
 #define AMQP_UNUSED
@@ -342,6 +346,13 @@ static inline int amqp_encode_bytes(amqp_bytes_t encoded, size_t *offset,
                                     amqp_bytes_t input)
 {
   size_t o = *offset;
+  /* The memcpy below has undefined behavior if the input is NULL. It is valid
+   * for a 0-length amqp_bytes_t to have .bytes == NULL. Thus we should check
+   * before encoding.
+   */
+  if (input.len == 0) {
+    return 1;
+  }
   if ((*offset = o + input.len) <= encoded.len) {
     memcpy(amqp_offset(encoded.bytes, o), input.bytes, input.len);
     return 1;
@@ -368,6 +379,13 @@ void
 amqp_abort(const char *fmt, ...);
 
 int amqp_bytes_equal(amqp_bytes_t r, amqp_bytes_t l);
+
+static inline amqp_rpc_reply_t amqp_rpc_reply_error(amqp_status_enum status) {
+  amqp_rpc_reply_t reply;
+  reply.reply_type = AMQP_RESPONSE_LIBRARY_EXCEPTION;
+  reply.library_error = status;
+  return reply;
+}
 
 int amqp_send_frame_inner(amqp_connection_state_t state,
                           const amqp_frame_t *frame, int flags);
