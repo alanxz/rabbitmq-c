@@ -48,7 +48,7 @@
 #include "amqp_framing.h"
 #include <string.h>
 
-#ifdef _WIN32
+#if ((defined(_WIN32)) || (defined(__MINGW32__)) || (defined(__MINGW64__)))
 # ifndef WINVER
 /* WINVER 0x0502 is WinXP SP2+, Windows Server 2003 SP1+
  * See: http://msdn.microsoft.com/en-us/library/windows/desktop/aa383745(v=vs.85).aspx#macros_for_conditional_declarations */
@@ -57,7 +57,7 @@
 # ifndef WIN32_LEAN_AND_MEAN
 #  define WIN32_LEAN_AND_MEAN
 # endif
-# include <Winsock2.h>
+# include <winsock2.h>
 #else
 # include <arpa/inet.h>
 # include <sys/uio.h>
