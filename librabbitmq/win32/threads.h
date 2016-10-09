@@ -34,12 +34,7 @@
 #ifndef WIN32_LEAN_AND_MEAN
 # define WIN32_LEAN_AND_MEAN
 #endif
-
-#if (defined(__MINGW32__) || defined(__MINGW64__))
-#include <windows.h>
-#else
 #include <Windows.h>
-#endif // MINGW check
 
 typedef CRITICAL_SECTION *pthread_mutex_t;
 typedef int pthread_once_t;

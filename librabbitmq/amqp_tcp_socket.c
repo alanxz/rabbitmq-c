@@ -29,13 +29,7 @@
 #include "amqp_tcp_socket.h"
 
 #include <errno.h>
-
-#if defined (__MINGW32__) || defined (__MINGW64__)
-# ifndef WIN32_LEAN_AND_MEAN
-#  define WIN32_LEAN_AND_MEAN
-# endif
-# include <winsock2.h>
-#elif defined (_WIN32)
+#ifdef _WIN32
 # ifndef WIN32_LEAN_AND_MEAN
 #  define WIN32_LEAN_AND_MEAN
 # endif
