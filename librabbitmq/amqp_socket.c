@@ -549,7 +549,7 @@ int amqp_send_header_noblock(amqp_connection_state_t state, amqp_time_t deadline
                                      AMQP_PROTOCOL_VERSION_MINOR,
                                      AMQP_PROTOCOL_VERSION_REVISION
                                    };
-  res = amqp_try_send(state, header, sizeof(header), amqp_time_infinite(),
+  res = amqp_try_send(state, header, sizeof(header), deadline,
                       AMQP_SF_NONE);
   if (sizeof(header) == res) {
     return AMQP_STATUS_OK;
@@ -559,7 +559,7 @@ int amqp_send_header_noblock(amqp_connection_state_t state, amqp_time_t deadline
 
 int amqp_send_header(amqp_connection_state_t state)
 {
-  return amqp_send_header_noblock(amqp_connection_state_t state, amqp_time_infinite());
+  return amqp_send_header_noblock(state, amqp_time_infinite());
 }
 
 static amqp_bytes_t sasl_method_name(amqp_sasl_method_enum method)
