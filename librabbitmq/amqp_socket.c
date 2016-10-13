@@ -1423,7 +1423,9 @@ static amqp_rpc_reply_t amqp_login_inner(amqp_connection_state_t state,
       goto error_res;
     }
 
-    res = amqp_send_method_inner_noblock(state, 0, AMQP_CONNECTION_START_OK_METHOD, &s, tvp);
+    res = amqp_send_method_inner_noblock(state, 0, 
+                                         AMQP_CONNECTION_START_OK_METHOD,
+                                         &s, AMQP_SF_NONE, tvp);
     if (res < 0) {
       goto error_res;
     }
@@ -1492,7 +1494,9 @@ static amqp_rpc_reply_t amqp_login_inner(amqp_connection_state_t state,
       goto error_res;
     }
 
-    res = amqp_send_method_inner_noblock(state, 0, AMQP_CONNECTION_TUNE_OK_METHOD, &s, tvp);
+    res = amqp_send_method_inner_noblock(state, 0, 
+                                         AMQP_CONNECTION_TUNE_OK_METHOD,
+                                         &s, AMQP_SF_NONE, tvp);
     if (res < 0) {
       goto error_res;
     }
