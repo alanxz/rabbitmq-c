@@ -1045,19 +1045,21 @@ int amqp_simple_wait_method(amqp_connection_state_t state,
 
 int amqp_send_method(amqp_connection_state_t state, amqp_channel_t channel,
                      amqp_method_number_t id, void *decoded) {
-  return amqp_send_method_inner(state, channel, id, decoded, AMQP_SF_NONE);
+  return amqp_send_method_inner_noblock(state, channel, id, decoded, AMQP_SF_NONE, NULL);
 }
 
-int amqp_send_method_inner(amqp_connection_state_t state,
-                           amqp_channel_t channel, amqp_method_number_t id,
-                           void *decoded, int flags) {
+int amqp_send_method_inner_noblock(amqp_connection_state_t state,
+                                   amqp_channel_t channel,
+                                   amqp_method_number_t id,
+                                   void *decoded, int flags,
+                                   struct timeval * timeout) {
   amqp_frame_t frame;
 
   frame.frame_type = AMQP_FRAME_METHOD;
   frame.channel = channel;
   frame.payload.method.id = id;
   frame.payload.method.decoded = decoded;
-  return amqp_send_frame_inner(state, &frame, flags);
+  return amqp_send_frame_inner_noblock(state, &frame, flags, timeout);
 }
 
 static int amqp_id_in_reply_list( amqp_method_number_t expected, amqp_method_number_t *list )
@@ -1416,7 +1418,12 @@ static amqp_rpc_reply_t amqp_login_inner(amqp_connection_state_t state,
     s.response = response_bytes;
     s.locale = amqp_cstring_bytes("en_US");
 
-    res = amqp_send_method(state, 0, AMQP_CONNECTION_START_OK_METHOD, &s);
+    res = amqp_time_tv_until(deadline, &tv, &tvp);
+    if (AMQP_STATUS_OK != res) {
+      goto error_res;
+    }
+
+    res = amqp_send_method_inner_noblock(state, 0, AMQP_CONNECTION_START_OK_METHOD, &s, tvp);
     if (res < 0) {
       goto error_res;
     }
@@ -1480,7 +1487,12 @@ static amqp_rpc_reply_t amqp_login_inner(amqp_connection_state_t state,
     s.channel_max = client_channel_max;
     s.heartbeat = client_heartbeat;
 
-    res = amqp_send_method(state, 0, AMQP_CONNECTION_TUNE_OK_METHOD, &s);
+    res = amqp_time_tv_until(deadline, &tv, &tvp);
+    if (AMQP_STATUS_OK != res) {
+      goto error_res;
+    }
+
+    res = amqp_send_method_inner_noblock(state, 0, AMQP_CONNECTION_TUNE_OK_METHOD, &s, tvp);
     if (res < 0) {
       goto error_res;
     }

@@ -537,14 +537,18 @@ static int amqp_frame_to_bytes(const amqp_frame_t *frame, amqp_bytes_t buffer,
 
 int amqp_send_frame(amqp_connection_state_t state,
                     const amqp_frame_t *frame) {
-  return amqp_send_frame_inner(state, frame, AMQP_SF_NONE);
+  return amqp_send_frame_inner_noblock(state, frame, AMQP_SF_NONE, NULL);
 }
 
-int amqp_send_frame_inner(amqp_connection_state_t state,
-                          const amqp_frame_t *frame, int flags) {
+int amqp_send_frame_inner_noblock(amqp_connection_state_t state,
+                                  const amqp_frame_t *frame, int flags,
+                                  struct timeval * timeout) {
   int res;
   ssize_t sent;
   amqp_bytes_t encoded;
+  amqp_time_t deadline;
+  amqp_time_t min_timeout;
+  int timout_flag = 0;
 
   /* TODO: if the AMQP_SF_MORE socket optimization can be shown to work
    * correctly, then this could be un-done so that body-frames are sent as 3
@@ -556,16 +560,33 @@ int amqp_send_frame_inner(amqp_connection_state_t state,
     return res;
   }
 
+  res = amqp_time_from_now(&deadline, timeout);
+  if (AMQP_STATUS_OK != res) {
+    return res;
+  }
+
 start_send:
+
+  min_timeout = amqp_time_first(deadline, state->next_recv_heartbeat);
+
+  if (amqp_time_equal(min_timeout, deadline)) {
+    timeout_flag = 1;
+  }
+
   sent = amqp_try_send(state, encoded.bytes, encoded.len,
-                       state->next_recv_heartbeat, flags);
+                       min_timeout, flags);
   if (0 > sent) {
     return (int)sent;
   }
 
-  /* A partial send has occurred, because of a heartbeat timeout, try and recv
-   * something */
+  /* A partial send has occurred, because of a heartbeat timeout (so try recv
+   * something) or common timeout (so return AMQP_STATUS_TIMEOUT) */
   if ((ssize_t)encoded.len != sent) {
+    if (timeout_flag) {
+      /* timeout of method was received, so return from method*/
+      return AMQP_STATUS_TIMEOUT;
+    }
+
     res = amqp_try_recv(state);
 
     if (AMQP_STATUS_TIMEOUT == res) {

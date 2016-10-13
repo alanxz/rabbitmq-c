@@ -288,9 +288,12 @@ amqp_simple_rpc_decoded_noblock(amqp_connection_state_t state,
                                 void *decoded_request_method,
                                 struct timeval *timeout);
 
-int amqp_send_method_inner(amqp_connection_state_t state,
-                           amqp_channel_t channel, amqp_method_number_t id,
-                           void *decoded, int flags);
+int amqp_send_method_inner_noblock(amqp_connection_state_t state,
+                                   amqp_channel_t channel,
+                                   amqp_method_number_t id,
+                                   void *decoded, int flags,
+                                   struct timeval *timeout);
+
 int
 amqp_queue_frame(amqp_connection_state_t state, amqp_frame_t *frame);
 
