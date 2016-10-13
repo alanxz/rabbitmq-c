@@ -548,7 +548,7 @@ int amqp_send_frame_inner_noblock(amqp_connection_state_t state,
   amqp_bytes_t encoded;
   amqp_time_t deadline;
   amqp_time_t min_timeout;
-  int timout_flag = 0;
+  int timeout_flag = 0;
 
   /* TODO: if the AMQP_SF_MORE socket optimization can be shown to work
    * correctly, then this could be un-done so that body-frames are sent as 3
