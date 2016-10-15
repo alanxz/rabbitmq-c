@@ -8,7 +8,8 @@ build_autotools() {
 
 build_cmake() {
   mkdir $PWD/_build && cd $PWD/_build
-  cmake .. -DCMAKE_INSTALL_PREFIX=$PWD/../_install -DCMAKE_C_FLAGS="-Werror"
+  cmake .. -DCMAKE_INSTALL_PREFIX=$PWD/../_install -DCMAKE_C_FLAGS="-Werror" \
+    ${_CMAKE_OPENSSL_FLAG}
   cmake --build . --target install
   ctest -V .
 }
@@ -50,6 +51,8 @@ osx)
   # This prints out a long list of updated packages, which isn't useful.
   brew update > /dev/null
   brew install popt
+  brew outdated openssl || brew install openssl
+  export _CMAKE_OPENSSL_FLAG="-DOPENSSL_ROOT_DIR=/usr/local/opt/openssl"
   ;;
 esac
 
