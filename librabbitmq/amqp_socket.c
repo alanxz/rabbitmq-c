@@ -797,16 +797,10 @@ int amqp_try_recv(amqp_connection_state_t state) {
 
 static int wait_frame_inner(amqp_connection_state_t state,
                             amqp_frame_t *decoded_frame,
-                            struct timeval *timeout)
+                            amqp_time_t timeout_deadline)
 {
   amqp_time_t deadline;
-  amqp_time_t timeout_deadline;
   int res;
-
-  res = amqp_time_from_now(&timeout_deadline, timeout);
-  if (AMQP_STATUS_OK != res) {
-    return res;
-  }
 
   for (;;) {
     while (amqp_data_in_buffer(state)) {
@@ -953,7 +947,7 @@ int amqp_simple_wait_frame_on_channel(amqp_connection_state_t state,
   }
 
   for (;;) {
-    res = wait_frame_inner(state, decoded_frame, NULL);
+    res = wait_frame_inner(state, decoded_frame, amqp_time_infinite());
 
     if (AMQP_STATUS_OK != res) {
       return res;
@@ -980,6 +974,13 @@ int amqp_simple_wait_frame_noblock(amqp_connection_state_t state,
                                    amqp_frame_t *decoded_frame,
                                    struct timeval *timeout)
 {
+  amqp_time_t deadline;
+
+  int res = amqp_time_from_now(&deadline, timeout);
+  if (AMQP_STATUS_OK != res) {
+    return res;
+  }
+
   if (state->first_queued_frame != NULL) {
     amqp_frame_t *f = (amqp_frame_t *) state->first_queued_frame->data;
     state->first_queued_frame = state->first_queued_frame->next;
@@ -989,7 +990,7 @@ int amqp_simple_wait_frame_noblock(amqp_connection_state_t state,
     *decoded_frame = *f;
     return AMQP_STATUS_OK;
   } else {
-    return wait_frame_inner(state, decoded_frame, timeout);
+    return wait_frame_inner(state, decoded_frame, deadline);
   }
 }
 
