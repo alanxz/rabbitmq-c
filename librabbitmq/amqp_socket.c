@@ -996,11 +996,19 @@ int amqp_simple_wait_frame_noblock(amqp_connection_state_t state,
 static int amqp_simple_wait_method_list(amqp_connection_state_t state,
                                        amqp_channel_t expected_channel,
                                        amqp_method_number_t *expected_methods,
-                                       struct timeval *timeout,
+                                       amqp_time_t deadline,
                                        amqp_method_t *output)
 {
   amqp_frame_t frame;
-  int res = amqp_simple_wait_frame_noblock(state, &frame, timeout);
+  struct timeval tv;
+  struct timeval *tvp;
+
+  int res = amqp_time_tv_until(deadline, &tv, &tvp);
+  if (res != AMQP_STATUS_OK) {
+    return res;
+  }
+
+  res = amqp_simple_wait_frame_noblock(state, &frame, tvp);
   if (AMQP_STATUS_OK != res) {
     return res;
   }
@@ -1017,13 +1025,13 @@ static int amqp_simple_wait_method_list(amqp_connection_state_t state,
 int amqp_simple_wait_method_noblock(amqp_connection_state_t state,
                                     amqp_channel_t expected_channel,
                                     amqp_method_number_t expected_method,
-                                    struct timeval *timeout,
+                                    amqp_time_t deadline,
                                     amqp_method_t *output)
 {
   amqp_method_number_t expected_methods[] = { expected_method, 0 };
   expected_methods[0] = expected_method;
   return amqp_simple_wait_method_list(state, expected_channel,
-                                      expected_methods, timeout, output);
+                                      expected_methods, deadline, output);
 }
 
 int amqp_simple_wait_method(amqp_connection_state_t state,
@@ -1032,7 +1040,8 @@ int amqp_simple_wait_method(amqp_connection_state_t state,
                             amqp_method_t *output)
 {
   return amqp_simple_wait_method_noblock(state, expected_channel,
-                                         expected_method, NULL, output);
+                                         expected_method,
+                                         amqp_time_infinite(), output);
 }
 
 int amqp_send_method(amqp_connection_state_t state, amqp_channel_t channel,
@@ -1319,13 +1328,8 @@ static amqp_rpc_reply_t amqp_login_inner(amqp_connection_state_t state,
     goto error_res;
   }
 
-  res = amqp_time_tv_until(deadline, &tv, &tvp);
-  if (AMQP_STATUS_OK != res) {
-    goto error_res;
-  }
-
   res = amqp_simple_wait_method_noblock(state, 0, AMQP_CONNECTION_START_METHOD,
-                                        tvp, &method);
+                                        deadline, &method);
   if (AMQP_STATUS_OK != res) {
     goto error_res;
   }

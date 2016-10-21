@@ -180,7 +180,7 @@ int amqp_poll(int fd, int event, amqp_time_t deadline);
 int amqp_simple_wait_method_noblock(amqp_connection_state_t state,
                                     amqp_channel_t expected_channel,
                                     amqp_method_number_t expected_method,
-                                    struct timeval * timeout,
+                                    amqp_time_t deadline,
                                     amqp_method_t *output);
 
 amqp_rpc_reply_t
