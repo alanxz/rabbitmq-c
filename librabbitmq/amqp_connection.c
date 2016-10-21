@@ -537,12 +537,12 @@ static int amqp_frame_to_bytes(const amqp_frame_t *frame, amqp_bytes_t buffer,
 
 int amqp_send_frame(amqp_connection_state_t state,
                     const amqp_frame_t *frame) {
-  return amqp_send_frame_inner_noblock(state, frame, AMQP_SF_NONE, NULL);
+  return amqp_send_frame_inner(state, frame, AMQP_SF_NONE, NULL);
 }
 
-int amqp_send_frame_inner_noblock(amqp_connection_state_t state,
-                                  const amqp_frame_t *frame, int flags,
-                                  struct timeval * timeout) {
+int amqp_send_frame_inner(amqp_connection_state_t state,
+                          const amqp_frame_t *frame, int flags,
+                          struct timeval * timeout) {
   int res;
   ssize_t sent;
   amqp_bytes_t encoded;

@@ -549,8 +549,7 @@ int amqp_send_header_noblock(amqp_connection_state_t state, amqp_time_t deadline
                                      AMQP_PROTOCOL_VERSION_MINOR,
                                      AMQP_PROTOCOL_VERSION_REVISION
                                    };
-  res = amqp_try_send(state, header, sizeof(header), deadline,
-                      AMQP_SF_NONE);
+  res = amqp_try_send(state, header, sizeof(header), deadline, AMQP_SF_NONE);
   if (sizeof(header) == res) {
     return AMQP_STATUS_OK;
   }
@@ -995,10 +994,10 @@ int amqp_simple_wait_frame_noblock(amqp_connection_state_t state,
 }
 
 static int amqp_simple_wait_method_list_noblock(amqp_connection_state_t state,
-                                                amqp_channel_t expected_channel,
-                                                amqp_method_number_t *expected_methods,
-                                                struct timeval *timeout,
-                                                amqp_method_t *output)
+                                       amqp_channel_t expected_channel,
+                                       amqp_method_number_t *expected_methods,
+                                       struct timeval *timeout,
+                                       amqp_method_t *output)
 {
   amqp_frame_t frame;
   int res = amqp_simple_wait_frame_noblock(state, &frame, timeout);
@@ -1007,8 +1006,8 @@ static int amqp_simple_wait_method_list_noblock(amqp_connection_state_t state,
   }
 
   if (AMQP_FRAME_METHOD != frame.frame_type ||
-    expected_channel != frame.channel ||
-    !amqp_id_in_reply_list(frame.payload.method.id, expected_methods)) {
+      expected_channel != frame.channel ||
+      !amqp_id_in_reply_list(frame.payload.method.id, expected_methods)) {
     return AMQP_STATUS_WRONG_METHOD;
   }
   *output = frame.payload.method;
@@ -1020,7 +1019,8 @@ static int amqp_simple_wait_method_list(amqp_connection_state_t state,
                                         amqp_method_number_t *expected_methods,
                                         amqp_method_t *output)
 {
-  return amqp_simple_wait_method_list_noblock(state, expected_channel, expected_methods, NULL, output);
+  return amqp_simple_wait_method_list_noblock(state, expected_channel, 
+                                              expected_methods, NULL, output);
 }
 
 int amqp_simple_wait_method_noblock(amqp_connection_state_t state,
@@ -1031,7 +1031,8 @@ int amqp_simple_wait_method_noblock(amqp_connection_state_t state,
 {
   amqp_method_number_t expected_methods[] = { 0, 0 };
   expected_methods[0] = expected_method;
-  return amqp_simple_wait_method_list_noblock(state, expected_channel, expected_methods,
+  return amqp_simple_wait_method_list_noblock(state, expected_channel,
+                                              expected_methods,
                                               timeout, output);
 }
 
@@ -1040,12 +1041,14 @@ int amqp_simple_wait_method(amqp_connection_state_t state,
                             amqp_method_number_t expected_method,
                             amqp_method_t *output)
 {
-  return amqp_simple_wait_method_noblock(state, expected_channel, expected_method, NULL, output);
+  return amqp_simple_wait_method_noblock(state, expected_channel,
+                                         expected_method, NULL, output);
 }
 
 int amqp_send_method(amqp_connection_state_t state, amqp_channel_t channel,
                      amqp_method_number_t id, void *decoded) {
-  return amqp_send_method_inner_noblock(state, channel, id, decoded, AMQP_SF_NONE, NULL);
+  return amqp_send_method_inner_noblock(state, channel, id, decoded,
+                                        AMQP_SF_NONE, NULL);
 }
 
 int amqp_send_method_inner_noblock(amqp_connection_state_t state,
@@ -1059,7 +1062,7 @@ int amqp_send_method_inner_noblock(amqp_connection_state_t state,
   frame.channel = channel;
   frame.payload.method.id = id;
   frame.payload.method.decoded = decoded;
-  return amqp_send_frame_inner_noblock(state, &frame, flags, timeout);
+  return amqp_send_frame_inner(state, &frame, flags, timeout);
 }
 
 static int amqp_id_in_reply_list( amqp_method_number_t expected, amqp_method_number_t *list )
@@ -1442,7 +1445,8 @@ static amqp_rpc_reply_t amqp_login_inner(amqp_connection_state_t state,
       goto error_res;
     }
 
-    res = amqp_simple_wait_method_list_noblock(state, 0, expected, tvp, &method);
+    res = amqp_simple_wait_method_list_noblock(state, 0, expected,
+                                               tvp, &method);
     if (AMQP_STATUS_OK != res) {
       goto error_res;
     }
@@ -1545,7 +1549,6 @@ error_res:
   goto out;
 }
 
-
 amqp_rpc_reply_t amqp_login(amqp_connection_state_t state,
                             char const *vhost,
                             int channel_max,
@@ -1566,7 +1569,6 @@ amqp_rpc_reply_t amqp_login(amqp_connection_state_t state,
 
   return ret;
 }
-
 
 amqp_rpc_reply_t amqp_login_with_properties(amqp_connection_state_t state,
                                             char const *vhost,
