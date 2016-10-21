@@ -209,7 +209,7 @@ int amqp_basic_publish(amqp_connection_state_t state,
 
   res = amqp_send_method_inner(state, channel,
                                AMQP_BASIC_PUBLISH_METHOD, &m,
-                               AMQP_SF_MORE, NULL);
+                               AMQP_SF_MORE, amqp_time_infinite());
   if (res < 0) {
     return res;
   }
@@ -225,7 +225,7 @@ int amqp_basic_publish(amqp_connection_state_t state,
   f.payload.properties.body_size = body.len;
   f.payload.properties.decoded = (void *) properties;
 
-  res = amqp_send_frame_inner(state, &f, AMQP_SF_MORE, NULL);
+  res = amqp_send_frame_inner(state, &f, AMQP_SF_MORE, amqp_time_infinite());
   if (res < 0) {
     return res;
   }
@@ -251,7 +251,7 @@ int amqp_basic_publish(amqp_connection_state_t state,
     }
 
     body_offset += f.payload.body_fragment.len;
-    res = amqp_send_frame_inner(state, &f, flagz, NULL);
+    res = amqp_send_frame_inner(state, &f, flagz, amqp_time_infinite());
     if (res < 0) {
       return res;
     }

@@ -389,5 +389,5 @@ static inline amqp_rpc_reply_t amqp_rpc_reply_error(amqp_status_enum status) {
 
 int amqp_send_frame_inner(amqp_connection_state_t state,
                           const amqp_frame_t *frame, int flags,
-                          struct timeval * timeout);
+                          amqp_time_t deadline);
 #endif

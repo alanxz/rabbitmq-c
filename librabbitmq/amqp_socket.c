@@ -1047,21 +1047,21 @@ int amqp_simple_wait_method(amqp_connection_state_t state,
 int amqp_send_method(amqp_connection_state_t state, amqp_channel_t channel,
                      amqp_method_number_t id, void *decoded) {
   return amqp_send_method_inner(state, channel, id, decoded,
-                                AMQP_SF_NONE, NULL);
+                                AMQP_SF_NONE, amqp_time_infinite());
 }
 
 int amqp_send_method_inner(amqp_connection_state_t state,
                            amqp_channel_t channel,
                            amqp_method_number_t id,
                            void *decoded, int flags,
-                           struct timeval * timeout) {
+                           amqp_time_t deadline) {
   amqp_frame_t frame;
 
   frame.frame_type = AMQP_FRAME_METHOD;
   frame.channel = channel;
   frame.payload.method.id = id;
   frame.payload.method.decoded = decoded;
-  return amqp_send_frame_inner(state, &frame, flags, timeout);
+  return amqp_send_frame_inner(state, &frame, flags, deadline);
 }
 
 static int amqp_id_in_reply_list( amqp_method_number_t expected, amqp_method_number_t *list )
@@ -1080,7 +1080,7 @@ amqp_rpc_reply_t amqp_simple_rpc_noblock(amqp_connection_state_t state,
                                          amqp_method_number_t request_id,
                                          amqp_method_number_t *expected_reply_ids,
                                          void *decoded_request_method,
-                                         struct timeval *timeout)
+                                         amqp_time_t deadline)
 {
   int status;
   amqp_rpc_reply_t result;
@@ -1174,7 +1174,7 @@ amqp_rpc_reply_t amqp_simple_rpc(amqp_connection_state_t state,
                                  void *decoded_request_method)
 {
   return amqp_simple_rpc_noblock(state, channel, request_id, 
-             expected_reply_ids, decoded_request_method, NULL);
+             expected_reply_ids, decoded_request_method, amqp_time_infinite());
 }
 
 void *amqp_simple_rpc_decoded_noblock(amqp_connection_state_t state,
@@ -1182,7 +1182,7 @@ void *amqp_simple_rpc_decoded_noblock(amqp_connection_state_t state,
                                       amqp_method_number_t request_id,
                                       amqp_method_number_t reply_id,
                                       void *decoded_request_method,
-                                      struct timeval *timeout)
+                                      amqp_time_t deadline)
 {
   amqp_method_number_t replies[2];
 
@@ -1191,7 +1191,7 @@ void *amqp_simple_rpc_decoded_noblock(amqp_connection_state_t state,
 
   state->most_recent_api_result = amqp_simple_rpc_noblock(state, channel,
                                       request_id, replies,
-                                      decoded_request_method, timeout);
+                                      decoded_request_method, deadline);
 
   if (state->most_recent_api_result.reply_type == AMQP_RESPONSE_NORMAL) {
     return state->most_recent_api_result.reply.decoded;
@@ -1208,7 +1208,7 @@ void *amqp_simple_rpc_decoded(amqp_connection_state_t state,
                               void *decoded_request_method)
 {
   return amqp_simple_rpc_decoded_noblock(state, channel, request_id, reply_id,
-                                         decoded_request_method, NULL);
+                                         decoded_request_method, amqp_time_infinite());
 }
 
 amqp_rpc_reply_t amqp_get_rpc_reply(amqp_connection_state_t state)
@@ -1300,8 +1300,6 @@ static amqp_rpc_reply_t amqp_login_inner(amqp_connection_state_t state,
 
   amqp_rpc_reply_t result;
   amqp_time_t deadline;
-  struct timeval tv;
-  struct timeval *tvp;
 
   if (channel_max < 0 || channel_max > UINT16_MAX) {
     return amqp_rpc_reply_error(AMQP_STATUS_INVALID_PARAMETER);
@@ -1415,13 +1413,8 @@ static amqp_rpc_reply_t amqp_login_inner(amqp_connection_state_t state,
     s.response = response_bytes;
     s.locale = amqp_cstring_bytes("en_US");
 
-    res = amqp_time_tv_until(deadline, &tv, &tvp);
-    if (AMQP_STATUS_OK != res) {
-      goto error_res;
-    }
-
     res = amqp_send_method_inner(state, 0, AMQP_CONNECTION_START_OK_METHOD,
-                                 &s, AMQP_SF_NONE, tvp);
+                                 &s, AMQP_SF_NONE, deadline);
     if (res < 0) {
       goto error_res;
     }
@@ -1433,12 +1426,7 @@ static amqp_rpc_reply_t amqp_login_inner(amqp_connection_state_t state,
     amqp_method_number_t expected[] = { AMQP_CONNECTION_TUNE_METHOD,
                                       AMQP_CONNECTION_CLOSE_METHOD, 0 };
 
-    res = amqp_time_tv_until(deadline, &tv, &tvp);
-    if (AMQP_STATUS_OK != res) {
-      goto error_res;
-    }
-
-    res = amqp_simple_wait_method_list(state, 0, expected, tvp, &method);
+    res = amqp_simple_wait_method_list(state, 0, expected, deadline, &method);
     if (AMQP_STATUS_OK != res) {
       goto error_res;
     }
@@ -1485,13 +1473,8 @@ static amqp_rpc_reply_t amqp_login_inner(amqp_connection_state_t state,
     s.channel_max = client_channel_max;
     s.heartbeat = client_heartbeat;
 
-    res = amqp_time_tv_until(deadline, &tv, &tvp);
-    if (AMQP_STATUS_OK != res) {
-      goto error_res;
-    }
-
     res = amqp_send_method_inner(state, 0, AMQP_CONNECTION_TUNE_OK_METHOD,
-                                 &s, AMQP_SF_NONE, tvp);
+                                 &s, AMQP_SF_NONE, deadline);
     if (res < 0) {
       goto error_res;
     }
@@ -1506,17 +1489,12 @@ static amqp_rpc_reply_t amqp_login_inner(amqp_connection_state_t state,
     s.capabilities = amqp_empty_bytes;
     s.insist = 1;
 
-    res = amqp_time_tv_until(deadline, &tv, &tvp);
-    if (AMQP_STATUS_OK != res) {
-      goto error_res;
-    }
-
     result = amqp_simple_rpc_noblock(state,
                                      0,
                                      AMQP_CONNECTION_OPEN_METHOD,
                                      replies,
                                      &s,
-                                     tvp);
+                                     deadline);
     if (result.reply_type != AMQP_RESPONSE_NORMAL) {
       goto out;
     }

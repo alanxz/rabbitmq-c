@@ -537,12 +537,12 @@ static int amqp_frame_to_bytes(const amqp_frame_t *frame, amqp_bytes_t buffer,
 
 int amqp_send_frame(amqp_connection_state_t state,
                     const amqp_frame_t *frame) {
-  return amqp_send_frame_inner(state, frame, AMQP_SF_NONE, NULL);
+  return amqp_send_frame_inner(state, frame, AMQP_SF_NONE, amqp_time_infinite());
 }
 
 int amqp_send_frame_inner(amqp_connection_state_t state,
                           const amqp_frame_t *frame, int flags,
-                          struct timeval * timeout) {
+                          amqp_time_t deadline) {
   int res;
   ssize_t sent;
   amqp_bytes_t encoded;
@@ -556,11 +556,6 @@ int amqp_send_frame_inner(amqp_connection_state_t state,
    * would need to be done to see if this would actually a win for performance.
    * */
   res = amqp_frame_to_bytes(frame, state->outbound_buffer, &encoded);
-  if (AMQP_STATUS_OK != res) {
-    return res;
-  }
-
-  res = amqp_time_from_now(&deadline, timeout);
   if (AMQP_STATUS_OK != res) {
     return res;
   }
