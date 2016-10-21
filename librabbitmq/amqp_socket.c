@@ -1047,15 +1047,15 @@ int amqp_simple_wait_method(amqp_connection_state_t state,
 
 int amqp_send_method(amqp_connection_state_t state, amqp_channel_t channel,
                      amqp_method_number_t id, void *decoded) {
-  return amqp_send_method_inner_noblock(state, channel, id, decoded,
-                                        AMQP_SF_NONE, NULL);
+  return amqp_send_method_inner(state, channel, id, decoded,
+                                AMQP_SF_NONE, NULL);
 }
 
-int amqp_send_method_inner_noblock(amqp_connection_state_t state,
-                                   amqp_channel_t channel,
-                                   amqp_method_number_t id,
-                                   void *decoded, int flags,
-                                   struct timeval * timeout) {
+int amqp_send_method_inner(amqp_connection_state_t state,
+                           amqp_channel_t channel,
+                           amqp_method_number_t id,
+                           void *decoded, int flags,
+                           struct timeval * timeout) {
   amqp_frame_t frame;
 
   frame.frame_type = AMQP_FRAME_METHOD;
@@ -1426,9 +1426,8 @@ static amqp_rpc_reply_t amqp_login_inner(amqp_connection_state_t state,
       goto error_res;
     }
 
-    res = amqp_send_method_inner_noblock(state, 0, 
-                                         AMQP_CONNECTION_START_OK_METHOD,
-                                         &s, AMQP_SF_NONE, tvp);
+    res = amqp_send_method_inner(state, 0, AMQP_CONNECTION_START_OK_METHOD,
+                                 &s, AMQP_SF_NONE, tvp);
     if (res < 0) {
       goto error_res;
     }
@@ -1498,9 +1497,8 @@ static amqp_rpc_reply_t amqp_login_inner(amqp_connection_state_t state,
       goto error_res;
     }
 
-    res = amqp_send_method_inner_noblock(state, 0, 
-                                         AMQP_CONNECTION_TUNE_OK_METHOD,
-                                         &s, AMQP_SF_NONE, tvp);
+    res = amqp_send_method_inner(state, 0, AMQP_CONNECTION_TUNE_OK_METHOD,
+                                 &s, AMQP_SF_NONE, tvp);
     if (res < 0) {
       goto error_res;
     }

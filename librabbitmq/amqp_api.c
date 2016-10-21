@@ -207,9 +207,9 @@ int amqp_basic_publish(amqp_connection_state_t state,
     }
   }
 
-  res = amqp_send_method_inner_noblock(state, channel,
-                                       AMQP_BASIC_PUBLISH_METHOD, &m,
-                                       AMQP_SF_MORE, NULL);
+  res = amqp_send_method_inner(state, channel,
+                               AMQP_BASIC_PUBLISH_METHOD, &m,
+                               AMQP_SF_MORE, NULL);
   if (res < 0) {
     return res;
   }
