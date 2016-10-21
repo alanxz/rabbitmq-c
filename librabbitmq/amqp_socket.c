@@ -1029,7 +1029,7 @@ int amqp_simple_wait_method_noblock(amqp_connection_state_t state,
                                     struct timeval *timeout,
                                     amqp_method_t *output)
 {
-  amqp_method_number_t expected_methods[] = { 0, 0 };
+  amqp_method_number_t expected_methods[] = { expected_method, 0 };
   expected_methods[0] = expected_method;
   return amqp_simple_wait_method_list_noblock(state, expected_channel,
                                               expected_methods,
