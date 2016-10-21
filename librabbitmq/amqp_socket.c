@@ -1098,7 +1098,7 @@ amqp_rpc_reply_t amqp_simple_rpc_noblock(amqp_connection_state_t state,
     amqp_frame_t frame;
 
 retry:
-    status = wait_frame_inner(state, &frame, timeout);
+    status = wait_frame_inner(state, &frame, deadline);
     if (status < 0) {
       result.reply_type = AMQP_RESPONSE_LIBRARY_EXCEPTION;
       result.library_error = status;
