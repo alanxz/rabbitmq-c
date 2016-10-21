@@ -546,7 +546,6 @@ int amqp_send_frame_inner(amqp_connection_state_t state,
   int res;
   ssize_t sent;
   amqp_bytes_t encoded;
-  amqp_time_t deadline;
   amqp_time_t min_timeout;
   int timeout_flag = 0;
 
