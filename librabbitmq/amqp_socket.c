@@ -993,7 +993,7 @@ int amqp_simple_wait_frame_noblock(amqp_connection_state_t state,
   }
 }
 
-static int amqp_simple_wait_method_list_noblock(amqp_connection_state_t state,
+static int amqp_simple_wait_method_list(amqp_connection_state_t state,
                                        amqp_channel_t expected_channel,
                                        amqp_method_number_t *expected_methods,
                                        struct timeval *timeout,
@@ -1014,15 +1014,6 @@ static int amqp_simple_wait_method_list_noblock(amqp_connection_state_t state,
   return AMQP_STATUS_OK;
 }
 
-static int amqp_simple_wait_method_list(amqp_connection_state_t state,
-                                        amqp_channel_t expected_channel,
-                                        amqp_method_number_t *expected_methods,
-                                        amqp_method_t *output)
-{
-  return amqp_simple_wait_method_list_noblock(state, expected_channel, 
-                                              expected_methods, NULL, output);
-}
-
 int amqp_simple_wait_method_noblock(amqp_connection_state_t state,
                                     amqp_channel_t expected_channel,
                                     amqp_method_number_t expected_method,
@@ -1031,9 +1022,8 @@ int amqp_simple_wait_method_noblock(amqp_connection_state_t state,
 {
   amqp_method_number_t expected_methods[] = { expected_method, 0 };
   expected_methods[0] = expected_method;
-  return amqp_simple_wait_method_list_noblock(state, expected_channel,
-                                              expected_methods,
-                                              timeout, output);
+  return amqp_simple_wait_method_list(state, expected_channel,
+                                      expected_methods, timeout, output);
 }
 
 int amqp_simple_wait_method(amqp_connection_state_t state,
@@ -1444,8 +1434,7 @@ static amqp_rpc_reply_t amqp_login_inner(amqp_connection_state_t state,
       goto error_res;
     }
 
-    res = amqp_simple_wait_method_list_noblock(state, 0, expected,
-                                               tvp, &method);
+    res = amqp_simple_wait_method_list(state, 0, expected, tvp, &method);
     if (AMQP_STATUS_OK != res) {
       goto error_res;
     }
