@@ -756,8 +756,8 @@ typedef enum amqp_status_enum_
  * \since v0.5
  */
 typedef enum {
-	AMQP_DELIVERY_NONPERSISTENT = 1, /**< Non-persistent message */
-	AMQP_DELIVERY_PERSISTENT = 2 /**< Persistent message */
+    AMQP_DELIVERY_NONPERSISTENT = 1, /**< Non-persistent message */
+    AMQP_DELIVERY_PERSISTENT = 2 /**< Persistent message */
 } amqp_delivery_mode_enum;
 
 AMQP_END_DECLS
@@ -1875,14 +1875,15 @@ AMQP_CALL amqp_login_with_properties(amqp_connection_state_t state, char const *
  * \param [in] state the connection object
  * \param [in] vhost the virtual host to connect to on the broker. The default
  *              on most brokers is "/"
- * \param [in] channel_max the limit for the number of channels for the connection.
- *             0 means no limit, and is a good default (AMQP_DEFAULT_MAX_CHANNELS)
- *             Note that the maximum number of channels the protocol supports
- *             is 65535 (2^16, with the 0-channel reserved)
+ * \param [in] channel_max the limit for the number of channels for the
+ *             connection. 0 means no limit, and is a good default
+ *             (AMQP_DEFAULT_MAX_CHANNELS). Note that the maximum number of
+ *             channels the protocol supports is 65535 (2^16, with the
+ *             0-channel reserved)
  * \param [in] frame_max the maximum size of an AMQP frame ont he wire to
- *              request of the broker for this connection. 4096 is the minimum
- *              size, 2^31-1 is the maximum, a good default is 131072 (128KB), or
- *              AMQP_DEFAULT_FRAME_SIZE
+ *             request of the broker for this connection. 4096 is the minimum
+ *             size, 2^31-1 is the maximum, a good default is 131072 (128KB),
+ *             or AMQP_DEFAULT_FRAME_SIZE
  * \param [in] heartbeat the number of seconds between heartbeat frame to
  *             request of the broker. A value of 0 disables heartbeats.
  *             Note rabbitmq-c only has partial support for hearts, as of

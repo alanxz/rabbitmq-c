@@ -541,7 +541,8 @@ int amqp_open_socket_inner(char const *hostname,
   return sockfd;
 }
 
-int amqp_send_header_noblock(amqp_connection_state_t state, amqp_time_t deadline)
+static int amqp_send_header_noblock(amqp_connection_state_t state,
+                                    amqp_time_t deadline)
 {
   ssize_t res;
   static const uint8_t header[8] = { 'A', 'M', 'Q', 'P', 0,
@@ -1030,7 +1031,6 @@ int amqp_simple_wait_method_noblock(amqp_connection_state_t state,
                                     amqp_method_t *output)
 {
   amqp_method_number_t expected_methods[] = { expected_method, 0 };
-  expected_methods[0] = expected_method;
   return amqp_simple_wait_method_list(state, expected_channel,
                                       expected_methods, deadline, output);
 }
@@ -1077,11 +1077,11 @@ static int amqp_id_in_reply_list( amqp_method_number_t expected, amqp_method_num
 }
 
 amqp_rpc_reply_t amqp_simple_rpc_noblock(amqp_connection_state_t state,
-                                         amqp_channel_t channel,
-                                         amqp_method_number_t request_id,
-                                         amqp_method_number_t *expected_reply_ids,
-                                         void *decoded_request_method,
-                                         amqp_time_t deadline)
+                                     amqp_channel_t channel,
+                                     amqp_method_number_t request_id,
+                                     amqp_method_number_t *expected_reply_ids,
+                                     void *decoded_request_method,
+                                     amqp_time_t deadline)
 {
   int status;
   amqp_rpc_reply_t result;
@@ -1208,8 +1208,9 @@ void *amqp_simple_rpc_decoded(amqp_connection_state_t state,
                               amqp_method_number_t reply_id,
                               void *decoded_request_method)
 {
-  return amqp_simple_rpc_decoded_noblock(state, channel, request_id, reply_id,
-                                         decoded_request_method, amqp_time_infinite());
+  return amqp_simple_rpc_decoded_noblock(state, channel, request_id,
+                                         reply_id, decoded_request_method,
+                                         amqp_time_infinite());
 }
 
 amqp_rpc_reply_t amqp_get_rpc_reply(amqp_connection_state_t state)
@@ -1541,13 +1542,13 @@ amqp_rpc_reply_t amqp_login(amqp_connection_state_t state,
 }
 
 amqp_rpc_reply_t amqp_login_with_properties(amqp_connection_state_t state,
-                                            char const *vhost,
-                                            int channel_max,
-                                            int frame_max,
-                                            int heartbeat,
-                                            const amqp_table_t *client_properties,
-                                            amqp_sasl_method_enum sasl_method,
-                                            ...)
+    char const *vhost,
+    int channel_max,
+    int frame_max,
+    int heartbeat,
+    const amqp_table_t *client_properties,
+    amqp_sasl_method_enum sasl_method,
+    ...)
 {
   va_list vl;
   amqp_rpc_reply_t ret;
