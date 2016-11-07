@@ -193,6 +193,8 @@ struct amqp_connection_state_t_ {
   amqp_table_t server_properties;
   amqp_table_t client_properties;
   amqp_pool_t properties_pool;
+
+  struct timeval *handshake_timeout;
 };
 
 amqp_pool_t *amqp_get_or_create_channel_pool(amqp_connection_state_t connection, amqp_channel_t channel);

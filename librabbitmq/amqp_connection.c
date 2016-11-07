@@ -59,6 +59,9 @@
 #define AMQP_INITIAL_INBOUND_SOCK_BUFFER_SIZE 131072
 #endif
 
+#define DEFAULT_HANDSHAKE_TIMEOUT_SEC = 20
+static struct timeval default_handshake_timeout = {DEFAULT_HANDSHAKE_TIMEOUT_SEC, 0};
+
 #define ENFORCE_STATE(statevec, statenum)                                   \
   {                                                                         \
     amqp_connection_state_t _check_state = (statevec);                      \
@@ -100,6 +103,9 @@ amqp_connection_state_t amqp_new_connection(void)
   }
 
   init_amqp_pool(&state->properties_pool, 512);
+
+  /*Use address of the static default_timeout object by default. */
+  state->handshake_timeout = &default_handshake_timeout;
 
   return state;
 

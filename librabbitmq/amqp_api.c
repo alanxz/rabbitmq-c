@@ -355,3 +355,16 @@ int amqp_basic_nack(amqp_connection_state_t state, amqp_channel_t channel,
   req.requeue = requeue;
   return amqp_send_method(state, channel, AMQP_BASIC_NACK_METHOD, &req);
 }
+
+struct timeval *
+AMQP_CALL amqp_get_handshake_timeout(amqp_connection_state_t state)
+{
+  return state->handshake_timeout;
+}
+
+int AMQP_CALL amqp_set_handshake_timeout(amqp_connection_state_t state,
+                                         struct timeval *timeout)
+{
+  state->handshake_timeout = timeout;
+  return AMQP_STATUS_OK;
+}

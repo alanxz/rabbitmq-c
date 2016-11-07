@@ -1865,74 +1865,6 @@ AMQP_CALL amqp_login_with_properties(amqp_connection_state_t state, char const *
                                      int channel_max, int frame_max, int heartbeat,
                                      const amqp_table_t *properties, amqp_sasl_method_enum sasl_method, ...);
 
-/**
- * Login to the broker passing a properties table with a timeout
- *
- * This function is similar to amqp_login() and differs in that it provides a
- * way to pass client properties to the broker. This is commonly used to
- * negotiate newer protocol features as they are supported by the broker.
- *
- * \param [in] state the connection object
- * \param [in] vhost the virtual host to connect to on the broker. The default
- *              on most brokers is "/"
- * \param [in] channel_max the limit for the number of channels for the
- *             connection. 0 means no limit, and is a good default
- *             (AMQP_DEFAULT_MAX_CHANNELS). Note that the maximum number of
- *             channels the protocol supports is 65535 (2^16, with the
- *             0-channel reserved)
- * \param [in] frame_max the maximum size of an AMQP frame ont he wire to
- *             request of the broker for this connection. 4096 is the minimum
- *             size, 2^31-1 is the maximum, a good default is 131072 (128KB),
- *             or AMQP_DEFAULT_FRAME_SIZE
- * \param [in] heartbeat the number of seconds between heartbeat frame to
- *             request of the broker. A value of 0 disables heartbeats.
- *             Note rabbitmq-c only has partial support for hearts, as of
- *             v0.4.0 heartbeats are only serviced during amqp_basic_publish(),
- *             and amqp_simple_wait_frame()/amqp_simple_wait_frame_noblock()
- * \param [in] properties a table of properties to send the broker.
- * \param [in] timeout a timeout to wait for a start connection. Passing in
- *             NULL will result in blocking behavior.
- * \param [in] sasl_method the SASL method to authenticate with the broker
- *             followed by the authentication information.
- *             For AMQP_SASL_METHOD_PLAN, the AMQP_SASL_METHOD_PLAIN parameter
- *             should be followed by two arguments in this order:
- *             const char* username, and const char* password.
- * \return amqp_rpc_reply_t indicating success or failure.
- *  - r.reply_type == AMQP_RESPONSE_NORMAL. Login completed successfully
- *  - r.reply_type == AMQP_RESPONSE_LIBRARY_EXCEPTION. In most cases errors
- *    from the broker when logging in will be represented by the broker closing
- *    the socket. In this case r.library_error will be set to
- *    AMQP_STATUS_CONNECTION_CLOSED. This error can represent a number of
- *    error conditions including: invalid vhost, authentication failure.
- *  - r.reply_type == AMQP_STATUS_TIMEOUT the timeout was reached while waiting
- *    for start connection.
- *  - r.reply_type == AMQP_RESPONSE_SERVER_EXCEPTION. The broker returned an
- *    exception:
- *    - If r.reply.id == AMQP_CHANNEL_CLOSE_METHOD a channel exception
- *      occurred, cast r.reply.decoded to amqp_channel_close_t* to see details
- *      of the exception. The client should amqp_send_method() a
- *      amqp_channel_close_ok_t. The channel must be re-opened before it
- *      can be used again. Any resources associated with the channel
- *      (auto-delete exchanges, auto-delete queues, consumers) are invalid
- *      and must be recreated before attempting to use them again.
- *    - If r.reply.id == AMQP_CONNECTION_CLOSE_METHOD a connection exception
- *      occurred, cast r.reply.decoded to amqp_connection_close_t* to see
- *      details of the exception. The client amqp_send_method() a
- *      amqp_connection_close_ok_t and disconnect from the broker.
- *
- * \since v0.8.1
- */
-AMQP_PUBLIC_FUNCTION
-amqp_rpc_reply_t
-AMQP_CALL amqp_login_with_properties_noblock(amqp_connection_state_t state,
-                                             char const *vhost,
-                                             int channel_max, int frame_max,
-                                             int heartbeat,
-                                             const amqp_table_t *properties,
-                                             struct timeval *timeout,
-                                             amqp_sasl_method_enum sasl_method,
-                                             ...);
-
 struct amqp_basic_properties_t_;
 
 /**
@@ -2507,6 +2439,37 @@ amqp_get_server_properties(amqp_connection_state_t state);
 AMQP_PUBLIC_FUNCTION
 amqp_table_t *
 amqp_get_client_properties(amqp_connection_state_t state);
+
+/**
+ * Get the current value of the handshake timeout.
+ *
+ * \param [in] state the connection object
+ * \return a pointer to a struct timeval containing the current value of the
+ * handshake timeout set for current state. Return NULL if current timeout is
+ * set to the infinite value.
+ *
+ * \since v0.8.2
+ */
+AMQP_PUBLIC_FUNCTION
+struct timeval *
+AMQP_CALL amqp_get_handshake_timeout(amqp_connection_state_t state);
+
+/**
+ * Set the new value for the handshake timeout.
+ *
+ * \param [in] state the connection object
+ * \param [in] timeout a pointer to a struct timeval containing value of the
+ * handshake timeout that has to be set for current state. By default timeout
+ * is pointed to the static struct timeval initialized with 20000 ms.
+ * Initialize timeout == NULL to set infinite handshake timeout.
+ * \return AMQP_STATUS_OK.
+ *
+ * \since v0.8.2
+ */
+AMQP_PUBLIC_FUNCTION
+int
+AMQP_CALL amqp_set_handshake_timeout(amqp_connection_state_t state,
+                                     struct timeval *timeout);
 
 AMQP_END_DECLS
 
