@@ -59,7 +59,7 @@
 #define AMQP_INITIAL_INBOUND_SOCK_BUFFER_SIZE 131072
 #endif
 
-#define DEFAULT_HANDSHAKE_TIMEOUT_SEC = 20
+#define DEFAULT_HANDSHAKE_TIMEOUT_SEC 20
 static struct timeval default_handshake_timeout = {DEFAULT_HANDSHAKE_TIMEOUT_SEC, 0};
 
 #define ENFORCE_STATE(statevec, statenum)                                   \
