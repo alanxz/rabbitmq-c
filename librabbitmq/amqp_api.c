@@ -357,14 +357,20 @@ int amqp_basic_nack(amqp_connection_state_t state, amqp_channel_t channel,
 }
 
 struct timeval *
-AMQP_CALL amqp_get_handshake_timeout(amqp_connection_state_t state)
+amqp_get_handshake_timeout(amqp_connection_state_t state)
 {
   return state->handshake_timeout;
 }
 
-int AMQP_CALL amqp_set_handshake_timeout(amqp_connection_state_t state,
-                                         struct timeval *timeout)
+int amqp_set_handshake_timeout(amqp_connection_state_t state,
+                               struct timeval *timeout)
 {
-  state->handshake_timeout = timeout;
+  if (timeout) {
+    state->internal_handshake_timeout = *timeout;
+    state->handshake_timeout = &state->internal_handshake_timeout;
+  } else {
+    state->handshake_timeout = NULL;
+  }
+  
   return AMQP_STATUS_OK;
 }
