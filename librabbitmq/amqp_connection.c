@@ -102,7 +102,8 @@ amqp_connection_state_t amqp_new_connection(void)
   init_amqp_pool(&state->properties_pool, 512);
 
   /* Use address of the internal_handshake_timeout object by default. */
-  state->internal_handshake_timeout = {20, 0};
+  state->internal_handshake_timeout.tv_sec = 20;
+  state->internal_handshake_timeout.tv_usec = 0;
   state->handshake_timeout = &state->internal_handshake_timeout;
 
   return state;
