@@ -37,6 +37,10 @@ matrix:
     - compiler: clang
       os: osx
       env: CONFIG=cmake
+  allow_failures:
+    - compiler: clang
+      os: linux
+      env: CONFIG=tsan
 
 before_install:
   # ugly hack; if running a coverity scan abort all except the 1st build

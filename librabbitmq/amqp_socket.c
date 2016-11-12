@@ -57,11 +57,11 @@
 
 #include <errno.h>
 
-#ifdef _WIN32
+#if ((defined(_WIN32)) || (defined(__MINGW32__)) || (defined(__MINGW64__)))
 # ifndef WIN32_LEAN_AND_MEAN
 #  define WIN32_LEAN_AND_MEAN
 # endif
-# include <Winsock2.h>
+# include <winsock2.h>
 # include <ws2tcpip.h>
 #else
 # include <sys/types.h>      /* On older BSD this must come before net includes */

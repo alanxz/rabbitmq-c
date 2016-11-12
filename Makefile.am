@@ -361,20 +361,15 @@ EXTRA_DIST = \
 	CONTRIBUTING.md \
 	ChangeLog.md \
 	LICENSE-MIT \
-	README-win32.md \
 	README.md \
-	README.vms \
 	THANKS \
 	TODO \
 	cmake \
 	codegen \
-	descrip.mms \
 	docs \
 	examples/CMakeLists.txt \
-	examples/descrip.mms \
 	librabbitmq/CMakeLists.txt \
 	librabbitmq/codegen.py \
-	librabbitmq/descrip.mms \
 	librabbitmq/win32 \
 	tests/CMakeLists.txt \
 	tests/test_tables.expected \
@@ -385,8 +380,7 @@ EXTRA_DIST = \
 	tools/doc/amqp-delete-queue.xml \
 	tools/doc/amqp-get.xml \
 	tools/doc/amqp-publish.xml \
-	tools/doc/librabbitmq-tools.xml \
-	vms
+	tools/doc/librabbitmq-tools.xml
 
 MOSTLYCLEANFILES = \
 	$(man_MANS) \

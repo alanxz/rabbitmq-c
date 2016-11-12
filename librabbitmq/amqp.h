@@ -2408,6 +2408,7 @@ amqp_socket_get_sockfd(amqp_socket_t *self);
  */
 AMQP_PUBLIC_FUNCTION
 amqp_socket_t *
+AMQP_CALL
 amqp_get_socket(amqp_connection_state_t state);
 
 /**
@@ -2422,6 +2423,7 @@ amqp_get_socket(amqp_connection_state_t state);
  */
 AMQP_PUBLIC_FUNCTION
 amqp_table_t *
+AMQP_CALL
 amqp_get_server_properties(amqp_connection_state_t state);
 
 /**
@@ -2438,6 +2440,7 @@ amqp_get_server_properties(amqp_connection_state_t state);
  */
 AMQP_PUBLIC_FUNCTION
 amqp_table_t *
+AMQP_CALL
 amqp_get_client_properties(amqp_connection_state_t state);
 
 /**

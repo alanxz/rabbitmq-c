@@ -15,7 +15,7 @@ cache:
   - c:\deps -> appveyor.yml
 
 install:
-  - ps: $file = "Win${env:BITS}OpenSSL-1_0_2h.exe"
+  - ps: $file = "Win${env:BITS}OpenSSL-1_0_2j.exe"
   - ps: $dir = "c:\deps"
   - ps: $exists = Test-Path "$dir\$file"
   - ps: >-

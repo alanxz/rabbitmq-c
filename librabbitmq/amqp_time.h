@@ -26,14 +26,14 @@
 
 #include <stdint.h>
 
-#ifdef _WIN32
+#if ((defined(_WIN32)) || (defined(__MINGW32__)) || (defined(__MINGW64__)))
 # ifndef WINVER
 #  define WINVER 0x0502
 # endif
 # ifndef WIN32_LEAN_AND_MEAN
 #  define WIN32_LEAN_AND_MEAN
 # endif
-# include <Winsock2.h>
+# include <winsock2.h>
 #else
 # include <sys/time.h>
 #endif
