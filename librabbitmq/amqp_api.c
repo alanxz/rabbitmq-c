@@ -207,8 +207,9 @@ int amqp_basic_publish(amqp_connection_state_t state,
     }
   }
 
-  res = amqp_send_method_inner(state, channel, AMQP_BASIC_PUBLISH_METHOD, &m,
-                               AMQP_SF_MORE);
+  res = amqp_send_method_inner(state, channel,
+                               AMQP_BASIC_PUBLISH_METHOD, &m,
+                               AMQP_SF_MORE, amqp_time_infinite());
   if (res < 0) {
     return res;
   }
@@ -224,7 +225,7 @@ int amqp_basic_publish(amqp_connection_state_t state,
   f.payload.properties.body_size = body.len;
   f.payload.properties.decoded = (void *) properties;
 
-  res = amqp_send_frame_inner(state, &f, AMQP_SF_MORE);
+  res = amqp_send_frame_inner(state, &f, AMQP_SF_MORE, amqp_time_infinite());
   if (res < 0) {
     return res;
   }
@@ -250,7 +251,7 @@ int amqp_basic_publish(amqp_connection_state_t state,
     }
 
     body_offset += f.payload.body_fragment.len;
-    res = amqp_send_frame_inner(state, &f, flagz);
+    res = amqp_send_frame_inner(state, &f, flagz, amqp_time_infinite());
     if (res < 0) {
       return res;
     }
@@ -353,4 +354,23 @@ int amqp_basic_nack(amqp_connection_state_t state, amqp_channel_t channel,
   req.multiple = multiple;
   req.requeue = requeue;
   return amqp_send_method(state, channel, AMQP_BASIC_NACK_METHOD, &req);
+}
+
+struct timeval *
+amqp_get_handshake_timeout(amqp_connection_state_t state)
+{
+  return state->handshake_timeout;
+}
+
+int amqp_set_handshake_timeout(amqp_connection_state_t state,
+                               struct timeval *timeout)
+{
+  if (timeout) {
+    state->internal_handshake_timeout = *timeout;
+    state->handshake_timeout = &state->internal_handshake_timeout;
+  } else {
+    state->handshake_timeout = NULL;
+  }
+  
+  return AMQP_STATUS_OK;
 }

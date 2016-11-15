@@ -193,6 +193,9 @@ struct amqp_connection_state_t_ {
   amqp_table_t server_properties;
   amqp_table_t client_properties;
   amqp_pool_t properties_pool;
+
+  struct timeval *handshake_timeout;
+  struct timeval internal_handshake_timeout;
 };
 
 amqp_pool_t *amqp_get_or_create_channel_pool(amqp_connection_state_t connection, amqp_channel_t channel);
@@ -388,5 +391,6 @@ static inline amqp_rpc_reply_t amqp_rpc_reply_error(amqp_status_enum status) {
 }
 
 int amqp_send_frame_inner(amqp_connection_state_t state,
-                          const amqp_frame_t *frame, int flags);
+                          const amqp_frame_t *frame, int flags,
+                          amqp_time_t deadline);
 #endif

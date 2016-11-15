@@ -756,8 +756,8 @@ typedef enum amqp_status_enum_
  * \since v0.5
  */
 typedef enum {
-	AMQP_DELIVERY_NONPERSISTENT = 1, /**< Non-persistent message */
-	AMQP_DELIVERY_PERSISTENT = 2 /**< Persistent message */
+    AMQP_DELIVERY_NONPERSISTENT = 1, /**< Non-persistent message */
+    AMQP_DELIVERY_PERSISTENT = 2 /**< Persistent message */
 } amqp_delivery_mode_enum;
 
 AMQP_END_DECLS
@@ -2442,6 +2442,43 @@ AMQP_PUBLIC_FUNCTION
 amqp_table_t *
 AMQP_CALL
 amqp_get_client_properties(amqp_connection_state_t state);
+
+/**
+ * Get the current value of the login handshake timeout.
+ * This tunes the timeout for completing the amqp_login and 
+ * amqp_login_with_properties functions. By default the timeout is 20 seconds.
+ * Note that by default the RabbitMQ broker has a 10 second timeout for
+ * completing the login handshake.
+ *
+ * \param [in] state the connection object
+ * \return a pointer to a struct timeval containing the current value of the
+ * login handshake timeout set for current state. Return NULL if current timeout is
+ * set to the infinite value. The timeout is owned by the connection object.
+ *
+ * \since v0.9.0
+ */
+AMQP_PUBLIC_FUNCTION
+struct timeval *
+AMQP_CALL amqp_get_handshake_timeout(amqp_connection_state_t state);
+
+/**
+ * Set the new value for the login handshake timeout.
+ *
+ * \param [in] state the connection object
+ * \param [in] timeout a pointer to a struct timeval containing value of the
+ * login handshake timeout that has to be set for current state. 
+ * The passed timeout is copied by the function so it can be deleted
+ * immediately after the function call.
+ * By default the value of the timeout is set to 20000 ms.
+ * To set infinite handshake timeout just pass NULL value for the timeout.
+ * \return AMQP_STATUS_OK.
+ *
+ * \since v0.9.0
+ */
+AMQP_PUBLIC_FUNCTION
+int
+AMQP_CALL amqp_set_handshake_timeout(amqp_connection_state_t state,
+                                     struct timeval *timeout);
 
 AMQP_END_DECLS
 

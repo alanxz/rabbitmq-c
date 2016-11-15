@@ -101,6 +101,11 @@ amqp_connection_state_t amqp_new_connection(void)
 
   init_amqp_pool(&state->properties_pool, 512);
 
+  /* Use address of the internal_handshake_timeout object by default. */
+  state->internal_handshake_timeout.tv_sec = 20;
+  state->internal_handshake_timeout.tv_usec = 0;
+  state->handshake_timeout = &state->internal_handshake_timeout;
+
   return state;
 
 out_nomem:
@@ -537,14 +542,17 @@ static int amqp_frame_to_bytes(const amqp_frame_t *frame, amqp_bytes_t buffer,
 
 int amqp_send_frame(amqp_connection_state_t state,
                     const amqp_frame_t *frame) {
-  return amqp_send_frame_inner(state, frame, AMQP_SF_NONE);
+  return amqp_send_frame_inner(state, frame, AMQP_SF_NONE,
+                               amqp_time_infinite());
 }
 
 int amqp_send_frame_inner(amqp_connection_state_t state,
-                          const amqp_frame_t *frame, int flags) {
+                          const amqp_frame_t *frame, int flags,
+                          amqp_time_t deadline) {
   int res;
   ssize_t sent;
   amqp_bytes_t encoded;
+  amqp_time_t next_timeout;
 
   /* TODO: if the AMQP_SF_MORE socket optimization can be shown to work
    * correctly, then this could be un-done so that body-frames are sent as 3
@@ -557,15 +565,23 @@ int amqp_send_frame_inner(amqp_connection_state_t state,
   }
 
 start_send:
+
+  next_timeout = amqp_time_first(deadline, state->next_recv_heartbeat);
+
   sent = amqp_try_send(state, encoded.bytes, encoded.len,
-                       state->next_recv_heartbeat, flags);
+                       next_timeout, flags);
   if (0 > sent) {
     return (int)sent;
   }
 
-  /* A partial send has occurred, because of a heartbeat timeout, try and recv
-   * something */
+  /* A partial send has occurred, because of a heartbeat timeout (so try recv
+   * something) or common timeout (so return AMQP_STATUS_TIMEOUT) */
   if ((ssize_t)encoded.len != sent) {
+    if (amqp_time_equal(next_timeout, deadline)) {
+      /* timeout of method was received, so return from method*/
+      return AMQP_STATUS_TIMEOUT;
+    }
+
     res = amqp_try_recv(state);
 
     if (AMQP_STATUS_TIMEOUT == res) {

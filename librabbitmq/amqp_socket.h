@@ -177,9 +177,34 @@ int amqp_open_socket_inner(char const *hostname, int portnumber,
  * event (AMQP_SF_POLLIN, AMQP_SF_POLLOUT) */
 int amqp_poll(int fd, int event, amqp_time_t deadline);
 
+int amqp_simple_wait_method_noblock(amqp_connection_state_t state,
+                                    amqp_channel_t expected_channel,
+                                    amqp_method_number_t expected_method,
+                                    amqp_time_t deadline,
+                                    amqp_method_t *output);
+
+amqp_rpc_reply_t
+AMQP_CALL amqp_simple_rpc_noblock(amqp_connection_state_t state,
+                                  amqp_channel_t channel,
+                                  amqp_method_number_t request_id,
+                                  amqp_method_number_t *expected_reply_ids,
+                                  void *decoded_request_method,
+                                  amqp_time_t deadline);
+
+void *
+amqp_simple_rpc_decoded_noblock(amqp_connection_state_t state,
+                                amqp_channel_t channel,
+                                amqp_method_number_t request_id,
+                                amqp_method_number_t reply_id,
+                                void *decoded_request_method,
+                                amqp_time_t deadline);
+
 int amqp_send_method_inner(amqp_connection_state_t state,
-                           amqp_channel_t channel, amqp_method_number_t id,
-                           void *decoded, int flags);
+                           amqp_channel_t channel,
+                           amqp_method_number_t id,
+                           void *decoded, int flags,
+                           amqp_time_t deadline);
+
 int
 amqp_queue_frame(amqp_connection_state_t state, amqp_frame_t *frame);
 
