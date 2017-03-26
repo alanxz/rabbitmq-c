@@ -480,6 +480,11 @@ int amqp_open_socket_inner(char const *hostname,
       continue;
     }
 
+    if (0 != amqp_os_socket_setsockopt(sockfd, SOL_SOCKET, SO_KEEPALIVE, &one, sizeof(one))) {
+      last_error = AMQP_STATUS_SOCKET_ERROR;
+      continue;
+    }
+
 #ifdef _WIN32
     res = connect(sockfd, addr->ai_addr, (int)addr->ai_addrlen);
 #else
