@@ -1950,7 +1950,7 @@ AMQP_CALL amqp_channel_close(amqp_connection_state_t state, amqp_channel_t chann
  * Closes the entire connection
  *
  * Implicitly closes all channels and informs the broker the connection
- * is being closed, after receiving acknowldgement from the broker it closes
+ * is being closed, after receiving acknowledgment from the broker it closes
  * the socket.
  *
  * \param [in] state the connection object
