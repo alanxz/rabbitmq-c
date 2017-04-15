@@ -17,9 +17,9 @@ F
   byte ->
     b -1
   long ->
-    l 1234567890
+    L 1234567890
   short ->
-    s 655
+    U 655
   bool ->
     t true
   binary ->
@@ -53,9 +53,9 @@ F
   byte ->
     b -1
   long ->
-    l 1234567890
+    L 1234567890
   short ->
-    s 655
+    U 655
   bool ->
     t true
   binary ->
