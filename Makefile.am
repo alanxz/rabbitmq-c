@@ -49,6 +49,9 @@ librabbitmq_librabbitmq_la_SOURCES += \
   librabbitmq/amqp_openssl_bio.h \
   librabbitmq/amqp_openssl_hostname_validation.c \
   librabbitmq/amqp_openssl_hostname_validation.h
+
+librabbitmq_librabbitmq_la_LDFLAGS += -pthread
+
 if OS_APPLE
 librabbitmq_librabbitmq_la_CFLAGS += -Wno-deprecated-declarations
 endif
