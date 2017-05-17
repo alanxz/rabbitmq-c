@@ -125,6 +125,7 @@ if (BUILD_SHARED_LIBS)
     add_library(rabbitmq SHARED ${RABBITMQ_SOURCES})
 
     target_link_libraries(rabbitmq ${RMQ_LIBRARIES})
+    target_link_libraries(rabbitmq ${CMAKE_DL_LIBS})
 
     if (WIN32)
         set_target_properties(rabbitmq PROPERTIES VERSION ${RMQ_VERSION} OUTPUT_NAME rabbitmq.${RMQ_SOVERSION})
