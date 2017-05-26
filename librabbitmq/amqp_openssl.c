@@ -183,6 +183,10 @@ amqp_ssl_socket_open(void *base, const char *host, int port, struct timeval *tim
     goto exit;
   }
 
+  if (self->verify) {
+    SSL_set_verify(self->ssl, SSL_VERIFY_PEER, NULL);
+  }
+
   status = amqp_time_from_now(&deadline, timeout);
   if (AMQP_STATUS_OK != status) {
     return status;
