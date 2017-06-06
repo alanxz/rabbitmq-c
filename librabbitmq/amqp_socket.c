@@ -1154,6 +1154,7 @@ retry:
                         : AMQP_RESPONSE_SERVER_EXCEPTION;
 
     result.reply = frame.payload.method;
+    amqp_maybe_release_buffers(state);
     return result;
   }
 }
