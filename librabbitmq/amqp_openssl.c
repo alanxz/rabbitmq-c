@@ -44,6 +44,7 @@
 #include <openssl/err.h>
 #include <openssl/ssl.h>
 #include <openssl/x509v3.h>
+#include <openssl/engine.h>
 #include <stdlib.h>
 #include <string.h>
 
@@ -662,8 +663,22 @@ destroy_openssl(void)
      * safely. We do leak the amqp_openssl_lockarray. Which is only
      * an issue if you repeatedly unload and load the library
      */
+    ERR_remove_state(0);
+    FIPS_mode_set(0);
     CRYPTO_set_locking_callback(NULL);
     CRYPTO_set_id_callback(NULL);
+    ENGINE_cleanup();
+    CONF_modules_free();
+    EVP_cleanup();
+    CRYPTO_cleanup_all_ex_data();
+    ERR_free_strings();
+    free(amqp_openssl_lockarray);
+    amqp_openssl_lockarray = NULL;
+    /* Allow the possibility to reinitialze openSSL again */
+    openssl_initialized = 0;
+    /* In newer versions of OpenSSL, call:
+     SSL_COMP_free_compression_methods();
+     which will free the 2 leaks remaining */
   }
 
   pthread_mutex_unlock(&openssl_init_mutex);
