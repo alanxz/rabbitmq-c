@@ -2230,7 +2230,7 @@ typedef struct amqp_envelope_t_ {
  * basic.deliver it reads that message, and returns. If any other method is
  * received before basic.deliver, this function will return an amqp_rpc_reply_t
  * with ret.reply_type == AMQP_RESPONSE_LIBRARY_EXCEPTION, and
- * ret.library_error == AMQP_STATUS_UNEXPECTED_FRAME. The caller should then
+ * ret.library_error == AMQP_STATUS_UNEXPECTED_STATE. The caller should then
  * call amqp_simple_wait_frame() to read this frame and take appropriate action.
  *
  * This function should be used after starting a consumer with the
@@ -2246,7 +2246,7 @@ typedef struct amqp_envelope_t_ {
  * \param [in] flags pass in 0. Currently unused.
  * \returns a amqp_rpc_reply_t object.  ret.reply_type == AMQP_RESPONSE_NORMAL
  *          on success. If ret.reply_type == AMQP_RESPONSE_LIBRARY_EXCEPTION, and
- *          ret.library_error == AMQP_STATUS_UNEXPECTED_FRAME, a frame other
+ *          ret.library_error == AMQP_STATUS_UNEXPECTED_STATE, a frame other
  *          than AMQP_BASIC_DELIVER_METHOD was received, the caller should call
  *          amqp_simple_wait_frame() to read this frame and take appropriate
  *          action.
