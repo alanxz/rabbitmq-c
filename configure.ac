@@ -91,6 +91,8 @@ AS_IF([test "x$os_win32" = xyes],
 #  Solaris needs -lsocket -lnsl
 #  QNX will need -lsocket
 
+saved_CFLAGS=$CFLAGS
+CFLAGS=
 AC_SEARCH_LIBS([getaddrinfo], [socket], [],
                [AC_CHECK_LIB([getaddrinfo], [socket],
                              [LIBS="-lsocket -lnsl $LIBS"],
@@ -188,6 +190,7 @@ AC_CONFIG_FILES([
     librabbitmq.pc
     Makefile
 ])
+CFLAGS=$saved_CFLAGS
 AC_OUTPUT
 AC_MSG_RESULT([
 $PACKAGE_NAME build options:
