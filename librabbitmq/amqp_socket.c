@@ -1494,7 +1494,7 @@ amqp_rpc_reply_t amqp_login(amqp_connection_state_t state,
                             int channel_max,
                             int frame_max,
                             int heartbeat,
-                            amqp_sasl_method_enum sasl_method,
+                            int sasl_method,
                             ...)
 {
   va_list vl;
@@ -1517,7 +1517,7 @@ amqp_rpc_reply_t amqp_login_with_properties(amqp_connection_state_t state,
     int frame_max,
     int heartbeat,
     const amqp_table_t *client_properties,
-    amqp_sasl_method_enum sasl_method,
+    int sasl_method,
     ...)
 {
   va_list vl;
