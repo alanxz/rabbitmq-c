@@ -30,6 +30,11 @@ add_executable(test_status_enum
 target_link_libraries(test_status_enum rabbitmq-static)
 add_test(status_enum test_status_enum)
 
+add_executable(test_basic
+               test_basic.c)
+target_link_libraries(test_basic rabbitmq-static)
+add_test(basic test_basic)
+
 add_executable(test_sasl_mechanism test_sasl_mechanism.c)
 target_link_libraries(test_sasl_mechanism rabbitmq-static)
 add_test(sasl_mechanism test_sasl_mechanism)
