@@ -23,6 +23,9 @@ matrix:
     - compiler: gcc
       os: linux
       env: CONFIG=cmake
+    - compiler: gcc
+      os: linux
+      env: CONFIG=coverage
     - compiler: clang
       os: linux
       env: CONFIG=cmake
