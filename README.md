@@ -15,6 +15,7 @@ rabbitmq-c-users and cross-posted to rabbitmq-users.
  - <https://groups.google.com/forum/#!forum/rabbitmq-c-users>
  - <https://groups.google.com/forum/#!forum/rabbitmq-users>
 
+<a name=latest-stable-version></a>
 ## Latest Stable Version
 
 The latest stable release of rabbitmq-c can be found at:
@@ -44,8 +45,8 @@ API documentation for v0.8.0+ can viewed from:
 - *Optionally* [Doxygen](http://www.stack.nl/~dimitri/doxygen/) to build
   developer API documentation.
 
-After downloading and extracting the source from a tarball to a directory.
-([see above][Latest Stable Version]), the commands to build rabbitmq-c on most
+After downloading and extracting the source from a tarball to a directory
+([see above](#latest-stable-version)), the commands to build rabbitmq-c on most
 systems are:
 
     mkdir build && cd build
