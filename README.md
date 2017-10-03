@@ -15,7 +15,6 @@ rabbitmq-c-users and cross-posted to rabbitmq-users.
  - <https://groups.google.com/forum/#!forum/rabbitmq-c-users>
  - <https://groups.google.com/forum/#!forum/rabbitmq-users>
 
-<a name=latest-stable-version></a>
 ## Latest Stable Version
 
 The latest stable release of rabbitmq-c can be found at:
