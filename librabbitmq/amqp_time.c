@@ -31,6 +31,8 @@
 # define AMQP_WIN_TIMER_API
 #elif (defined(machintosh) || defined(__APPLE__) || defined(__APPLE_CC__))
 # define AMQP_MAC_TIMER_API
+#elif (defined(_OPENVMS))
+# define AMQP_VMS_TIMER_API
 #else
 # define AMQP_POSIX_TIMER_API
 #endif
@@ -89,6 +91,33 @@ amqp_get_monotonic_timestamp(void)
 }
 #endif /* AMQP_MAC_TIMER_API */
 
+#ifdef AMQP_VMS_TIMER_API
+
+#include <time.h>
+#include <unixlib.h>
+#include <stsdef.h>
+
+int SYS$GETTIM(void * timadr, unsigned long flags);
+
+uint64_t
+amqp_get_monotonic_timestamp(void)
+{
+  struct timespec tp;
+  uint64_t current_vms_time[2];
+  int status;
+
+  status = SYS$GETTIM(&current_vms_time[0], 1);
+  if ($VMS_STATUS_SUCCESS(status)) {
+    /* 100 nanoseconds increments */
+    tp.tv_nsec = current_vms_time[0] % 10000000;
+    tp.tv_sec = decc$fix_time(&current_vms_time[0]);
+    return ((uint64_t)tp.tv_sec * AMQP_NS_PER_S + (uint64_t)tp.tv_nsec);
+  }
+
+  return 0;
+}
+#endif
+
 #ifdef AMQP_POSIX_TIMER_API
 #include <time.h>
 
@@ -122,10 +151,11 @@ int amqp_time_from_now(amqp_time_t *time, struct timeval *timeout) {
     *time = amqp_time_immediate();
     return AMQP_STATUS_OK;
   }
-
+#ifndef _OPENVMS
   if (timeout->tv_sec < 0 || timeout->tv_usec < 0) {
     return AMQP_STATUS_INVALID_PARAMETER;
   }
+#endif
 
   delta_ns = (uint64_t)timeout->tv_sec * AMQP_NS_PER_S +
              (uint64_t)timeout->tv_usec * AMQP_NS_PER_US;

@@ -24,7 +24,11 @@
 #ifndef AMQP_TIMER_H
 #define AMQP_TIMER_H
 
+#ifdef _OPENVMS
+#include <inttypes.h>
+#else
 #include <stdint.h>
+#endif
 
 #if ((defined(_WIN32)) || (defined(__MINGW32__)) || (defined(__MINGW64__)))
 # ifndef WINVER

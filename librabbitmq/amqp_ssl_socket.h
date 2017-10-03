@@ -131,12 +131,21 @@ amqp_ssl_socket_set_key_buffer(amqp_socket_t *self,
  *
  * \since v0.4.0
  */
+#ifdef _OPENVMS
+AMQP_DEPRECATED(
+    AMQP_PUBLIC_FUNCTION
+    void
+    AMQP_CALL
+    amqp_ssl_socket_set_verify(amqp_socket_t *self, amqp_boolean_t verify)
+)
+#else
 AMQP_DEPRECATED(
     AMQP_PUBLIC_FUNCTION
     void
     AMQP_CALL
     amqp_ssl_socket_set_verify(amqp_socket_t *self, amqp_boolean_t verify)
 );
+#endif
 
 /**
  * Enable or disable peer verification.

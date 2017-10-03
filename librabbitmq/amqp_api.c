@@ -48,7 +48,11 @@
 #include "amqp_private.h"
 #include "amqp_time.h"
 #include <stdarg.h>
+#ifdef _OPENVMS
+#include <inttypes.h>
+#else
 #include <stdint.h>
+#endif
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -367,9 +371,11 @@ struct timeval *amqp_get_handshake_timeout(amqp_connection_state_t state) {
 int amqp_set_handshake_timeout(amqp_connection_state_t state,
                                struct timeval *timeout) {
   if (timeout) {
+#ifndef _OPENVMS
     if (timeout->tv_sec < 0 || timeout->tv_usec < 0) {
       return AMQP_STATUS_INVALID_PARAMETER;
     }
+#endif
     state->internal_handshake_timeout = *timeout;
     state->handshake_timeout = &state->internal_handshake_timeout;
   } else {
@@ -386,9 +392,11 @@ struct timeval * amqp_get_rpc_timeout(amqp_connection_state_t state) {
 int amqp_set_rpc_timeout(amqp_connection_state_t state,
                          struct timeval *timeout) {
   if (timeout) {
+#ifndef _OPENVMS
     if (timeout->tv_sec < 0 || timeout->tv_usec < 0) {
       return AMQP_STATUS_INVALID_PARAMETER;
     }
+#endif
     state->rpc_timeout = &state->internal_rpc_timeout;
     *state->rpc_timeout = *timeout;
   } else {

@@ -50,7 +50,12 @@
 #include <assert.h>
 #include <limits.h>
 #include <stdarg.h>
+#ifdef _OPENVMS
+#include <inttypes.h>
+#include <sys/ioctl.h>
+#else
 #include <stdint.h>
+#endif
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -78,6 +83,12 @@
 #  include <poll.h>
 # endif
 # include <unistd.h>
+#endif
+
+#ifdef _OPENVMS
+# if __INITIAL_POINTER_SIZE == 64
+#  define addrinfo __addrinfo64
+# endif
 #endif
 
 static int amqp_id_in_reply_list( amqp_method_number_t expected, amqp_method_number_t *list );
@@ -433,11 +444,18 @@ static int connect_socket(struct addrinfo *addr, amqp_time_t deadline) {
   }
 
   /* Set the socket as non-blocking */
+# ifdef _OPENVMS
+  if (ioctl(sockfd, FIONBIO, &one) == -1) {
+    last_error = AMQP_STATUS_SOCKET_ERROR;
+    goto err;
+  }
+#else
   flags = fcntl(sockfd, F_GETFL);
   if (flags == -1 || fcntl(sockfd, F_SETFL, (long)(flags | O_NONBLOCK)) == -1) {
     last_error = AMQP_STATUS_SOCKET_ERROR;
     goto err;
   }
+#endif
 
 #ifdef SO_NOSIGPIPE
   /* Turn off SIGPIPE on platforms that support it, BSD, MacOSX */

@@ -160,7 +160,23 @@ typedef _W64 int ssize_t;
 /** \endcond */
 
 #include <stddef.h>
+#ifdef _OPENVMS
+#include <inttypes.h>
+#include <limits.h>
+
+typedef uint32_t socklen_t;
+
+#define CLOCK_MONOTONIC 0
+
+#define UINT8_MAX       ((uint8_t)0x1 << 7)
+#define UINT16_MAX      ((uint16_t)0x1 << 15)
+#define UINT32_MAX      ((uint32_t)0x1 << 31)
+#define UINT64_MAX      ((uint64_t)0x1 << 63)
+
+#define SIZE_MAX        UINT64_MAX
+#else
 #include <stdint.h>
+#endif
 
 struct timeval;
 
@@ -1072,11 +1088,19 @@ AMQP_CALL amqp_get_sockfd(amqp_connection_state_t state);
  *
  * \since v0.1
  */
+#ifdef _OPENVMS
+AMQP_DEPRECATED(
+  AMQP_PUBLIC_FUNCTION
+  void
+  AMQP_CALL amqp_set_sockfd(amqp_connection_state_t state, int sockfd)
+)
+#else
 AMQP_DEPRECATED(
   AMQP_PUBLIC_FUNCTION
   void
   AMQP_CALL amqp_set_sockfd(amqp_connection_state_t state, int sockfd)
 );
+#endif
 
 
 /**
@@ -2079,11 +2103,19 @@ AMQP_CALL amqp_data_in_buffer(amqp_connection_state_t state);
  *
  * \since v0.1
  */
+#ifdef _OPENVMS
+AMQP_DEPRECATED(
+  AMQP_PUBLIC_FUNCTION
+  char *
+  AMQP_CALL amqp_error_string(int err)
+)
+#else
 AMQP_DEPRECATED(
   AMQP_PUBLIC_FUNCTION
   char *
   AMQP_CALL amqp_error_string(int err)
 );
+#endif
 
 
 /**

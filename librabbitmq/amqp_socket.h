@@ -32,6 +32,10 @@
 #ifndef AMQP_SOCKET_H
 #define AMQP_SOCKET_H
 
+#ifdef _OPENVMS
+#include <types.h>
+#endif
+
 #include "amqp_private.h"
 #include "amqp_time.h"
 

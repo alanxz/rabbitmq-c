@@ -412,6 +412,7 @@ password_cb(AMQP_UNUSED char *buffer,
             AMQP_UNUSED void *user_data)
 {
   amqp_abort("rabbitmq-c does not support password protected keys");
+  return AMQP_STATUS_SSL_ERROR;
 }
 
 int
@@ -664,7 +665,9 @@ destroy_openssl(void)
      * an issue if you repeatedly unload and load the library
      */
     ERR_remove_state(0);
+#ifndef _OPENVMS
     FIPS_mode_set(0);
+#endif
     CRYPTO_set_locking_callback(NULL);
     CRYPTO_set_id_callback(NULL);
     ENGINE_cleanup();

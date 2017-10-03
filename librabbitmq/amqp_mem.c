@@ -40,7 +40,11 @@
 
 #include "amqp_private.h"
 #include <assert.h>
+#ifdef _OPENVMS
+#include <inttypes.h>
+#else
 #include <stdint.h>
+#endif
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
