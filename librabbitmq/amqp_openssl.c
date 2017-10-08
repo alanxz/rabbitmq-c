@@ -54,7 +54,6 @@ static int open_ssl_connections = 0;
 static amqp_boolean_t do_initialize_openssl = 1;
 static amqp_boolean_t openssl_initialized = 0;
 
-#ifdef ENABLE_THREAD_SAFETY
 static unsigned long amqp_ssl_threadid_callback(void);
 static void amqp_ssl_locking_callback(int mode, int n, const char *file,
                                       int line);
@@ -62,7 +61,6 @@ static void amqp_ssl_locking_callback(int mode, int n, const char *file,
 static pthread_mutex_t openssl_init_mutex = PTHREAD_MUTEX_INITIALIZER;
 
 static pthread_mutex_t *amqp_openssl_lockarray = NULL;
-#endif /* ENABLE_THREAD_SAFETY */
 
 struct amqp_ssl_socket_t {
   const struct amqp_socket_class_t *klass;
@@ -532,7 +530,6 @@ void amqp_set_initialize_ssl_library(amqp_boolean_t do_initialize) {
   }
 }
 
-#ifdef ENABLE_THREAD_SAFETY
 unsigned long amqp_ssl_threadid_callback(void) {
   return (unsigned long)pthread_self();
 }
@@ -549,16 +546,12 @@ void amqp_ssl_locking_callback(int mode, int n, AMQP_UNUSED const char *file,
     }
   }
 }
-#endif /* ENABLE_THREAD_SAFETY */
 
 static int initialize_openssl(void) {
-#ifdef ENABLE_THREAD_SAFETY
   if (pthread_mutex_lock(&openssl_init_mutex)) {
     return -1;
   }
-#endif /* ENABLE_THREAD_SAFETY */
   if (do_initialize_openssl) {
-#ifdef ENABLE_THREAD_SAFETY
     if (NULL == amqp_openssl_lockarray) {
       int i = 0;
       amqp_openssl_lockarray =
@@ -581,7 +574,6 @@ static int initialize_openssl(void) {
       CRYPTO_set_id_callback(amqp_ssl_threadid_callback);
       CRYPTO_set_locking_callback(amqp_ssl_locking_callback);
     }
-#endif /* ENABLE_THREAD_SAFETY */
 
     if (!openssl_initialized) {
       OPENSSL_config(NULL);
@@ -595,24 +587,19 @@ static int initialize_openssl(void) {
 
   ++open_ssl_connections;
 
-#ifdef ENABLE_THREAD_SAFETY
   pthread_mutex_unlock(&openssl_init_mutex);
-#endif /* ENABLE_THREAD_SAFETY */
   return 0;
 }
 
 static int destroy_openssl(void) {
-#ifdef ENABLE_THREAD_SAFETY
   if (pthread_mutex_lock(&openssl_init_mutex)) {
     return -1;
   }
-#endif /* ENABLE_THREAD_SAFETY */
 
   if (open_ssl_connections > 0) {
     --open_ssl_connections;
   }
 
-#ifdef ENABLE_THREAD_SAFETY
   if (0 == open_ssl_connections && do_initialize_openssl) {
     /* Unsetting these allows the rabbitmq-c library to be unloaded
      * safely. We do leak the amqp_openssl_lockarray. Which is only
@@ -634,6 +621,5 @@ static int destroy_openssl(void) {
   }
 
   pthread_mutex_unlock(&openssl_init_mutex);
-#endif /* ENABLE_THREAD_SAFETY */
   return 0;
 }

@@ -42,9 +42,7 @@
 
 #ifdef AMQP_USE_AMQP_BIO
 
-#ifdef ENABLE_THREAD_SAFETY
 static pthread_once_t bio_init_once = PTHREAD_ONCE_INIT;
-#endif
 
 static int bio_initialized = 0;
 static BIO_METHOD amqp_bio_method;
@@ -150,11 +148,7 @@ static void amqp_openssl_bio_init(void) {
 BIO_METHOD *amqp_openssl_bio(void) {
 #ifdef AMQP_USE_AMQP_BIO
   if (!bio_initialized) {
-#ifdef ENABLE_THREAD_SAFETY
     pthread_once(&bio_init_once, amqp_openssl_bio_init);
-#else
-    amqp_openssl_bio_init();
-#endif /* ifndef ENABLE_THREAD_SAFETY */
   }
 
   return &amqp_bio_method;

@@ -96,13 +96,10 @@ if (ENABLE_SSL_SUPPORT)
       PROPERTIES COMPILE_FLAGS -Wno-deprecated-declarations)
   endif()
 
-  if (ENABLE_THREAD_SAFETY)
-    add_definitions(-DENABLE_THREAD_SAFETY)
-    if (WIN32)
-      set(AMQP_SSL_SRCS ${AMQP_SSL_SRCS} win32/threads.h win32/threads.c)
-    else()
-      set(AMQP_SSL_SRCS ${AMQP_SSL_SRCS} unix/threads.h)
-    endif()
+  if (WIN32)
+    set(AMQP_SSL_SRCS ${AMQP_SSL_SRCS} win32/threads.h win32/threads.c)
+  else()
+    set(AMQP_SSL_SRCS ${AMQP_SSL_SRCS} unix/threads.h)
   endif()
 endif()
 
@@ -122,6 +119,9 @@ set(RMQ_LIBRARIES ${AMQP_SSL_LIBS} ${SOCKET_LIBRARIES} ${LIBRT} ${CMAKE_THREAD_L
 
 if (BUILD_SHARED_LIBS)
     add_library(rabbitmq SHARED ${RABBITMQ_SOURCES})
+    if (THREADS_HAVE_PTHREAD_ARG)
+      target_compile_options(rabbitmq PUBLIC "-pthread")
+    endif()
 
     target_link_libraries(rabbitmq ${RMQ_LIBRARIES})
 
@@ -142,6 +142,9 @@ endif (BUILD_SHARED_LIBS)
 
 if (BUILD_STATIC_LIBS)
     add_library(rabbitmq-static STATIC ${RABBITMQ_SOURCES})
+    if (THREADS_HAVE_PTHREAD_ARG)
+      target_compile_options(rabbitmq-static PUBLIC "-pthread")
+    endif()
 
     target_link_libraries(rabbitmq-static ${RMQ_LIBRARIES})
 
@@ -150,14 +153,14 @@ if (BUILD_STATIC_LIBS)
         set_target_properties(rabbitmq-static PROPERTIES
           VERSION ${RMQ_VERSION}
           OUTPUT_NAME librabbitmq.${RMQ_SOVERSION})
-        
+
         if(MSVC)
             set_target_properties(rabbitmq-static PROPERTIES
             # Embed debugging info in the library itself instead of generating
             # a .pdb file.
             COMPILE_OPTIONS "/Z7")
         endif(MSVC)
-        
+
     else (WIN32)
         set_target_properties(rabbitmq-static PROPERTIES VERSION ${RMQ_VERSION} SOVERSION ${RMQ_SOVERSION} OUTPUT_NAME rabbitmq)
     endif (WIN32)

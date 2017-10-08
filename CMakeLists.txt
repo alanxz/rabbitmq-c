@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 2.6)
+cmake_minimum_required(VERSION 2.8.12)
 project(rabbitmq-c "C")
 
 # Enable MACOSX_RPATH by default. See: cmake --help-policy CMP0042
@@ -114,6 +114,17 @@ check_library_exists(rt clock_gettime "time.h" CLOCK_GETTIME_NEEDS_LIBRT)
 check_library_exists(rt posix_spawnp "spawn.h" POSIX_SPAWNP_NEEDS_LIBRT)
 if (CLOCK_GETTIME_NEEDS_LIBRT OR POSIX_SPAWNP_NEEDS_LIBRT)
   set(LIBRT rt)
+endif()
+
+option(ENABLE_SSL_SUPPORT "Enable SSL support" ON)
+
+if (ENABLE_SSL_SUPPORT)
+  find_package(OpenSSL 0.9.8 REQUIRED)
+
+  cmake_push_check_state()
+  set(THREADS_PREFER_PTHREAD_FLAG ON)
+  find_package(Threads REQUIRED)
+  cmake_pop_check_state()
 endif()
 
 if (MSVC)
@@ -246,7 +257,6 @@ if (POPT_FOUND AND XmlTo_FOUND)
   set(DO_DOCS ON)
 endif()
 
-find_package(Threads)
 
 option(BUILD_SHARED_LIBS "Build rabbitmq-c as a shared library" ON)
 option(BUILD_STATIC_LIBS "Build rabbitmq-c as a static library" ON)
@@ -256,12 +266,6 @@ option(BUILD_TOOLS "Build Tools (requires POPT Library)" ${POPT_FOUND})
 option(BUILD_TOOLS_DOCS "Build man pages for Tools (requires xmlto)" ${DO_DOCS})
 option(BUILD_TESTS "Build tests (run tests with make test)" ON)
 option(BUILD_API_DOCS "Build Doxygen API docs" ${DOXYGEN_FOUND})
-option(ENABLE_SSL_SUPPORT "Enable SSL support" ON)
-option(ENABLE_THREAD_SAFETY "Enable thread safety when using OpenSSL" ${Threads_FOUND})
-
-if (ENABLE_SSL_SUPPORT)
-  find_package(OpenSSL 0.9.8 REQUIRED)
-endif()
 
 if (NOT BUILD_SHARED_LIBS AND NOT BUILD_STATIC_LIBS)
     message(FATAL_ERROR "One or both of BUILD_SHARED_LIBS or BUILD_STATIC_LIBS must be set to ON to build")
@@ -309,12 +313,8 @@ endif ()
 
 set(libs_private ${SOCKET_LIBRARIES} ${LIBRT})
 if (ENABLE_SSL_SUPPORT)
-  if (SSL_ENGINE STREQUAL "OpenSSL")
-    set(requires_private "openssl")
-  endif()
-  if (ENABLE_THREAD_SAFETY)
-    set(libs_private ${libs_private} ${CMAKE_THREAD_LIBS_INIT})
-  endif()
+  set(requires_private "openssl")
+  set(libs_private ${libs_private} ${CMAKE_THREAD_LIBS_INIT})
 endif()
 
 set(prefix ${CMAKE_INSTALL_PREFIX})
