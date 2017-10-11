@@ -85,18 +85,6 @@ Other interesting flags that can be passed to CMake:
 * `BUILD_API_DOCS=ON/OFF` - toggles building the Doxygen API documentation, by
    default this is OFF
 
-#### autotools
-
-For legacy purposes, a GNU autotools based build system is also maintained. The required
-utilities you need are autoconf v2.59+, automake v1.9+, libtool v2.2+, and pkg-config.
-
-Then the standard autotools build procedure will build rabbitmq-c:
-
-    autoreconf -i
-    ./configure
-    make
-    make install
-
 ## Running the examples
 
 Arrange for a RabbitMQ or other AMQP server to be running on
