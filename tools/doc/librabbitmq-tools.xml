@@ -53,7 +53,7 @@
                 <term><option>--vhost</option>=<replaceable class="parameter">vhost</replaceable></term>
                 <listitem>
                     <para>
-                        The AMQP vhost to specify when connnecting.
+                        The AMQP vhost to specify when connecting.
                         Defaults to <literal>/</literal>.
                     </para>
                 </listitem>
