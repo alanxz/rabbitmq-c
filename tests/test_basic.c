@@ -65,12 +65,8 @@ amqp_connection_state_t setup_connection_and_channel(void) {
   return connection_state_;
 }
 
-void close_channel_and_connection(amqp_connection_state_t connection_state_) {
-  amqp_rpc_reply_t rpc_reply =
-      amqp_channel_close(connection_state_, 1, AMQP_REPLY_SUCCESS);
-  assert(rpc_reply.reply_type == AMQP_RESPONSE_NORMAL);
-
-  rpc_reply = amqp_connection_close(connection_state_, AMQP_REPLY_SUCCESS);
+void close_and_destroy_connection(amqp_connection_state_t connection_state_) {
+  amqp_rpc_reply_t rpc_reply = amqp_connection_close(connection_state_, AMQP_REPLY_SUCCESS);
   assert(rpc_reply.reply_type == AMQP_RESPONSE_NORMAL);
 
   int rc = amqp_destroy_connection(connection_state_);
@@ -172,7 +168,7 @@ void publish_and_basic_get_message(const char *msg_to_publish) {
   assert(strncmp(msg_to_publish, msg, body_size) == 0);
   free(msg);
 
-  close_channel_and_connection(connection_state);
+  close_and_destroy_connection(connection_state);
 }
 
 char *consume_message(amqp_connection_state_t connection_state_,
@@ -214,7 +210,7 @@ void publish_and_consume_message(const char *msg_to_publish) {
   assert(strncmp(msg_to_publish, msg, body_size) == 0);
   free(msg);
 
-  close_channel_and_connection(connection_state);
+  close_and_destroy_connection(connection_state);
 }
 
 int main(void) {
