@@ -156,7 +156,7 @@ char *consume_message(amqp_connection_state_t connection_state_,
   assert(result != NULL);
 
   amqp_envelope_t envelope;
-  struct timeval timeout = {0, 250};
+  struct timeval timeout = {0, 500};
   amqp_rpc_reply_t rpc_reply =
       amqp_consume_message(connection_state_, &envelope, &timeout, 0);
   assert(rpc_reply.reply_type == AMQP_RESPONSE_NORMAL);
