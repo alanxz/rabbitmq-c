@@ -106,27 +106,6 @@ void queue_declare(amqp_connection_state_t connection_state_,
   assert(res != NULL);
 }
 
-void receive_body_frames(amqp_connection_state_t connection_state_,
-                         char *body_, uint64_t body_size_) {
-  char *body_begin = body_;
-  uint64_t body_read, body_left;
-  for (body_read = 0, body_left = body_size_; body_read < body_size_;) {
-    amqp_frame_t body_frame;
-    int rc = amqp_simple_wait_frame(connection_state_, &body_frame);
-    assert(rc == AMQP_STATUS_OK);
-
-    assert(body_frame.frame_type == AMQP_FRAME_BODY);
-
-    amqp_bytes_t *body_fragment = &body_frame.payload.body_fragment;
-
-    assert(body_fragment->len <= body_left);
-
-    memcpy(body_begin + body_read, body_fragment->bytes, body_fragment->len);
-    body_read += body_fragment->len;
-    body_left -= body_fragment->len;
-  }
-}
-
 char *basic_get(amqp_connection_state_t connection_state_,
                 const char *queue_name_, uint64_t *out_body_size_) {
   amqp_rpc_reply_t rpc_reply;
@@ -138,20 +117,15 @@ char *basic_get(amqp_connection_state_t connection_state_,
 
   assert(rpc_reply.reply.id == AMQP_BASIC_GET_OK_METHOD);
 
-  amqp_frame_t header_frame;
-  int rc = amqp_simple_wait_frame(connection_state_, &header_frame);
-  assert(rc == AMQP_STATUS_OK);
+  amqp_message_t message;
+  rpc_reply = amqp_read_message(connection_state_, fixed_channel_id, &message, 0);
+  assert(rpc_reply.reply_type == AMQP_RESPONSE_NORMAL);
+  
+  char *body = malloc(message.body.len);
+  memcpy(body, message.body.bytes, message.body.len);
+  *out_body_size_ = message.body.len;
+  amqp_destroy_message(&message);
 
-  assert(header_frame.frame_type == AMQP_FRAME_HEADER);
-
-  *out_body_size_ = header_frame.payload.properties.body_size;
-
-  /* message body cannot be from the pool, body is freed in envelope_destroy
-     with amqp_bytes_free */
-  char *body = malloc(*out_body_size_);
-  if (*out_body_size_) {
-    receive_body_frames(connection_state_, body, *out_body_size_);
-  }
   return body;
 }
 
