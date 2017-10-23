@@ -25,6 +25,7 @@
 
 #include "amqp.h"
 #include "amqp_tcp_socket.h"
+#include "amqp_time.h"
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -109,12 +110,19 @@ void queue_declare(amqp_connection_state_t connection_state_,
 char *basic_get(amqp_connection_state_t connection_state_,
                 const char *queue_name_, uint64_t *out_body_size_) {
   amqp_rpc_reply_t rpc_reply;
+  amqp_time_t deadline;
+  struct timeval timeout = { 0, 500 };
+  int time_rc = amqp_time_from_now(&deadline, &timeout);
+  assert(time_rc == AMQP_STATUS_OK);
+
   do {
     rpc_reply = amqp_basic_get(connection_state_, fixed_channel_id,
                                amqp_cstring_bytes(queue_name_), /*no_ack*/ 1);
   } while (rpc_reply.reply_type == AMQP_RESPONSE_NORMAL &&
-           rpc_reply.reply.id == AMQP_BASIC_GET_EMPTY_METHOD);
+           rpc_reply.reply.id == AMQP_BASIC_GET_EMPTY_METHOD &&
+           amqp_time_has_past(deadline) == AMQP_STATUS_OK);
 
+  assert(rpc_reply.reply_type == AMQP_RESPONSE_NORMAL);
   assert(rpc_reply.reply.id == AMQP_BASIC_GET_OK_METHOD);
 
   amqp_message_t message;
