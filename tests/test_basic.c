@@ -36,13 +36,10 @@
 #include <sys/time.h>
 #endif
 
-#define assert(x)                                    \
-  {                                                  \
-    if (!(x)) {                                      \
-      fprintf(stderr, "Assertion failed: %s\n", #x); \
-      abort();                                       \
-    }                                                \
-  }
+#ifdef NDEBUG
+# undef NDEBUG
+#endif
+#include <assert.h>
 
 static const int fixed_channel_id = 1;
 static const char test_queue_name[] = "test_queue";
