@@ -53,8 +53,8 @@ amqp_connection_state_t setup_connection_and_channel(void) {
   int rc = amqp_socket_open(socket, "localhost", AMQP_PROTOCOL_PORT);
   assert(rc == AMQP_STATUS_OK);
 
-  amqp_rpc_reply_t rpc_reply = amqp_login_with_properties(
-      connection_state_, "/", 1, AMQP_DEFAULT_FRAME_SIZE, 0, NULL,
+  amqp_rpc_reply_t rpc_reply = amqp_login(
+      connection_state_, "/", 1, AMQP_DEFAULT_FRAME_SIZE, AMQP_DEFAULT_HEARTBEAT,
       AMQP_SASL_METHOD_PLAIN, "guest", "guest");
   assert(rpc_reply.reply_type == AMQP_RESPONSE_NORMAL);
 
