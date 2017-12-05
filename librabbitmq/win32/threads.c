@@ -49,3 +49,8 @@ int pthread_mutex_unlock(pthread_mutex_t *mutex) {
   ReleaseSRWLockExclusive(mutex);
   return 0;
 }
+
+int pthread_mutex_destroy(pthread_mutex_t *mutex) {
+  /* SRW's do not require destruction. */
+  return 0;
+}

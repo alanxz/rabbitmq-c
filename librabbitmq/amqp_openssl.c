@@ -47,20 +47,26 @@
 #include <stdlib.h>
 #include <string.h>
 
-static int initialize_openssl(void);
-static int destroy_openssl(void);
+static int initialize_ssl_and_increment_connections(void);
+static int decrement_ssl_connections(void);
 
-static int open_ssl_connections = 0;
-static amqp_boolean_t do_initialize_openssl = 1;
-static amqp_boolean_t openssl_initialized = 0;
-
-static unsigned long amqp_ssl_threadid_callback(void);
-static void amqp_ssl_locking_callback(int mode, int n, const char *file,
-                                      int line);
+static unsigned long ssl_threadid_callback(void);
+static void ssl_locking_callback(int mode, int n, const char *file, int line);
+static pthread_mutex_t *amqp_openssl_lockarray = NULL;
 
 static pthread_mutex_t openssl_init_mutex = PTHREAD_MUTEX_INITIALIZER;
+static amqp_boolean_t do_initialize_openssl = 1;
+static amqp_boolean_t openssl_initialized = 0;
+static int openssl_connections = 0;
 
-static pthread_mutex_t *amqp_openssl_lockarray = NULL;
+#define CHECK_SUCCESS(condition)                                            \
+  do {                                                                      \
+    int check_success_ret = (condition);                                    \
+    if (check_success_ret) {                                                \
+      amqp_abort("Check %s failed <%d>: %s", #condition, check_success_ret, \
+                 strerror(check_success_ret));                              \
+    }                                                                       \
+  } while (0)
 
 struct amqp_ssl_socket_t {
   const struct amqp_socket_class_t *klass;
@@ -305,7 +311,7 @@ static void amqp_ssl_socket_delete(void *base) {
     SSL_CTX_free(self->ctx);
     free(self);
   }
-  destroy_openssl();
+  decrement_ssl_connections();
 }
 
 static const struct amqp_socket_class_t amqp_ssl_socket_class = {
@@ -329,7 +335,7 @@ amqp_socket_t *amqp_ssl_socket_new(amqp_connection_state_t state) {
   self->verify_peer = 1;
   self->verify_hostname = 1;
 
-  status = initialize_openssl();
+  status = initialize_ssl_and_increment_connections();
   if (status) {
     goto error;
   }
@@ -525,101 +531,142 @@ int amqp_ssl_socket_set_ssl_versions(amqp_socket_t *base,
 }
 
 void amqp_set_initialize_ssl_library(amqp_boolean_t do_initialize) {
-  if (!openssl_initialized) {
+  CHECK_SUCCESS(pthread_mutex_lock(&openssl_init_mutex));
+
+  if (openssl_connections == 0 && !openssl_initialized) {
     do_initialize_openssl = do_initialize;
   }
+  CHECK_SUCCESS(!pthread_mutex_unlock(&openssl_init_mutex));
 }
 
-unsigned long amqp_ssl_threadid_callback(void) {
+static unsigned long ssl_threadid_callback(void) {
   return (unsigned long)pthread_self();
 }
 
-void amqp_ssl_locking_callback(int mode, int n, AMQP_UNUSED const char *file,
-                               AMQP_UNUSED int line) {
+static void ssl_locking_callback(int mode, int n, AMQP_UNUSED const char *file,
+                                 AMQP_UNUSED int line) {
   if (mode & CRYPTO_LOCK) {
-    if (pthread_mutex_lock(&amqp_openssl_lockarray[n])) {
-      amqp_abort("Runtime error: Failure in trying to lock OpenSSL mutex");
-    }
+    CHECK_SUCCESS(pthread_mutex_lock(&amqp_openssl_lockarray[n]));
   } else {
-    if (pthread_mutex_unlock(&amqp_openssl_lockarray[n])) {
-      amqp_abort("Runtime error: Failure in trying to unlock OpenSSL mutex");
-    }
+    CHECK_SUCCESS(pthread_mutex_unlock(&amqp_openssl_lockarray[n]));
   }
 }
 
-static int initialize_openssl(void) {
-  if (pthread_mutex_lock(&openssl_init_mutex)) {
-    return -1;
+static int setup_openssl(void) {
+  int status;
+
+  int i;
+  amqp_openssl_lockarray = calloc(CRYPTO_num_locks(), sizeof(pthread_mutex_t));
+  if (!amqp_openssl_lockarray) {
+    status = AMQP_STATUS_NO_MEMORY;
+    goto out;
   }
-  if (do_initialize_openssl) {
-    if (NULL == amqp_openssl_lockarray) {
-      int i = 0;
-      amqp_openssl_lockarray =
-          calloc(CRYPTO_num_locks(), sizeof(pthread_mutex_t));
-      if (!amqp_openssl_lockarray) {
-        pthread_mutex_unlock(&openssl_init_mutex);
-        return -1;
+  for (i = 0; i < CRYPTO_num_locks(); i++) {
+    if (pthread_mutex_init(&amqp_openssl_lockarray[i], NULL)) {
+      int j;
+      for (j = 0; j < i; j++) {
+        pthread_mutex_destroy(&amqp_openssl_lockarray[j]);
       }
-      for (i = 0; i < CRYPTO_num_locks(); ++i) {
-        if (pthread_mutex_init(&amqp_openssl_lockarray[i], NULL)) {
-          free(amqp_openssl_lockarray);
-          amqp_openssl_lockarray = NULL;
-          pthread_mutex_unlock(&openssl_init_mutex);
-          return -1;
-        }
-      }
-    }
-
-    if (0 == open_ssl_connections) {
-      CRYPTO_set_id_callback(amqp_ssl_threadid_callback);
-      CRYPTO_set_locking_callback(amqp_ssl_locking_callback);
-    }
-
-    if (!openssl_initialized) {
-      OPENSSL_config(NULL);
-
-      SSL_library_init();
-      SSL_load_error_strings();
-
-      openssl_initialized = 1;
+      free(amqp_openssl_lockarray);
+      status = AMQP_STATUS_SSL_ERROR;
+      goto out;
     }
   }
+  CRYPTO_set_id_callback(ssl_threadid_callback);
+  CRYPTO_set_locking_callback(ssl_locking_callback);
 
-  ++open_ssl_connections;
+  OPENSSL_config(NULL);
+  SSL_library_init();
+  SSL_load_error_strings();
 
-  pthread_mutex_unlock(&openssl_init_mutex);
-  return 0;
+  status = AMQP_STATUS_OK;
+out:
+  return status;
 }
 
-static int destroy_openssl(void) {
-  if (pthread_mutex_lock(&openssl_init_mutex)) {
-    return -1;
+int amqp_initialize_ssl_library(void) {
+  int status;
+  CHECK_SUCCESS(pthread_mutex_lock(&openssl_init_mutex));
+
+  if (!openssl_initialized) {
+    status = setup_openssl();
+    if (status) {
+      goto out;
+    }
+    openssl_initialized = 1;
   }
 
-  if (open_ssl_connections > 0) {
-    --open_ssl_connections;
+  status = AMQP_STATUS_OK;
+out:
+  CHECK_SUCCESS(pthread_mutex_unlock(&openssl_init_mutex));
+  return status;
+}
+
+static int initialize_ssl_and_increment_connections() {
+  int status;
+  CHECK_SUCCESS(pthread_mutex_lock(&openssl_init_mutex));
+
+  if (do_initialize_openssl && !openssl_initialized) {
+    status = setup_openssl();
+    if (status) {
+      goto exit;
+    }
+    openssl_initialized = 1;
   }
 
-  if (0 == open_ssl_connections && do_initialize_openssl) {
-    /* Unsetting these allows the rabbitmq-c library to be unloaded
-     * safely. We do leak the amqp_openssl_lockarray. Which is only
-     * an issue if you repeatedly unload and load the library
-     */
-    ERR_remove_state(0);
-    FIPS_mode_set(0);
-    CRYPTO_set_locking_callback(NULL);
-    CRYPTO_set_id_callback(NULL);
-    ENGINE_cleanup();
-    CONF_modules_free();
-    EVP_cleanup();
-    CRYPTO_cleanup_all_ex_data();
-    ERR_free_strings();
-    openssl_initialized = 0;
+  openssl_connections += 1;
+  status = AMQP_STATUS_OK;
+exit:
+  CHECK_SUCCESS(pthread_mutex_unlock(&openssl_init_mutex));
+  return status;
+}
+
+static int decrement_ssl_connections(void) {
+  CHECK_SUCCESS(pthread_mutex_lock(&openssl_init_mutex));
+
+  if (openssl_connections > 0) {
+    openssl_connections--;
+  }
+
+  CHECK_SUCCESS(pthread_mutex_unlock(&openssl_init_mutex));
+  return AMQP_STATUS_OK;
+}
+
+int amqp_uninitialize_ssl_library(void) {
+  int status;
+  CHECK_SUCCESS(pthread_mutex_lock(&openssl_init_mutex));
+
+  if (openssl_connections > 0) {
+    status = AMQP_STATUS_SOCKET_INUSE;
+    goto out;
+  }
+
+  ERR_remove_state(0);
+  FIPS_mode_set(0);
+
+  CRYPTO_set_locking_callback(NULL);
+  CRYPTO_set_id_callback(NULL);
+  {
+    int i;
+    for (i = 0; i < CRYPTO_num_locks(); i++) {
+      pthread_mutex_destroy(&amqp_openssl_lockarray[i]);
+    }
+    free(amqp_openssl_lockarray);
+  }
+
+  ENGINE_cleanup();
+  CONF_modules_free();
+  EVP_cleanup();
+  CRYPTO_cleanup_all_ex_data();
+  ERR_free_strings();
 #if (OPENSSL_VERSION_NUMBER >= 0x10002003L)
-    SSL_COMP_free_compression_methods();
+  SSL_COMP_free_compression_methods();
 #endif
-  }
 
-  pthread_mutex_unlock(&openssl_init_mutex);
-  return 0;
+  openssl_initialized = 0;
+
+  status = AMQP_STATUS_OK;
+out:
+  CHECK_SUCCESS(pthread_mutex_unlock(&openssl_init_mutex));
+  return status;
 }

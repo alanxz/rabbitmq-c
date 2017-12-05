@@ -181,19 +181,18 @@ int AMQP_CALL amqp_ssl_socket_set_ssl_versions(amqp_socket_t *self,
                                                amqp_tls_version_t max);
 
 /**
- * Sets whether rabbitmq-c initializes the underlying SSL library.
+ * Sets whether rabbitmq-c will initialize OpenSSL.
  *
- * For SSL libraries that require a one-time initialization across
- * a whole program (e.g., OpenSSL) this sets whether or not rabbitmq-c
- * will initialize the SSL library when the first call to
- * amqp_open_socket() is made. You should call this function with
+ * OpenSSL requires a one-time initialization across a whole program, this sets
+ * whether or not rabbitmq-c will initialize the SSL library when the first call
+ * to amqp_ssl_socket_new() is made. You should call this function with
  * do_init = 0 if the underlying SSL library is initialized somewhere else
  * the program.
  *
  * Failing to initialize or double initialization of the SSL library will
  * result in undefined behavior
  *
- * By default rabbitmq-c will initialize the underlying SSL library
+ * By default rabbitmq-c will initialize the underlying SSL library.
  *
  * NOTE: calling this function after the first socket has been opened with
  * amqp_open_socket() will not have any effect.
@@ -206,6 +205,34 @@ int AMQP_CALL amqp_ssl_socket_set_ssl_versions(amqp_socket_t *self,
  */
 AMQP_PUBLIC_FUNCTION
 void AMQP_CALL amqp_set_initialize_ssl_library(amqp_boolean_t do_initialize);
+
+/**
+ * Initialize the underlying SSL/TLS library.
+ *
+ * The OpenSSL library requires a one-time initialization across the whole
+ * program.
+ *
+ * This function unconditionally initializes OpenSSL so that rabbitmq-c may
+ * use it.
+ *
+ * This function is thread-safe, and may be called more than once.
+ *
+ * \return AMQP_STATUS_OK on success.
+ *
+ * \since v0.9.0
+ */
+AMQP_PUBLIC_FUNCTION
+int AMQP_CALL amqp_initialize_ssl_library(void);
+
+/**
+ * Uninitialize the underlying SSL/TLS library.
+ *
+ * \return AMQP_STATUS_OK on success.
+ *
+ * \since v0.9.0
+ */
+AMQP_PUBLIC_FUNCTION
+int AMQP_CALL amqp_uninitialize_ssl_library(void);
 
 AMQP_END_DECLS
 

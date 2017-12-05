@@ -23,8 +23,8 @@
 
 #include "amqp_openssl_bio.h"
 #include "amqp_socket.h"
-#include "threads.h"
 
+#include <assert.h>
 #include <errno.h>
 #if ((defined(_WIN32)) || (defined(__MINGW32__)) || (defined(__MINGW64__)))
 #ifndef WIN32_LEAN_AND_MEAN
@@ -40,11 +40,9 @@
 #define AMQP_USE_AMQP_BIO
 #endif
 
+static int amqp_ssl_bio_initialized = 0;
+
 #ifdef AMQP_USE_AMQP_BIO
-
-static pthread_once_t bio_init_once = PTHREAD_ONCE_INIT;
-
-static int bio_initialized = 0;
 static BIO_METHOD amqp_bio_method;
 
 static int amqp_openssl_bio_should_retry(int res) {
@@ -133,24 +131,23 @@ static int BIO_meth_set_read(BIO_METHOD *biom, int (*rfn)(BIO *, char *, int)) {
   biom->bread = rfn;
   return 0;
 }
-#endif
+#endif /* OPENSSL_VERSION_NUMBER < 0x10100000L */
+#endif /* AMQP_USE_AMQP_BIO */
 
-static void amqp_openssl_bio_init(void) {
+void amqp_openssl_bio_init(void) {
+  assert(!amqp_ssl_bio_initialized);
+#ifdef AMQP_USE_AMQP_BIO
   memcpy(&amqp_bio_method, BIO_s_socket(), sizeof(amqp_bio_method));
   BIO_meth_set_write(&amqp_bio_method, amqp_openssl_bio_write);
   BIO_meth_set_read(&amqp_bio_method, amqp_openssl_bio_read);
+#endif
 
-  bio_initialized = 1;
+  amqp_ssl_bio_initialized = 1;
 }
 
-#endif /* AMQP_USE_AMQP_BIO */
-
 BIO_METHOD *amqp_openssl_bio(void) {
+  assert(amqp_ssl_bio_initialized);
 #ifdef AMQP_USE_AMQP_BIO
-  if (!bio_initialized) {
-    pthread_once(&bio_init_once, amqp_openssl_bio_init);
-  }
-
   return &amqp_bio_method;
 #else
   return BIO_s_socket();
