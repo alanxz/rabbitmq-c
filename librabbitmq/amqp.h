@@ -781,6 +781,45 @@ typedef enum {
   AMQP_DELIVERY_PERSISTENT = 2     /**< Persistent message */
 } amqp_delivery_mode_enum;
 
+/**
+ * Method prototype for external heart beat management.
+ * Use this prototype to create an application level method called each time a heart beat has to be sent to broker.
+ * This allows to manage thread safety at application level.
+ *
+ * sample :
+ * int my_send_heartbeat(amqp_connection_state_t state, void *context) {
+ *    int return_val;
+ *    appli_ctx_t *my_ctx = (appli_ctx_t*)context;
+ *    //... locks
+ *    return_val = amqp_send_heatbeat(state)
+ *    //... unlocks
+ *    return return_val;
+ * }
+ *
+ * \param [in] state the connection object
+ * \param [in] context the application level context pointer
+ * \return must be compliant to amqp_send_heatbeat
+ *
+ * \sa amqp_set_heartbeat_ex
+ * \sa amqp_send_heatbeat
+ *
+ * \since v0.8.1
+ */
+typedef int (*amqp_send_heartbeat_ex_t)(amqp_connection_state_t state, void *context);
+
+/**
+ * Method prototype for external heart beat management.
+ * Use this prototype to create an application level method called each time a heart beat is received from broker.
+ * This allows to manage thread safety at application level.
+ *
+ * \param [in] context the application level context pointer
+  *
+ * \sa amqp_set_heartbeat_ex
+ *
+ * \since v0.8.1
+ */
+typedef void (*amqp_on_receive_heartbeat_t)(void *context);
+
 AMQP_END_DECLS
 
 #include <amqp_framing.h>
@@ -1033,6 +1072,25 @@ void AMQP_CALL amqp_bytes_free(amqp_bytes_t bytes);
  */
 AMQP_PUBLIC_FUNCTION
 amqp_connection_state_t AMQP_CALL amqp_new_connection(void);
+
+/**
+ * Set an application level method called by the library to send heart beats.
+ * This allow an application level thread safety management
+ *
+ * \param [in] state the connection object
+ * \param [in] send_func the send method pointer
+ * \param [in] recv_func the on receive method pointer
+ * \param [in] context the pointer to an optional application context (not used internally)
+ * \return AMQP_STATUS_OK on success, an amqp_status_enum value otherwise.
+ *
+ * \sa amp_send_heartbeat_ex_t
+ * \sa amp_send_heartbeat
+ *
+ * \since v0.8.1
+ */
+AMQP_PUBLIC_FUNCTION
+void
+AMQP_CALL amqp_set_heartbeat_ex(amqp_connection_state_t state, amqp_send_heartbeat_ex_t send_func, amqp_on_receive_heartbeat_t recv_func, void *context);
 
 /**
  * Get the underlying socket descriptor for the connection
@@ -1624,6 +1682,21 @@ AMQP_PUBLIC_FUNCTION
 int AMQP_CALL amqp_send_method(amqp_connection_state_t state,
                                amqp_channel_t channel, amqp_method_number_t id,
                                void *decoded);
+
+/**
+ * Sends a heart beat to the broker
+ *
+ * \param [in] state the connection object
+ * \param [in] ctx (unused internaly) but declared for compliance
+ *             with amqp_send_heartbeat_ex_t
+ * \returns AMQP_STATUS_OK on success, an amqp_status_enum value otherwise.
+ * See ammqp_send_methods for possible returned value
+ *
+ * \since v0.8.1
+ */
+AMQP_PUBLIC_FUNCTION
+int
+AMQP_CALL amqp_send_heartbeat(amqp_connection_state_t state, void *ctx);
 
 /**
  * Sends a method to the broker and waits for a method response

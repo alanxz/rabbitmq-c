@@ -795,11 +795,7 @@ static int wait_frame_inner(amqp_connection_state_t state,
     if (AMQP_STATUS_TIMER_FAILURE == res) {
       return res;
     } else if (AMQP_STATUS_TIMEOUT == res) {
-      amqp_frame_t heartbeat;
-      heartbeat.channel = 0;
-      heartbeat.frame_type = AMQP_FRAME_HEARTBEAT;
-
-      res = amqp_send_frame(state, &heartbeat);
+      res = state->send_heartbeat_func(state, state->appli_heartbeat_ctx);
       if (AMQP_STATUS_OK != res) {
         return res;
       }
@@ -1009,6 +1005,14 @@ int amqp_send_method(amqp_connection_state_t state, amqp_channel_t channel,
                      amqp_method_number_t id, void *decoded) {
   return amqp_send_method_inner(state, channel, id, decoded, AMQP_SF_NONE,
                                 amqp_time_infinite());
+}
+
+int amqp_send_heartbeat(amqp_connection_state_t state, void *ctx) {
+  amqp_frame_t heartbeat;
+  heartbeat.channel = 0;
+  heartbeat.frame_type = AMQP_FRAME_HEARTBEAT;
+
+  return amqp_send_frame(state, &heartbeat);
 }
 
 int amqp_send_method_inner(amqp_connection_state_t state,

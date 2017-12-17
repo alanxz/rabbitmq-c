@@ -189,6 +189,10 @@ struct amqp_connection_state_t_ {
   amqp_table_t client_properties;
   amqp_pool_t properties_pool;
 
+  amqp_send_heartbeat_ex_t send_heartbeat_func;
+  amqp_on_receive_heartbeat_t on_receive_heartbeat_func;
+  void *appli_heartbeat_ctx;
+
   struct timeval *handshake_timeout;
   struct timeval internal_handshake_timeout;
   struct timeval *rpc_timeout;

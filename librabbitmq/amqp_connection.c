@@ -104,6 +104,10 @@ amqp_connection_state_t amqp_new_connection(void) {
 
   init_amqp_pool(&state->properties_pool, 512);
 
+  state->appli_heartbeat_ctx = NULL;
+  state->send_heartbeat_func = amqp_send_heartbeat;
+  state->on_receive_heartbeat_func = NULL;
+
   /* Use address of the internal_handshake_timeout object by default. */
   state->internal_handshake_timeout.tv_sec = AMQP_DEFAULT_LOGIN_TIMEOUT_SEC;
   state->internal_handshake_timeout.tv_usec = 0;
@@ -115,6 +119,14 @@ out_nomem:
   free(state->sock_inbound_buffer.bytes);
   free(state);
   return NULL;
+}
+
+void amqp_set_heartbeat_ex(amqp_connection_state_t state, amqp_send_heartbeat_ex_t send_func,
+                           amqp_on_receive_heartbeat_t recv_func, void *context)
+{
+  state->send_heartbeat_func = send_func;
+  state->on_receive_heartbeat_func = recv_func;
+  state->appli_heartbeat_ctx = context;
 }
 
 int amqp_get_sockfd(amqp_connection_state_t state) {
@@ -385,6 +397,8 @@ int amqp_handle_input(amqp_connection_state_t state, amqp_bytes_t received_data,
           break;
 
         case AMQP_FRAME_HEARTBEAT:
+          if (state->on_receive_heartbeat_func)
+              state->on_receive_heartbeat_func(state->appli_heartbeat_ctx);
           break;
 
         default:
