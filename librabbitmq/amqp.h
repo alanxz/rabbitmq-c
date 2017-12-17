@@ -783,7 +783,7 @@ typedef enum {
 
 /**
  * Method prototype for external heart beat management.
- * Use this prototype to create an application level method called each time a 
+ * Use this prototype to create an application level method called each time a
  * heart beat has to be sent to broker.
  * This allows to manage thread safety at application level.
  *
@@ -806,12 +806,13 @@ typedef enum {
  *
  * \since v0.8.1
  */
-typedef int (*amqp_send_heartbeat_ex_t)(amqp_connection_state_t state, void *context);
+typedef int (*amqp_send_heartbeat_ex_t)(amqp_connection_state_t state,
+                                        void *context);
 
 /**
  * Method prototype for external heart beat management.
- * Use this prototype to create an application level method called each time a heart 
- * beat is received from broker.
+ * Use this prototype to create an application level method called each time a
+ * heart beat is received from broker.
  * This allows to manage thread safety at application level.
  *
  * \param [in] context the application level context pointer
@@ -1082,7 +1083,8 @@ amqp_connection_state_t AMQP_CALL amqp_new_connection(void);
  * \param [in] state the connection object
  * \param [in] send_func the send method pointer
  * \param [in] recv_func the on receive method pointer
- * \param [in] context the pointer to an optional application context (not used internally)
+ * \param [in] context pointer to an optional application context (not used
+ * internally)
  * \return AMQP_STATUS_OK on success, an amqp_status_enum value otherwise.
  *
  * \sa amp_send_heartbeat_ex_t
@@ -1091,9 +1093,9 @@ amqp_connection_state_t AMQP_CALL amqp_new_connection(void);
  * \since v0.8.1
  */
 AMQP_PUBLIC_FUNCTION
-void AMQP_CALL amqp_set_heartbeat_ex(amqp_connection_state_t state, 
-                                     amqp_send_heartbeat_ex_t send_func, 
-                                     amqp_on_receive_heartbeat_t recv_func, 
+void AMQP_CALL amqp_set_heartbeat_ex(amqp_connection_state_t state,
+                                     amqp_send_heartbeat_ex_t send_func,
+                                     amqp_on_receive_heartbeat_t recv_func,
                                      void *context);
 
 /**

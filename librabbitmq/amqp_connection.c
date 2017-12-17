@@ -121,9 +121,9 @@ out_nomem:
   return NULL;
 }
 
-void amqp_set_heartbeat_ex(amqp_connection_state_t state, 
+void amqp_set_heartbeat_ex(amqp_connection_state_t state,
                            amqp_send_heartbeat_ex_t send_func,
-                           amqp_on_receive_heartbeat_t recv_func, 
+                           amqp_on_receive_heartbeat_t recv_func,
                            void *context) {
   state->send_heartbeat_func = send_func;
   state->on_receive_heartbeat_func = recv_func;
