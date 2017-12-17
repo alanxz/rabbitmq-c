@@ -121,9 +121,10 @@ out_nomem:
   return NULL;
 }
 
-void amqp_set_heartbeat_ex(amqp_connection_state_t state, amqp_send_heartbeat_ex_t send_func,
-                           amqp_on_receive_heartbeat_t recv_func, void *context)
-{
+void amqp_set_heartbeat_ex(amqp_connection_state_t state, 
+                           amqp_send_heartbeat_ex_t send_func,
+                           amqp_on_receive_heartbeat_t recv_func, 
+                           void *context) {
   state->send_heartbeat_func = send_func;
   state->on_receive_heartbeat_func = recv_func;
   state->appli_heartbeat_ctx = context;
@@ -398,7 +399,7 @@ int amqp_handle_input(amqp_connection_state_t state, amqp_bytes_t received_data,
 
         case AMQP_FRAME_HEARTBEAT:
           if (state->on_receive_heartbeat_func)
-              state->on_receive_heartbeat_func(state->appli_heartbeat_ctx);
+            state->on_receive_heartbeat_func(state->appli_heartbeat_ctx);
           break;
 
         default:

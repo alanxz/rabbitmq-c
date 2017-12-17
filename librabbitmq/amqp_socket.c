@@ -1007,7 +1007,7 @@ int amqp_send_method(amqp_connection_state_t state, amqp_channel_t channel,
                                 amqp_time_infinite());
 }
 
-int amqp_send_heartbeat(amqp_connection_state_t state, void *ctx) {
+int amqp_send_heartbeat(amqp_connection_state_t state, void AMQP_UNUSED *ctx) {
   amqp_frame_t heartbeat;
   heartbeat.channel = 0;
   heartbeat.frame_type = AMQP_FRAME_HEARTBEAT;

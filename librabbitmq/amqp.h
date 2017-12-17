@@ -783,7 +783,8 @@ typedef enum {
 
 /**
  * Method prototype for external heart beat management.
- * Use this prototype to create an application level method called each time a heart beat has to be sent to broker.
+ * Use this prototype to create an application level method called each time a 
+ * heart beat has to be sent to broker.
  * This allows to manage thread safety at application level.
  *
  * sample :
@@ -809,7 +810,8 @@ typedef int (*amqp_send_heartbeat_ex_t)(amqp_connection_state_t state, void *con
 
 /**
  * Method prototype for external heart beat management.
- * Use this prototype to create an application level method called each time a heart beat is received from broker.
+ * Use this prototype to create an application level method called each time a heart 
+ * beat is received from broker.
  * This allows to manage thread safety at application level.
  *
  * \param [in] context the application level context pointer
@@ -1089,8 +1091,10 @@ amqp_connection_state_t AMQP_CALL amqp_new_connection(void);
  * \since v0.8.1
  */
 AMQP_PUBLIC_FUNCTION
-void
-AMQP_CALL amqp_set_heartbeat_ex(amqp_connection_state_t state, amqp_send_heartbeat_ex_t send_func, amqp_on_receive_heartbeat_t recv_func, void *context);
+void AMQP_CALL amqp_set_heartbeat_ex(amqp_connection_state_t state, 
+                                     amqp_send_heartbeat_ex_t send_func, 
+                                     amqp_on_receive_heartbeat_t recv_func, 
+                                     void *context);
 
 /**
  * Get the underlying socket descriptor for the connection
@@ -1695,8 +1699,7 @@ int AMQP_CALL amqp_send_method(amqp_connection_state_t state,
  * \since v0.8.1
  */
 AMQP_PUBLIC_FUNCTION
-int
-AMQP_CALL amqp_send_heartbeat(amqp_connection_state_t state, void *ctx);
+int AMQP_CALL amqp_send_heartbeat(amqp_connection_state_t state, void *ctx);
 
 /**
  * Sends a method to the broker and waits for a method response
