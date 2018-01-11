@@ -43,7 +43,12 @@
 static int amqp_ssl_bio_initialized = 0;
 
 #ifdef AMQP_USE_AMQP_BIO
-static BIO_METHOD amqp_bio_method;
+
+#if (OPENSSL_VERSION_NUMBER > 0x10100000L)
+#define AMQP_OPENSSL_V110
+#endif
+
+static BIO_METHOD *amqp_bio_method;
 
 static int amqp_openssl_bio_should_retry(int res) {
   if (res == -1) {
@@ -120,7 +125,7 @@ static int amqp_openssl_bio_read(BIO *b, char *out, int outl) {
   return res;
 }
 
-#if (OPENSSL_VERSION_NUMBER < 0x10100000L)
+#ifndef AMQP_OPENSSL_V110
 static int BIO_meth_set_write(BIO_METHOD *biom,
                               int (*wfn)(BIO *, const char *, int)) {
   biom->bwrite = wfn;
@@ -131,24 +136,58 @@ static int BIO_meth_set_read(BIO_METHOD *biom, int (*rfn)(BIO *, char *, int)) {
   biom->bread = rfn;
   return 0;
 }
-#endif /* OPENSSL_VERSION_NUMBER < 0x10100000L */
+#endif /* AQP_OPENSSL_V110 */
 #endif /* AMQP_USE_AMQP_BIO */
 
-void amqp_openssl_bio_init(void) {
+int amqp_openssl_bio_init(void) {
   assert(!amqp_ssl_bio_initialized);
 #ifdef AMQP_USE_AMQP_BIO
-  memcpy(&amqp_bio_method, BIO_s_socket(), sizeof(amqp_bio_method));
-  BIO_meth_set_write(&amqp_bio_method, amqp_openssl_bio_write);
-  BIO_meth_set_read(&amqp_bio_method, amqp_openssl_bio_read);
+#ifdef AMQP_OPENSSL_V110
+  if (!(amqp_bio_method = BIO_meth_new(BIO_TYPE_SOCKET, "amqp_bio_method"))) {
+    return AMQP_STATUS_NO_MEMORY;
+  }
+
+  BIO_METHOD *meth = BIO_s_socket();
+  BIO_meth_set_create(amqp_bio_method, BIO_meth_get_create(meth));
+  BIO_meth_set_destroy(amqp_bio_method, BIO_meth_get_destroy(meth));
+  BIO_meth_set_ctrl(amqp_bio_method, BIO_meth_get_ctrl(meth));
+  BIO_meth_set_callback_ctrl(amqp_bio_method, BIO_meth_get_callback_ctrl(meth));
+  BIO_meth_set_read(amqp_bio_method, BIO_meth_get_read(meth));
+  BIO_meth_set_write(amqp_bio_method, BIO_meth_get_write(meth));
+  BIO_meth_set_gets(amqp_bio_method, BIO_meth_get_gets(meth));
+  BIO_meth_set_puts(amqp_bio_method, BIO_meth_get_puts(meth));
+#else
+  if (!(amqp_bio_method = OPENSSL_malloc(sizeof(BIO_METHOD)))) {
+    return AMQP_STATUS_NO_MEMORY;
+  }
+
+  memcpy(amqp_bio_method, BIO_s_socket(), sizeof(BIO_METHOD));
+#endif
+  BIO_meth_set_write(amqp_bio_method, amqp_openssl_bio_write);
+  BIO_meth_set_read(amqp_bio_method, amqp_openssl_bio_read);
 #endif
 
   amqp_ssl_bio_initialized = 1;
+  return AMQP_STATUS_OK;
+}
+
+void amqp_openssl_bio_destroy(void) {
+  assert(amqp_ssl_bio_initialized);
+#ifdef AMQP_USE_AMQP_BIO
+#ifdef AMQP_OPENSSL_V110
+  BIO_meth_free(amqp_bio_method);
+#else
+  OPENSSL_free(amqp_bio_method);
+#endif
+  amqp_bio_method = NULL;
+#endif
+  amqp_ssl_bio_initialized = 0;
 }
 
 BIO_METHOD *amqp_openssl_bio(void) {
   assert(amqp_ssl_bio_initialized);
 #ifdef AMQP_USE_AMQP_BIO
-  return &amqp_bio_method;
+  return amqp_bio_method;
 #else
   return BIO_s_socket();
 #endif
