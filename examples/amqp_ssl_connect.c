@@ -128,6 +128,7 @@ int main(int argc, char const *const *argv) {
   die_on_amqp_error(amqp_connection_close(conn, AMQP_REPLY_SUCCESS),
                     "Closing connection");
   die_on_error(amqp_destroy_connection(conn), "Ending connection");
+  die_on_error(amqp_uninitialize_ssl_library(), "Uninitializing SSL library");
 
   printf("Done\n");
   return 0;
