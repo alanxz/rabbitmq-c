@@ -44,6 +44,18 @@ matrix:
     - compiler: clang
       os: osx
       env: CONFIG=cmake
+    - compiler: gcc
+      os: linux
+      env: NAME="openssl-1.1.0" CONFIG=cmake
+      addons:
+        apt:
+          sources:
+          - sourceline: 'ppa:ondrej/nginx-mainline'
+          packages:
+          - libssl1.1
+          - openssl
+          - libssl-dev
+
   allow_failures:
     - compiler: clang
       os: linux
