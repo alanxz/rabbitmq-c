@@ -26,6 +26,7 @@ install:
   - appveyor DownloadFile https://slproweb.com/download/Win%BITS%OpenSSL-%OPENSSL_VER%.exe  
   - "Win%BITS%OpenSSL-%OPENSSL_VER%.exe /SP- /SILENT /SUPPRESSMSGBOXES /NORESTART"
 
+
 before_build:
   - cmake -DBUILD_SHARED_LIBS=ON -DBUILD_STATIC_LIBS=ON -DBUILD_TESTS=ON -DENABLE_SSL_SUPPORT=True -G"%GENERATOR%" .
 
