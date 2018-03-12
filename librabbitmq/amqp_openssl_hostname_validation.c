@@ -27,6 +27,7 @@
  * https://wiki.openssl.org/index.php/Hostname_validation
  */
 
+#include <string.h>
 #include <openssl/ssl.h>
 #include <openssl/x509v3.h>
 
