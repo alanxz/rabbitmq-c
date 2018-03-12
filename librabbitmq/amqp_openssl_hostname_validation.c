@@ -31,25 +31,28 @@
 #include <openssl/x509v3.h>
 
 #include "amqp_hostcheck.h"
+#include "amqp_openssl_bio.h"
 #include "amqp_openssl_hostname_validation.h"
+
+#include <string.h>
 
 #define HOSTNAME_MAX_SIZE 255
 
 /**
-* Tries to find a match for hostname in the certificate's Common Name field.
-*
-* Returns AMQP_HVR_MATCH_FOUND if a match was found.
-* Returns AMQP_HVR_MATCH_NOT_FOUND if no matches were found.
-* Returns AMQP_HVR_MALFORMED_CERTIFICATE if the Common Name had a NUL character
-* embedded in it.
-* Returns AMQP_HVR_ERROR if the Common Name could not be extracted.
-*/
+ * Tries to find a match for hostname in the certificate's Common Name field.
+ *
+ * Returns AMQP_HVR_MATCH_FOUND if a match was found.
+ * Returns AMQP_HVR_MATCH_NOT_FOUND if no matches were found.
+ * Returns AMQP_HVR_MALFORMED_CERTIFICATE if the Common Name had a NUL character
+ * embedded in it.
+ * Returns AMQP_HVR_ERROR if the Common Name could not be extracted.
+ */
 static amqp_hostname_validation_result amqp_matches_common_name(
     const char *hostname, const X509 *server_cert) {
   int common_name_loc = -1;
   X509_NAME_ENTRY *common_name_entry = NULL;
   ASN1_STRING *common_name_asn1 = NULL;
-  char *common_name_str = NULL;
+  const char *common_name_str = NULL;
 
   // Find the position of the CN field in the Subject field of the certificate
   common_name_loc = X509_NAME_get_index_by_NID(
@@ -70,7 +73,12 @@ static amqp_hostname_validation_result amqp_matches_common_name(
   if (common_name_asn1 == NULL) {
     return AMQP_HVR_ERROR;
   }
+
+#ifdef AMQP_OPENSSL_V110
+  common_name_str = (const char *)ASN1_STRING_get0_data(common_name_asn1);
+#else
   common_name_str = (char *)ASN1_STRING_data(common_name_asn1);
+#endif
 
   // Make sure there isn't an embedded NUL character in the CN
   if ((size_t)ASN1_STRING_length(common_name_asn1) != strlen(common_name_str)) {
@@ -86,16 +94,16 @@ static amqp_hostname_validation_result amqp_matches_common_name(
 }
 
 /**
-* Tries to find a match for hostname in the certificate's Subject Alternative
-* Name extension.
-*
-* Returns AMQP_HVR_MATCH_FOUND if a match was found.
-* Returns AMQP_HVR_MATCH_NOT_FOUND if no matches were found.
-* Returns AMQP_HVR_MALFORMED_CERTIFICATE if any of the hostnames had a NUL
-* character embedded in it.
-* Returns AMQP_HVR_NO_SAN_PRESENT if the SAN extension was not present in the
-* certificate.
-*/
+ * Tries to find a match for hostname in the certificate's Subject Alternative
+ * Name extension.
+ *
+ * Returns AMQP_HVR_MATCH_FOUND if a match was found.
+ * Returns AMQP_HVR_MATCH_NOT_FOUND if no matches were found.
+ * Returns AMQP_HVR_MALFORMED_CERTIFICATE if any of the hostnames had a NUL
+ * character embedded in it.
+ * Returns AMQP_HVR_NO_SAN_PRESENT if the SAN extension was not present in the
+ * certificate.
+ */
 static amqp_hostname_validation_result amqp_matches_subject_alternative_name(
     const char *hostname, const X509 *server_cert) {
   amqp_hostname_validation_result result = AMQP_HVR_MATCH_NOT_FOUND;
@@ -117,7 +125,12 @@ static amqp_hostname_validation_result amqp_matches_subject_alternative_name(
 
     if (current_name->type == GEN_DNS) {
       // Current name is a DNS name, let's check it
-      char *dns_name = (char *)ASN1_STRING_data(current_name->d.dNSName);
+      const char *dns_name = (const char *)
+#ifdef AMQP_OPENSSL_V110
+          ASN1_STRING_get0_data(current_name->d.dNSName);
+#else
+          ASN1_STRING_data(current_name->d.dNSName);
+#endif
 
       // Make sure there isn't an embedded NUL character in the DNS name
       if ((size_t)ASN1_STRING_length(current_name->d.dNSName) !=
@@ -138,17 +151,17 @@ static amqp_hostname_validation_result amqp_matches_subject_alternative_name(
 }
 
 /**
-* Validates the server's identity by looking for the expected hostname in the
-* server's certificate. As described in RFC 6125, it first tries to find a match
-* in the Subject Alternative Name extension. If the extension is not present in
-* the certificate, it checks the Common Name instead.
-*
-* Returns AMQP_HVR_MATCH_FOUND if a match was found.
-* Returns AMQP_HVR_MATCH_NOT_FOUND if no matches were found.
-* Returns AMQP_HVR_MALFORMED_CERTIFICATE if any of the hostnames had a NUL
-* character embedded in it.
-* Returns AMQP_HVR_ERROR if there was an error.
-*/
+ * Validates the server's identity by looking for the expected hostname in the
+ * server's certificate. As described in RFC 6125, it first tries to find a
+ * match in the Subject Alternative Name extension. If the extension is not
+ * present in the certificate, it checks the Common Name instead.
+ *
+ * Returns AMQP_HVR_MATCH_FOUND if a match was found.
+ * Returns AMQP_HVR_MATCH_NOT_FOUND if no matches were found.
+ * Returns AMQP_HVR_MALFORMED_CERTIFICATE if any of the hostnames had a NUL
+ * character embedded in it.
+ * Returns AMQP_HVR_ERROR if there was an error.
+ */
 amqp_hostname_validation_result amqp_ssl_validate_hostname(
     const char *hostname, const X509 *server_cert) {
   amqp_hostname_validation_result result;

@@ -44,10 +44,6 @@ static int amqp_ssl_bio_initialized = 0;
 
 #ifdef AMQP_USE_AMQP_BIO
 
-#if (OPENSSL_VERSION_NUMBER > 0x10100000L)
-#define AMQP_OPENSSL_V110
-#endif
-
 static BIO_METHOD *amqp_bio_method;
 
 static int amqp_openssl_bio_should_retry(int res) {
@@ -147,7 +143,10 @@ int amqp_openssl_bio_init(void) {
     return AMQP_STATUS_NO_MEMORY;
   }
 
-  BIO_METHOD *meth = BIO_s_socket();
+  // casting away const is necessary until
+  // https://github.com/openssl/openssl/pull/2181/, which is targeted for
+  // openssl 1.1.1
+  BIO_METHOD *meth = (BIO_METHOD *)BIO_s_socket();
   BIO_meth_set_create(amqp_bio_method, BIO_meth_get_create(meth));
   BIO_meth_set_destroy(amqp_bio_method, BIO_meth_get_destroy(meth));
   BIO_meth_set_ctrl(amqp_bio_method, BIO_meth_get_ctrl(meth));
@@ -184,7 +183,7 @@ void amqp_openssl_bio_destroy(void) {
   amqp_ssl_bio_initialized = 0;
 }
 
-BIO_METHOD *amqp_openssl_bio(void) {
+BIO_METHOD_PTR amqp_openssl_bio(void) {
   assert(amqp_ssl_bio_initialized);
 #ifdef AMQP_USE_AMQP_BIO
   return amqp_bio_method;

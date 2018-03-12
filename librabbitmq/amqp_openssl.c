@@ -583,7 +583,15 @@ static int setup_openssl(void) {
   CRYPTO_set_id_callback(ssl_threadid_callback);
   CRYPTO_set_locking_callback(ssl_locking_callback);
 
+#ifdef AMQP_OPENSSL_V110
+  if (CONF_modules_load_file(NULL, "rabbitmq-c", CONF_MFLAGS_DEFAULT_SECTION) <=
+      0) {
+    status = AMQP_STATUS_SSL_ERROR;
+    goto out;
+  }
+#else
   OPENSSL_config(NULL);
+#endif
   SSL_library_init();
   SSL_load_error_strings();
 
@@ -660,7 +668,9 @@ int amqp_uninitialize_ssl_library(void) {
   amqp_openssl_bio_destroy();
   openssl_bio_initialized = 0;
 
+#ifndef AMQP_OPENSSL_V110
   ERR_remove_state(0);
+#endif
   FIPS_mode_set(0);
 
   CRYPTO_set_locking_callback(NULL);
