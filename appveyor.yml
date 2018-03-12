@@ -5,6 +5,7 @@ version: '{build}'
 clone_depth: 50
 
 environment:
+  OPENSSL_VER: 1_1_0g
   matrix:
     - GENERATOR: Visual Studio 12 Win64
       BITS: 64
@@ -13,6 +14,13 @@ environment:
 
 cache:
   - c:\deps -> appveyor.yml
+ 
+# borrowed from https://github.com/FreeTDS/freetds
+install:
+  # OpenSSL
+  - appveyor DownloadFile https://slproweb.com/download/Win%BITS%OpenSSL-%OPENSSL_VER%.exe  
+  - "Win%BITS%OpenSSL-%OPENSSL_VER%.exe /SP- /SILENT /SUPPRESSMSGBOXES /NORESTART"
+
 
 before_build:
   - cmake -DBUILD_SHARED_LIBS=ON -DBUILD_STATIC_LIBS=ON -DBUILD_TESTS=ON -DENABLE_SSL_SUPPORT=True -G"%GENERATOR%" .

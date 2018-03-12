@@ -29,6 +29,7 @@
 
 #include <openssl/ssl.h>
 #include <openssl/x509v3.h>
+#include <string.h>
 
 #include "amqp_hostcheck.h"
 #include "amqp_openssl_hostname_validation.h"
@@ -70,8 +71,11 @@ static amqp_hostname_validation_result amqp_matches_common_name(
   if (common_name_asn1 == NULL) {
     return AMQP_HVR_ERROR;
   }
+#if OPENSSL_VERSION_NUMBER < 0x10100000L
   common_name_str = (char *)ASN1_STRING_data(common_name_asn1);
-
+#else
+  common_name_str = (char *)ASN1_STRING_get0_data(common_name_asn1);
+#endif
   // Make sure there isn't an embedded NUL character in the CN
   if ((size_t)ASN1_STRING_length(common_name_asn1) != strlen(common_name_str)) {
     return AMQP_HVR_MALFORMED_CERTIFICATE;
@@ -116,8 +120,13 @@ static amqp_hostname_validation_result amqp_matches_subject_alternative_name(
     const GENERAL_NAME *current_name = sk_GENERAL_NAME_value(san_names, i);
 
     if (current_name->type == GEN_DNS) {
-      // Current name is a DNS name, let's check it
+
+// Current name is a DNS name, let's check it
+#if OPENSSL_VERSION_NUMBER < 0x10100000L
       char *dns_name = (char *)ASN1_STRING_data(current_name->d.dNSName);
+#else
+      char *dns_name = (char *)ASN1_STRING_get0_data(current_name->d.dNSName);
+#endif
 
       // Make sure there isn't an embedded NUL character in the DNS name
       if ((size_t)ASN1_STRING_length(current_name->d.dNSName) !=
