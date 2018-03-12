@@ -576,7 +576,7 @@ static int setup_openssl(void) {
   CRYPTO_set_id_callback(ssl_threadid_callback);
   CRYPTO_set_locking_callback(ssl_locking_callback);
 #if OPENSSL_VERSION_NUMBER < 0x10100000L
-  OPENSSL_config(NULL); 
+  OPENSSL_config(NULL);
 #endif
   SSL_library_init();
   SSL_load_error_strings();

@@ -27,9 +27,9 @@
  * https://wiki.openssl.org/index.php/Hostname_validation
  */
 
-#include <string.h>
 #include <openssl/ssl.h>
 #include <openssl/x509v3.h>
+#include <string.h>
 
 #include "amqp_hostcheck.h"
 #include "amqp_openssl_hostname_validation.h"
@@ -120,8 +120,8 @@ static amqp_hostname_validation_result amqp_matches_subject_alternative_name(
     const GENERAL_NAME *current_name = sk_GENERAL_NAME_value(san_names, i);
 
     if (current_name->type == GEN_DNS) {
-      // Current name is a DNS name, let's check it
 
+// Current name is a DNS name, let's check it
 #if OPENSSL_VERSION_NUMBER < 0x10100000L
       char *dns_name = (char *)ASN1_STRING_data(current_name->d.dNSName);
 #else

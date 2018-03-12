@@ -147,7 +147,7 @@ int amqp_openssl_bio_init(void) {
     return AMQP_STATUS_NO_MEMORY;
   }
 
-  BIO_METHOD *meth = (BIO_METHOD *) BIO_s_socket();
+  BIO_METHOD *meth = (BIO_METHOD *)BIO_s_socket();
   BIO_meth_set_create(amqp_bio_method, BIO_meth_get_create(meth));
   BIO_meth_set_destroy(amqp_bio_method, BIO_meth_get_destroy(meth));
   BIO_meth_set_ctrl(amqp_bio_method, BIO_meth_get_ctrl(meth));
