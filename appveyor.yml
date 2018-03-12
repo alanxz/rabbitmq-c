@@ -5,6 +5,7 @@ version: '{build}'
 clone_depth: 50
 
 environment:
+  OPENSSL_VER: 1_1_0g
   matrix:
     - GENERATOR: Visual Studio 12 Win64
       BITS: 64
@@ -16,12 +17,6 @@ cache:
  
 # borrowed from https://github.com/FreeTDS/freetds
 install:
-  # xidel (xpath command line tool)
-  - appveyor DownloadFile "http://nbtelecom.dl.sourceforge.net/project/videlibri/Xidel/Xidel 0.9/xidel-0.9.win32.zip"
-  - 7z x xidel-0.9.win32.zip xidel.exe
-  # detect version of Windows OpenSSL binaries published by the Shining Light Productions crew
-  - xidel https://slproweb.com/products/Win32OpenSSL.html --extract "(//td/a[starts-with(@href, '/download') and starts-with(text(), 'Win32 OpenSSL') and ends-with(text(), 'Light')])[1]/translate(substring-before(substring-after(text(), 'Win32 OpenSSL v'), ' Light'), '.', '_')" > openssl_ver.txt
-  - set /P OPENSSL_VER=< openssl_ver.txt
   # OpenSSL
   - appveyor DownloadFile https://slproweb.com/download/Win%BITS%OpenSSL-%OPENSSL_VER%.exe  
   - "Win%BITS%OpenSSL-%OPENSSL_VER%.exe /SP- /SILENT /SUPPRESSMSGBOXES /NORESTART"
