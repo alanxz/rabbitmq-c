@@ -146,7 +146,9 @@ int amqp_openssl_bio_init(void) {
   if (!(amqp_bio_method = BIO_meth_new(BIO_TYPE_SOCKET, "amqp_bio_method"))) {
     return AMQP_STATUS_NO_MEMORY;
   }
-
+  // casting away const is necessary until
+  // https://github.com/openssl/openssl/pull/2181/, which is targeted for
+  // openssl 1.1.1
   BIO_METHOD *meth = (BIO_METHOD *)BIO_s_socket();
   BIO_meth_set_create(amqp_bio_method, BIO_meth_get_create(meth));
   BIO_meth_set_destroy(amqp_bio_method, BIO_meth_get_destroy(meth));
