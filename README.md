@@ -82,6 +82,7 @@ Other interesting flags that can be passed to CMake:
    find the XmlTo utility.
 * `ENABLE_SSL_SUPPORT=ON/OFF` toggles building rabbitmq-c with SSL support. By
    default this is ON if the OpenSSL headers and library can be found.
+   Note: [workaround](https://github.com/alanxz/rabbitmq-c/issues/488) for mingw32's issue on Windows.
 * `BUILD_API_DOCS=ON/OFF` - toggles building the Doxygen API documentation, by
    default this is OFF
 
