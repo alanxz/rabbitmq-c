@@ -671,7 +671,10 @@ int amqp_uninitialize_ssl_library(void) {
 #ifndef AMQP_OPENSSL_V110
   ERR_remove_state(0);
 #endif
+
+#ifndef LIBRESSL_VERSION_NUMBER
   FIPS_mode_set(0);
+#endif
 
   CRYPTO_set_locking_callback(NULL);
   CRYPTO_set_id_callback(NULL);
@@ -688,7 +691,7 @@ int amqp_uninitialize_ssl_library(void) {
   EVP_cleanup();
   CRYPTO_cleanup_all_ex_data();
   ERR_free_strings();
-#if (OPENSSL_VERSION_NUMBER >= 0x10002003L)
+#if (OPENSSL_VERSION_NUMBER >= 0x10002003L) && !defined(LIBRESSL_VERSION_NUMBER)
   SSL_COMP_free_compression_methods();
 #endif
 
