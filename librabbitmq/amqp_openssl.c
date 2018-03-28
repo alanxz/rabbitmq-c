@@ -544,7 +544,7 @@ void amqp_set_initialize_ssl_library(amqp_boolean_t do_initialize) {
   if (openssl_connections == 0 && !openssl_initialized) {
     do_initialize_openssl = do_initialize;
   }
-  CHECK_SUCCESS(!pthread_mutex_unlock(&openssl_init_mutex));
+  CHECK_SUCCESS(pthread_mutex_unlock(&openssl_init_mutex));
 }
 
 static unsigned long ssl_threadid_callback(void) {
