@@ -27,7 +27,7 @@
 #ifndef AMQP_THREAD_H
 #define AMQP_THREAD_H
 
-#ifndef WINVER
+#if defined(WINVER) || defined(__MINGW32__) || defined(__MINGW64__)
 /* Windows Vista or newer */
 #define WINVER 0x0600
 #endif
