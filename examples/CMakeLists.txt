@@ -1,3 +1,7 @@
+if (NOT BUILD_SHARED_LIBS)
+  add_definitions(-DAMQP_STATIC)
+endif()
+
 include_directories(${LIBRABBITMQ_INCLUDE_DIRS})
 
 if (WIN32)
