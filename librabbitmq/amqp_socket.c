@@ -1302,7 +1302,7 @@ static amqp_rpc_reply_t amqp_login_inner(
   {
     amqp_table_entry_t default_properties[6];
     amqp_table_t default_table;
-    amqp_table_entry_t client_capabilities[1];
+    amqp_table_entry_t client_capabilities[2];
     amqp_table_t client_capabilities_table;
     amqp_connection_start_ok_t s;
     amqp_pool_t *channel_pool;
@@ -1322,6 +1322,8 @@ static amqp_rpc_reply_t amqp_login_inner(
 
     client_capabilities[0] =
         amqp_table_construct_bool_entry("authentication_failure_close", 1);
+    client_capabilities[1] =
+        amqp_table_construct_bool_entry("exchange_exchange_bindings", 1);
 
     client_capabilities_table.entries = client_capabilities;
     client_capabilities_table.num_entries =
