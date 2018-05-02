@@ -100,8 +100,8 @@ int main(int argc, char const *const *argv) {
   amqp_ssl_socket_set_verify_hostname(socket, 0);
 
   if (argc > 5) {
-    int nextarg = 6;
-    die_on_error(amqp_ssl_socket_set_cacert(socket, argv[5]),
+    int nextarg = 5;
+    die_on_error(amqp_ssl_socket_set_cacert(socket, argv[4]),
                  "setting CA certificate");
     if (argc > nextarg && !strcmp("verifypeer", argv[nextarg])) {
       amqp_ssl_socket_set_verify_peer(socket, 1);
