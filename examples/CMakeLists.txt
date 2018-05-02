@@ -19,6 +19,9 @@ set(COMMON_SRCS
 add_executable(amqp_sendstring amqp_sendstring.c ${COMMON_SRCS})
 target_link_libraries(amqp_sendstring ${RMQ_LIBRARY_TARGET})
 
+add_executable(amqp_ssl_sendstring amqp_ssl_sendstring.c ${COMMON_SRCS})
+target_link_libraries(amqp_ssl_sendstring ${RMQ_LIBRARY_TARGET})
+
 add_executable(amqp_rpc_sendstring_client amqp_rpc_sendstring_client.c ${COMMON_SRCS})
 target_link_libraries(amqp_rpc_sendstring_client ${RMQ_LIBRARY_TARGET})
 
