@@ -53,10 +53,9 @@ int main(int argc, char const *const *argv) {
   amqp_connection_state_t conn;
 
   if (argc < 6) {
-    fprintf(
-        stderr,
-        "Usage: amqp_sendstring host port exchange routingkey messagebody"
-	"[cacert.pem [verifypeer] [verifyhostname] [key.pem cert.pem]]\n");
+    fprintf(stderr,
+            "Usage: amqp_sendstring host port exchange routingkey messagebody"
+            "[cacert.pem [verifypeer] [verifyhostname] [key.pem cert.pem]]\n");
     return 1;
   }
 
