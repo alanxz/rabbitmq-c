@@ -23,21 +23,27 @@ matrix:
     - compiler: gcc
       os: linux
       env: CONFIG=cmake
+      cache: ccache
     - compiler: gcc
       os: linux
       env: CONFIG=format
+      cache: ccache
     - compiler: gcc
       os: linux
       env: CONFIG=coverage
+      cache: ccache
     - compiler: clang
       os: linux
       env: CONFIG=cmake
+      cache: ccache
     - compiler: clang
       os: linux
       env: CONFIG=asan
+      cache: ccache
     - compiler: clang
       os: linux
       env: CONFIG=tsan
+      cache: ccache
     - compiler: clang
       os: linux
       env: CONFIG=scan-build
@@ -47,6 +53,7 @@ matrix:
     - compiler: gcc
       os: linux
       env: NAME="openssl-1.1.0" CONFIG=cmake
+      cache: ccache
       addons:
         apt:
           sources:
