@@ -36,10 +36,6 @@ build:
   project: ALL_BUILD.vcxproj
   verbosity: normal
 
-
-after_build:
-  - dir .
-
 artifacts:
   - path: librabbitmq\%CONFIGURATION%
     name: LibRabbit-%BITS%-%OPENSSL_VER%-%CONFIGURATION%.zip
