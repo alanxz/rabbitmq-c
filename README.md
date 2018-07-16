@@ -52,7 +52,7 @@ systems are:
 
     mkdir build && cd build
     cmake ..
-    cmake --build [--config Release] .
+    cmake --build . [--config Release]
 
 The --config Release flag should be used in multi-configuration generators e.g.,
 Visual Studio or XCode.
