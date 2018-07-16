@@ -32,3 +32,8 @@ before_build:
 build:
   project: ALL_BUILD.vcxproj
   verbosity: normal
+
+artifacts:
+  - path: .
+    name: LibRabbit-%BITS%-%OPENSSL_VER%.zip
+    type: zip
