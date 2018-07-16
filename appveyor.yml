@@ -34,6 +34,6 @@ build:
   verbosity: normal
 
 artifacts:
-  - path: C:\projects\rabbitmq-c
+  - path: build
     name: LibRabbit-%BITS%-%OPENSSL_VER%.zip
     type: zip
