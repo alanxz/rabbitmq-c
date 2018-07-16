@@ -28,14 +28,15 @@ install:
 
 before_build:
   - cmake -DBUILD_SHARED_LIBS=ON -DBUILD_STATIC_LIBS=ON -DBUILD_TESTS=ON -DENABLE_SSL_SUPPORT=True -G"%GENERATOR%" .
-  - pwd
-  - dir .
 
 build:
   project: ALL_BUILD.vcxproj
   verbosity: normal
 
+after_build:
+  - dir .
+
 artifacts:
-  - path: build
+  - path: librabbitmq
     name: LibRabbit-%BITS%-%OPENSSL_VER%.zip
     type: zip
