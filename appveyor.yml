@@ -32,6 +32,7 @@ before_build:
 build:
   project: ALL_BUILD.vcxproj
   verbosity: normal
+  configuration: Release
 
 after_build:
   - dir .
