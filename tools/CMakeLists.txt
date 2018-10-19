@@ -62,7 +62,7 @@ if (BUILD_TOOLS_DOCS)
       string( REGEX REPLACE "^[.]" "" fileExt ${fileExt} )
       install(
         FILES ${file}
-        DESTINATION ${CMAKE_INSTALL_PREFIX}/share/man/man${fileExt}
+        DESTINATION ${CMAKE_INSTALL_MANDIR}/man${fileExt}
         )
     endforeach()
 
