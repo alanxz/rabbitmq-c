@@ -9,6 +9,6 @@
 
 #cmakedefine HAVE_POLL
 
-#define AMQ_PLATFORM "@CMAKE_SYSTEM@"
+#define AMQ_PLATFORM "@CMAKE_SYSTEM_NAME@"
 
 #endif /* CONFIG_H */
