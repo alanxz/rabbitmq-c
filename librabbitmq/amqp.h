@@ -770,7 +770,8 @@ typedef enum amqp_status_enum_ {
   AMQP_STATUS_SSL_PEER_VERIFY_FAILED = -0x0202,     /**< SSL validation of peer
                                                          certificate failed. */
   AMQP_STATUS_SSL_CONNECTION_FAILED = -0x0203, /**< SSL handshake failed. */
-  _AMQP_STATUS_SSL_NEXT_VALUE = -0x0204        /**< Internal value */
+  AMQP_STATUS_SSL_SET_ENGINE_FAILED = -0x0204, /**< SSL setting engine failed */
+  _AMQP_STATUS_SSL_NEXT_VALUE = -0x0205        /**< Internal value */
 } amqp_status_enum;
 
 /**

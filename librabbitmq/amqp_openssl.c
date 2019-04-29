@@ -63,6 +63,7 @@ static amqp_boolean_t do_initialize_openssl = 1;
 static amqp_boolean_t openssl_initialized = 0;
 static amqp_boolean_t openssl_bio_initialized = 0;
 static int openssl_connections = 0;
+static ENGINE *openssl_engine = NULL;
 
 #define CHECK_SUCCESS(condition)                                            \
   do {                                                                      \
@@ -412,6 +413,34 @@ int amqp_ssl_socket_set_key(amqp_socket_t *base, const char *cert,
   return AMQP_STATUS_OK;
 }
 
+int amqp_ssl_socket_set_key_engine(amqp_socket_t *base, const char *cert,
+                                   const char *key) {
+  int status;
+  struct amqp_ssl_socket_t *self;
+  EVP_PKEY *pkey = NULL;
+  if (base->klass != &amqp_ssl_socket_class) {
+    amqp_abort("<%p> is not of type amqp_ssl_socket_t", base);
+  }
+  self = (struct amqp_ssl_socket_t *)base;
+  status = SSL_CTX_use_certificate_chain_file(self->ctx, cert);
+  if (1 != status) {
+    return AMQP_STATUS_SSL_ERROR;
+  }
+
+  pkey = ENGINE_load_private_key(openssl_engine, key, NULL, NULL);
+  if (pkey == NULL) {
+    return AMQP_STATUS_SSL_ERROR;
+  }
+
+  status = SSL_CTX_use_PrivateKey(self->ctx, pkey);
+  EVP_PKEY_free(pkey);
+
+  if (1 != status) {
+    return AMQP_STATUS_SSL_ERROR;
+  }
+  return AMQP_STATUS_OK;
+}
+
 static int password_cb(AMQP_UNUSED char *buffer, AMQP_UNUSED int length,
                        AMQP_UNUSED int rwflag, AMQP_UNUSED void *user_data) {
   amqp_abort("rabbitmq-c does not support password protected keys");
@@ -633,6 +662,43 @@ out:
   return status;
 }
 
+int amqp_set_ssl_engine(const char *engine) {
+  int status = AMQP_STATUS_OK;
+  CHECK_SUCCESS(pthread_mutex_lock(&openssl_init_mutex));
+
+  if (!openssl_initialized) {
+    status = AMQP_STATUS_SSL_ERROR;
+    goto out;
+  }
+
+  if (openssl_engine != NULL) {
+    ENGINE_free(openssl_engine);
+    openssl_engine = NULL;
+  }
+
+  if (engine == NULL) {
+    goto out;
+  }
+
+  ENGINE_load_builtin_engines();
+  openssl_engine = ENGINE_by_id(engine);
+  if (openssl_engine == NULL) {
+    status = AMQP_STATUS_SSL_SET_ENGINE_FAILED;
+    goto out;
+  }
+
+  if (ENGINE_set_default(openssl_engine, ENGINE_METHOD_ALL) == 0) {
+    ENGINE_free(openssl_engine);
+    openssl_engine = NULL;
+    status = AMQP_STATUS_SSL_SET_ENGINE_FAILED;
+    goto out;
+  }
+
+out:
+  CHECK_SUCCESS(pthread_mutex_unlock(&openssl_init_mutex));
+  return status;
+}
+
 static int initialize_ssl_and_increment_connections() {
   int status;
   CHECK_SUCCESS(pthread_mutex_lock(&openssl_init_mutex));
@@ -699,6 +765,11 @@ int amqp_uninitialize_ssl_library(void) {
       pthread_mutex_destroy(&amqp_openssl_lockarray[i]);
     }
     free(amqp_openssl_lockarray);
+  }
+
+  if (openssl_engine != NULL) {
+    ENGINE_free(openssl_engine);
+    openssl_engine = NULL;
   }
 
   ENGINE_cleanup();

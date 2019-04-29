@@ -71,8 +71,9 @@ int main(int argc, char const *const *argv) {
 
   if (argc < 3) {
     fprintf(stderr,
-            "Usage: amqps_connect_timeout host port timeout_sec "
-            "[cacert.pem [verifypeer] [verifyhostname] [key.pem cert.pem]]\n");
+            "Usage: amqp_ssl_connect host port timeout_sec "
+            "[cacert.pem [engine engine_ID] [verifypeer] [verifyhostname] "
+            "[key.pem cert.pem]]\n");
     return 1;
   }
 
@@ -103,6 +104,10 @@ int main(int argc, char const *const *argv) {
     int nextarg = 5;
     die_on_error(amqp_ssl_socket_set_cacert(socket, argv[4]),
                  "setting CA certificate");
+    if (argc > nextarg && !strcmp("engine", argv[nextarg])) {
+      amqp_set_ssl_engine(argv[++nextarg]);
+      nextarg++;
+    }
     if (argc > nextarg && !strcmp("verifypeer", argv[nextarg])) {
       amqp_ssl_socket_set_verify_peer(socket, 1);
       nextarg++;
