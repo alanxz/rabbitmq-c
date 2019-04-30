@@ -108,14 +108,16 @@ static const char *tcp_error_strings[] = {
     "socket library initialization failed"};
 
 static const char *ssl_error_strings[] = {
-    /* AMQP_STATUS_SSL_ERRO  R                -0x0200 */
+    /* AMQP_STATUS_SSL_ERROR                  -0x0200 */
     "a SSL error occurred",
     /* AMQP_STATUS_SSL_HOSTNAME_VERIFY_FAILED -0x0201 */
     "SSL hostname verification failed",
     /* AMQP_STATUS_SSL_PEER_VERIFY_FAILED     -0x0202 */
     "SSL peer cert verification failed",
     /* AMQP_STATUS_SSL_CONNECTION_FAILED      -0x0203 */
-    "SSL handshake failed"};
+    "SSL handshake failed",
+    /* AMQP_STATUS_SSL_SET_ENGINE_FAILED      -0x0204 */
+    "SSL setting engine failed"};
 
 static const char *unknown_error_string = "(unknown error)";
 
