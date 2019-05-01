@@ -104,7 +104,7 @@ int AMQP_CALL amqp_ssl_socket_set_key(amqp_socket_t *self, const char *cert,
  */
 AMQP_PUBLIC_FUNCTION
 int AMQP_CALL amqp_ssl_socket_set_key_engine(amqp_socket_t *self,
-                                      const char *cert, const char *key);
+                                             const char *cert, const char *key);
 
 /**
  * Set the client key from a buffer.

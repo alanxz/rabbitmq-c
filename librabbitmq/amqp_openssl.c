@@ -398,7 +398,7 @@ int amqp_ssl_socket_set_key(amqp_socket_t *base, const char *cert,
 }
 
 int amqp_ssl_socket_set_key_engine(amqp_socket_t *base, const char *cert,
-                            const char *key) {
+                                   const char *key) {
   int status;
   struct amqp_ssl_socket_t *self;
   EVP_PKEY *pkey = NULL;
