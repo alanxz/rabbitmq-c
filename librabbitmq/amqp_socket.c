@@ -804,6 +804,9 @@ static int wait_frame_inner(amqp_connection_state_t state,
         return res;
       }
     }
+    if (amqp_time_equal(timeout_deadline, amqp_time_immediate())) {
+      timeout_deadline.time_point_ns = amqp_get_monotonic_timestamp();
+    }
     deadline = amqp_time_first(timeout_deadline,
                                amqp_time_first(state->next_recv_heartbeat,
                                                state->next_send_heartbeat));
