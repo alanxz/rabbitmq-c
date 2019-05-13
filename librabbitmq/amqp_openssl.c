@@ -363,6 +363,13 @@ error:
   return NULL;
 }
 
+void *amqp_ssl_socket_get_context(amqp_socket_t *base) {
+  if (base->klass != &amqp_ssl_socket_class) {
+    amqp_abort("<%p> is not of type amqp_ssl_socket_t", base);
+  }
+  return ((struct amqp_ssl_socket_t *)base)->ctx;
+}
+
 int amqp_ssl_socket_set_cacert(amqp_socket_t *base, const char *cacert) {
   int status;
   struct amqp_ssl_socket_t *self;

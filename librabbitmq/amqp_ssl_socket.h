@@ -58,6 +58,19 @@ AMQP_PUBLIC_FUNCTION
 amqp_socket_t *AMQP_CALL amqp_ssl_socket_new(amqp_connection_state_t state);
 
 /**
+ * Get the internal OpenSSL context. Caveat emptor.
+ *
+ * \param [in,out] self An SSL/TLS socket object.
+ *
+ * \return A pointer to the internal OpenSSL context. This should be cast to
+ * <tt>SSL_CTX*</tt>.
+ *
+ * \since v0.9.0
+ */
+AMQP_PUBLIC_FUNCTION
+void *AMQP_CALL amqp_ssl_socket_get_context(amqp_socket_t *self);
+
+/**
  * Set the CA certificate.
  *
  * \param [in,out] self An SSL/TLS socket object.
