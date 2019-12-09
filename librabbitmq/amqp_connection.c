@@ -287,12 +287,21 @@ int amqp_handle_input(amqp_connection_state_t state, amqp_bytes_t received_data,
     case CONNECTION_STATE_HEADER: {
       amqp_channel_t channel;
       amqp_pool_t *channel_pool;
-      /* frame length is 3 bytes in */
+      uint32_t frame_size;
+
       channel = amqp_d16(amqp_offset(raw_frame, 1));
 
-      state->target_size =
-          amqp_d32(amqp_offset(raw_frame, 3)) + HEADER_SIZE + FOOTER_SIZE;
+      /* frame length is 3 bytes in */
+      frame_size = amqp_d32(amqp_offset(raw_frame, 3));
+      /* To prevent the target_size calculation below from overflowing, check
+       * that the stated frame_size is smaller than a signed 32-bit. Given
+       * the library only allows configuring frame_max as an int32_t, and
+       * frame_size is uint32_t, the math below is safe from overflow. */
+      if (frame_size >= INT32_MAX) {
+        return AMQP_STATUS_BAD_AMQP_DATA;
+      }
 
+      state->target_size = frame_size + HEADER_SIZE + FOOTER_SIZE;
       if ((size_t)state->frame_max < state->target_size) {
         return AMQP_STATUS_BAD_AMQP_DATA;
       }
