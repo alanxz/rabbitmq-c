@@ -355,6 +355,11 @@ amqp_socket_t *amqp_ssl_socket_new(amqp_connection_state_t state) {
   /* Disable SSLv2 and SSLv3 */
   SSL_CTX_set_options(self->ctx, SSL_OP_NO_SSLv2 | SSL_OP_NO_SSLv3);
 
+  SSL_CTX_set_mode(self->ctx, SSL_MODE_ENABLE_PARTIAL_WRITE);
+  /* OpenSSL v1.1.1 turns this on by default, which makes the non-blocking
+   * logic not behave as expected, so turn this back off */
+  SSL_CTX_clear_mode(self->ctx, SSL_MODE_AUTO_RETRY);
+
   amqp_set_socket(state, (amqp_socket_t *)self);
 
   return (amqp_socket_t *)self;
