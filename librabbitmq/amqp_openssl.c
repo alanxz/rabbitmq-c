@@ -28,6 +28,10 @@
 #include "config.h"
 #endif
 
+#ifdef _MSC_VER
+#define _CRT_SECURE_NO_WARNINGS
+#endif
+
 #include "amqp_openssl_bio.h"
 #include "amqp_openssl_hostname_validation.h"
 #include "amqp_private.h"
