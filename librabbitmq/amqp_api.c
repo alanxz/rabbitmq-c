@@ -361,7 +361,7 @@ struct timeval *amqp_get_handshake_timeout(amqp_connection_state_t state) {
 }
 
 int amqp_set_handshake_timeout(amqp_connection_state_t state,
-                               struct timeval *timeout) {
+                               const struct timeval *timeout) {
   if (timeout) {
     if (timeout->tv_sec < 0 || timeout->tv_usec < 0) {
       return AMQP_STATUS_INVALID_PARAMETER;
@@ -380,7 +380,7 @@ struct timeval *amqp_get_rpc_timeout(amqp_connection_state_t state) {
 }
 
 int amqp_set_rpc_timeout(amqp_connection_state_t state,
-                         struct timeval *timeout) {
+                         const struct timeval *timeout) {
   if (timeout) {
     if (timeout->tv_sec < 0 || timeout->tv_usec < 0) {
       return AMQP_STATUS_INVALID_PARAMETER;

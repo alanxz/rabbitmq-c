@@ -101,7 +101,7 @@ uint64_t amqp_get_monotonic_timestamp(void) {
 }
 #endif /* AMQP_POSIX_TIMER_API */
 
-int amqp_time_from_now(amqp_time_t *time, struct timeval *timeout) {
+int amqp_time_from_now(amqp_time_t *time, const struct timeval *timeout) {
   uint64_t now_ns;
   uint64_t delta_ns;
 
@@ -199,7 +199,7 @@ int amqp_time_ms_until(amqp_time_t time) {
   return left_ms;
 }
 
-int amqp_time_tv_until(amqp_time_t time, struct timeval *in,
+int amqp_time_tv_until(amqp_time_t time, const struct timeval *in,
                        struct timeval **out) {
   uint64_t now_ns;
   uint64_t delta_ns;
@@ -210,9 +210,8 @@ int amqp_time_tv_until(amqp_time_t time, struct timeval *in,
     return AMQP_STATUS_OK;
   }
   if (0 == time.time_point_ns) {
-    in->tv_sec = 0;
-    in->tv_usec = 0;
-    *out = in;
+    (*out)->tv_sec = 0;
+    (*out)->tv_usec = 0;
     return AMQP_STATUS_OK;
   }
 
@@ -222,16 +221,14 @@ int amqp_time_tv_until(amqp_time_t time, struct timeval *in,
   }
 
   if (now_ns >= time.time_point_ns) {
-    in->tv_sec = 0;
-    in->tv_usec = 0;
-    *out = in;
+    (*out)->tv_sec = 0;
+    (*out)->tv_usec = 0;
     return AMQP_STATUS_OK;
   }
 
   delta_ns = time.time_point_ns - now_ns;
-  in->tv_sec = (int)(delta_ns / AMQP_NS_PER_S);
-  in->tv_usec = (int)((delta_ns % AMQP_NS_PER_S) / AMQP_NS_PER_US);
-  *out = in;
+  (*out)->tv_sec = (int)(delta_ns / AMQP_NS_PER_S);
+  (*out)->tv_usec = (int)((delta_ns % AMQP_NS_PER_S) / AMQP_NS_PER_US);
 
   return AMQP_STATUS_OK;
 }

@@ -1548,7 +1548,7 @@ int AMQP_CALL amqp_simple_wait_frame(amqp_connection_state_t state,
 AMQP_PUBLIC_FUNCTION
 int AMQP_CALL amqp_simple_wait_frame_noblock(amqp_connection_state_t state,
                                              amqp_frame_t *decoded_frame,
-                                             struct timeval *tv);
+                                             const struct timeval *tv);
 
 /**
  * Waits for a specific method from the broker
@@ -2245,7 +2245,7 @@ typedef struct amqp_envelope_t_ {
 AMQP_PUBLIC_FUNCTION
 amqp_rpc_reply_t AMQP_CALL amqp_consume_message(amqp_connection_state_t state,
                                                 amqp_envelope_t *envelope,
-                                                struct timeval *timeout,
+                                                const struct timeval *timeout,
                                                 int flags);
 
 /**
@@ -2365,7 +2365,7 @@ int AMQP_CALL amqp_socket_open(amqp_socket_t *self, const char *host, int port);
  */
 AMQP_PUBLIC_FUNCTION
 int AMQP_CALL amqp_socket_open_noblock(amqp_socket_t *self, const char *host,
-                                       int port, struct timeval *timeout);
+                                       int port, const struct timeval *timeout);
 
 /**
  * Get the socket descriptor in use by a socket object.
@@ -2473,7 +2473,7 @@ struct timeval *AMQP_CALL
  */
 AMQP_PUBLIC_FUNCTION
 int AMQP_CALL amqp_set_handshake_timeout(amqp_connection_state_t state,
-                                         struct timeval *timeout);
+                                         const struct timeval *timeout);
 
 /**
  * Get the RPC timeout
@@ -2531,7 +2531,7 @@ struct timeval *AMQP_CALL amqp_get_rpc_timeout(amqp_connection_state_t state);
  */
 AMQP_PUBLIC_FUNCTION
 int AMQP_CALL amqp_set_rpc_timeout(amqp_connection_state_t state,
-                                   struct timeval *timeout);
+                                   const struct timeval *timeout);
 
 AMQP_END_DECLS
 

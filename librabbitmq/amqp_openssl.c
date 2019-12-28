@@ -168,7 +168,7 @@ static ssize_t amqp_ssl_socket_recv(void *base, void *buf, size_t len,
 }
 
 static int amqp_ssl_socket_open(void *base, const char *host, int port,
-                                struct timeval *timeout) {
+                                const struct timeval *timeout) {
   struct amqp_ssl_socket_t *self = (struct amqp_ssl_socket_t *)base;
   long result;
   int status;
