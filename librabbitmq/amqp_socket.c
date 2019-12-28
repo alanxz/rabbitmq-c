@@ -139,7 +139,7 @@ int amqp_socket_open(amqp_socket_t *self, const char *host, int port) {
 }
 
 int amqp_socket_open_noblock(amqp_socket_t *self, const char *host, int port,
-                             struct timeval *timeout) {
+                             const struct timeval *timeout) {
   assert(self);
   assert(self->klass->open);
   return self->klass->open(self, host, port, timeout);
@@ -312,7 +312,7 @@ int amqp_open_socket(char const *hostname, int portnumber) {
 }
 
 int amqp_open_socket_noblock(char const *hostname, int portnumber,
-                             struct timeval *timeout) {
+                             const struct timeval *timeout) {
   amqp_time_t deadline;
   int res = amqp_time_from_now(&deadline, timeout);
   if (AMQP_STATUS_OK != res) {
@@ -938,7 +938,7 @@ int amqp_simple_wait_frame(amqp_connection_state_t state,
 
 int amqp_simple_wait_frame_noblock(amqp_connection_state_t state,
                                    amqp_frame_t *decoded_frame,
-                                   struct timeval *timeout) {
+                                   const struct timeval *timeout) {
   amqp_time_t deadline;
 
   int res = amqp_time_from_now(&deadline, timeout);
@@ -1226,10 +1226,13 @@ error_out:
   return res;
 }
 
-static amqp_rpc_reply_t amqp_login_inner(
-    amqp_connection_state_t state, char const *vhost, int channel_max,
-    int frame_max, int heartbeat, const amqp_table_t *client_properties,
-    struct timeval *timeout, amqp_sasl_method_enum sasl_method, va_list vl) {
+static amqp_rpc_reply_t amqp_login_inner(amqp_connection_state_t state,
+                                         char const *vhost, int channel_max,
+                                         int frame_max, int heartbeat,
+                                         const amqp_table_t *client_properties,
+                                         const struct timeval *timeout,
+                                         amqp_sasl_method_enum sasl_method,
+                                         va_list vl) {
   int res;
   amqp_method_t method;
 

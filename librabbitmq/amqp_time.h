@@ -69,7 +69,7 @@ uint64_t amqp_get_monotonic_timestamp(void);
  * AMQP_STATUS_TIMER_FAILURE if the underlying call to get the current timestamp
  * fails.
  */
-int amqp_time_from_now(amqp_time_t *time, struct timeval *timeout);
+int amqp_time_from_now(amqp_time_t *time, const struct timeval *timeout);
 
 /* Get a amqp_time_t that is seconds from now.
  * If seconds <= 0, then amqp_time_infinite() is created.
@@ -109,7 +109,7 @@ int amqp_time_ms_until(amqp_time_t time);
  * AMQP_STATUS_TIMER_FAILURE is returned when the underlying call to get the
  * current timestamp fails.
  */
-int amqp_time_tv_until(amqp_time_t time, struct timeval *in,
+int amqp_time_tv_until(amqp_time_t time, const struct timeval *in,
                        struct timeval **out);
 
 /* Test whether current time is past the provided time.

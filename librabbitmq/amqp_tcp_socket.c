@@ -163,7 +163,7 @@ start:
 }
 
 static int amqp_tcp_socket_open(void *base, const char *host, int port,
-                                struct timeval *timeout) {
+                                const struct timeval *timeout) {
   struct amqp_tcp_socket_t *self = (struct amqp_tcp_socket_t *)base;
   if (-1 != self->sockfd) {
     return AMQP_STATUS_SOCKET_INUSE;
