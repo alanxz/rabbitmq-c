@@ -27,6 +27,10 @@
  * https://wiki.openssl.org/index.php/Hostname_validation
  */
 
+#if defined(_WIN32)
+#define WIN32_LEAN_AND_MEAN
+#endif
+
 #include <openssl/ssl.h>
 #include <openssl/x509v3.h>
 

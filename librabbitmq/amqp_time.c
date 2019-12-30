@@ -101,7 +101,7 @@ uint64_t amqp_get_monotonic_timestamp(void) {
 }
 #endif /* AMQP_POSIX_TIMER_API */
 
-int amqp_time_from_now(amqp_time_t *time, struct timeval *timeout) {
+int amqp_time_from_now(amqp_time_t *time, const struct timeval *timeout) {
   uint64_t now_ns;
   uint64_t delta_ns;
 

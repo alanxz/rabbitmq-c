@@ -30,7 +30,7 @@
  * https://wiki.openssl.org/index.php/Hostname_validation
  */
 
-#include <openssl/x509v3.h>
+#include <openssl/ossl_typ.h>
 
 typedef enum {
   AMQP_HVR_MATCH_FOUND,

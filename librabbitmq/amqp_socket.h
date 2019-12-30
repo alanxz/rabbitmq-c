@@ -53,7 +53,8 @@ int amqp_os_socket_close(int sockfd);
 /* Socket callbacks. */
 typedef ssize_t (*amqp_socket_send_fn)(void *, const void *, size_t, int);
 typedef ssize_t (*amqp_socket_recv_fn)(void *, void *, size_t, int);
-typedef int (*amqp_socket_open_fn)(void *, const char *, int, struct timeval *);
+typedef int (*amqp_socket_open_fn)(void *, const char *, int,
+                                   const struct timeval *);
 typedef int (*amqp_socket_close_fn)(void *, amqp_socket_close_enum);
 typedef int (*amqp_socket_get_sockfd_fn)(void *);
 typedef void (*amqp_socket_delete_fn)(void *);
@@ -157,7 +158,7 @@ void amqp_socket_delete(amqp_socket_t *self);
  * \return File descriptor upon success, non-zero negative error code otherwise.
  */
 int amqp_open_socket_noblock(char const *hostname, int portnumber,
-                             struct timeval *timeout);
+                             const struct timeval *timeout);
 
 int amqp_open_socket_inner(char const *hostname, int portnumber,
                            amqp_time_t deadline);

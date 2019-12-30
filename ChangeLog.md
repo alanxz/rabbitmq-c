@@ -1,4 +1,19 @@
 # Change Log
+## v0.10.0 - 2019-12-01
+## Added:
+- amqp_ssl_socket_get_context can be used to get the current OpenSSL CTX*
+    associated with a connection.
+
+## Changed:
+- openssl: missing OpenSSL config is ignored as an OpenSSL init error (#523)
+- AMQP_DEFAULT_MAX_CHANNELS is now set to 2047 to follow current default channel
+    limit in the RabbitMQ broker. (#513)
+
+## Fixed:
+- add additional input validation to prevent integer overflow when parsing a
+    frame header. This addresses CVE-2019-18609.
+
+
 ## v0.9.0 - 2018-05-08
 ### Added:
 - amqp-publish: added support for specifying headers via the -H flag

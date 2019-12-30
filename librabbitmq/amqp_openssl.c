@@ -28,6 +28,10 @@
 #include "config.h"
 #endif
 
+#ifdef _MSC_VER
+#define _CRT_SECURE_NO_WARNINGS
+#endif
+
 #include "amqp_openssl_bio.h"
 #include "amqp_openssl_hostname_validation.h"
 #include "amqp_private.h"
@@ -165,7 +169,7 @@ static ssize_t amqp_ssl_socket_recv(void *base, void *buf, size_t len,
 }
 
 static int amqp_ssl_socket_open(void *base, const char *host, int port,
-                                struct timeval *timeout) {
+                                const struct timeval *timeout) {
   struct amqp_ssl_socket_t *self = (struct amqp_ssl_socket_t *)base;
   long result;
   int status;
@@ -356,12 +360,24 @@ amqp_socket_t *amqp_ssl_socket_new(amqp_connection_state_t state) {
   /* Disable SSLv2 and SSLv3 */
   SSL_CTX_set_options(self->ctx, SSL_OP_NO_SSLv2 | SSL_OP_NO_SSLv3);
 
+  SSL_CTX_set_mode(self->ctx, SSL_MODE_ENABLE_PARTIAL_WRITE);
+  /* OpenSSL v1.1.1 turns this on by default, which makes the non-blocking
+   * logic not behave as expected, so turn this back off */
+  SSL_CTX_clear_mode(self->ctx, SSL_MODE_AUTO_RETRY);
+
   amqp_set_socket(state, (amqp_socket_t *)self);
 
   return (amqp_socket_t *)self;
 error:
   amqp_ssl_socket_delete((amqp_socket_t *)self);
   return NULL;
+}
+
+void *amqp_ssl_socket_get_context(amqp_socket_t *base) {
+  if (base->klass != &amqp_ssl_socket_class) {
+    amqp_abort("<%p> is not of type amqp_ssl_socket_t", base);
+  }
+  return ((struct amqp_ssl_socket_t *)base)->ctx;
 }
 
 int amqp_ssl_socket_set_cacert(amqp_socket_t *base, const char *cacert) {
