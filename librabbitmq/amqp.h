@@ -1510,7 +1510,7 @@ int AMQP_CALL amqp_simple_wait_frame(amqp_connection_state_t state,
  * amqp_data_in_buffer() function.
  *
  * \note This function does not return heartbeat frames. When enabled,
- *  heartbeating is handed internally internally by the library.
+ *  heartbeating is handled internally by the library.
  *
  * \param [in,out] state the connection object
  * \param [out] decoded_frame the frame
