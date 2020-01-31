@@ -133,6 +133,8 @@ int main(int argc, char const *const *argv) {
     }
   }
 
+  amqp_bytes_free(queuename);
+
   die_on_amqp_error(amqp_channel_close(conn, 1, AMQP_REPLY_SUCCESS),
                     "Closing channel");
   die_on_amqp_error(amqp_connection_close(conn, AMQP_REPLY_SUCCESS),
