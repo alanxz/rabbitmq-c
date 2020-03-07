@@ -600,9 +600,7 @@ static int setup_openssl(void) {
   CRYPTO_set_locking_callback(ssl_locking_callback);
 
 #ifdef AMQP_OPENSSL_V110
-  if (CONF_modules_load_file(
-          NULL, "rabbitmq-c",
-          CONF_MFLAGS_DEFAULT_SECTION | CONF_MFLAGS_IGNORE_MISSING_FILE) <= 0) {
+  if (OPENSSL_init_ssl(0,NULL) <= 0) {
     status = AMQP_STATUS_SSL_ERROR;
     goto out;
   }
