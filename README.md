@@ -84,6 +84,8 @@ Other interesting flags that can be passed to CMake:
    default this is ON if the OpenSSL headers and library can be found.
 * `BUILD_API_DOCS=ON/OFF` - toggles building the Doxygen API documentation, by
    default this is OFF
+* `RUN_SYSTEM_TESTS=ON/OFF` toggles building the system tests (i.e. tests requiring 
+   an accessible RabbitMQ server instance on localhost), by default this is OFF
 
 ## Running the examples
 

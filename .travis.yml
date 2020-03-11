@@ -19,7 +19,7 @@ addons:
       name: "alanxz/rabbitmq-c"
       description: "C AMQP client for RabbitMQ"
     notification_email: alan.antonuk@gmail.com
-    build_command_prepend: mkdir build && pushd build && cmake .. && popd
+    build_command_prepend: mkdir build && pushd build && cmake .. -DRUN_SYSTEM_TESTS=ON && popd
     build_command: cmake --build ./build
     branch_pattern: coverity_scan
 

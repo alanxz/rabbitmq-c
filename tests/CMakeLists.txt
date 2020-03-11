@@ -33,9 +33,11 @@ add_executable(test_basic
                test_basic.c)
 target_link_libraries(test_basic rabbitmq-static)
 
-if (NOT APPLE)
-  add_test(basic test_basic)
-endif()
+if (RUN_SYSTEM_TESTS)
+  if (NOT APPLE)
+    add_test(basic test_basic)
+  endif()
+endif(RUN_SYSTEM_TESTS)
 
 add_executable(test_sasl_mechanism test_sasl_mechanism.c)
 target_link_libraries(test_sasl_mechanism rabbitmq-static)
