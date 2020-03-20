@@ -45,12 +45,6 @@ else (REGENERATE_AMQP_FRAMING)
   set(AMQP_FRAMING_C_PATH ${CMAKE_CURRENT_SOURCE_DIR}/amqp_framing.c)
 endif (REGENERATE_AMQP_FRAMING)
 
-if(WIN32)
-  set(SOCKET_IMPL "win32")
-else(WIN32)
-  set(SOCKET_IMPL "unix")
-endif(WIN32)
-
 if(MSVC)
   if(MSVC_VERSION LESS 1600)
     set(MSINTTYPES_INCLUDE "${CMAKE_CURRENT_SOURCE_DIR}/win32/msinttypes")
@@ -63,7 +57,6 @@ endif(MSVC)
 set(LIBRABBITMQ_INCLUDE_DIRS
   ${CMAKE_CURRENT_BINARY_DIR}
 	${CMAKE_CURRENT_SOURCE_DIR}
-	${SOCKET_IMPL}
 	${MSINTTYPES_INCLUDE}
 	)
 
@@ -96,10 +89,12 @@ if (ENABLE_SSL_SUPPORT)
       PROPERTIES COMPILE_FLAGS -Wno-deprecated-declarations)
   endif()
 
-  if (WIN32)
+  if (WIN32 AND NOT CMAKE_USE_PTHREADS_INIT)
     set(AMQP_SSL_SRCS ${AMQP_SSL_SRCS} win32/threads.h win32/threads.c)
+    include_directories(win32)
   else()
     set(AMQP_SSL_SRCS ${AMQP_SSL_SRCS} unix/threads.h)
+    include_directories(unix)
   endif()
 endif()
 
@@ -119,9 +114,6 @@ set(RMQ_LIBRARIES ${AMQP_SSL_LIBS} ${SOCKET_LIBRARIES} ${LIBRT} ${CMAKE_THREAD_L
 
 if (BUILD_SHARED_LIBS)
     add_library(rabbitmq SHARED ${RABBITMQ_SOURCES})
-    if (THREADS_HAVE_PTHREAD_ARG)
-      target_compile_options(rabbitmq PUBLIC "-pthread")
-    endif()
 
     target_link_libraries(rabbitmq ${RMQ_LIBRARIES})
 
@@ -142,9 +134,6 @@ endif (BUILD_SHARED_LIBS)
 
 if (BUILD_STATIC_LIBS)
     add_library(rabbitmq-static STATIC ${RABBITMQ_SOURCES})
-    if (THREADS_HAVE_PTHREAD_ARG)
-      target_compile_options(rabbitmq-static PUBLIC "-pthread")
-    endif()
 
     target_link_libraries(rabbitmq-static ${RMQ_LIBRARIES})
 
