@@ -266,6 +266,7 @@ option(BUILD_TOOLS "Build Tools (requires POPT Library)" ${POPT_FOUND})
 option(BUILD_TOOLS_DOCS "Build man pages for Tools (requires xmlto)" ${DO_DOCS})
 option(BUILD_TESTS "Build tests (run tests with make test)" ON)
 option(BUILD_API_DOCS "Build Doxygen API docs" ${DOXYGEN_FOUND})
+option(RUN_SYSTEM_TESTS "Run system tests (i.e. tests requiring an accessible RabbitMQ server instance on localhost)" OFF)
 
 if (NOT BUILD_SHARED_LIBS AND NOT BUILD_STATIC_LIBS)
     message(FATAL_ERROR "One or both of BUILD_SHARED_LIBS or BUILD_STATIC_LIBS must be set to ON to build")
