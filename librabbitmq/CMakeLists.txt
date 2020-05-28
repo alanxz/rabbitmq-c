@@ -131,7 +131,7 @@ if (BUILD_SHARED_LIBS)
         set_target_properties(rabbitmq PROPERTIES VERSION ${RMQ_VERSION} SOVERSION ${RMQ_SOVERSION})
     endif (WIN32)
 
-    install(TARGETS rabbitmq
+    install(TARGETS rabbitmq EXPORT "${targets_export_name}"
         RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
         LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
         ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}
@@ -165,7 +165,7 @@ if (BUILD_STATIC_LIBS)
         set_target_properties(rabbitmq-static PROPERTIES VERSION ${RMQ_VERSION} SOVERSION ${RMQ_SOVERSION} OUTPUT_NAME rabbitmq)
     endif (WIN32)
 
-    install(TARGETS rabbitmq-static
+    install(TARGETS rabbitmq-static EXPORT "${targets_export_name}"
         ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}
         )
 

@@ -272,6 +272,8 @@ if (NOT BUILD_SHARED_LIBS AND NOT BUILD_STATIC_LIBS)
     message(FATAL_ERROR "One or both of BUILD_SHARED_LIBS or BUILD_STATIC_LIBS must be set to ON to build")
 endif()
 
+set(targets_export_name rabbitmq-targets)
+
 add_subdirectory(librabbitmq)
 
 if (BUILD_EXAMPLES)
@@ -328,6 +330,43 @@ set(includedir "\${prefix}/${CMAKE_INSTALL_INCLUDEDIR}")
 
 configure_file(cmake/config.h.in ${CMAKE_CURRENT_BINARY_DIR}/librabbitmq/config.h)
 configure_file(librabbitmq.pc.in ${CMAKE_CURRENT_BINARY_DIR}/librabbitmq.pc @ONLY)
+
+
+include(CMakePackageConfigHelpers)
+set(RMQ_CMAKE_DIR ${CMAKE_INSTALL_LIBDIR}/cmake/rabbitmq-c)
+set(project_config "${CMAKE_CURRENT_BINARY_DIR}/rabbitmq-c-config.cmake")
+set(version_config "${CMAKE_CURRENT_BINARY_DIR}/rabbitmq-c-config-version.cmake")
+
+write_basic_package_version_file(
+    "${version_config}"
+    VERSION ${RMQ_VERSION}
+    COMPATIBILITY AnyNewerVersion)
+
+configure_package_config_file(
+    "${CMAKE_CURRENT_SOURCE_DIR}/cmake/rabbitmq-c-config.cmake.in"
+    "${project_config}"
+    INSTALL_DESTINATION "${RMQ_CMAKE_DIR}")
+
+
+if(BUILD_SHARED_LIBS)
+    list(APPEND INSTALL_TARGETS rabbitmq)
+endif()
+if(BUILD_STATIC_LIBS)
+    list(APPEND INSTALL_TARGETS rabbitmq-static)
+endif()
+
+export(TARGETS ${INSTALL_TARGETS} 
+    NAMESPACE rabbitmq:: 
+    FILE ${PROJECT_BINARY_DIR}/${targets_export_name}.cmake)
+
+install(FILES ${project_config} ${version_config}
+    DESTINATION ${RMQ_CMAKE_DIR}
+    )
+
+install(EXPORT ${targets_export_name} 
+    DESTINATION ${RMQ_CMAKE_DIR}
+    NAMESPACE rabbitmq::
+    )
 
 install(FILES
   ${CMAKE_CURRENT_BINARY_DIR}/librabbitmq.pc
