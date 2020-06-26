@@ -62,7 +62,6 @@ case $TRAVIS_OS_NAME in
 osx)
   # This prints out a long list of updated packages, which isn't useful.
   brew update > /dev/null
-  brew install popt
   brew outdated openssl || brew install openssl
   export _CMAKE_OPENSSL_FLAG="-DOPENSSL_ROOT_DIR=/usr/local/opt/openssl"
   ;;
