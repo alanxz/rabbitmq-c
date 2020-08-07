@@ -240,6 +240,13 @@ static void init_connection_info(struct amqp_connection_info *ci) {
       if (ci->port < 0 || ci->port > 65535 || port_end == colon + 1 ||
           *port_end != 0)
         die("bad server port number in '%s'", amqp_server);
+    } else {
+      ci->port = 5672;
+#if WITH_SSL
+      if (amqp_ssl) {
+        ci->port = 5671;
+      }
+#endif
     }
 
 #if WITH_SSL
