@@ -2,7 +2,7 @@
 
 build_cmake() {
   mkdir $PWD/_build && cd $PWD/_build
-  cmake .. -DCMAKE_INSTALL_PREFIX=$PWD/../_install -DCMAKE_C_FLAGS="-Werror" \
+  cmake .. -DCMAKE_INSTALL_PREFIX=$PWD/../_install -DCMAKE_C_FLAGS="-Werror -Wno-implicit-fallthrough" \
     ${_CMAKE_OPENSSL_FLAG}
   cmake --build . --target install
   ctest -V .

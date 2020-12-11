@@ -1,0 +1,30 @@
+name: CI
+
+on: [push]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - compiler: gcc
+            config: cmake
+          - compiler: clang
+            config: cmake
+          - compiler: clang
+            config: asan
+          - compiler: clang
+            config: tsan
+
+    steps:
+    - uses: actions/checkout@v2
+      with:
+        submodules: true
+
+    - name: Configure Build & Test
+      shell: bash
+      env:
+        CC: ${{ matrix.compiler }}
+      run: ./travis.sh ${{ matrix.config }}
