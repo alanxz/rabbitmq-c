@@ -45,9 +45,10 @@ if (BUILD_TOOLS_DOCS)
 
     file(MAKE_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/doc)
     set(XMLTO_DEPENDS ${CMAKE_CURRENT_BINARY_DIR}/doc/man-date.ent)
+    STRING(TIMESTAMP BUILD_DATE "%Y-%m-%d" UTC)
     add_custom_command(
             OUTPUT ${XMLTO_DEPENDS}
-	          COMMAND date +'%Y-%m-%d' > ${XMLTO_DEPENDS}
+	          COMMAND echo ${BUILD_DATE} > ${XMLTO_DEPENDS}
             VERBATIM
             )
 
