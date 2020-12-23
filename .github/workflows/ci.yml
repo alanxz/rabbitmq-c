@@ -18,6 +18,8 @@ jobs:
           - compiler: clang
             config: tsan
           - compiler: clang
+            config: format
+          - compiler: clang
             config: scan-build
 
     steps:

@@ -2,4 +2,4 @@
 
 set -e
 
-exec clang-format-3.9 -style=file $@
+exec clang-format -style=file $@

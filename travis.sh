@@ -9,6 +9,7 @@ build_cmake() {
 }
 
 build_format() {
+  sudo apt-get install -y clang-format
   ./travis/run-clang-format/run-clang-format.py \
     --clang-format-executable="${PWD}/travis/clang-format.sh" \
     --recursive examples librabbitmq tests tools
