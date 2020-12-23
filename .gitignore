@@ -71,3 +71,4 @@ tools/doc/man-date.ent
 *.sw?
 .#*
 \#*#
+.venv/
