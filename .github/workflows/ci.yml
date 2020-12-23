@@ -17,6 +17,8 @@ jobs:
             config: asan
           - compiler: clang
             config: tsan
+          - compiler: clang
+            config: scan-build
 
     steps:
     - uses: actions/checkout@v2

@@ -43,11 +43,13 @@ build_tsan() {
 }
 
 build_scan-build() {
+  sudo apt-get install -y clang-tools
   mkdir $PWD/_build && cd $PWD/_build
-  scan-build-3.9 cmake .. -DCMAKE_BUILD_TYPE=Debug \
+  scan-build cmake .. -DCMAKE_BUILD_TYPE=Debug \
+    -DCMAKE_C_COMPILER=clang \
     -DCMAKE_INSTALL_PREFIX=$PWD/../_install \
     -DCMAKE_C_FLAGS="-Werror"
-  scan-build-3.9 make install
+  scan-build make install
 }
 
 if [ "$#" -ne 1 ]; then
