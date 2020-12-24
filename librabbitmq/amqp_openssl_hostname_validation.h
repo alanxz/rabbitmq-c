@@ -41,17 +41,17 @@ typedef enum {
 } amqp_hostname_validation_result;
 
 /**
-* Validates the server's identity by looking for the expected hostname in the
-* server's certificate. As described in RFC 6125, it first tries to find a match
-* in the Subject Alternative Name extension. If the extension is not present in
-* the certificate, it checks the Common Name instead.
-*
-* Returns AMQP_HVR_MATCH_FOUND if a match was found.
-* Returns AMQP_HVR_MATCH_NOT_FOUND if no matches were found.
-* Returns AMQP_HVR_MALFORMED_CERTIFICATE if any of the hostnames had a NUL
-* character embedded in it.
-* Returns AMQP_HVR_ERROR if there was an error.
-*/
+ * Validates the server's identity by looking for the expected hostname in the
+ * server's certificate. As described in RFC 6125, it first tries to find a
+ * match in the Subject Alternative Name extension. If the extension is not
+ * present in the certificate, it checks the Common Name instead.
+ *
+ * Returns AMQP_HVR_MATCH_FOUND if a match was found.
+ * Returns AMQP_HVR_MATCH_NOT_FOUND if no matches were found.
+ * Returns AMQP_HVR_MALFORMED_CERTIFICATE if any of the hostnames had a NUL
+ * character embedded in it.
+ * Returns AMQP_HVR_ERROR if there was an error.
+ */
 amqp_hostname_validation_result amqp_ssl_validate_hostname(
     const char *hostname, const X509 *server_cert);
 

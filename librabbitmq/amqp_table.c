@@ -247,11 +247,11 @@ static int amqp_decode_field_value(amqp_bytes_t encoded, amqp_pool_t *pool,
 
     case AMQP_FIELD_KIND_F32:
       TRIVIAL_FIELD_DECODER(32);
-    /* and by punning, f32 magically gets the right value...! */
+      /* and by punning, f32 magically gets the right value...! */
 
     case AMQP_FIELD_KIND_F64:
       TRIVIAL_FIELD_DECODER(64);
-    /* and by punning, f64 magically gets the right value...! */
+      /* and by punning, f64 magically gets the right value...! */
 
     case AMQP_FIELD_KIND_DECIMAL:
       if (!amqp_decode_8(encoded, offset, &entry->value.decimal.decimals) ||

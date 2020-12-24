@@ -46,7 +46,7 @@ AMQP_BEGIN_DECLS
 #define AMQP_PROTOCOL_VERSION_MINOR 9 /**< AMQP protocol version minor */
 #define AMQP_PROTOCOL_VERSION_REVISION                                   \
   1                                  /**< AMQP protocol version revision \
-                                        */
+                                      */
 #define AMQP_PROTOCOL_PORT 5672      /**< Default AMQP Port */
 #define AMQP_FRAME_METHOD 1          /**< Constant: FRAME-METHOD */
 #define AMQP_FRAME_HEADER 2          /**< Constant: FRAME-HEADER */
@@ -794,7 +794,7 @@ typedef struct amqp_confirm_select_ok_t_ {
 /* Class property records. */
 #define AMQP_CONNECTION_CLASS                    \
   (0x000A) /**< connection class id @internal 10 \
-              */
+            */
 /** connection class properties */
 typedef struct amqp_connection_properties_t_ {
   amqp_flags_t _flags; /**< bit-mask of set fields */

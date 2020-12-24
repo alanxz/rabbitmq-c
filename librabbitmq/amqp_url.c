@@ -213,7 +213,7 @@ int amqp_parse_url(char *url, struct amqp_connection_info *parsed) {
     res = AMQP_STATUS_OK;
   }
 
-/* Any other delimiter is bad, and we will return AMQP_STATUS_BAD_AMQP_URL. */
+  /* Any other delimiter is bad, and we will return AMQP_STATUS_BAD_AMQP_URL. */
 
 out:
   return res;

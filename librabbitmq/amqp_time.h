@@ -53,7 +53,9 @@
  * - UINT64_MAX: means 'at infinity', its mean for polls with an infinite
  *   timeout
  */
-typedef struct amqp_time_t_ { uint64_t time_point_ns; } amqp_time_t;
+typedef struct amqp_time_t_ {
+  uint64_t time_point_ns;
+} amqp_time_t;
 
 /* Gets a monotonic timestamp. This will return 0 if the underlying call to the
  * system fails.

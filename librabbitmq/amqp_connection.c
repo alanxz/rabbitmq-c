@@ -281,8 +281,8 @@ int amqp_handle_input(amqp_connection_state_t state, amqp_bytes_t received_data,
         return (int)bytes_consumed;
       }
 
-    /* it's not a protocol header; fall through to process it as a
-       regular frame header */
+      /* it's not a protocol header; fall through to process it as a
+         regular frame header */
 
     case CONNECTION_STATE_HEADER: {
       amqp_channel_t channel;
@@ -329,7 +329,7 @@ int amqp_handle_input(amqp_connection_state_t state, amqp_bytes_t received_data,
         return (int)bytes_consumed;
       }
     }
-    /* fall through to process body */
+      /* fall through to process body */
 
     case CONNECTION_STATE_BODY: {
       amqp_bytes_t encoded;
