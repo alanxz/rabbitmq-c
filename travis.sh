@@ -2,8 +2,15 @@
 
 build_cmake() {
   mkdir $PWD/_build && cd $PWD/_build
-  cmake .. -DCMAKE_INSTALL_PREFIX=$PWD/../_install -DCMAKE_C_FLAGS="-Werror -Wno-implicit-fallthrough" \
-    ${_CMAKE_OPENSSL_FLAG}
+  cmake .. -DCMAKE_INSTALL_PREFIX=$PWD/../_install -DCMAKE_C_FLAGS="-Werror -Wno-implicit-fallthrough" 
+  cmake --build . --target install
+  ctest -V .
+}
+
+build_macos() {
+  mkdir $PWD/_build && cd $PWD/_build
+  cmake .. -DCMAKE_INSTALL_PREFIX=$PWD/../_install -DCMAKE_C_FLAGS="-Werror" \
+    -DOPENSSL_ROOT_DIR="/usr/local/opt/openssl@1.1"
   cmake --build . --target install
   ctest -V .
 }
@@ -18,8 +25,7 @@ build_format() {
 build_coverage() {
   mkdir $PWD/_build && cd $PWD/_build
   cmake .. -DCMAKE_BUILD_TYPE=Coverage -DCMAKE_INSTALL_PREFIX=$PWD/../_install \
-    -DCMAKE_C_FLAGS="-Werror -fprofile-arcs -ftest-coverage" \
-    ${_CMAKE_OPENSSL_FLAG}
+    -DCMAKE_C_FLAGS="-Werror -fprofile-arcs -ftest-coverage"
   cmake --build . --target install
   ctest -V .
   
@@ -54,20 +60,11 @@ build_scan-build() {
 }
 
 if [ "$#" -ne 1 ]; then
-  echo "Usage: $0 {cmake|asan|tsan|scan-build}"
+  echo "Usage: $0 {cmake|macos|format|coverage|asan|tsan|scan-build}"
   exit 1
 fi
 
 set -e  # exit on error.
 set -x  # echo commands.
-
-case $TRAVIS_OS_NAME in
-osx)
-  # This prints out a long list of updated packages, which isn't useful.
-  brew update > /dev/null
-  brew outdated openssl || brew install openssl
-  export _CMAKE_OPENSSL_FLAG="-DOPENSSL_ROOT_DIR=/usr/local/opt/openssl"
-  ;;
-esac
 
 eval "build_$1"

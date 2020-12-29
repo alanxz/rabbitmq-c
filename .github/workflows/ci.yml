@@ -3,7 +3,7 @@ name: CI
 on: [push]
 
 jobs:
-  build:
+  build-linux:
     runs-on: ubuntu-latest
     strategy:
       fail-fast: false
@@ -32,3 +32,14 @@ jobs:
       env:
         CC: ${{ matrix.compiler }}
       run: ./travis.sh ${{ matrix.config }}
+
+  build-macox:
+    runs-on: macos-latest
+    steps:
+    - uses: actions/checkout@v2
+      with:
+        submodules: true
+    
+    - name: Configure Build & Test
+      shell: bash
+      run: ./travis.sh macos
