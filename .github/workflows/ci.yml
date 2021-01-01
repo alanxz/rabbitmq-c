@@ -43,3 +43,25 @@ jobs:
     - name: Configure Build & Test
       shell: bash
       run: ./travis.sh macos
+
+  build-win32:
+    runs-on: windows-latest
+    steps:
+    - uses: actions/checkout@v2
+      with:
+        submodules: true
+    - uses: actions/cache@v2
+      with:
+        path: c:\Users\runneradmin\AppData\Local\Temp\chocolatey
+        # This caches the cache, no need to make sure that this is invalidated
+        # chocolatey will do that for us.
+        key: chocolatey-cache
+    - name: Install Prerequisites
+      run: choco install openssl
+    - name: Configure Build & Test
+      shell: bash
+      run: |
+        cmake -E make_directory build/
+        cmake -S . -B build/
+        cmake --build build/ --config Debug --target INSTALL
+        ctest -V ./build/
