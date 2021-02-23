@@ -1,6 +1,13 @@
 name: CI
 
-on: [push, pull_request]
+on: 
+  # Run the jobs on either push or a pull_request, but not both.
+  push:
+    branches:
+    - master
+  pull_request:
+    branches:
+    - master
 
 jobs:
   build-linux:
