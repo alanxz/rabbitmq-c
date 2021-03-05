@@ -753,10 +753,6 @@ int amqp_uninitialize_ssl_library(void) {
   ERR_remove_state(0);
 #endif
 
-#ifndef LIBRESSL_VERSION_NUMBER
-  FIPS_mode_set(0);
-#endif
-
   CRYPTO_set_locking_callback(NULL);
   CRYPTO_set_id_callback(NULL);
   {
