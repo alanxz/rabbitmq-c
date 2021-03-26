@@ -498,6 +498,15 @@ int amqp_ssl_socket_set_cert(amqp_socket_t *base, const char *cert) {
   return AMQP_STATUS_OK;
 }
 
+void amqp_ssl_socket_set_key_passwd(amqp_socket_t *base, const char *passwd) {
+  struct amqp_ssl_socket_t *self;
+  if (base->klass != &amqp_ssl_socket_class) {
+    amqp_abort("<%p> is not of type amqp_ssl_socket_t", base);
+  }
+  self = (struct amqp_ssl_socket_t *)base;
+  SSL_CTX_set_default_passwd_cb_userdata(self->ctx, (void *)passwd);
+}
+
 void amqp_ssl_socket_set_verify(amqp_socket_t *base, amqp_boolean_t verify) {
   amqp_ssl_socket_set_verify_peer(base, verify);
   amqp_ssl_socket_set_verify_hostname(base, verify);

@@ -86,6 +86,18 @@ int AMQP_CALL amqp_ssl_socket_set_cacert(amqp_socket_t *self,
                                          const char *cacert);
 
 /**
+ * Set the passwrod of key in PEM format.
+ *
+ * \param [in,out] self An SSL/TLS socket object.
+ * \param [in] passwdw The passwrod of key in PEM format.
+ *
+ * \since v0.9.0
+ */
+AMQP_PUBLIC_FUNCTION
+void AMQP_CALL amqp_ssl_socket_set_key_passwd(amqp_socket_t *self,
+                                              const char *passwd);
+
+/**
  * Set the client key.
  *
  * \param [in,out] self An SSL/TLS socket object.
