@@ -1,4 +1,25 @@
 # Change Log
+## v0.11.0 - 2021-03-31
+## Added:
+- rabbitmq-c-config.cmake is now generated (#611)
+- rabbitmq-c can be compiled on Win32 using pthreads (#613)
+- Add amqp_set_ssl_engine API to allow setting OpenSSL engine (#618)
+- Add amqp_ssl_socket_set_key_engine API to allow setting OpenSSL engine (#618)
+- Add support use of password-protected SSL keys (#661)
+
+## Changed
+- Update OpenSSL library initialization to current best practices (#603)
+- Updates to OpenSSL to support v3.0.0 (#654, 627)
+
+## Fixed:
+- OpenSSL symbol clash when compiling on Win32 (#583)
+- Restore correct non-blocking behavior using OpenSSL v1.1.1 (#586)
+- Disable harmless secure CRT compile warnings on Win32 (#588)
+- Fix unused parameter warnings on Win32 (#591)
+- Fix invalid format in generated pkg-config file (#599)
+- Fix invalid AMQP_STATUS_HEARTBEAT_TIMEOUT (#557)
+- Fix incorrect port when using --server flag in CLI tools
+
 ## v0.10.0 - 2019-12-01
 ## Added:
 - amqp_ssl_socket_get_context can be used to get the current OpenSSL CTX*
