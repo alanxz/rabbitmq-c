@@ -125,7 +125,7 @@ int AMQP_CALL amqp_ssl_socket_set_key(amqp_socket_t *self, const char *cert,
  * \return \ref AMQP_STATUS_OK on success an \ref amqp_status_enum value on
  *  failure.
  *
- * \since v0.9.1
+ * \since v0.11.0
  */
 AMQP_PUBLIC_FUNCTION
 int AMQP_CALL amqp_ssl_socket_set_key_engine(amqp_socket_t *self,
@@ -278,7 +278,7 @@ int AMQP_CALL amqp_initialize_ssl_library(void);
  * \param [in] engine the engine ID
  * \return AMQP_STATUS_OK on success.
  *
- * \since v0.9.1
+ * \since v0.11.0
  */
 AMQP_PUBLIC_FUNCTION
 int amqp_set_ssl_engine(const char *engine);
