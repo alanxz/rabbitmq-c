@@ -1,10 +1,10 @@
-cmake_minimum_required(VERSION 2.8.12)
-project(rabbitmq-c "C")
+cmake_minimum_required(VERSION 3.10...3.18)
 
-# Enable MACOSX_RPATH by default. See: cmake --help-policy CMP0042
-if (POLICY CMP0042)
-  cmake_policy(SET CMP0042 NEW)
+if(${CMAKE_VERSION} VERSION_LESS 3.12)
+  cmake_policy(VERSION ${CMAKE_MAJOR_VERSION}.${CMAKE_MINOR_VERSION})
 endif()
+
+project(rabbitmq-c "C")
 
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} ${CMAKE_CURRENT_SOURCE_DIR}/cmake)
 
