@@ -6,6 +6,10 @@ endif()
 
 project(rabbitmq-c "C")
 
+set(CMAKE_C_STANDARD 90)
+set(CMAKE_C_STANDARD_REQUIRED ON)
+SET(CMAKE_C_EXTENSIONS ON)
+
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} ${CMAKE_CURRENT_SOURCE_DIR}/cmake)
 
 # Follow all steps below in order to calculate new ABI version when updating the library
@@ -140,16 +144,6 @@ elseif (CMAKE_COMPILER_IS_GNUCC)
   endif()
   set(CMAKE_C_FLAGS "${RMQ_C_FLAGS} ${CMAKE_C_FLAGS}")
 endif ()
-
-CHECK_C_COMPILER_FLAG("-std=gnu90" HAVE_GNU90)
-if (HAVE_GNU90)
-  set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -std=gnu90")
-else()
-  CHECK_C_COMPILER_FLAG("-std=c90" HAVE_C90)
-  if (HAVE_C90)
-    set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -std=c90")
-  endif()
-endif()
 
 option(REGENERATE_AMQP_FRAMING "Regenerate amqp_framing.h/amqp_framing.c sources (for developer use)" OFF)
 mark_as_advanced(REGENERATE_AMQP_FRAMING)
