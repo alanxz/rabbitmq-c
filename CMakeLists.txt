@@ -322,7 +322,7 @@ set(version_config "${CMAKE_CURRENT_BINARY_DIR}/rabbitmq-c-config-version.cmake"
 
 write_basic_package_version_file(
     "${version_config}"
-    VERSION ${RMQ_VERSION}
+    VERSION ${VERSION}
     COMPATIBILITY AnyNewerVersion)
 
 configure_package_config_file(
