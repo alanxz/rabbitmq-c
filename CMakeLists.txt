@@ -239,6 +239,9 @@ if (POPT_FOUND AND XmlTo_FOUND)
   set(DO_DOCS ON)
 endif()
 
+if(CMAKE_PROJECT_NAME STREQUAL PROJECT_NAME)
+  include(CTest)
+endif()
 
 option(BUILD_SHARED_LIBS "Build rabbitmq-c as a shared library" ON)
 option(BUILD_STATIC_LIBS "Build rabbitmq-c as a static library" ON)
@@ -246,7 +249,6 @@ option(BUILD_STATIC_LIBS "Build rabbitmq-c as a static library" ON)
 option(BUILD_EXAMPLES "Build Examples" ON)
 option(BUILD_TOOLS "Build Tools (requires POPT Library)" ${POPT_FOUND})
 option(BUILD_TOOLS_DOCS "Build man pages for Tools (requires xmlto)" ${DO_DOCS})
-option(BUILD_TESTS "Build tests (run tests with make test)" ON)
 option(BUILD_API_DOCS "Build Doxygen API docs" ${DOXYGEN_FOUND})
 option(RUN_SYSTEM_TESTS "Run system tests (i.e. tests requiring an accessible RabbitMQ server instance on localhost)" OFF)
 
@@ -270,15 +272,14 @@ if (BUILD_TOOLS)
   endif ()
 endif ()
 
-if (BUILD_TESTS)
+if(CMAKE_PROJECT_NAME STREQUAL PROJECT_NAME AND BUILD_TESTING)
   if (NOT BUILD_STATIC_LIBS)
     message(FATAL_ERROR
       "Tests can only be built against static libraries "
       "(set BUILD_STATIC_LIBS=ON)")
   endif ()
-  enable_testing()
   add_subdirectory(tests)
-endif (BUILD_TESTS)
+endif ()
 
 if (BUILD_API_DOCS)
   if (NOT DOXYGEN_FOUND)
