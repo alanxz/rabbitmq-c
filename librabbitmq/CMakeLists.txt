@@ -154,9 +154,11 @@ if (BUILD_STATIC_LIBS)
         set_target_properties(rabbitmq-static PROPERTIES VERSION ${RMQ_VERSION} SOVERSION ${RMQ_SOVERSION} OUTPUT_NAME rabbitmq)
     endif (WIN32)
 
-    install(TARGETS rabbitmq-static EXPORT "${targets_export_name}"
-        ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}
-        )
+    if (INSTALL_STATIC_LIBS)
+        install(TARGETS rabbitmq-static EXPORT "${targets_export_name}"
+            ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}
+            )
+    endif (INSTALL_STATIC_LIBS)
 
     if (NOT DEFINED RMQ_LIBRARY_TARGET)
         set(RMQ_LIBRARY_TARGET rabbitmq-static)
