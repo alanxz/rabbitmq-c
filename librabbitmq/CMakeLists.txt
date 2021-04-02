@@ -1,5 +1,3 @@
-project(librabbitmq "C")
-
 if (REGENERATE_AMQP_FRAMING)
   set(AMQP_CODEGEN_PY "${CMAKE_CURRENT_BINARY_DIR}/amqp_codegen.py")
   set(CODEGEN_PY "${CMAKE_CURRENT_BINARY_DIR}/codegen.py")
