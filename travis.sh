@@ -2,14 +2,14 @@
 
 build_cmake() {
   mkdir $PWD/_build && cd $PWD/_build
-  cmake .. -DCMAKE_INSTALL_PREFIX=$PWD/../_install -DCMAKE_C_FLAGS="-Werror -Wno-implicit-fallthrough" 
+  cmake .. -DCMAKE_INSTALL_PREFIX=$PWD/../_install -DCMAKE_C_FLAGS="-Wall -Wextra -Wstrict-prototypes -Wno-unused-function -Wno-implicit-fallthrough -Werror" 
   cmake --build . --target install
   ctest -V .
 }
 
 build_macos() {
   mkdir $PWD/_build && cd $PWD/_build
-  cmake .. -DCMAKE_INSTALL_PREFIX=$PWD/../_install -DCMAKE_C_FLAGS="-Werror" \
+  cmake .. -DCMAKE_INSTALL_PREFIX=$PWD/../_install -DCMAKE_C_FLAGS="-Wall -Wextra -Wstrict-prototypes -Wno-unused-function -Werror" \
     -DOPENSSL_ROOT_DIR="/usr/local/opt/openssl@1.1"
   cmake --build . --target install
   ctest -V .
@@ -25,7 +25,7 @@ build_format() {
 build_coverage() {
   mkdir $PWD/_build && cd $PWD/_build
   cmake .. -DCMAKE_BUILD_TYPE=Coverage -DCMAKE_INSTALL_PREFIX=$PWD/../_install \
-    -DCMAKE_C_FLAGS="-Werror -fprofile-arcs -ftest-coverage"
+    -DCMAKE_C_FLAGS="-Wall -Wextra -Wstrict-prototypes -Wno-unused-function -Werror -fprofile-arcs -ftest-coverage"
   cmake --build . --target install
   ctest -V .
   
@@ -36,7 +36,7 @@ build_coverage() {
 build_asan() {
   mkdir $PWD/_build && cd $PWD/_build
   cmake .. -DCMAKE_BUILD_TYPE=Debug -DCMAKE_INSTALL_PREFIX=$PWD/../_install \
-    -DCMAKE_C_FLAGS="-Werror -fsanitize=address,undefined -O1"
+    -DCMAKE_C_FLAGS="-Wall -Wextra -Wstrict-prototypes -Wno-unused-function -Werror -fsanitize=address,undefined -O1"
   cmake --build . --target install
   ctest -V .
 }
@@ -44,7 +44,7 @@ build_asan() {
 build_tsan() {
   mkdir $PWD/_build && cd $PWD/_build
   cmake .. -DCMAKE_BUILD_TYPE=Debug -DCMAKE_INSTALL_PREFIX=$PWD/../_install \
-    -DCMAKE_C_FLAGS="-Werror -fsanitize=thread,undefined -O1"
+    -DCMAKE_C_FLAGS="-Wall -Wextra -Wstrict-prototypes -Wno-unused-function -Werror -fsanitize=thread,undefined -O1"
   cmake --build . --target install
   ctest -V .
 }
@@ -55,7 +55,7 @@ build_scan-build() {
   scan-build cmake .. -DCMAKE_BUILD_TYPE=Debug \
     -DCMAKE_C_COMPILER=clang \
     -DCMAKE_INSTALL_PREFIX=$PWD/../_install \
-    -DCMAKE_C_FLAGS="-Werror"
+    -DCMAKE_C_FLAGS="-Wall -Wextra -Wstrict-prototypes -Wno-unused-function -Werror"
   scan-build make install
 }
 
