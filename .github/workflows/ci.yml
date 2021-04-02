@@ -57,12 +57,6 @@ jobs:
     - uses: actions/checkout@v2
       with:
         submodules: true
-    - uses: actions/cache@v2
-      with:
-        path: c:\Users\runneradmin\AppData\Local\Temp\chocolatey
-        # This caches the cache, no need to make sure that this is invalidated
-        # chocolatey will do that for us.
-        key: chocolatey-cache
     - name: Install Prerequisites
       run: choco install openssl
     - name: Configure Build & Test
