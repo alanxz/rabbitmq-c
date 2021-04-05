@@ -43,19 +43,11 @@ else (REGENERATE_AMQP_FRAMING)
   set(AMQP_FRAMING_C_PATH ${CMAKE_CURRENT_SOURCE_DIR}/amqp_framing.c)
 endif (REGENERATE_AMQP_FRAMING)
 
-if(MSVC)
-  if(MSVC_VERSION LESS 1600)
-    set(MSINTTYPES_INCLUDE "${CMAKE_CURRENT_SOURCE_DIR}/win32/msinttypes")
-    set(STDINT_H_INSTALL_FILE "${CMAKE_CURRENT_SOURCE_DIR}/win32/msinttypes/stdint.h")
-  endif(MSVC_VERSION LESS 1600)
-endif(MSVC)
-
 # NOTE: order is important here: if we generate amqp_framing.h/.c it'll be in the
 # binary directory, and should shadow whats in the source directory
 set(LIBRABBITMQ_INCLUDE_DIRS
   ${CMAKE_CURRENT_BINARY_DIR}
 	${CMAKE_CURRENT_SOURCE_DIR}
-	${MSINTTYPES_INCLUDE}
 	)
 
 include_directories(${LIBRABBITMQ_INCLUDE_DIRS})
@@ -166,7 +158,6 @@ install(FILES
   ${AMQP_FRAMING_H_PATH}
   amqp_tcp_socket.h
   ${AMQP_SSL_SOCKET_H_PATH}
-  ${STDINT_H_INSTALL_FILE}
   DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}
     )
 
