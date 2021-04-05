@@ -72,3 +72,4 @@ tools/doc/man-date.ent
 .#*
 \#*#
 .venv/
+.cache/
