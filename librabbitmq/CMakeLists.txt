@@ -2,8 +2,9 @@ if (REGENERATE_AMQP_FRAMING)
   set(AMQP_CODEGEN_PY "${CMAKE_CURRENT_BINARY_DIR}/amqp_codegen.py")
   set(CODEGEN_PY "${CMAKE_CURRENT_BINARY_DIR}/codegen.py")
   set(AMQP_SPEC_JSON_PATH "${AMQP_CODEGEN_DIR}/amqp-rabbitmq-0.9.1.json")
-  set(AMQP_FRAMING_H_PATH ${CMAKE_CURRENT_BINARY_DIR}/amqp_framing.h)
+  set(AMQP_FRAMING_H_PATH ${CMAKE_CURRENT_BINARY_DIR}/rabbitmq-c/framing.h)
   set(AMQP_FRAMING_C_PATH ${CMAKE_CURRENT_BINARY_DIR}/amqp_framing.c)
+  file(MAKE_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/rabbitmq-c)
 
   if (PYTHON_VERSION_MAJOR GREATER 2)
     set(CONVERT_CODEGEN ${PYTHON_2TO3_EXECUTABLE} -w ${CODEGEN_PY} > codegen_2to3.out)
@@ -32,14 +33,14 @@ if (REGENERATE_AMQP_FRAMING)
     COMMAND ${PYTHON_EXECUTABLE} ARGS ${CODEGEN_PY} header ${AMQP_SPEC_JSON_PATH} ${AMQP_FRAMING_H_PATH}
     DEPENDS ${AMQP_SPEC_JSON_PATH} ${CODEGEN_PY} ${AMQP_CODEGEN_PY}
     VERBATIM)
-
+  
   add_custom_command(
     OUTPUT ${AMQP_FRAMING_C_PATH}
     COMMAND ${PYTHON_EXECUTABLE} ARGS ${CODEGEN_PY} body ${AMQP_SPEC_JSON_PATH} ${AMQP_FRAMING_C_PATH}
     DEPENDS ${AMQP_SPEC_JSON_PATH} ${CODEGEN_PY} ${AMQP_CODEGEN_PY}
     VERBATIM)
 else (REGENERATE_AMQP_FRAMING)
-  set(AMQP_FRAMING_H_PATH ${CMAKE_CURRENT_SOURCE_DIR}/../include/amqp_framing.h)
+  set(AMQP_FRAMING_H_PATH ${CMAKE_CURRENT_SOURCE_DIR}/../include/rabbitmq-c/framing.h)
   set(AMQP_FRAMING_C_PATH ${CMAKE_CURRENT_SOURCE_DIR}/amqp_framing.c)
 endif (REGENERATE_AMQP_FRAMING)
 
@@ -61,9 +62,12 @@ add_definitions(-DHAVE_CONFIG_H)
 
 if (ENABLE_SSL_SUPPORT)
   add_definitions(-DWITH_SSL=1)
-  set(AMQP_SSL_SOCKET_H_PATH ../include/amqp_ssl_socket.h)
+  SET(AMQP_SSL_SOCKET_SHIM_PATH ../include/amqp_ssl_socket.h)
+  set(AMQP_SSL_SOCKET_H_PATH  ../include/rabbitmq-c/ssl_socket.h)
 
-  set(AMQP_SSL_SRCS ${AMQP_SSL_SOCKET_H_PATH}
+  set(AMQP_SSL_SRCS
+      ${AMQP_SSL_SOCKET_SHIM_PATH}
+      ${AMQP_SSL_SOCKET_H_PATH}
       amqp_openssl.c
       amqp_openssl_hostname_validation.c
       amqp_openssl_hostname_validation.h
@@ -93,7 +97,9 @@ set(RABBITMQ_SOURCES
     ${AMQP_FRAMING_H_PATH}
     ${AMQP_FRAMING_C_PATH}
     ../include/amqp.h
+    ../include/rabbitmq-c/amqp.h
     ../include/amqp_tcp_socket.h
+    ../include/rabbitmq-c/tcp_socket.h
     amqp_api.c amqp_connection.c amqp_mem.c amqp_private.h amqp_socket.c
     amqp_table.c amqp_url.c amqp_socket.h amqp_tcp_socket.c
     amqp_time.c amqp_time.h
@@ -158,9 +164,17 @@ endif (BUILD_STATIC_LIBS)
 
 install(FILES
   ../include/amqp.h
-  ${AMQP_FRAMING_H_PATH}
+  ../include/amqp_framing.h
   ../include/amqp_tcp_socket.h
-  ${AMQP_SSL_SOCKET_H_PATH}
+  ${AMQP_SSL_SOCKET_SHIM_PATH}
   DESTINATION ${CMAKE_INSTALL_INCLUDEDIR})
+
+install(FILES
+  ../include/rabbitmq-c/amqp.h
+  ../include/rabbitmq-c/framing.h
+  ../include/rabbitmq-c/tcp_socket.h
+  ${AMQP_SSL_SOCKET_H_PATH}
+  DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/rabbitmq-c
+)
 
 set(RMQ_LIBRARY_TARGET ${RMQ_LIBRARY_TARGET} PARENT_SCOPE)

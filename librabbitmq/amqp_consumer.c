@@ -26,9 +26,9 @@
  * SOFTWARE.
  * ***** END LICENSE BLOCK *****
  */
-#include "amqp.h"
 #include "amqp_private.h"
 #include "amqp_socket.h"
+#include "rabbitmq-c/amqp.h"
 
 #include <stdlib.h>
 #include <string.h>

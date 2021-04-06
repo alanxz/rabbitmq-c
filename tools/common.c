@@ -39,11 +39,11 @@
 
 #include "common.h"
 #ifdef WITH_SSL
-#include <amqp_ssl_socket.h>
+#include <rabbitmq-c/ssl_socket.h>
 #endif
-#include <amqp_tcp_socket.h>
 #include <errno.h>
 #include <fcntl.h>
+#include <rabbitmq-c/tcp_socket.h>
 #include <stdarg.h>
 #include <stdio.h>
 #include <stdlib.h>

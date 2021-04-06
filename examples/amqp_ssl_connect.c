@@ -44,8 +44,8 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include <amqp.h>
-#include <amqp_ssl_socket.h>
+#include <rabbitmq-c/amqp.h>
+#include <rabbitmq-c/ssl_socket.h>
 
 #include <assert.h>
 

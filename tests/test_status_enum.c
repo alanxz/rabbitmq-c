@@ -26,7 +26,7 @@
 #include "config.h"
 #endif
 
-#include "amqp.h"
+#include <rabbitmq-c/amqp.h>
 
 #include <stdio.h>
 #include <stdlib.h>

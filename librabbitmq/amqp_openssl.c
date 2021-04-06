@@ -36,8 +36,8 @@
 #include "amqp_openssl_hostname_validation.h"
 #include "amqp_private.h"
 #include "amqp_socket.h"
-#include "amqp_ssl_socket.h"
 #include "amqp_time.h"
+#include "rabbitmq-c/ssl_socket.h"
 #include "threads.h"
 
 #include <ctype.h>

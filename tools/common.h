@@ -37,8 +37,8 @@
 
 #include <popt.h>
 
-#include <amqp.h>
-#include <amqp_framing.h>
+#include <rabbitmq-c/amqp.h>
+#include <rabbitmq-c/framing.h>
 
 extern const char *amqp_server_exception_string(amqp_rpc_reply_t r);
 extern const char *amqp_rpc_reply_string(amqp_rpc_reply_t r);

@@ -29,8 +29,8 @@
 #ifndef AMQP_TABLE_H
 #define AMQP_TABLE_H
 
-#include "amqp.h"
 #include "amqp_private.h"
+#include "rabbitmq-c/amqp.h"
 
 /**
  * Initializes a table entry with utf-8 string type value.

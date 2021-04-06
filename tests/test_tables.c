@@ -46,7 +46,7 @@
 
 #include <inttypes.h>
 
-#include <amqp.h>
+#include <rabbitmq-c/amqp.h>
 
 #include <math.h>
 

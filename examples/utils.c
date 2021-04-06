@@ -39,8 +39,8 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include <amqp.h>
-#include <amqp_framing.h>
+#include <rabbitmq-c/amqp.h>
+#include <rabbitmq-c/framing.h>
 #include <stdint.h>
 
 #include "utils.h"

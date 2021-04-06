@@ -25,7 +25,7 @@
 #endif
 
 #include "amqp_private.h"
-#include "amqp_tcp_socket.h"
+#include "rabbitmq-c/tcp_socket.h"
 
 #include <errno.h>
 #if ((defined(_WIN32)) || (defined(__MINGW32__)) || (defined(__MINGW64__)))

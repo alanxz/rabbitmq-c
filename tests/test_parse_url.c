@@ -46,7 +46,7 @@
 
 #include <inttypes.h>
 
-#include <amqp.h>
+#include <rabbitmq-c/amqp.h>
 
 static void match_string(const char *what, const char *expect,
                          const char *got) {

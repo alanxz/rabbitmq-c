@@ -44,8 +44,8 @@
   "Copyright (c) 2007-2014 VMWare Inc, Tony Garnock-Jones," \
   " and Alan Antonuk."
 
-#include "amqp.h"
-#include "amqp_framing.h"
+#include "rabbitmq-c/amqp.h"
+#include "rabbitmq-c/framing.h"
 #include <string.h>
 
 #if ((defined(_WIN32)) || (defined(__MINGW32__)) || (defined(__MINGW64__)))

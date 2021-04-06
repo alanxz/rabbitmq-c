@@ -21,7 +21,7 @@
  * DEALINGS IN THE SOFTWARE.
  */
 #include "amqp_time.h"
-#include "amqp.h"
+#include "rabbitmq-c/amqp.h"
 #include <assert.h>
 #include <limits.h>
 #include <string.h>

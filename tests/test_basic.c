@@ -22,9 +22,9 @@
  * SOFTWARE.
  */
 
-#include "amqp.h"
-#include "amqp_tcp_socket.h"
 #include "amqp_time.h"
+#include <rabbitmq-c/amqp.h>
+#include <rabbitmq-c/tcp_socket.h>
 
 #include <stdio.h>
 #include <stdlib.h>
