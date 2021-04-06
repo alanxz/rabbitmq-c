@@ -39,7 +39,7 @@ if (REGENERATE_AMQP_FRAMING)
     DEPENDS ${AMQP_SPEC_JSON_PATH} ${CODEGEN_PY} ${AMQP_CODEGEN_PY}
     VERBATIM)
 else (REGENERATE_AMQP_FRAMING)
-  set(AMQP_FRAMING_H_PATH ${CMAKE_CURRENT_SOURCE_DIR}/amqp_framing.h)
+  set(AMQP_FRAMING_H_PATH ${CMAKE_CURRENT_SOURCE_DIR}/../include/amqp_framing.h)
   set(AMQP_FRAMING_C_PATH ${CMAKE_CURRENT_SOURCE_DIR}/amqp_framing.c)
 endif (REGENERATE_AMQP_FRAMING)
 
@@ -48,19 +48,20 @@ endif (REGENERATE_AMQP_FRAMING)
 set(LIBRABBITMQ_INCLUDE_DIRS
   ${CMAKE_CURRENT_BINARY_DIR}
 	${CMAKE_CURRENT_SOURCE_DIR}
+  ${CMAKE_CURRENT_SOURCE_DIR}/../include
 	)
 
 include_directories(${LIBRABBITMQ_INCLUDE_DIRS})
 
 set(LIBRABBITMQ_INCLUDE_DIRS
-	${LIBRABBITMQ_INCLUDE_DIRS}
+	${CMAKE_CURRENT_SOURCE_DIR}/../include
 	PARENT_SCOPE)
 
 add_definitions(-DHAVE_CONFIG_H)
 
 if (ENABLE_SSL_SUPPORT)
   add_definitions(-DWITH_SSL=1)
-  set(AMQP_SSL_SOCKET_H_PATH amqp_ssl_socket.h)
+  set(AMQP_SSL_SOCKET_H_PATH ../include/amqp_ssl_socket.h)
 
   set(AMQP_SSL_SRCS ${AMQP_SSL_SOCKET_H_PATH}
       amqp_openssl.c
@@ -91,8 +92,10 @@ endif()
 set(RABBITMQ_SOURCES
     ${AMQP_FRAMING_H_PATH}
     ${AMQP_FRAMING_C_PATH}
-    amqp_api.c amqp.h amqp_connection.c amqp_mem.c amqp_private.h amqp_socket.c
-    amqp_table.c amqp_url.c amqp_socket.h amqp_tcp_socket.c amqp_tcp_socket.h
+    ../include/amqp.h
+    ../include/amqp_tcp_socket.h
+    amqp_api.c amqp_connection.c amqp_mem.c amqp_private.h amqp_socket.c
+    amqp_table.c amqp_url.c amqp_socket.h amqp_tcp_socket.c
     amqp_time.c amqp_time.h
     amqp_consumer.c
     ${AMQP_SSL_SRCS}
@@ -154,11 +157,10 @@ if (BUILD_STATIC_LIBS)
 endif (BUILD_STATIC_LIBS)
 
 install(FILES
-  amqp.h
+  ../include/amqp.h
   ${AMQP_FRAMING_H_PATH}
-  amqp_tcp_socket.h
+  ../include/amqp_tcp_socket.h
   ${AMQP_SSL_SOCKET_H_PATH}
-  DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}
-    )
+  DESTINATION ${CMAKE_INSTALL_INCLUDEDIR})
 
 set(RMQ_LIBRARY_TARGET ${RMQ_LIBRARY_TARGET} PARENT_SCOPE)

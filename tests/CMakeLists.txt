@@ -1,4 +1,7 @@
-include_directories(${LIBRABBITMQ_INCLUDE_DIRS})
+include_directories(
+  ${LIBRABBITMQ_INCLUDE_DIRS}
+  ${CMAKE_CURRENT_BINARY_DIR}/../librabbitmq/
+  ${CMAKE_CURRENT_SOURCE_DIR}/../librabbitmq/)
 
 if (MSVC)
   # No version of MSVC has inttypes.h, this uses the msinttypes
