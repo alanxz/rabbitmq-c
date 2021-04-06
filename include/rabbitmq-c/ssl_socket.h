@@ -29,6 +29,7 @@
 #define RABBITMQ_C_SSL_SOCKET_H
 
 #include <rabbitmq-c/amqp.h>
+#include <rabbitmq-c/export.h>
 
 AMQP_BEGIN_DECLS
 
@@ -54,7 +55,7 @@ AMQP_BEGIN_DECLS
  *
  * \since v0.4.0
  */
-AMQP_PUBLIC_FUNCTION
+AMQP_EXPORT
 amqp_socket_t *AMQP_CALL amqp_ssl_socket_new(amqp_connection_state_t state);
 
 /**
@@ -67,7 +68,7 @@ amqp_socket_t *AMQP_CALL amqp_ssl_socket_new(amqp_connection_state_t state);
  *
  * \since v0.9.0
  */
-AMQP_PUBLIC_FUNCTION
+AMQP_EXPORT
 void *AMQP_CALL amqp_ssl_socket_get_context(amqp_socket_t *self);
 
 /**
@@ -81,7 +82,7 @@ void *AMQP_CALL amqp_ssl_socket_get_context(amqp_socket_t *self);
  *
  * \since v0.4.0
  */
-AMQP_PUBLIC_FUNCTION
+AMQP_EXPORT
 int AMQP_CALL amqp_ssl_socket_set_cacert(amqp_socket_t *self,
                                          const char *cacert);
 
@@ -93,7 +94,7 @@ int AMQP_CALL amqp_ssl_socket_set_cacert(amqp_socket_t *self,
  *
  * \since v0.11.0
  */
-AMQP_PUBLIC_FUNCTION
+AMQP_EXPORT
 void AMQP_CALL amqp_ssl_socket_set_key_passwd(amqp_socket_t *self,
                                               const char *passwd);
 
@@ -109,7 +110,7 @@ void AMQP_CALL amqp_ssl_socket_set_key_passwd(amqp_socket_t *self,
  *
  * \since v0.4.0
  */
-AMQP_PUBLIC_FUNCTION
+AMQP_EXPORT
 int AMQP_CALL amqp_ssl_socket_set_key(amqp_socket_t *self, const char *cert,
                                       const char *key);
 
@@ -127,7 +128,7 @@ int AMQP_CALL amqp_ssl_socket_set_key(amqp_socket_t *self, const char *cert,
  *
  * \since v0.11.0
  */
-AMQP_PUBLIC_FUNCTION
+AMQP_EXPORT
 int AMQP_CALL amqp_ssl_socket_set_key_engine(amqp_socket_t *self,
                                              const char *cert, const char *key);
 
@@ -144,7 +145,7 @@ int AMQP_CALL amqp_ssl_socket_set_key_engine(amqp_socket_t *self,
  *
  * \since v0.4.0
  */
-AMQP_PUBLIC_FUNCTION
+AMQP_EXPORT
 int AMQP_CALL amqp_ssl_socket_set_key_buffer(amqp_socket_t *self,
                                              const char *cert, const void *key,
                                              size_t n);
@@ -164,8 +165,8 @@ int AMQP_CALL amqp_ssl_socket_set_key_buffer(amqp_socket_t *self,
  *
  * \since v0.4.0
  */
-AMQP_DEPRECATED(AMQP_PUBLIC_FUNCTION void AMQP_CALL amqp_ssl_socket_set_verify(
-    amqp_socket_t *self, amqp_boolean_t verify));
+AMQP_DEPRECATED_EXPORT void AMQP_CALL
+    amqp_ssl_socket_set_verify(amqp_socket_t *self, amqp_boolean_t verify);
 
 /**
  * Enable or disable peer verification.
@@ -178,7 +179,7 @@ AMQP_DEPRECATED(AMQP_PUBLIC_FUNCTION void AMQP_CALL amqp_ssl_socket_set_verify(
  *
  * \since v0.8.0
  */
-AMQP_PUBLIC_FUNCTION
+AMQP_EXPORT
 void AMQP_CALL amqp_ssl_socket_set_verify_peer(amqp_socket_t *self,
                                                amqp_boolean_t verify);
 
@@ -191,7 +192,7 @@ void AMQP_CALL amqp_ssl_socket_set_verify_peer(amqp_socket_t *self,
  *
  * \since v0.8.0
  */
-AMQP_PUBLIC_FUNCTION
+AMQP_EXPORT
 void AMQP_CALL amqp_ssl_socket_set_verify_hostname(amqp_socket_t *self,
                                                    amqp_boolean_t verify);
 
@@ -218,7 +219,7 @@ typedef enum {
  *
  * \since v0.8.0
  */
-AMQP_PUBLIC_FUNCTION
+AMQP_EXPORT
 int AMQP_CALL amqp_ssl_socket_set_ssl_versions(amqp_socket_t *self,
                                                amqp_tls_version_t min,
                                                amqp_tls_version_t max);
@@ -246,7 +247,7 @@ int AMQP_CALL amqp_ssl_socket_set_ssl_versions(amqp_socket_t *self,
  *
  * \since v0.4.0
  */
-AMQP_PUBLIC_FUNCTION
+AMQP_EXPORT
 void AMQP_CALL amqp_set_initialize_ssl_library(amqp_boolean_t do_initialize);
 
 /**
@@ -264,7 +265,7 @@ void AMQP_CALL amqp_set_initialize_ssl_library(amqp_boolean_t do_initialize);
  *
  * \since v0.9.0
  */
-AMQP_PUBLIC_FUNCTION
+AMQP_EXPORT
 int AMQP_CALL amqp_initialize_ssl_library(void);
 
 /**
@@ -280,7 +281,7 @@ int AMQP_CALL amqp_initialize_ssl_library(void);
  *
  * \since v0.11.0
  */
-AMQP_PUBLIC_FUNCTION
+AMQP_EXPORT
 int amqp_set_ssl_engine(const char *engine);
 
 /**
@@ -290,7 +291,7 @@ int amqp_set_ssl_engine(const char *engine);
  *
  * \since v0.9.0
  */
-AMQP_PUBLIC_FUNCTION
+AMQP_EXPORT
 int AMQP_CALL amqp_uninitialize_ssl_library(void);
 
 AMQP_END_DECLS

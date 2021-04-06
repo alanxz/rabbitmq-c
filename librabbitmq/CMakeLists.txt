@@ -56,6 +56,7 @@ include_directories(${LIBRABBITMQ_INCLUDE_DIRS})
 
 set(LIBRABBITMQ_INCLUDE_DIRS
 	${CMAKE_CURRENT_SOURCE_DIR}/../include
+  ${CMAKE_CURRENT_BINARY_DIR}
 	PARENT_SCOPE)
 
 add_definitions(-DHAVE_CONFIG_H)
@@ -162,6 +163,14 @@ if (BUILD_STATIC_LIBS)
     endif ()
 endif (BUILD_STATIC_LIBS)
 
+include(GenerateExportHeader)
+generate_export_header(${RMQ_LIBRARY_TARGET}
+  BASE_NAME AMQP
+  EXPORT_FILE_NAME ${CMAKE_CURRENT_BINARY_DIR}/rabbitmq-c/export.h
+  STATIC_DEFINE AMQP_STATIC
+  INCLUDE_GUARD_NAME RABBITMQ_C_EXPORT_H
+)
+
 install(FILES
   ../include/amqp.h
   ../include/amqp_framing.h
@@ -174,6 +183,7 @@ install(FILES
   ../include/rabbitmq-c/framing.h
   ../include/rabbitmq-c/tcp_socket.h
   ${AMQP_SSL_SOCKET_H_PATH}
+  ${CMAKE_CURRENT_BINARY_DIR}/rabbitmq-c/export.h
   DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/rabbitmq-c
 )
 

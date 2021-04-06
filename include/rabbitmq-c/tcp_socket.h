@@ -33,6 +33,7 @@
 #define RABBITMQ_C_TCP_SOCKET_H
 
 #include <rabbitmq-c/amqp.h>
+#include <rabbitmq-c/export.h>
 
 AMQP_BEGIN_DECLS
 
@@ -45,7 +46,7 @@ AMQP_BEGIN_DECLS
  *
  * \since v0.4.0
  */
-AMQP_PUBLIC_FUNCTION
+AMQP_EXPORT
 amqp_socket_t *AMQP_CALL amqp_tcp_socket_new(amqp_connection_state_t state);
 
 /**
@@ -60,7 +61,7 @@ amqp_socket_t *AMQP_CALL amqp_tcp_socket_new(amqp_connection_state_t state);
  *
  * \since v0.4.0
  */
-AMQP_PUBLIC_FUNCTION
+AMQP_EXPORT
 void AMQP_CALL amqp_tcp_socket_set_sockfd(amqp_socket_t *self, int sockfd);
 
 AMQP_END_DECLS

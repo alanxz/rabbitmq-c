@@ -266,8 +266,7 @@ INCLUDE_PATH           = @CMAKE_CURRENT_SOURCE_DIR@/librabbitmq \
 INCLUDE_FILE_PATTERNS  =
 PREDEFINED             = AMQP_BEGIN_DECLS= \
                          AMQP_END_DECLS= \
-                         AMQP_PUBLIC_FUNCTION= \
-                         AMQP_PUBLIC_VARIABLE= \
+                         AMQP_EXPORT= \
                          AMQP_CALL= \
                          AMQP_DEPRECATED(x)=x
 EXPAND_AS_DEFINED      =

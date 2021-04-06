@@ -263,7 +263,7 @@ def methodApiPrototype(m):
     docs += " * @returns %s_ok_t\n" % (fn)
     docs += " */\n"
 
-    return "%sAMQP_PUBLIC_FUNCTION\n%s_ok_t *\nAMQP_CALL %s(amqp_connection_state_t state, amqp_channel_t channel%s)" % (docs, fn, fn, ''.join(args))
+    return "%sAMQP_EXPORT\n%s_ok_t *\nAMQP_CALL %s(amqp_connection_state_t state, amqp_channel_t channel%s)" % (docs, fn, fn, ''.join(args))
 
 AmqpMethod.apiPrototype = methodApiPrototype
 
@@ -599,11 +599,11 @@ def genHrl(spec):
  * ***** END LICENSE BLOCK *****
  */
 
-/** @file amqp_framing.h */
-#ifndef AMQP_FRAMING_H
-#define AMQP_FRAMING_H
+/** @file rabbitmq-c/framing.h */
+#ifndef RABBITMQ_C_FRAMING_H
+#define RABBITMQ_C_FRAMING_H
 
-#include <amqp.h>
+#include <rabbitmq-c/amqp.h>
 
 AMQP_BEGIN_DECLS
 """
@@ -625,7 +625,7 @@ AMQP_BEGIN_DECLS
  * @returns string describing the constant. String is managed by
  *           the library and should not be free()'d by the program
  */
-AMQP_PUBLIC_FUNCTION
+AMQP_EXPORT
 char const *
 AMQP_CALL amqp_constant_name(int constantNumber);
 
@@ -638,7 +638,7 @@ AMQP_CALL amqp_constant_name(int constantNumber);
  * @param [in] constantNumber the error constant
  * @returns true if its a hard error, false otherwise
  */
-AMQP_PUBLIC_FUNCTION
+AMQP_EXPORT
 amqp_boolean_t
 AMQP_CALL amqp_constant_is_hard_error(int constantNumber);
 
@@ -649,7 +649,7 @@ AMQP_CALL amqp_constant_is_hard_error(int constantNumber);
  * @returns method name string. String is managed by the library
  *           and should not be freed()'d by the program
  */
-AMQP_PUBLIC_FUNCTION
+AMQP_EXPORT
 char const *
 AMQP_CALL amqp_method_name(amqp_method_number_t methodNumber);
 
@@ -662,7 +662,7 @@ AMQP_CALL amqp_method_name(amqp_method_number_t methodNumber);
  * @param [in] methodNumber the method number
  * @returns true if method has content, false otherwise
  */
-AMQP_PUBLIC_FUNCTION
+AMQP_EXPORT
 amqp_boolean_t
 AMQP_CALL amqp_method_has_content(amqp_method_number_t methodNumber);
 
@@ -675,7 +675,7 @@ AMQP_CALL amqp_method_has_content(amqp_method_number_t methodNumber);
  * @param [out] decoded pointer to the decoded method struct
  * @returns 0 on success, an error code otherwise
  */
-AMQP_PUBLIC_FUNCTION
+AMQP_EXPORT
 int
 AMQP_CALL amqp_decode_method(amqp_method_number_t methodNumber,
 		   amqp_pool_t *pool,
@@ -691,7 +691,7 @@ AMQP_CALL amqp_decode_method(amqp_method_number_t methodNumber,
  * @param [out] decoded pointer to the decoded properties struct
  * @returns 0 on success, an error code otherwise
  */
-AMQP_PUBLIC_FUNCTION
+AMQP_EXPORT
 int
 AMQP_CALL amqp_decode_properties(uint16_t class_id,
             amqp_pool_t *pool,
@@ -708,7 +708,7 @@ AMQP_CALL amqp_decode_properties(uint16_t class_id,
  *              to hold the encoded method, an error code will be returned.
  * @returns 0 on success, an error code otherwise.
  */
-AMQP_PUBLIC_FUNCTION
+AMQP_EXPORT
 int
 AMQP_CALL amqp_encode_method(amqp_method_number_t methodNumber,
 		   void *decoded,
@@ -724,7 +724,7 @@ AMQP_CALL amqp_encode_method(amqp_method_number_t methodNumber,
  *              an error code will be returned
  * @returns 0 on success, an error code otherwise.
  */
-AMQP_PUBLIC_FUNCTION
+AMQP_EXPORT
 int
 AMQP_CALL amqp_encode_properties(uint16_t class_id,
 		       void *decoded,
@@ -773,7 +773,7 @@ AMQP_CALL amqp_encode_properties(uint16_t class_id,
     print """
 AMQP_END_DECLS
 
-#endif /* AMQP_FRAMING_H */"""
+#endif /* RABBITMQ_C_FRAMING_H */"""
 
 def generateErl(specPath):
     genErl(AmqpSpec(specPath))
