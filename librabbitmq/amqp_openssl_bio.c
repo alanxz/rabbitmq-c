@@ -120,25 +120,11 @@ static int amqp_openssl_bio_read(BIO *b, char *out, int outl) {
 
   return res;
 }
-
-#ifndef AMQP_OPENSSL_V110
-static int BIO_meth_set_write(BIO_METHOD *biom,
-                              int (*wfn)(BIO *, const char *, int)) {
-  biom->bwrite = wfn;
-  return 0;
-}
-
-static int BIO_meth_set_read(BIO_METHOD *biom, int (*rfn)(BIO *, char *, int)) {
-  biom->bread = rfn;
-  return 0;
-}
-#endif /* AQP_OPENSSL_V110 */
 #endif /* AMQP_USE_AMQP_BIO */
 
 int amqp_openssl_bio_init(void) {
   assert(!amqp_ssl_bio_initialized);
 #ifdef AMQP_USE_AMQP_BIO
-#ifdef AMQP_OPENSSL_V110
   if (!(amqp_bio_method = BIO_meth_new(BIO_TYPE_SOCKET, "amqp_bio_method"))) {
     return AMQP_STATUS_NO_MEMORY;
   }
@@ -155,13 +141,7 @@ int amqp_openssl_bio_init(void) {
   BIO_meth_set_write(amqp_bio_method, BIO_meth_get_write(meth));
   BIO_meth_set_gets(amqp_bio_method, BIO_meth_get_gets(meth));
   BIO_meth_set_puts(amqp_bio_method, BIO_meth_get_puts(meth));
-#else
-  if (!(amqp_bio_method = OPENSSL_malloc(sizeof(BIO_METHOD)))) {
-    return AMQP_STATUS_NO_MEMORY;
-  }
 
-  memcpy(amqp_bio_method, BIO_s_socket(), sizeof(BIO_METHOD));
-#endif
   BIO_meth_set_write(amqp_bio_method, amqp_openssl_bio_write);
   BIO_meth_set_read(amqp_bio_method, amqp_openssl_bio_read);
 #endif
@@ -173,11 +153,7 @@ int amqp_openssl_bio_init(void) {
 void amqp_openssl_bio_destroy(void) {
   assert(amqp_ssl_bio_initialized);
 #ifdef AMQP_USE_AMQP_BIO
-#ifdef AMQP_OPENSSL_V110
   BIO_meth_free(amqp_bio_method);
-#else
-  OPENSSL_free(amqp_bio_method);
-#endif
   amqp_bio_method = NULL;
 #endif
   amqp_ssl_bio_initialized = 0;

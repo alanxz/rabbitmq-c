@@ -112,7 +112,7 @@ endif()
 option(ENABLE_SSL_SUPPORT "Enable SSL support" ON)
 
 if (ENABLE_SSL_SUPPORT)
-  find_package(OpenSSL 0.9.8 REQUIRED)
+  find_package(OpenSSL 1.1.1 REQUIRED)
 
   cmake_push_check_state()
   set(THREADS_PREFER_PTHREAD_FLAG ON)

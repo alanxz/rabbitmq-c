@@ -33,7 +33,6 @@
 #endif
 
 #include "amqp_openssl_bio.h"
-#include "amqp_openssl_hostname_validation.h"
 #include "amqp_private.h"
 #include "amqp_socket.h"
 #include "amqp_time.h"
@@ -260,7 +259,8 @@ start_connect:
       goto error_out3;
     }
 
-    if (AMQP_HVR_MATCH_FOUND != amqp_ssl_validate_hostname(host, cert)) {
+    if (1 != X509_check_host(cert, host, 0,
+                             X509_CHECK_FLAG_NO_PARTIAL_WILDCARDS, NULL)) {
       self->internal_error = 0;
       status = AMQP_STATUS_SSL_HOSTNAME_VERIFY_FAILED;
       goto error_out4;
@@ -637,14 +637,10 @@ static int setup_openssl(void) {
   CRYPTO_set_id_callback(ssl_threadid_callback);
   CRYPTO_set_locking_callback(ssl_locking_callback);
 
-#ifdef AMQP_OPENSSL_V110
   if (OPENSSL_init_ssl(0, NULL) <= 0) {
     status = AMQP_STATUS_SSL_ERROR;
     goto out;
   }
-#else
-  OPENSSL_config(NULL);
-#endif
   SSL_library_init();
   SSL_load_error_strings();
 
@@ -757,10 +753,6 @@ int amqp_uninitialize_ssl_library(void) {
 
   amqp_openssl_bio_destroy();
   openssl_bio_initialized = 0;
-
-#ifndef AMQP_OPENSSL_V110
-  ERR_remove_state(0);
-#endif
 
   CRYPTO_set_locking_callback(NULL);
   CRYPTO_set_id_callback(NULL);

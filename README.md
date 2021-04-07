@@ -37,7 +37,7 @@ API documentation for v0.8.0+ can viewed from:
 - [CMake v2.6 or better](http://www.cmake.org/)
 - A C compiler (GCC 4.4+, clang, and MSVC are test. Other compilers may also
   work)
-- *Optionally* [OpenSSL](http://www.openssl.org/) v0.9.8+ to enable support for
+- *Optionally* [OpenSSL](http://www.openssl.org/) v1.1.1+ to enable support for
   connecting to RabbitMQ over SSL/TLS
 - *Optionally* [POpt](http://freecode.com/projects/popt) to build some handy
   command-line tools.
@@ -74,7 +74,7 @@ Other interesting flags that can be passed to CMake:
    ON by default.
 * `BUILD_STATIC_LIBS=ON/OFF` toggles building rabbitmq-c as a static library.
    OFF by default.
-* `BUILD_TESTS=ON/OFF` toggles building test code. ON by default.
+* `BUILD_TESTING=ON/OFF` toggles building test code. ON by default.
 * `BUILD_TOOLS=ON/OFF` toggles building the command line tools. By default
    this is ON if the build system can find the POpt header and library.
 * `BUILD_TOOLS_DOCS=ON/OFF` toggles building the man pages for the command line

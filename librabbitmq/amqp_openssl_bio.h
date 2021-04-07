@@ -29,15 +29,7 @@ int amqp_openssl_bio_init(void);
 
 void amqp_openssl_bio_destroy(void);
 
-#if (OPENSSL_VERSION_NUMBER >= 0x10100000L)
-#define AMQP_OPENSSL_V110
-#endif
-
-#ifdef AMQP_OPENSSL_V110
 typedef const BIO_METHOD *BIO_METHOD_PTR;
-#else
-typedef BIO_METHOD *BIO_METHOD_PTR;
-#endif
 
 BIO_METHOD_PTR amqp_openssl_bio(void);
 
