@@ -200,6 +200,7 @@ typedef enum {
   AMQP_TLSv1 = 1,
   AMQP_TLSv1_1 = 2,
   AMQP_TLSv1_2 = 3,
+  AMQP_TLSv1_3 = 4,
   AMQP_TLSvLATEST = 0xFFFF
 } amqp_tls_version_t;
 

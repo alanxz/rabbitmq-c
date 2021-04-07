@@ -359,6 +359,8 @@ amqp_socket_t *amqp_ssl_socket_new(amqp_connection_state_t state) {
   }
   /* Disable SSLv2 and SSLv3 */
   SSL_CTX_set_options(self->ctx, SSL_OP_NO_SSLv2 | SSL_OP_NO_SSLv3);
+  amqp_ssl_socket_set_ssl_versions((amqp_socket_t *)self, AMQP_TLSv1_2,
+                                   AMQP_TLSvLATEST);
 
   SSL_CTX_set_mode(self->ctx, SSL_MODE_ENABLE_PARTIAL_WRITE);
   /* OpenSSL v1.1.1 turns this on by default, which makes the non-blocking
@@ -544,17 +546,15 @@ int amqp_ssl_socket_set_ssl_versions(amqp_socket_t *base,
   {
     long clear_options;
     long set_options = 0;
-#if defined(SSL_OP_NO_TLSv1_2)
+#if defined(SSL_OP_NO_TLSv1_3)
+    amqp_tls_version_t max_supported = AMQP_TLSv1_3;
+    clear_options = SSL_OP_NO_TLSv1 | SSL_OP_NO_TLSv1_1 | SSL_OP_NO_TLSv1_2 |
+                    SSL_OP_NO_TLSv1_3;
+#elif defined(SSL_OP_NO_TLSv1_2)
     amqp_tls_version_t max_supported = AMQP_TLSv1_2;
     clear_options = SSL_OP_NO_TLSv1 | SSL_OP_NO_TLSv1_1 | SSL_OP_NO_TLSv1_2;
-#elif defined(SSL_OP_NO_TLSv1_1)
-    amqp_tls_version_t max_supported = AMQP_TLSv1_1;
-    clear_options = SSL_OP_NO_TLSv1 | SSL_OP_NO_TLSv1_1;
-#elif defined(SSL_OP_NO_TLSv1)
-    amqp_tls_version_t max_supported = AMQP_TLSv1;
-    clear_options = SSL_OP_NO_TLSv1;
 #else
-#error "Need a version of OpenSSL that can support TLSv1 or greater."
+#error "Need a version of OpenSSL that can support TLSv1.2 or greater."
 #endif
 
     if (AMQP_TLSvLATEST == max) {
@@ -583,6 +583,11 @@ int amqp_ssl_socket_set_ssl_versions(amqp_socket_t *base,
 #ifdef SSL_OP_NO_TLSv1_2
     if (max < AMQP_TLSv1_2) {
       set_options |= SSL_OP_NO_TLSv1_2;
+    }
+#endif
+#ifdef SSL_OP_NO_TLSv1_3
+    if (max < AMQP_TLSv1_3) {
+      set_options |= SSL_OP_NO_TLSv1_3;
     }
 #endif
     SSL_CTX_clear_options(self->ctx, clear_options);
