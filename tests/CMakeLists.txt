@@ -22,11 +22,6 @@ target_link_libraries(test_tables rabbitmq-static)
 add_test(tables test_tables)
 configure_file(test_tables.expected ${CMAKE_CURRENT_BINARY_DIR}/tests/test_tables.expected COPYONLY)
 
-add_executable(test_hostcheck
-               test_hostcheck.c
-               ../librabbitmq/amqp_hostcheck.c)
-add_test(hostcheck test_hostcheck)
-
 add_executable(test_status_enum
                test_status_enum.c)
 target_link_libraries(test_status_enum rabbitmq-static)

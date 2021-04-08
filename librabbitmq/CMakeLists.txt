@@ -70,8 +70,6 @@ if (ENABLE_SSL_SUPPORT)
       ${AMQP_SSL_SOCKET_SHIM_PATH}
       ${AMQP_SSL_SOCKET_H_PATH}
       amqp_openssl.c
-      amqp_hostcheck.c
-      amqp_hostcheck.h
       amqp_openssl_bio.c
       amqp_openssl_bio.h
   )
