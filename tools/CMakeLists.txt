@@ -64,6 +64,7 @@ if (BUILD_TOOLS_DOCS)
       install(
         FILES ${file}
         DESTINATION ${CMAKE_INSTALL_MANDIR}/man${fileExt}
+        COMPONENT rabbitmq-c-tool-docs
         )
     endforeach()
 
@@ -77,7 +78,5 @@ if (ENABLE_SSL_SUPPORT)
 endif()
 
 install(TARGETS amqp-publish amqp-get amqp-consume amqp-declare-queue amqp-delete-queue
-	RUNTIME DESTINATION bin
-	LIBRARY DESTINATION lib
-	ARCHIVE DESTINATION lib
-	PUBLIC_HEADER DESTINATION include)
+	RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
+          COMPONENT rabbitmq-c-tools)

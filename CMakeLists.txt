@@ -332,11 +332,13 @@ export(TARGETS ${INSTALL_TARGETS}
 
 install(FILES ${project_config} ${version_config}
     DESTINATION ${RMQ_CMAKE_DIR}
+    COMPONENT rabbitmq-c-development
     )
 
 install(EXPORT ${targets_export_name} 
     DESTINATION ${RMQ_CMAKE_DIR}
     NAMESPACE rabbitmq::
+    COMPONENT rabbitmq-c-development
     )
 
 install(FILES

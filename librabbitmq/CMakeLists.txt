@@ -121,8 +121,12 @@ if (BUILD_SHARED_LIBS)
 
     install(TARGETS rabbitmq EXPORT "${targets_export_name}"
         RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
+                COMPONENT rabbitmq-c-runtime
         LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
+                COMPONENT rabbitmq-c-runtime
+                NAMELINK_COMPONENT runtime-c-development
         ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}
+                COMPONENT rabbitmq-c-development
         )
 
     set(RMQ_LIBRARY_TARGET rabbitmq)
@@ -152,6 +156,7 @@ if (BUILD_STATIC_LIBS)
 
     install(TARGETS rabbitmq-static EXPORT "${targets_export_name}"
         ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}
+                COMPONENT rabbitmq-c-development
         )
 
     if (NOT DEFINED RMQ_LIBRARY_TARGET)
@@ -172,7 +177,9 @@ install(FILES
   ../include/amqp_framing.h
   ../include/amqp_tcp_socket.h
   ${AMQP_SSL_SOCKET_SHIM_PATH}
-  DESTINATION ${CMAKE_INSTALL_INCLUDEDIR})
+  DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}
+  COMPONENT rabbitmq-c-development
+)
 
 install(FILES
   ../include/rabbitmq-c/amqp.h
@@ -181,6 +188,7 @@ install(FILES
   ${AMQP_SSL_SOCKET_H_PATH}
   ${CMAKE_CURRENT_BINARY_DIR}/rabbitmq-c/export.h
   DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/rabbitmq-c
+  COMPONENT rabbitmq-c-development
 )
 
 set(RMQ_LIBRARY_TARGET ${RMQ_LIBRARY_TARGET} PARENT_SCOPE)
