@@ -109,6 +109,10 @@ add_definitions(-DAMQP_BUILD)
 set(RMQ_LIBRARIES ${AMQP_SSL_LIBS} ${SOCKET_LIBRARIES} ${LIBRT} ${CMAKE_THREAD_LIBS_INIT})
 
 if (BUILD_SHARED_LIBS)
+    if (NOT APPLE)
+      set(CMAKE_INSTALL_RPATH $ORIGIN)
+    endif()
+
     add_library(rabbitmq SHARED ${RABBITMQ_SOURCES})
 
     target_link_libraries(rabbitmq ${RMQ_LIBRARIES})
