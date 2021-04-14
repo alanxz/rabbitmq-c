@@ -16,6 +16,18 @@ set(COMMON_SRCS
     ${PLATFORM_DIR}/platform_utils.c
     )
 
+add_executable(send send.c ${COMMON_SRCS})
+target_link_libraries(send ${RMQ_LIBRARY_TARGET})
+
+add_executable(receive receive.c ${COMMON_SRCS})
+target_link_libraries(receive ${RMQ_LIBRARY_TARGET})
+
+add_executable(new_task new_task.c ${COMMON_SRCS})
+target_link_libraries(new_task ${RMQ_LIBRARY_TARGET})
+
+add_executable(worker worker.c ${COMMON_SRCS})
+target_link_libraries(worker ${RMQ_LIBRARY_TARGET})
+
 add_executable(amqp_sendstring amqp_sendstring.c ${COMMON_SRCS})
 target_link_libraries(amqp_sendstring ${RMQ_LIBRARY_TARGET})
 
