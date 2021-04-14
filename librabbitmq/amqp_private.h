@@ -85,10 +85,6 @@
 
 char *amqp_os_error_string(int err);
 
-#ifdef WITH_SSL
-char *amqp_ssl_error_string(int err);
-#endif
-
 #include "amqp_socket.h"
 #include "amqp_time.h"
 

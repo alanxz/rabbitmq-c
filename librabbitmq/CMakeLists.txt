@@ -62,7 +62,6 @@ set(LIBRABBITMQ_INCLUDE_DIRS
 add_definitions(-DHAVE_CONFIG_H)
 
 if (ENABLE_SSL_SUPPORT)
-  add_definitions(-DWITH_SSL=1)
   SET(AMQP_SSL_SOCKET_SHIM_PATH ../include/amqp_ssl_socket.h)
   set(AMQP_SSL_SOCKET_H_PATH  ../include/rabbitmq-c/ssl_socket.h)
 
