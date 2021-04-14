@@ -34,7 +34,7 @@ API documentation for v0.8.0+ can viewed from:
 ### Building and installing
 
 #### Prereqs:
-- [CMake v2.6 or better](http://www.cmake.org/)
+- [CMake v3.12 or better](http://www.cmake.org/)
 - A C compiler (GCC 4.4+, clang, and MSVC are test. Other compilers may also
   work)
 - *Optionally* [OpenSSL](http://www.openssl.org/) v1.1.1+ to enable support for
