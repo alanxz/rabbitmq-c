@@ -2,7 +2,7 @@ if (REGENERATE_AMQP_FRAMING)
   set(AMQP_CODEGEN_PY "${CMAKE_CURRENT_BINARY_DIR}/amqp_codegen.py")
   set(CODEGEN_PY "${CMAKE_CURRENT_BINARY_DIR}/codegen.py")
   set(AMQP_SPEC_JSON_PATH "${AMQP_CODEGEN_DIR}/amqp-rabbitmq-0.9.1.json")
-  set(AMQP_FRAMING_H_PATH ${CMAKE_CURRENT_BINARY_DIR}/rabbitmq-c/framing.h)
+  set(AMQP_FRAMING_H_PATH ${CMAKE_CURRENT_BINARY_DIR}/../include/rabbitmq-c/framing.h)
   set(AMQP_FRAMING_C_PATH ${CMAKE_CURRENT_BINARY_DIR}/amqp_framing.c)
   file(MAKE_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/rabbitmq-c)
 
@@ -44,35 +44,16 @@ else (REGENERATE_AMQP_FRAMING)
   set(AMQP_FRAMING_C_PATH ${CMAKE_CURRENT_SOURCE_DIR}/amqp_framing.c)
 endif (REGENERATE_AMQP_FRAMING)
 
-# NOTE: order is important here: if we generate amqp_framing.h/.c it'll be in the
-# binary directory, and should shadow whats in the source directory
-set(LIBRABBITMQ_INCLUDE_DIRS
-  ${CMAKE_CURRENT_BINARY_DIR}
-	${CMAKE_CURRENT_SOURCE_DIR}
-  ${CMAKE_CURRENT_SOURCE_DIR}/../include
-	)
-
-include_directories(${LIBRABBITMQ_INCLUDE_DIRS})
-
-set(LIBRABBITMQ_INCLUDE_DIRS
-	${CMAKE_CURRENT_SOURCE_DIR}/../include
-  ${CMAKE_CURRENT_BINARY_DIR}
-	PARENT_SCOPE)
-
-add_definitions(-DHAVE_CONFIG_H)
-
 if (ENABLE_SSL_SUPPORT)
-  SET(AMQP_SSL_SOCKET_SHIM_PATH ../include/amqp_ssl_socket.h)
-  set(AMQP_SSL_SOCKET_H_PATH  ../include/rabbitmq-c/ssl_socket.h)
+  SET(AMQP_SSL_SOCKET_SHIM_PATH ${CMAKE_CURRENT_SOURCE_DIR}/../include/amqp_ssl_socket.h)
+  set(AMQP_SSL_SOCKET_H_PATH ${CMAKE_CURRENT_SOURCE_DIR}/../include/rabbitmq-c/ssl_socket.h)
 
   set(AMQP_SSL_SRCS
-      ${AMQP_SSL_SOCKET_SHIM_PATH}
-      ${AMQP_SSL_SOCKET_H_PATH}
       amqp_openssl.c
       amqp_openssl_bio.c
       amqp_openssl_bio.h
   )
-  include_directories(${OPENSSL_INCLUDE_DIR})
+  set(SSL_INCLUDE_DIRS ${OPENSSL_INCLUDE_DIR})
   set(AMQP_SSL_LIBS ${OPENSSL_LIBRARIES})
   if (APPLE)
     # Apple has deprecated OpenSSL in 10.7+. This disables that warning.
@@ -82,93 +63,140 @@ if (ENABLE_SSL_SUPPORT)
 
   if (WIN32 AND NOT CMAKE_USE_PTHREADS_INIT)
     set(AMQP_SSL_SRCS ${AMQP_SSL_SRCS} win32/threads.h win32/threads.c)
-    include_directories(win32)
+    set(SSL_INCLUDE_DIRS ${SSL_INCLUDE_DIRS} win32)
   else()
     set(AMQP_SSL_SRCS ${AMQP_SSL_SRCS} unix/threads.h)
-    include_directories(unix)
+    set(SSL_INCLUDE_DIRS ${SSL_INCLUDE_DIRS} unix)
   endif()
 endif()
 
-set(RABBITMQ_SOURCES
-    ${AMQP_FRAMING_H_PATH}
-    ${AMQP_FRAMING_C_PATH}
-    ../include/amqp.h
-    ../include/rabbitmq-c/amqp.h
-    ../include/amqp_tcp_socket.h
-    ../include/rabbitmq-c/tcp_socket.h
-    amqp_api.c amqp_connection.c amqp_mem.c amqp_private.h amqp_socket.c
-    amqp_table.c amqp_url.c amqp_socket.h amqp_tcp_socket.c
-    amqp_time.c amqp_time.h
-    amqp_consumer.c
-    ${AMQP_SSL_SRCS}
+set(PUBLIC_INCLUDE_DIRS
+  $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}/../include>
+  $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../include>
+  $<INSTALL_INTERFACE:include>
+)
+
+set(PRIVATE_INCLUDE_DIRS
+  ${CMAKE_CURRENT_BINARY_DIR}
+  ${SSL_INCLUDE_DIRS}
+)
+
+set(LIBRABBITMQ_INCLUDE_DIRS ${PUBLIC_INCLUDE_DIRS} PARENT_SCOPE)
+
+set(RMQ_SOURCES
+  ../include/amqp.h
+  ../include/amqp_framing.h
+  ${AMQP_SSL_SOCKET_SHIM_PATH}
+  ../include/amqp_tcp_socket.h
+  ../include/rabbitmq-c/amqp.h
+  ${AMQP_FRAMING_H_PATH}
+  ${AMQP_SSL_SOCKET_H_PATH}
+  ../include/rabbitmq-c/tcp_socket.h
+  amqp_api.c
+  amqp_connection.c
+  amqp_consumer.c
+  ${AMQP_FRAMING_C_PATH}
+  amqp_mem.c
+  ${AMQP_SSL_SRCS}
+  amqp_private.h
+  amqp_socket.c
+  amqp_socket.h
+  amqp_table.c
+  amqp_table.h
+  amqp_tcp_socket.c
+  amqp_time.c
+  amqp_time.h
+  amqp_url.c
 )
 
 set(RMQ_LIBRARIES ${AMQP_SSL_LIBS} ${SOCKET_LIBRARIES} ${LIBRT} ${CMAKE_THREAD_LIBS_INIT})
 
-if (BUILD_SHARED_LIBS)
-    if (NOT APPLE)
-      set(CMAKE_INSTALL_RPATH $ORIGIN)
-    endif()
+if(BUILD_SHARED_LIBS)
+  if (NOT APPLE)
+    set(CMAKE_INSTALL_RPATH $ORIGIN)
+  endif()
 
-    add_library(rabbitmq SHARED ${RABBITMQ_SOURCES})
+  add_library(rabbitmq SHARED)
 
-    target_link_libraries(rabbitmq ${RMQ_LIBRARIES})
+  target_sources(rabbitmq PRIVATE ${RMQ_SOURCES})
 
-    if (WIN32)
-        set_target_properties(rabbitmq PROPERTIES VERSION ${RMQ_VERSION} OUTPUT_NAME rabbitmq.${RMQ_SOVERSION})
-    else (WIN32)
-        set_target_properties(rabbitmq PROPERTIES VERSION ${RMQ_VERSION} SOVERSION ${RMQ_SOVERSION})
-    endif (WIN32)
+  target_include_directories(rabbitmq
+    PUBLIC ${PUBLIC_INCLUDE_DIRS}
+    PRIVATE ${PRIVATE_INCLUDE_DIRS}
+  )
 
-    install(TARGETS rabbitmq EXPORT "${targets_export_name}"
-        RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
-                COMPONENT rabbitmq-c-runtime
-        LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
-                COMPONENT rabbitmq-c-runtime
-                NAMELINK_COMPONENT runtime-c-development
-        ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}
-                COMPONENT rabbitmq-c-development
-        )
+  target_compile_definitions(rabbitmq PRIVATE -DHAVE_CONFIG_H)
 
-    set(RMQ_LIBRARY_TARGET rabbitmq)
-endif (BUILD_SHARED_LIBS)
+  target_link_libraries(rabbitmq PRIVATE ${RMQ_LIBRARIES})
 
-if (BUILD_STATIC_LIBS)
-    add_library(rabbitmq-static STATIC ${RABBITMQ_SOURCES})
+  set_target_properties(rabbitmq PROPERTIES
+    VERSION ${RMQ_VERSION}
+    SOVERSION ${RMQ_SOVERSION}
+  )
 
-    target_link_libraries(rabbitmq-static ${RMQ_LIBRARIES})
+  if (WIN32)
+    set_target_properties(rabbitmq PROPERTIES OUTPUT_NAME rabbitmq.${RMQ_SOVERSION})
+  endif()
 
-    set_target_properties(rabbitmq-static PROPERTIES COMPILE_DEFINITIONS AMQP_STATIC)
-    if (WIN32)
-        set_target_properties(rabbitmq-static PROPERTIES
-          VERSION ${RMQ_VERSION}
-          OUTPUT_NAME librabbitmq.${RMQ_SOVERSION})
+  install(TARGETS rabbitmq EXPORT "${targets_export_name}"
+    RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
+            COMPONENT rabbitmq-c-runtime
+    LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
+            COMPONENT rabbitmq-c-runtime
+            NAMELINK_COMPONENT runtime-c-development
+    ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}
+            COMPONENT rabbitmq-c-development
+  )
 
-        if(MSVC)
-            set_target_properties(rabbitmq-static PROPERTIES
-            # Embed debugging info in the library itself instead of generating
-            # a .pdb file.
-            COMPILE_OPTIONS "/Z7")
-        endif(MSVC)
+  set(RMQ_LIBRARY_TARGET rabbitmq)
+endif()
 
-    else (WIN32)
-        set_target_properties(rabbitmq-static PROPERTIES VERSION ${RMQ_VERSION} SOVERSION ${RMQ_SOVERSION} OUTPUT_NAME rabbitmq)
-    endif (WIN32)
+if(BUILD_STATIC_LIBS)
+  add_library(rabbitmq-static STATIC)
 
-    install(TARGETS rabbitmq-static EXPORT "${targets_export_name}"
-        ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}
-                COMPONENT rabbitmq-c-development
-        )
+  target_sources(rabbitmq-static PRIVATE ${RMQ_SOURCES})
 
-    if (NOT DEFINED RMQ_LIBRARY_TARGET)
-        set(RMQ_LIBRARY_TARGET rabbitmq-static)
-    endif ()
-endif (BUILD_STATIC_LIBS)
+  target_include_directories(rabbitmq-static
+    PUBLIC ${PUBLIC_INCLUDE_DIRS}
+    PRIVATE ${PRIVATE_INCLUDE_DIRS}
+  )
+
+  target_compile_definitions(rabbitmq-static
+    PUBLIC -DAMQP_STATIC
+    PRIVATE -DHAVE_CONFIG_H
+  )
+
+  target_link_libraries(rabbitmq-static PRIVATE ${RMQ_LIBRARIES})
+
+  set_target_properties(rabbitmq-static PROPERTIES
+    VERSION ${RMQ_VERSION}
+    SOVERSION ${RMQ_SOVERSION})
+
+  if (WIN32)
+    set_target_properties(rabbitmq-static PROPERTIES OUTPUT_NAME librabbitmq.${RMQ_SOVERSION})
+  else()
+    set_target_properties(rabbitmq-static PROPERTIES OUTPUT_NAME rabbitmq)
+  endif()
+
+  if(MSVC)
+    # Embed debugging info in the library itself instead of generating a .pdb file.
+    set_target_properties(rabbitmq-static PROPERTIES COMPILE_OPTIONS "/Z7")
+  endif()
+
+  install(TARGETS rabbitmq-static EXPORT "${targets_export_name}"
+    ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}
+            COMPONENT rabbitmq-c-development
+  )
+
+  if (NOT DEFINED RMQ_LIBRARY_TARGET)
+    set(RMQ_LIBRARY_TARGET rabbitmq-static)
+  endif ()
+endif()
 
 include(GenerateExportHeader)
 generate_export_header(${RMQ_LIBRARY_TARGET}
   BASE_NAME AMQP
-  EXPORT_FILE_NAME ${CMAKE_CURRENT_BINARY_DIR}/rabbitmq-c/export.h
+  EXPORT_FILE_NAME ${CMAKE_CURRENT_BINARY_DIR}/../include/rabbitmq-c/export.h
   STATIC_DEFINE AMQP_STATIC
   INCLUDE_GUARD_NAME RABBITMQ_C_EXPORT_H
 )
@@ -187,7 +215,7 @@ install(FILES
   ../include/rabbitmq-c/framing.h
   ../include/rabbitmq-c/tcp_socket.h
   ${AMQP_SSL_SOCKET_H_PATH}
-  ${CMAKE_CURRENT_BINARY_DIR}/rabbitmq-c/export.h
+  ${CMAKE_CURRENT_BINARY_DIR}/../include/rabbitmq-c/export.h
   DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/rabbitmq-c
   COMPONENT rabbitmq-c-development
 )
