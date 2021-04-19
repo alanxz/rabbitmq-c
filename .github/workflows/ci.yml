@@ -35,7 +35,7 @@ jobs:
         submodules: true
     - name: Install Prerequisites
       shell: bash
-      run: sudo apt install -y ninja-build
+      run: sudo apt install -y ninja-build libpopt-dev
 
     - name: Configure Build & Test
       shell: bash
@@ -51,7 +51,7 @@ jobs:
         submodules: true
     - name: Install Prerequisites
       shell: bash
-      run: brew install ninja
+      run: brew install ninja popt
     
     - name: Configure Build & Test
       shell: bash
