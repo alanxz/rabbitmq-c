@@ -1,36 +1,44 @@
-include_directories(${CMAKE_CURRENT_SOURCE_DIR} ${LIBRABBITMQ_INCLUDE_DIRS} ${POPT_INCLUDE_DIR})
 
-if (WIN32)
-    set(PLATFORM_DIR win32)
-    set(PLATFORM_SRCS
-        win32/compat.c
-        )
-else (WIN32)
-    set(PLATFORM_DIR unix)
-endif (WIN32)
+if(WIN32)
+  set(PLATFORM_DIR win32)
+else()
+  set(PLATFORM_DIR unix)
+endif()
 
-include_directories(${PLATFORM_DIR})
+add_library(tools-common OBJECT)
+target_sources(tools-common PRIVATE
+  common.h
+  common.c)
+if(WIN32)
+  target_sources(tools-common PRIVATE 
+  win32/compat.h
+  win32/compat.c)
+endif()
+if(ENABLE_SSL_SUPPORT)
+  target_compile_definitions(tools-common PRIVATE -DWITH_SSL=1)
+endif()
+target_include_directories(tools-common PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
+target_link_libraries(tools-common PRIVATE rabbitmq::rabbitmq)
 
-set(COMMON_SRCS
-    common.h
-    common.c
-    ${PLATFORM_SRCS}
-    )
+add_executable(amqp-publish publish.c)
+target_link_libraries(amqp-publish PRIVATE tools-common rabbitmq::rabbitmq popt::popt)
 
-add_executable(amqp-publish publish.c ${COMMON_SRCS})
-target_link_libraries(amqp-publish ${RMQ_LIBRARY_TARGET} ${POPT_LIBRARY})
+add_executable(amqp-get get.c)
+target_link_libraries(amqp-get PRIVATE tools-common rabbitmq::rabbitmq popt::popt)
 
-add_executable(amqp-get get.c ${COMMON_SRCS})
-target_link_libraries(amqp-get ${RMQ_LIBRARY_TARGET} ${POPT_LIBRARY})
+add_executable(amqp-consume consume.c ${PLATFORM_DIR}/process.h ${PLATFORM_DIR}/process.c)
+target_include_directories(amqp-consume PRIVATE ${CMAKE_CURRENT_SOURCE_DIR} ${CMAKE_CURRENT_SOURCE_DIR}/${PLATFORM_DIR})
+target_link_libraries(amqp-consume PRIVATE tools-common rabbitmq::rabbitmq popt::popt)
 
-add_executable(amqp-consume consume.c ${PLATFORM_DIR}/process.c ${COMMON_SRCS})
-target_link_libraries(amqp-consume ${RMQ_LIBRARY_TARGET} ${POPT_LIBRARY})
+add_executable(amqp-declare-queue declare_queue.c)
+target_link_libraries(amqp-declare-queue PRIVATE tools-common rabbitmq::rabbitmq popt::popt)
 
-add_executable(amqp-declare-queue declare_queue.c ${COMMON_SRCS})
-target_link_libraries(amqp-declare-queue ${RMQ_LIBRARY_TARGET} ${POPT_LIBRARY})
+add_executable(amqp-delete-queue delete_queue.c)
+target_link_libraries(amqp-delete-queue PRIVATE tools-common rabbitmq::rabbitmq popt::popt)
 
-add_executable(amqp-delete-queue delete_queue.c ${COMMON_SRCS})
-target_link_libraries(amqp-delete-queue ${RMQ_LIBRARY_TARGET} ${POPT_LIBRARY})
+install(TARGETS amqp-publish amqp-get amqp-consume amqp-declare-queue amqp-delete-queue
+	RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
+          COMPONENT rabbitmq-c-tools)
 
 if (BUILD_TOOLS_DOCS)
   if (XMLTO_FOUND)
@@ -72,11 +80,3 @@ if (BUILD_TOOLS_DOCS)
     message(WARNING "xmlto not found, will not build tools documentation")
   endif(XMLTO_FOUND)
 endif()
-
-if (ENABLE_SSL_SUPPORT)
-  add_definitions(-DWITH_SSL=1)
-endif()
-
-install(TARGETS amqp-publish amqp-get amqp-consume amqp-declare-queue amqp-delete-queue
-	RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
-          COMPONENT rabbitmq-c-tools)
