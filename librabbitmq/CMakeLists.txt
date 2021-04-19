@@ -80,8 +80,6 @@ set(PRIVATE_INCLUDE_DIRS
   ${SSL_INCLUDE_DIRS}
 )
 
-set(LIBRABBITMQ_INCLUDE_DIRS ${PUBLIC_INCLUDE_DIRS} PARENT_SCOPE)
-
 set(RMQ_SOURCES
   ../include/amqp.h
   ../include/amqp_framing.h
@@ -148,8 +146,6 @@ if(BUILD_SHARED_LIBS)
   )
 
   add_library(rabbitmq::rabbitmq ALIAS rabbitmq)
-
-  set(RMQ_LIBRARY_TARGET rabbitmq)
 endif()
 
 if(BUILD_STATIC_LIBS)
@@ -190,14 +186,10 @@ if(BUILD_STATIC_LIBS)
   )
 
   add_library(rabbitmq::rabbitmq-static ALIAS rabbitmq-static)
-
-  if (NOT DEFINED RMQ_LIBRARY_TARGET)
-    set(RMQ_LIBRARY_TARGET rabbitmq-static)
-  endif ()
 endif()
 
 include(GenerateExportHeader)
-generate_export_header(${RMQ_LIBRARY_TARGET}
+generate_export_header(rabbitmq
   BASE_NAME AMQP
   EXPORT_FILE_NAME ${CMAKE_CURRENT_BINARY_DIR}/../include/rabbitmq-c/export.h
   STATIC_DEFINE AMQP_STATIC
