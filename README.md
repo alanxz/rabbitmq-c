@@ -1,6 +1,6 @@
 # RabbitMQ C AMQP client library
 
-[![Build Status](https://secure.travis-ci.org/alanxz/rabbitmq-c.png?branch=master)](http://travis-ci.org/alanxz/rabbitmq-c)
+![Build Status](https://github.com/alanxz/rabbitmq-c/actions/workflows/ci.yml/badge.svg)
 
 [![Coverage Status](https://coveralls.io/repos/github/alanxz/rabbitmq-c/badge.svg?branch=master)](https://coveralls.io/github/alanxz/rabbitmq-c?branch=master)
 
