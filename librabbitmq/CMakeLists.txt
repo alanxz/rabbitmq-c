@@ -148,6 +148,8 @@ if(BUILD_SHARED_LIBS)
             COMPONENT rabbitmq-c-development
   )
 
+  add_library(rabbitmq::rabbitmq ALIAS rabbitmq)
+
   set(RMQ_LIBRARY_TARGET rabbitmq)
 endif()
 
@@ -187,6 +189,8 @@ if(BUILD_STATIC_LIBS)
     ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}
             COMPONENT rabbitmq-c-development
   )
+
+  add_library(rabbitmq::rabbitmq-static ALIAS rabbitmq-static)
 
   if (NOT DEFINED RMQ_LIBRARY_TARGET)
     set(RMQ_LIBRARY_TARGET rabbitmq-static)
