@@ -41,42 +41,37 @@ install(TARGETS amqp-publish amqp-get amqp-consume amqp-declare-queue amqp-delet
           COMPONENT rabbitmq-c-tools)
 
 if (BUILD_TOOLS_DOCS)
-  if (XMLTO_FOUND)
-    set(DOCS_SRCS
-      doc/amqp-consume.xml
-      doc/amqp-declare-queue.xml
-      doc/amqp-delete-queue.xml
-      doc/amqp-get.xml
-      doc/amqp-publish.xml
-      doc/librabbitmq-tools.xml
+  set(DOCS_SRCS
+    doc/amqp-consume.xml
+    doc/amqp-declare-queue.xml
+    doc/amqp-delete-queue.xml
+    doc/amqp-get.xml
+    doc/amqp-publish.xml
+    doc/librabbitmq-tools.xml
+    )
+
+  file(MAKE_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/doc)
+  set(XMLTO_DEPENDS ${CMAKE_CURRENT_BINARY_DIR}/doc/man-date.ent)
+  STRING(TIMESTAMP BUILD_DATE "%Y-%m-%d" UTC)
+  add_custom_command(
+          OUTPUT ${XMLTO_DEPENDS}
+         COMMAND echo ${BUILD_DATE} > ${XMLTO_DEPENDS}
+          VERBATIM
+          )
+
+  set(XMLTO_COMMAND_ARGS --skip-validation --searchpath "${CMAKE_CURRENT_BINARY_DIR}/doc")
+
+  XMLTO(${DOCS_SRCS}
+    MODES man
+    ALL)
+
+  foreach(file ${XMLTO_FILES_man})
+    get_filename_component(fileExt ${file} EXT)
+    string( REGEX REPLACE "^[.]" "" fileExt ${fileExt} )
+    install(
+      FILES ${file}
+      DESTINATION ${CMAKE_INSTALL_MANDIR}/man${fileExt}
+      COMPONENT rabbitmq-c-tool-docs
       )
-
-    file(MAKE_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/doc)
-    set(XMLTO_DEPENDS ${CMAKE_CURRENT_BINARY_DIR}/doc/man-date.ent)
-    STRING(TIMESTAMP BUILD_DATE "%Y-%m-%d" UTC)
-    add_custom_command(
-            OUTPUT ${XMLTO_DEPENDS}
-	          COMMAND echo ${BUILD_DATE} > ${XMLTO_DEPENDS}
-            VERBATIM
-            )
-
-    set(XMLTO_COMMAND_ARGS --skip-validation --searchpath "${CMAKE_CURRENT_BINARY_DIR}/doc")
-
-    XMLTO(${DOCS_SRCS}
-      MODES man
-      ALL)
-
-    foreach(file ${XMLTO_FILES_man})
-      get_filename_component(fileExt ${file} EXT)
-      string( REGEX REPLACE "^[.]" "" fileExt ${fileExt} )
-      install(
-        FILES ${file}
-        DESTINATION ${CMAKE_INSTALL_MANDIR}/man${fileExt}
-        COMPONENT rabbitmq-c-tool-docs
-        )
-    endforeach()
-
-  else(XMLTO_FOUND)
-    message(WARNING "xmlto not found, will not build tools documentation")
-  endif(XMLTO_FOUND)
+  endforeach()
 endif()
