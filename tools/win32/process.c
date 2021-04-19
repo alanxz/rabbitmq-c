@@ -33,10 +33,6 @@
  * ***** END LICENSE BLOCK *****
  */
 
-#ifdef HAVE_CONFIG_H
-#include "config.h"
-#endif
-
 #include <io.h>
 #include <stdio.h>
 #include <windows.h>
