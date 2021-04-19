@@ -53,8 +53,7 @@ if (ENABLE_SSL_SUPPORT)
       amqp_openssl_bio.c
       amqp_openssl_bio.h
   )
-  set(SSL_INCLUDE_DIRS ${OPENSSL_INCLUDE_DIR})
-  set(AMQP_SSL_LIBS ${OPENSSL_LIBRARIES})
+  set(AMQP_SSL_LIBS OpenSSL::SSL)
   if (APPLE)
     # Apple has deprecated OpenSSL in 10.7+. This disables that warning.
     set_source_files_properties(${AMQP_SSL_SRCS}
@@ -63,10 +62,10 @@ if (ENABLE_SSL_SUPPORT)
 
   if (WIN32 AND NOT CMAKE_USE_PTHREADS_INIT)
     set(AMQP_SSL_SRCS ${AMQP_SSL_SRCS} win32/threads.h win32/threads.c)
-    set(SSL_INCLUDE_DIRS ${SSL_INCLUDE_DIRS} win32)
+    set(SSL_INCLUDE_DIRS win32)
   else()
     set(AMQP_SSL_SRCS ${AMQP_SSL_SRCS} unix/threads.h)
-    set(SSL_INCLUDE_DIRS ${SSL_INCLUDE_DIRS} unix)
+    set(SSL_INCLUDE_DIRS unix)
   endif()
 endif()
 
