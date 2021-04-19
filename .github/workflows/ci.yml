@@ -63,6 +63,6 @@ jobs:
       shell: bash
       run: |
         cmake -E make_directory build/
-        cmake -S . -B build/ -DCMAKE_C_FLAGS=" /W4"
+        cmake -S . -B build/ -DBUILD_EXAMPLES=ON -DCMAKE_C_FLAGS=" /W4"
         cmake --build build/ --config Debug --target INSTALL
         ctest -V ./build/

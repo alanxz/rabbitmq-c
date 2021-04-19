@@ -234,7 +234,7 @@ endif()
 option(BUILD_SHARED_LIBS "Build rabbitmq-c as a shared library" ON)
 option(BUILD_STATIC_LIBS "Build rabbitmq-c as a static library" ON)
 
-option(BUILD_EXAMPLES "Build Examples" ON)
+option(BUILD_EXAMPLES "Build Examples" OFF)
 option(BUILD_TOOLS "Build Tools (requires POPT Library)" ${POPT_FOUND})
 option(BUILD_TOOLS_DOCS "Build man pages for Tools (requires xmlto)" ${DO_DOCS})
 option(BUILD_API_DOCS "Build Doxygen API docs" ${DOXYGEN_FOUND})
@@ -248,9 +248,12 @@ set(targets_export_name rabbitmq-targets)
 
 add_subdirectory(librabbitmq)
 
-if (BUILD_EXAMPLES)
+if(BUILD_EXAMPLES)
+  if(NOT BUILD_SHARED_LIBS)
+    message(FATAL_ERROR "Examples require -DBUILD_SHARED_LIBS=ON")
+  endif()
   add_subdirectory(examples)
-endif ()
+endif()
 
 if (BUILD_TOOLS)
   if (POPT_FOUND)
@@ -301,7 +304,6 @@ set(includedir "\${prefix}/${CMAKE_INSTALL_INCLUDEDIR}")
 
 configure_file(cmake/config.h.in ${CMAKE_CURRENT_BINARY_DIR}/librabbitmq/config.h)
 configure_file(librabbitmq.pc.in ${CMAKE_CURRENT_BINARY_DIR}/librabbitmq.pc @ONLY)
-
 
 include(CMakePackageConfigHelpers)
 set(RMQ_CMAKE_DIR ${CMAKE_INSTALL_LIBDIR}/cmake/rabbitmq-c)
