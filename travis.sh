@@ -1,8 +1,9 @@
 #!/usr/bin/env bash
 
 build_cmake() {
+  sudo apt install -y xmlto
   mkdir $PWD/_build && cd $PWD/_build
-  cmake .. -GNinja -DBUILD_EXAMPLES=ON -DBUILD_TOOLS=ON -DCMAKE_INSTALL_PREFIX=$PWD/../_install -DCMAKE_C_FLAGS="-Wall -Wextra -Wstrict-prototypes -Wno-unused-function -Wno-implicit-fallthrough -Werror" 
+  cmake .. -GNinja -DBUILD_EXAMPLES=ON -DBUILD_TOOLS=ON -DBUILD_TOOLS_DOCS=ON -DCMAKE_INSTALL_PREFIX=$PWD/../_install -DCMAKE_C_FLAGS="-Wall -Wextra -Wstrict-prototypes -Wno-unused-function -Wno-implicit-fallthrough -Werror" 
   cmake --build . --target install
   ctest -V .
 }
@@ -50,7 +51,7 @@ build_tsan() {
 }
 
 build_scan-build() {
-  sudo apt-get install -y clang-tools
+  sudo apt install -y clang-tools
   mkdir $PWD/_build && cd $PWD/_build
   scan-build cmake .. -GNinja -DBUILD_EXAMPLES=ON -DBUILD_TOOLS=ON -DCMAKE_BUILD_TYPE=Debug \
     -DCMAKE_C_COMPILER=clang \
