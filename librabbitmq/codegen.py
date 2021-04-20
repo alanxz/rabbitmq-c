@@ -604,6 +604,7 @@ def genHrl(spec):
 #define RABBITMQ_C_FRAMING_H
 
 #include <rabbitmq-c/amqp.h>
+#include <rabbitmq-c/export.h>
 
 AMQP_BEGIN_DECLS
 """
