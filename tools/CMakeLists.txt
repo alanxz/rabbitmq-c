@@ -18,23 +18,23 @@ if(ENABLE_SSL_SUPPORT)
   target_compile_definitions(tools-common PRIVATE -DWITH_SSL=1)
 endif()
 target_include_directories(tools-common PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
-target_link_libraries(tools-common PRIVATE rabbitmq::rabbitmq)
+target_link_libraries(tools-common PRIVATE rabbitmq::rabbitmq PUBLIC popt::popt)
 
 add_executable(amqp-publish publish.c)
-target_link_libraries(amqp-publish PRIVATE tools-common rabbitmq::rabbitmq popt::popt)
+target_link_libraries(amqp-publish PRIVATE tools-common rabbitmq::rabbitmq)
 
 add_executable(amqp-get get.c)
-target_link_libraries(amqp-get PRIVATE tools-common rabbitmq::rabbitmq popt::popt)
+target_link_libraries(amqp-get PRIVATE tools-common rabbitmq::rabbitmq)
 
 add_executable(amqp-consume consume.c ${PLATFORM_DIR}/process.h ${PLATFORM_DIR}/process.c)
 target_include_directories(amqp-consume PRIVATE ${CMAKE_CURRENT_SOURCE_DIR} ${CMAKE_CURRENT_SOURCE_DIR}/${PLATFORM_DIR})
-target_link_libraries(amqp-consume PRIVATE tools-common rabbitmq::rabbitmq popt::popt)
+target_link_libraries(amqp-consume PRIVATE tools-common rabbitmq::rabbitmq)
 
 add_executable(amqp-declare-queue declare_queue.c)
-target_link_libraries(amqp-declare-queue PRIVATE tools-common rabbitmq::rabbitmq popt::popt)
+target_link_libraries(amqp-declare-queue PRIVATE tools-common rabbitmq::rabbitmq)
 
 add_executable(amqp-delete-queue delete_queue.c)
-target_link_libraries(amqp-delete-queue PRIVATE tools-common rabbitmq::rabbitmq popt::popt)
+target_link_libraries(amqp-delete-queue PRIVATE tools-common rabbitmq::rabbitmq)
 
 install(TARGETS amqp-publish amqp-get amqp-consume amqp-declare-queue amqp-delete-queue
 	RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
