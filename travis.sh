@@ -2,14 +2,14 @@
 
 build_cmake() {
   mkdir $PWD/_build && cd $PWD/_build
-  cmake .. -DBUILD_EXAMPLES=ON -DCMAKE_INSTALL_PREFIX=$PWD/../_install -DCMAKE_C_FLAGS="-Wall -Wextra -Wstrict-prototypes -Wno-unused-function -Wno-implicit-fallthrough -Werror" 
+  cmake .. -GNinja -DBUILD_EXAMPLES=ON -DCMAKE_INSTALL_PREFIX=$PWD/../_install -DCMAKE_C_FLAGS="-Wall -Wextra -Wstrict-prototypes -Wno-unused-function -Wno-implicit-fallthrough -Werror" 
   cmake --build . --target install
   ctest -V .
 }
 
 build_macos() {
   mkdir $PWD/_build && cd $PWD/_build
-  cmake .. -DBUILD_EXAMPLES=ON -DCMAKE_INSTALL_PREFIX=$PWD/../_install -DCMAKE_C_FLAGS="-Wall -Wextra -Wstrict-prototypes -Wno-unused-function -Werror" \
+  cmake .. -GNinja -DBUILD_EXAMPLES=ON -DCMAKE_INSTALL_PREFIX=$PWD/../_install -DCMAKE_C_FLAGS="-Wall -Wextra -Wstrict-prototypes -Wno-unused-function -Werror" \
     -DOPENSSL_ROOT_DIR="/usr/local/opt/openssl@1.1"
   cmake --build . --target install
   ctest -V .
@@ -24,7 +24,7 @@ build_format() {
 
 build_coverage() {
   mkdir $PWD/_build && cd $PWD/_build
-  cmake .. -DBUILD_EXAMPLES=ON -DCMAKE_BUILD_TYPE=Coverage -DCMAKE_INSTALL_PREFIX=$PWD/../_install \
+  cmake .. -GNinja -DBUILD_EXAMPLES=ON -DCMAKE_BUILD_TYPE=Coverage -DCMAKE_INSTALL_PREFIX=$PWD/../_install \
     -DCMAKE_C_FLAGS="-Wall -Wextra -Wstrict-prototypes -Wno-unused-function -Werror -fprofile-arcs -ftest-coverage"
   cmake --build . --target install
   ctest -V .
@@ -35,7 +35,7 @@ build_coverage() {
 
 build_asan() {
   mkdir $PWD/_build && cd $PWD/_build
-  cmake .. -DBUILD_EXAMPLES=ON -DCMAKE_BUILD_TYPE=Debug -DCMAKE_INSTALL_PREFIX=$PWD/../_install \
+  cmake .. -GNinja -DBUILD_EXAMPLES=ON -DCMAKE_BUILD_TYPE=Debug -DCMAKE_INSTALL_PREFIX=$PWD/../_install \
     -DCMAKE_C_FLAGS="-Wall -Wextra -Wstrict-prototypes -Wno-unused-function -Werror -fsanitize=address,undefined -O1"
   cmake --build . --target install
   ctest -V .
@@ -43,7 +43,7 @@ build_asan() {
 
 build_tsan() {
   mkdir $PWD/_build && cd $PWD/_build
-  cmake .. -DBUILD_EXAMPLES=ON -DCMAKE_BUILD_TYPE=Debug -DCMAKE_INSTALL_PREFIX=$PWD/../_install \
+  cmake .. -GNinja -DBUILD_EXAMPLES=ON -DCMAKE_BUILD_TYPE=Debug -DCMAKE_INSTALL_PREFIX=$PWD/../_install \
     -DCMAKE_C_FLAGS="-Wall -Wextra -Wstrict-prototypes -Wno-unused-function -Werror -fsanitize=thread,undefined -O1"
   cmake --build . --target install
   ctest -V .
@@ -52,11 +52,11 @@ build_tsan() {
 build_scan-build() {
   sudo apt-get install -y clang-tools
   mkdir $PWD/_build && cd $PWD/_build
-  scan-build cmake .. -DBUILD_EXAMPLES=ON -DCMAKE_BUILD_TYPE=Debug \
+  scan-build cmake .. -GNinja -DBUILD_EXAMPLES=ON -DCMAKE_BUILD_TYPE=Debug \
     -DCMAKE_C_COMPILER=clang \
     -DCMAKE_INSTALL_PREFIX=$PWD/../_install \
     -DCMAKE_C_FLAGS="-Wall -Wextra -Wstrict-prototypes -Wno-unused-function -Werror"
-  scan-build make install
+  scan-build ninja install
 }
 
 if [ "$#" -ne 1 ]; then
