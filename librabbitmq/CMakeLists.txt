@@ -1,49 +1,3 @@
-if (REGENERATE_AMQP_FRAMING)
-  set(AMQP_CODEGEN_PY "${CMAKE_CURRENT_BINARY_DIR}/amqp_codegen.py")
-  set(CODEGEN_PY "${CMAKE_CURRENT_BINARY_DIR}/codegen.py")
-  set(AMQP_SPEC_JSON_PATH "${AMQP_CODEGEN_DIR}/amqp-rabbitmq-0.9.1.json")
-  set(AMQP_FRAMING_H_PATH ${CMAKE_CURRENT_BINARY_DIR}/../include/rabbitmq-c/framing.h)
-  set(AMQP_FRAMING_C_PATH ${CMAKE_CURRENT_BINARY_DIR}/amqp_framing.c)
-  file(MAKE_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/rabbitmq-c)
-
-  if (PYTHON_VERSION_MAJOR GREATER 2)
-    set(CONVERT_CODEGEN ${PYTHON_2TO3_EXECUTABLE} -w ${CODEGEN_PY} > codegen_2to3.out)
-    set(CONVERT_AMQP_CODEGEN ${PYTHON_2TO3_EXECUTABLE} -w ${AMQP_CODEGEN_PY} > amqp_codegen_2to3.out)
-  else ()
-    set(CONVERT_CODEGEN "")
-    set(CONVERT_AMQP_CODEGEN "")
-  endif ()
-
-  add_custom_command(
-    OUTPUT ${CODEGEN_PY}
-    COMMAND ${CMAKE_COMMAND} ARGS -E copy ${CMAKE_CURRENT_SOURCE_DIR}/codegen.py ${CODEGEN_PY}
-    COMMAND ${CONVERT_CODEGEN}
-    DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/codegen.py
-    VERBATIM)
-
-  add_custom_command(
-    OUTPUT ${AMQP_CODEGEN_PY}
-    COMMAND ${CMAKE_COMMAND} ARGS -E copy ${AMQP_CODEGEN_DIR}/amqp_codegen.py ${AMQP_CODEGEN_PY}
-    COMMAND ${CONVERT_AMQP_CODEGEN}
-    DEPENDS ${AMQP_CODEGEN_DIR}/amqp_codegen.py ${AMQP_CODEGEN_TARGET}
-    VERBATIM)
-
-  add_custom_command(
-    OUTPUT ${AMQP_FRAMING_H_PATH}
-    COMMAND ${PYTHON_EXECUTABLE} ARGS ${CODEGEN_PY} header ${AMQP_SPEC_JSON_PATH} ${AMQP_FRAMING_H_PATH}
-    DEPENDS ${AMQP_SPEC_JSON_PATH} ${CODEGEN_PY} ${AMQP_CODEGEN_PY}
-    VERBATIM)
-  
-  add_custom_command(
-    OUTPUT ${AMQP_FRAMING_C_PATH}
-    COMMAND ${PYTHON_EXECUTABLE} ARGS ${CODEGEN_PY} body ${AMQP_SPEC_JSON_PATH} ${AMQP_FRAMING_C_PATH}
-    DEPENDS ${AMQP_SPEC_JSON_PATH} ${CODEGEN_PY} ${AMQP_CODEGEN_PY}
-    VERBATIM)
-else (REGENERATE_AMQP_FRAMING)
-  set(AMQP_FRAMING_H_PATH ${CMAKE_CURRENT_SOURCE_DIR}/../include/rabbitmq-c/framing.h)
-  set(AMQP_FRAMING_C_PATH ${CMAKE_CURRENT_SOURCE_DIR}/amqp_framing.c)
-endif (REGENERATE_AMQP_FRAMING)
-
 if (ENABLE_SSL_SUPPORT)
   SET(AMQP_SSL_SOCKET_SHIM_PATH ${CMAKE_CURRENT_SOURCE_DIR}/../include/amqp_ssl_socket.h)
   set(AMQP_SSL_SOCKET_H_PATH ${CMAKE_CURRENT_SOURCE_DIR}/../include/rabbitmq-c/ssl_socket.h)
@@ -87,13 +41,13 @@ set(RMQ_SOURCES
   ${AMQP_SSL_SOCKET_SHIM_PATH}
   ../include/amqp_tcp_socket.h
   ../include/rabbitmq-c/amqp.h
-  ${AMQP_FRAMING_H_PATH}
+  ../include/rabbitmq-c/framing.h
   ${AMQP_SSL_SOCKET_H_PATH}
   ../include/rabbitmq-c/tcp_socket.h
   amqp_api.c
   amqp_connection.c
   amqp_consumer.c
-  ${AMQP_FRAMING_C_PATH}
+  amqp_framing.c
   amqp_mem.c
   ${AMQP_SSL_SRCS}
   amqp_private.h
