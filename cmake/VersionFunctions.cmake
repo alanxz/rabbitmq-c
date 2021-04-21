@@ -11,11 +11,10 @@ function(get_library_version VERSION_ARG)
     set(${VERSION_ARG} ${_API_VERSION_MAJOR}.${_API_VERSION_MINOR}.${_API_VERSION_PATCH} PARENT_SCOPE)
 endfunction()
 
-function(compute_soversion CURRENT REVISION AGE VERSION SOVERSION)
+function(compute_soversion CURRENT REVISION AGE SOVERSION)
     math(EXPR MAJOR "${CURRENT} - ${AGE}")
     math(EXPR MINOR "${AGE}")
     math(EXPR PATCH "${REVISION}")
 
-    set(${VERSION} ${MAJOR}.${MINOR}.${PATCH} PARENT_SCOPE)
     set(${SOVERSION} ${MAJOR} PARENT_SCOPE)
 endfunction()

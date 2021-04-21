@@ -15,11 +15,11 @@ set(RMQ_SOVERSION_REVISION  1)
 set(RMQ_SOVERSION_AGE       5)
 
 include(VersionFunctions)
-get_library_version(VERSION)
-compute_soversion(${RMQ_SOVERSION_CURRENT} ${RMQ_SOVERSION_REVISION} ${RMQ_SOVERSION_AGE} RMQ_VERSION RMQ_SOVERSION)
+get_library_version(RMQ_VERSION)
+compute_soversion(${RMQ_SOVERSION_CURRENT} ${RMQ_SOVERSION_REVISION} ${RMQ_SOVERSION_AGE} RMQ_SOVERSION)
 
 project(rabbitmq-c 
-  VERSION ${VERSION}
+  VERSION ${RMQ_VERSION}
   DESCRIPTION "C RabbitMQ AMQP client library"
   LANGUAGES C)
 
@@ -308,7 +308,7 @@ set(version_config "${CMAKE_CURRENT_BINARY_DIR}/rabbitmq-c-config-version.cmake"
 
 write_basic_package_version_file(
     "${version_config}"
-    VERSION ${VERSION}
+    VERSION ${RMQ_VERSION}
     COMPATIBILITY AnyNewerVersion)
 
 configure_package_config_file(
