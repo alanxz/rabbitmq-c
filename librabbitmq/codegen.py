@@ -31,8 +31,6 @@
 # SOFTWARE.
 # ***** END LICENSE BLOCK *****
 
-from __future__ import nested_scopes
-from __future__ import division
 
 from amqp_codegen import *
 import string
@@ -51,7 +49,7 @@ class Emitter(object):
 
     def emit(self, line):
         """Emit a line of generated code."""
-        print self.prefix + line
+        print(self.prefix + line)
 
 
 class BitDecoder(object):
@@ -281,28 +279,28 @@ def genErl(spec):
         return ', '.join([c_ize(f.name) + " = F" + str(f.index) for f in fields])
 
     def genLookupMethodName(m):
-        print '    case %s: return "%s";' % (m.defName(), m.defName())
+        print('    case %s: return "%s";' % (m.defName(), m.defName()))
 
     def genDecodeMethodFields(m):
-        print "    case %s: {" % (m.defName(),)
-        print "      %s *m = (%s *) amqp_pool_alloc(pool, sizeof(%s));" % \
-            (m.structName(), m.structName(), m.structName())
-        print "      if (m == NULL) { return AMQP_STATUS_NO_MEMORY; }"
+        print("    case %s: {" % (m.defName(),))
+        print("      %s *m = (%s *) amqp_pool_alloc(pool, sizeof(%s));" % \
+            (m.structName(), m.structName(), m.structName()))
+        print("      if (m == NULL) { return AMQP_STATUS_NO_MEMORY; }")
 
         emitter = BitDecoder(Emitter("      "))
         for f in m.arguments:
             typeFor(spec, f).decode(emitter, "m->"+c_ize(f.name))
 
-        print "      *decoded = m;"
-        print "      return 0;"
-        print "    }"
+        print("      *decoded = m;")
+        print("      return 0;")
+        print("    }")
 
     def genDecodeProperties(c):
-        print "    case %d: {" % (c.index,)
-        print "      %s *p = (%s *) amqp_pool_alloc(pool, sizeof(%s));" % \
-              (c.structName(), c.structName(), c.structName())
-        print "      if (p == NULL) { return AMQP_STATUS_NO_MEMORY; }"
-        print "      p->_flags = flags;"
+        print("    case %d: {" % (c.index,))
+        print("      %s *p = (%s *) amqp_pool_alloc(pool, sizeof(%s));" % \
+              (c.structName(), c.structName(), c.structName()))
+        print("      if (p == NULL) { return AMQP_STATUS_NO_MEMORY; }")
+        print("      p->_flags = flags;")
 
         emitter = Emitter("      ")
         for f in c.fields:
@@ -310,27 +308,27 @@ def genErl(spec):
             typeFor(spec, f).decode(emitter, "p->"+c_ize(f.name))
             emitter.emit("}")
 
-        print "      *decoded = p;"
-        print "      return 0;"
-        print "    }"
+        print("      *decoded = p;")
+        print("      return 0;")
+        print("    }")
 
     def genEncodeMethodFields(m):
-        print "    case %s: {" % (m.defName(),)
+        print("    case %s: {" % (m.defName(),))
         if m.arguments:
-            print "      %s *m = (%s *) decoded;" % (m.structName(), m.structName())
+            print("      %s *m = (%s *) decoded;" % (m.structName(), m.structName()))
 
         emitter = BitEncoder(Emitter("      "))
         for f in m.arguments:
             typeFor(spec, f).encode(emitter, "m->"+c_ize(f.name))
         emitter.flush()
 
-        print "      return (int)offset;"
-        print "    }"
+        print("      return (int)offset;")
+        print("    }")
 
     def genEncodeProperties(c):
-        print "    case %d: {" % (c.index,)
+        print("    case %d: {" % (c.index,))
         if c.fields:
-            print "      %s *p = (%s *) decoded;" % (c.structName(), c.structName())
+            print("      %s *p = (%s *) decoded;" % (c.structName(), c.structName()))
 
         emitter = Emitter("      ")
         for f in c.fields:
@@ -338,12 +336,12 @@ def genErl(spec):
             typeFor(spec, f).encode(emitter, "p->"+c_ize(f.name))
             emitter.emit("}")
 
-        print "      return (int)offset;"
-        print "    }"
+        print("      return (int)offset;")
+        print("    }")
 
     methods = spec.allMethods()
 
-    print """/* Generated code. Do not edit. Edit and re-run codegen.py instead.
+    print("""/* Generated code. Do not edit. Edit and re-run codegen.py instead.
  *
  * ***** BEGIN LICENSE BLOCK *****
  * Version: MIT
@@ -388,46 +386,46 @@ def genErl(spec):
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-"""
+""")
 
-    print """
+    print("""
 char const *amqp_constant_name(int constantNumber) {
-  switch (constantNumber) {"""
+  switch (constantNumber) {""")
     for (c,v,cls) in spec.constants:
-        print "    case %s: return \"%s\";" % (cConstantName(c), cConstantName(c))
-    print """    default: return "(unknown)";
+        print("    case %s: return \"%s\";" % (cConstantName(c), cConstantName(c)))
+    print("""    default: return "(unknown)";
   }
-}"""
+}""")
 
-    print """
+    print("""
 amqp_boolean_t amqp_constant_is_hard_error(int constantNumber) {
-  switch (constantNumber) {"""
+  switch (constantNumber) {""")
     for (c,v,cls) in spec.constants:
         if cls == 'hard-error':
-            print "    case %s: return 1;" % (cConstantName(c),)
-    print """    default: return 0;
+            print("    case %s: return 1;" % (cConstantName(c),))
+    print("""    default: return 0;
   }
-}"""
+}""")
 
-    print """
+    print("""
 char const *amqp_method_name(amqp_method_number_t methodNumber) {
-  switch (methodNumber) {"""
+  switch (methodNumber) {""")
     for m in methods: genLookupMethodName(m)
-    print """    default: return NULL;
+    print("""    default: return NULL;
   }
-}"""
+}""")
 
-    print """
+    print("""
 amqp_boolean_t amqp_method_has_content(amqp_method_number_t methodNumber) {
-  switch (methodNumber) {"""
+  switch (methodNumber) {""")
     for m in methods:
         if m.hasContent:
-            print '    case %s: return 1;' % (m.defName())
-    print """    default: return 0;
+            print('    case %s: return 1;' % (m.defName()))
+    print("""    default: return 0;
   }
-}"""
+}""")
 
-    print """
+    print("""
 int amqp_decode_method(amqp_method_number_t methodNumber,
                        amqp_pool_t *pool,
                        amqp_bytes_t encoded,
@@ -436,13 +434,13 @@ int amqp_decode_method(amqp_method_number_t methodNumber,
   size_t offset = 0;
   uint8_t bit_buffer;
 
-  switch (methodNumber) {"""
+  switch (methodNumber) {""")
     for m in methods: genDecodeMethodFields(m)
-    print """    default: return AMQP_STATUS_UNKNOWN_METHOD;
+    print("""    default: return AMQP_STATUS_UNKNOWN_METHOD;
   }
-}"""
+}""")
 
-    print """
+    print("""
 int amqp_decode_properties(uint16_t class_id,
                            amqp_pool_t *pool,
                            amqp_bytes_t encoded,
@@ -461,13 +459,13 @@ int amqp_decode_properties(uint16_t class_id,
     flagword_index++;
   } while (partial_flags & 1);
 
-  switch (class_id) {"""
+  switch (class_id) {""")
     for c in spec.allClasses(): genDecodeProperties(c)
-    print """    default: return AMQP_STATUS_UNKNOWN_CLASS;
+    print("""    default: return AMQP_STATUS_UNKNOWN_CLASS;
   }
-}"""
+}""")
 
-    print """
+    print("""
 int amqp_encode_method(amqp_method_number_t methodNumber,
                        void *decoded,
                        amqp_bytes_t encoded)
@@ -475,13 +473,13 @@ int amqp_encode_method(amqp_method_number_t methodNumber,
   size_t offset = 0;
   uint8_t bit_buffer;
 
-  switch (methodNumber) {"""
+  switch (methodNumber) {""")
     for m in methods: genEncodeMethodFields(m)
-    print """    default: return AMQP_STATUS_UNKNOWN_METHOD;
+    print("""    default: return AMQP_STATUS_UNKNOWN_METHOD;
   }
-}"""
+}""")
 
-    print """
+    print("""
 int amqp_encode_properties(uint16_t class_id,
                            void *decoded,
                            amqp_bytes_t encoded)
@@ -506,11 +504,11 @@ int amqp_encode_properties(uint16_t class_id,
     } while (remaining_flags != 0);
   }
 
-  switch (class_id) {"""
+  switch (class_id) {""")
     for c in spec.allClasses(): genEncodeProperties(c)
-    print """    default: return AMQP_STATUS_UNKNOWN_CLASS;
+    print("""    default: return AMQP_STATUS_UNKNOWN_CLASS;
   }
-}"""
+}""")
 
     for m in methods:
         if not m.isSynchronous:
@@ -520,10 +518,10 @@ int amqp_encode_properties(uint16_t class_id,
         if info is False:
             continue
 
-        print
-        print m.apiPrototype()
-        print "{"
-        print "  %s req;" % (m.structName(),)
+        print("")
+        print(m.apiPrototype())
+        print("{")
+        print("  %s req;" % (m.structName(),))
 
         for f in m.arguments:
             n = c_ize(f.name)
@@ -538,14 +536,14 @@ int amqp_encode_properties(uint16_t class_id,
                 val = typeFor(spec, f).literal(val)
 
 
-            print "  req.%s = %s;" % (n, val)
+            print("  req.%s = %s;" % (n, val))
 
         reply = cConstantName(c_ize(m.klass.name) + '_' + c_ize(m.name)
                               + "_ok_method")
-        print """
+        print("""
   return amqp_simple_rpc_decoded(state, channel, %s, %s, &req);
 }
-""" % (m.defName(), reply)
+""" % (m.defName(), reply))
 
 def genHrl(spec):
     def fieldDeclList(fields):
@@ -563,7 +561,7 @@ def genHrl(spec):
 
     methods = spec.allMethods()
 
-    print """/* Generated code. Do not edit. Edit and re-run codegen.py instead.
+    print("""/* Generated code. Do not edit. Edit and re-run codegen.py instead.
  *
  * ***** BEGIN LICENSE BLOCK *****
  * Version: MIT
@@ -607,17 +605,17 @@ def genHrl(spec):
 #include <rabbitmq-c/export.h>
 
 AMQP_BEGIN_DECLS
-"""
-    print "#define AMQP_PROTOCOL_VERSION_MAJOR %d     /**< AMQP protocol version major */" % (spec.major)
-    print "#define AMQP_PROTOCOL_VERSION_MINOR %d     /**< AMQP protocol version minor */" % (spec.minor)
-    print "#define AMQP_PROTOCOL_VERSION_REVISION %d  /**< AMQP protocol version revision */" % (spec.revision)
-    print "#define AMQP_PROTOCOL_PORT %d              /**< Default AMQP Port */" % (spec.port)
+""")
+    print("#define AMQP_PROTOCOL_VERSION_MAJOR %d     /**< AMQP protocol version major */" % (spec.major))
+    print("#define AMQP_PROTOCOL_VERSION_MINOR %d     /**< AMQP protocol version minor */" % (spec.minor))
+    print("#define AMQP_PROTOCOL_VERSION_REVISION %d  /**< AMQP protocol version revision */" % (spec.revision))
+    print("#define AMQP_PROTOCOL_PORT %d              /**< Default AMQP Port */" % (spec.port))
 
     for (c,v,cls) in spec.constants:
-        print "#define %s %s  /**< Constant: %s */" % (cConstantName(c), v, c)
-    print
+        print("#define %s %s  /**< Constant: %s */" % (cConstantName(c), v, c))
+    print("")
 
-    print """/* Function prototypes. */
+    print("""/* Function prototypes. */
 
 /**
  * Get constant name string from constant
@@ -730,26 +728,26 @@ int
 AMQP_CALL amqp_encode_properties(uint16_t class_id,
 		       void *decoded,
 		       amqp_bytes_t encoded);
-"""
+""")
 
-    print "/* Method field records. */\n"
+    print("/* Method field records. */\n")
     for m in methods:
         methodid = m.klass.index << 16 | m.index
-        print "#define %s ((amqp_method_number_t) 0x%.08X) /**< %s.%s method id @internal %d, %d; %d */" % \
+        print("#define %s ((amqp_method_number_t) 0x%.08X) /**< %s.%s method id @internal %d, %d; %d */" % \
               (m.defName(),
                methodid,
                m.klass.name,
                m.name,
                m.klass.index,
                m.index,
-               methodid)
-        print "/** %s.%s method fields */\ntypedef struct %s_ {\n%s} %s;\n" % \
-              (m.klass.name, m.name, m.structName(), fieldDeclList(m.arguments), m.structName())
+               methodid))
+        print("/** %s.%s method fields */\ntypedef struct %s_ {\n%s} %s;\n" % \
+              (m.klass.name, m.name, m.structName(), fieldDeclList(m.arguments), m.structName()))
 
-    print "/* Class property records. */"
+    print("/* Class property records. */")
     for c in spec.allClasses():
-        print "#define %s (0x%.04X) /**< %s class id @internal %d */" % \
-              (cConstantName(c.name + "_class"), c.index, c.name, c.index)
+        print("#define %s (0x%.04X) /**< %s class id @internal %d */" % \
+              (cConstantName(c.name + "_class"), c.index, c.name, c.index))
         index = 0
         for f in c.fields:
             if index % 16 == 15:
@@ -757,24 +755,24 @@ AMQP_CALL amqp_encode_properties(uint16_t class_id,
             shortnum = index // 16
             partialindex = 15 - (index % 16)
             bitindex = shortnum * 16 + partialindex
-            print '#define %s (1 << %d) /**< %s.%s property flag */' % (cFlagName(c, f), bitindex, c.name, f.name)
+            print('#define %s (1 << %d) /**< %s.%s property flag */' % (cFlagName(c, f), bitindex, c.name, f.name))
             index = index + 1
-        print "/** %s class properties */\ntypedef struct %s_ {\n  amqp_flags_t _flags; /**< bit-mask of set fields */\n%s} %s;\n" % \
+        print("/** %s class properties */\ntypedef struct %s_ {\n  amqp_flags_t _flags; /**< bit-mask of set fields */\n%s} %s;\n" % \
               (c.name,
                c.structName(),
                fieldDeclList(c.fields),
-               c.structName())
+               c.structName()))
 
-    print "/* API functions for methods */\n"
+    print("/* API functions for methods */\n")
 
     for m in methods:
         if m.isSynchronous and apiMethodInfo.get(m.fullName()) is not False:
-            print "%s;" % (m.apiPrototype(),)
+            print("%s;" % (m.apiPrototype(),))
 
-    print """
+    print("""
 AMQP_END_DECLS
 
-#endif /* RABBITMQ_C_FRAMING_H */"""
+#endif /* RABBITMQ_C_FRAMING_H */""")
 
 def generateErl(specPath):
     genErl(AmqpSpec(specPath))

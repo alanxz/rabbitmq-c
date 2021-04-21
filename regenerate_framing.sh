@@ -11,7 +11,7 @@ mkdir codegen
 
 wget -c https://github.com/rabbitmq/rabbitmq-server/releases/download/v${RMQ_VERSION}/rabbitmq-server-${RMQ_VERSION}.tar.xz -O - | tar -xJ -C codegen
 
-python2 librabbitmq/codegen.py header ${DATA} include/rabbitmq-c/framing.h
-python2 librabbitmq/codegen.py body ${DATA} librabbitmq/amqp_framing.c
+python librabbitmq/codegen.py header ${DATA} include/rabbitmq-c/framing.h
+python librabbitmq/codegen.py body ${DATA} librabbitmq/amqp_framing.c
 
 clang-format -i include/rabbitmq-c/framing.h librabbitmq/amqp_framing.c
