@@ -8,6 +8,15 @@ build_cmake() {
   ctest -V .
 }
 
+build_framing() {
+  sudo apt install -y clang-format
+  ./regenerate_framing.sh
+  mkdir $PWD/_build && cd $PWD/_build
+  cmake .. -GNinja -DBUILD_EXAMPLES=ON -DBUILD_TOOLS=ON -DCMAKE_INSTALL_PREFIX=$PWD/../_install -DCMAKE_C_FLAGS="-Wall -Wextra -Wstrict-prototypes -Wno-unused-function -Wno-implicit-fallthrough -Werror" 
+  cmake --build . --target install
+  ctest -V .
+}
+
 build_macos() {
   mkdir $PWD/_build && cd $PWD/_build
   cmake .. -GNinja -DBUILD_EXAMPLES=ON -DBUILD_TOOLS=ON -DCMAKE_INSTALL_PREFIX=$PWD/../_install -DCMAKE_C_FLAGS="-Wall -Wextra -Wstrict-prototypes -Wno-unused-function -Werror" \
@@ -61,7 +70,7 @@ build_scan-build() {
 }
 
 if [ "$#" -ne 1 ]; then
-  echo "Usage: $0 {cmake|macos|format|coverage|asan|tsan|scan-build}"
+  echo "Usage: $0 {cmake|framing|macos|format|coverage|asan|tsan|scan-build}"
   exit 1
 fi
 

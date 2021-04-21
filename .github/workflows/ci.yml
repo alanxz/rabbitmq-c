@@ -28,6 +28,8 @@ jobs:
             config: format
           - compiler: clang
             config: scan-build
+          - compiler: clang
+            config: framing
 
     steps:
     - uses: actions/checkout@v2
