@@ -156,6 +156,10 @@ char const *amqp_method_name(amqp_method_number_t methodNumber) {
       return "AMQP_CONNECTION_BLOCKED_METHOD";
     case AMQP_CONNECTION_UNBLOCKED_METHOD:
       return "AMQP_CONNECTION_UNBLOCKED_METHOD";
+    case AMQP_CONNECTION_UPDATE_SECRET_METHOD:
+      return "AMQP_CONNECTION_UPDATE_SECRET_METHOD";
+    case AMQP_CONNECTION_UPDATE_SECRET_OK_METHOD:
+      return "AMQP_CONNECTION_UPDATE_SECRET_OK_METHOD";
     case AMQP_CHANNEL_OPEN_METHOD:
       return "AMQP_CHANNEL_OPEN_METHOD";
     case AMQP_CHANNEL_OPEN_OK_METHOD:
@@ -502,6 +506,38 @@ int amqp_decode_method(amqp_method_number_t methodNumber, amqp_pool_t *pool,
       amqp_connection_unblocked_t *m =
           (amqp_connection_unblocked_t *)amqp_pool_alloc(
               pool, sizeof(amqp_connection_unblocked_t));
+      if (m == NULL) {
+        return AMQP_STATUS_NO_MEMORY;
+      }
+      *decoded = m;
+      return 0;
+    }
+    case AMQP_CONNECTION_UPDATE_SECRET_METHOD: {
+      amqp_connection_update_secret_t *m =
+          (amqp_connection_update_secret_t *)amqp_pool_alloc(
+              pool, sizeof(amqp_connection_update_secret_t));
+      if (m == NULL) {
+        return AMQP_STATUS_NO_MEMORY;
+      }
+      {
+        uint32_t len;
+        if (!amqp_decode_32(encoded, &offset, &len) ||
+            !amqp_decode_bytes(encoded, &offset, &m->new_secret, len))
+          return AMQP_STATUS_BAD_AMQP_DATA;
+      }
+      {
+        uint8_t len;
+        if (!amqp_decode_8(encoded, &offset, &len) ||
+            !amqp_decode_bytes(encoded, &offset, &m->reason, len))
+          return AMQP_STATUS_BAD_AMQP_DATA;
+      }
+      *decoded = m;
+      return 0;
+    }
+    case AMQP_CONNECTION_UPDATE_SECRET_OK_METHOD: {
+      amqp_connection_update_secret_ok_t *m =
+          (amqp_connection_update_secret_ok_t *)amqp_pool_alloc(
+              pool, sizeof(amqp_connection_update_secret_ok_t));
       if (m == NULL) {
         return AMQP_STATUS_NO_MEMORY;
       }
@@ -1740,6 +1776,22 @@ int amqp_encode_method(amqp_method_number_t methodNumber, void *decoded,
     case AMQP_CONNECTION_UNBLOCKED_METHOD: {
       return (int)offset;
     }
+    case AMQP_CONNECTION_UPDATE_SECRET_METHOD: {
+      amqp_connection_update_secret_t *m =
+          (amqp_connection_update_secret_t *)decoded;
+      if (UINT32_MAX < m->new_secret.len ||
+          !amqp_encode_32(encoded, &offset, (uint32_t)m->new_secret.len) ||
+          !amqp_encode_bytes(encoded, &offset, m->new_secret))
+        return AMQP_STATUS_BAD_AMQP_DATA;
+      if (UINT8_MAX < m->reason.len ||
+          !amqp_encode_8(encoded, &offset, (uint8_t)m->reason.len) ||
+          !amqp_encode_bytes(encoded, &offset, m->reason))
+        return AMQP_STATUS_BAD_AMQP_DATA;
+      return (int)offset;
+    }
+    case AMQP_CONNECTION_UPDATE_SECRET_OK_METHOD: {
+      return (int)offset;
+    }
     case AMQP_CHANNEL_OPEN_METHOD: {
       amqp_channel_open_t *m = (amqp_channel_open_t *)decoded;
       if (UINT8_MAX < m->out_of_band.len ||
@@ -2431,6 +2483,28 @@ int amqp_encode_properties(uint16_t class_id, void *decoded,
     default:
       return AMQP_STATUS_UNKNOWN_CLASS;
   }
+}
+
+/**
+ * amqp_connection_update_secret
+ *
+ * @param [in] state connection state
+ * @param [in] channel the channel to do the RPC on
+ * @param [in] new_secret new_secret
+ * @param [in] reason reason
+ * @returns amqp_connection_update_secret_ok_t
+ */
+AMQP_EXPORT
+amqp_connection_update_secret_ok_t *AMQP_CALL amqp_connection_update_secret(
+    amqp_connection_state_t state, amqp_channel_t channel,
+    amqp_bytes_t new_secret, amqp_bytes_t reason) {
+  amqp_connection_update_secret_t req;
+  req.new_secret = new_secret;
+  req.reason = reason;
+
+  return amqp_simple_rpc_decoded(state, channel,
+                                 AMQP_CONNECTION_UPDATE_SECRET_METHOD,
+                                 AMQP_CONNECTION_UPDATE_SECRET_OK_METHOD, &req);
 }
 
 /**
