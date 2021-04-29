@@ -184,7 +184,7 @@ int amqp_parse_url(char *url, struct amqp_connection_info *parsed) {
   }
 
   if (delim == ':') {
-    port = start = url;
+    port = url;
     delim = find_delim(&url, 1);
   }
 
