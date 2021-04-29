@@ -1056,7 +1056,7 @@ static amqp_rpc_reply_t simple_rpc_inner(
 
   retry:
     status = wait_frame_inner(state, &frame, deadline);
-    if (status < 0) {
+    if (status != AMQP_STATUS_OK) {
       if (status == AMQP_STATUS_TIMEOUT) {
         amqp_socket_close(state->socket, AMQP_SC_FORCE);
       }
