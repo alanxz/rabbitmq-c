@@ -77,12 +77,6 @@
 #define AMQP_UNUSED
 #endif
 
-#if __GNUC__ >= 4
-#define AMQP_PRIVATE __attribute__((visibility("hidden")))
-#else
-#define AMQP_PRIVATE
-#endif
-
 char *amqp_os_error_string(int err);
 
 #include "amqp_socket.h"
