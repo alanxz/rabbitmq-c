@@ -3,13 +3,6 @@ include_directories(
   ${CMAKE_CURRENT_BINARY_DIR}/../librabbitmq/
   ${CMAKE_CURRENT_SOURCE_DIR}/../librabbitmq/)
 
-if (MSVC)
-  # No version of MSVC has inttypes.h, this uses the msinttypes
-  #  Note this includes stdint.h which is either in 
-  #  ../librabbitmq/win32/msinttypes or in a standard location
-  include_directories(win32/msinttypes)
-endif (MSVC)
-
 add_definitions(-DHAVE_CONFIG_H)
 add_definitions(-DAMQP_STATIC)
 
