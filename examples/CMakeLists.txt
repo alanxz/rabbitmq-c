@@ -1,3 +1,5 @@
+# Copyright 2007 - 2021, Alan Antonuk and the rabbitmq-c contributors.
+# SPDX-License-Identifier: mit
 
 add_library(examples-common OBJECT)
 target_sources(examples-common PRIVATE

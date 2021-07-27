@@ -1,3 +1,6 @@
+# Copyright 2007 - 2021, Alan Antonuk and the rabbitmq-c contributors.
+# SPDX-License-Identifier: mit
+
 cmake_minimum_required(VERSION 3.12...3.18)
 
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} ${CMAKE_CURRENT_SOURCE_DIR}/cmake)

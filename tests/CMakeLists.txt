@@ -1,3 +1,6 @@
+# Copyright 2007 - 2021, Alan Antonuk and the rabbitmq-c contributors.
+# SPDX-License-Identifier: mit
+
 include_directories(
   ${LIBRABBITMQ_INCLUDE_DIRS}
   ${CMAKE_CURRENT_BINARY_DIR}/../librabbitmq/

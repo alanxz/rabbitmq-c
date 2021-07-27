@@ -1,5 +1,8 @@
 #!/usr/bin/env bash
 
+# Copyright 2007 - 2021, Alan Antonuk and the rabbitmq-c contributors.
+# SPDX-License-Identifier: mit
+
 build_cmake() {
   sudo apt install -y xmlto
   mkdir $PWD/_build && cd $PWD/_build

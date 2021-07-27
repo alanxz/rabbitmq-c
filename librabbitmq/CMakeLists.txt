@@ -1,3 +1,6 @@
+# Copyright 2007 - 2021, Alan Antonuk and the rabbitmq-c contributors.
+# SPDX-License-Identifier: mit
+
 if (ENABLE_SSL_SUPPORT)
   SET(AMQP_SSL_SOCKET_SHIM_PATH ${CMAKE_CURRENT_SOURCE_DIR}/../include/amqp_ssl_socket.h)
   set(AMQP_SSL_SOCKET_H_PATH ${CMAKE_CURRENT_SOURCE_DIR}/../include/rabbitmq-c/ssl_socket.h)
