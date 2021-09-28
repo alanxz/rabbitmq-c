@@ -44,7 +44,6 @@ include(CheckSymbolExists)
 include(CheckLibraryExists)
 include(CMakePushCheckState)
 include(GNUInstallDirs)
-include(CheckCCompilerFlag)
 
 # Detect if we need to link against a socket library:
 cmake_push_check_state()
