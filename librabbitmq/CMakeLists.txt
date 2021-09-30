@@ -72,6 +72,7 @@ if(BUILD_SHARED_LIBS)
   endif()
 
   add_library(rabbitmq SHARED)
+  set(RMQ_GEN_EXPORT_TARGET rabbitmq)
 
   target_sources(rabbitmq PRIVATE ${RMQ_SOURCES})
 
@@ -110,6 +111,9 @@ if(BUILD_STATIC_LIBS)
   add_library(rabbitmq-static STATIC)
 
   target_sources(rabbitmq-static PRIVATE ${RMQ_SOURCES})
+  if (NOT BUILD_SHARED_LIBS)
+    set(RMQ_GEN_EXPORT_TARGET rabbitmq-static)
+  endif()
 
   target_include_directories(rabbitmq-static
     PUBLIC ${PUBLIC_INCLUDE_DIRS}
@@ -147,7 +151,7 @@ if(BUILD_STATIC_LIBS)
 endif()
 
 include(GenerateExportHeader)
-generate_export_header(rabbitmq
+generate_export_header(${RMQ_GEN_EXPORT_TARGET}
   BASE_NAME AMQP
   EXPORT_FILE_NAME ${CMAKE_CURRENT_BINARY_DIR}/../include/rabbitmq-c/export.h
   STATIC_DEFINE AMQP_STATIC
