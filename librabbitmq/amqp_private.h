@@ -45,7 +45,8 @@
 #define AMQP_UNUSED
 #endif
 
-#if (defined(__BORLANDC__) && (__BORLANDC__ <= 0x0564))
+#if (defined(_MSC_VER) && (_MSC_VER <= 1800)) || \
+    (defined(__BORLANDC__) && (__BORLANDC__ <= 0x0564))
 #define inline __inline
 #endif
 
