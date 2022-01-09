@@ -343,6 +343,7 @@ amqp_socket_t *amqp_ssl_socket_new(amqp_connection_state_t state) {
   /* OpenSSL v1.1.1 turns this on by default, which makes the non-blocking
    * logic not behave as expected, so turn this back off */
   SSL_CTX_clear_mode(self->ctx, SSL_MODE_AUTO_RETRY);
+  SSL_CTX_set_default_verify_paths(self->ctx);
 
   amqp_set_socket(state, (amqp_socket_t *)self);
 
