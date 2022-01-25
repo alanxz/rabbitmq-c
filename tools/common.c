@@ -213,14 +213,18 @@ static void init_connection_info(struct amqp_connection_info *ci) {
       }
 #endif
     }
+  }
 
 #if WITH_SSL
-    if (amqp_ssl && !ci->ssl) {
+  if (amqp_ssl && !ci->ssl) {
+    if (amqp_url) {
       die("the --ssl option specifies an SSL connection"
           " but the --url option does not");
+    } else {
+      ci->ssl = 1;
     }
-#endif
   }
+#endif
 
   if (amqp_port >= 0) {
     if (amqp_url) {
