@@ -70,7 +70,7 @@
                         The routing key to publish with.  If omitted,
                         an empty routing key is assumed.  A routing
                         key must be specified when publishing to the
-                        default exchange; in that case, accoding to
+                        default exchange; in that case, according to
                         the AMQP specification, the routing key
                         corresponds to a queue name.
                     </para>
