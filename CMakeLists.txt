@@ -114,10 +114,12 @@ option(ENABLE_SSL_SUPPORT "Enable SSL support" ON)
 
 if (ENABLE_SSL_SUPPORT)
   find_package(OpenSSL 1.1.1 REQUIRED)
+  set(PROJECT_DEP_PKG "OpenSSL 1.1.1")
 
   cmake_push_check_state()
   set(THREADS_PREFER_PTHREAD_FLAG ON)
   find_package(Threads REQUIRED)
+  list(APPEND PROJECT_DEP_PKG "Threads")
   cmake_pop_check_state()
 endif()
 
@@ -208,8 +210,23 @@ write_basic_package_version_file(
     VERSION ${RMQ_VERSION}
     COMPATIBILITY AnyNewerVersion)
 
+# create main config file for find_package
+set(package_config_file_content "@PACKAGE_INIT@\n")
+# appending find_dependency for each dependency
+if(PROJECT_DEP_PKG)
+  string(APPEND package_config_file_content "include(CMakeFindDependencyMacro)\n")
+  foreach(PKG_NAME ${PROJECT_DEP_PKG})
+    string(APPEND package_config_file_content
+           "find_dependency(${PKG_NAME} REQUIRED)\n")
+  endforeach()
+endif()
+string(APPEND package_config_file_content
+       "include(\"\${CMAKE_CURRENT_LIST_DIR}/${targets_export_name}.cmake\")\n")
+string(APPEND package_config_file_content "check_required_components(rabbitmq-c)")
+file(WRITE ${PROJECT_BINARY_DIR}/rabbitmq-c-config.cmake.in ${package_config_file_content})
+
 configure_package_config_file(
-    "${CMAKE_CURRENT_SOURCE_DIR}/cmake/rabbitmq-c-config.cmake.in"
+    "${PROJECT_BINARY_DIR}/rabbitmq-c-config.cmake.in"
     "${project_config}"
     INSTALL_DESTINATION "${RMQ_CMAKE_DIR}")
 
