@@ -28,7 +28,7 @@ int main(int argc, const char **argv) {
     return 1;
   }
 
-  conn = make_connection();
+  conn = try_make_connection();
   {
     amqp_queue_declare_ok_t *reply = amqp_queue_declare(
         conn, 1, cstring_bytes(queue), 0, durable, 0, 0, amqp_empty_table);

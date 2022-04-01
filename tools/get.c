@@ -35,7 +35,7 @@ int main(int argc, const char **argv) {
     return 1;
   }
 
-  conn = make_connection();
+  conn = try_make_connection();
   got_something = do_get(conn, queue);
   close_connection(conn);
   return got_something ? 0 : 2;

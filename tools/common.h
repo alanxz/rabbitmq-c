@@ -22,6 +22,7 @@ extern void die_rpc(amqp_rpc_reply_t r, const char *fmt, ...)
 extern const char *connect_options_title;
 extern struct poptOption connect_options[];
 extern amqp_connection_state_t make_connection(void);
+extern amqp_connection_state_t try_make_connection(void);
 extern void close_connection(amqp_connection_state_t conn);
 
 extern amqp_bytes_t read_all(int fd);

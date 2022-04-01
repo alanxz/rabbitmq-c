@@ -201,7 +201,7 @@ int main(int argc, const char **argv) {
     goto error;
   }
 
-  conn = make_connection();
+  conn = try_make_connection();
   queue_bytes =
       setup_queue(conn, queue, exchange, routing_key, declare, exclusive);
   do_consume(conn, queue_bytes, no_ack, count, prefetch_count, cmd_argv);

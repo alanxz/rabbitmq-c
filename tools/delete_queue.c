@@ -31,7 +31,7 @@ int main(int argc, const char **argv) {
     return 1;
   }
 
-  conn = make_connection();
+  conn = try_make_connection();
   {
     amqp_queue_delete_ok_t *reply =
         amqp_queue_delete(conn, 1, cstring_bytes(queue), if_unused, if_empty);

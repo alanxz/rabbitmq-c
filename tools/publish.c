@@ -111,7 +111,7 @@ int main(int argc, const char **argv) {
     }
   }
 
-  conn = make_connection();
+  conn = try_make_connection();
 
   if (body) {
     body_bytes = amqp_cstring_bytes(body);

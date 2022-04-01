@@ -27,6 +27,14 @@ void die(const char *fmt, ...) {
   exit(1);
 }
 
+void log_error(const char *fmt, ...) {
+  va_list ap;
+  va_start(ap, fmt);
+  vfprintf(stderr, fmt, ap);
+  va_end(ap);
+  fprintf(stderr, "\n");
+}
+
 void die_errno(int err, const char *fmt, ...) {
   va_list ap;
 
@@ -39,6 +47,19 @@ void die_errno(int err, const char *fmt, ...) {
   va_end(ap);
   fprintf(stderr, ": %s\n", strerror(err));
   exit(1);
+}
+
+void log_errno(int err, const char *fmt, ...) {
+  va_list ap;
+
+  if (err == 0) {
+    return;
+  }
+
+  va_start(ap, fmt);
+  vfprintf(stderr, fmt, ap);
+  va_end(ap);
+  fprintf(stderr, ": %s\n", strerror(err));
 }
 
 void die_amqp_error(int err, const char *fmt, ...) {
@@ -54,6 +75,47 @@ void die_amqp_error(int err, const char *fmt, ...) {
   fprintf(stderr, ": %s\n", amqp_error_string2(err));
   exit(1);
 }
+
+void log_amqp_error(int err, const char *fmt, ...) {
+  va_list ap;
+
+  if (err >= 0) {
+    return;
+  }
+
+  va_start(ap, fmt);
+  vfprintf(stderr, fmt, ap);
+  va_end(ap);
+  fprintf(stderr, ": %s\n", amqp_error_string2(err));
+}
+
+void die_rpc(amqp_rpc_reply_t r, const char *fmt, ...) {
+  va_list ap;
+
+  if (r.reply_type == AMQP_RESPONSE_NORMAL) {
+    return;
+  }
+
+  va_start(ap, fmt);
+  vfprintf(stderr, fmt, ap);
+  va_end(ap);
+  fprintf(stderr, ": %s\n", amqp_rpc_reply_string(r));
+  exit(1);
+}
+
+void log_rpc(amqp_rpc_reply_t r, const char *fmt, ...) {
+  va_list ap;
+
+  if (r.reply_type == AMQP_RESPONSE_NORMAL) {
+    return;
+  }
+
+  va_start(ap, fmt);
+  vfprintf(stderr, fmt, ap);
+  va_end(ap);
+  fprintf(stderr, ": %s\n", amqp_rpc_reply_string(r));
+}
+
 
 const char *amqp_server_exception_string(amqp_rpc_reply_t r) {
   int res;
@@ -104,20 +166,6 @@ const char *amqp_rpc_reply_string(amqp_rpc_reply_t r) {
   }
 }
 
-void die_rpc(amqp_rpc_reply_t r, const char *fmt, ...) {
-  va_list ap;
-
-  if (r.reply_type == AMQP_RESPONSE_NORMAL) {
-    return;
-  }
-
-  va_start(ap, fmt);
-  vfprintf(stderr, fmt, ap);
-  va_end(ap);
-  fprintf(stderr, ": %s\n", amqp_rpc_reply_string(r));
-  exit(1);
-}
-
 static char *amqp_url;
 static char *amqp_server;
 static int amqp_port = -1;
@@ -125,6 +173,7 @@ static char *amqp_vhost;
 static char *amqp_username;
 static char *amqp_password;
 static int amqp_heartbeat = 0;
+static int amqp_connection_retries = 2;
 #ifdef WITH_SSL
 static int amqp_ssl = 0;
 static char *amqp_cacert = "/etc/ssl/certs/cacert.pem";
@@ -147,6 +196,8 @@ struct poptOption connect_options[] = {
      "the password to login with", "password"},
     {"heartbeat", 0, POPT_ARG_INT, &amqp_heartbeat, 0,
      "heartbeat interval, set to 0 to disable", "heartbeat"},
+    {"retry", 0, POPT_ARG_INT, &amqp_connection_retries, 0,
+     "number of additional attempts to make a connection, default 2", "tries"},
 #ifdef WITH_SSL
     {"ssl", 0, POPT_ARG_NONE, &amqp_ssl, 0, "connect over SSL/TLS", NULL},
     {"cacert", 0, POPT_ARG_STRING, &amqp_cacert, 0,
@@ -263,6 +314,21 @@ static void init_connection_info(struct amqp_connection_info *ci) {
   }
 }
 
+amqp_connection_state_t try_make_connection() {
+  int try = amqp_connection_retries;
+  while (1) {
+    amqp_connection_state_t conn = make_connection();
+    if (conn)
+      return conn;
+    if (try--) {
+      fprintf(stderr, "retrying...\n");
+      sleep(1);
+      continue;
+    }
+    exit(1);
+  }
+}
+
 amqp_connection_state_t make_connection(void) {
   int status;
   amqp_socket_t *socket = NULL;
@@ -275,7 +341,8 @@ amqp_connection_state_t make_connection(void) {
 #ifdef WITH_SSL
     socket = amqp_ssl_socket_new(conn);
     if (!socket) {
-      die("creating SSL/TLS socket");
+      log_error("creating SSL/TLS socket");
+      return NULL;
     }
     if (amqp_cacert) {
       amqp_ssl_socket_set_cacert(socket, amqp_cacert);
@@ -284,23 +351,26 @@ amqp_connection_state_t make_connection(void) {
       amqp_ssl_socket_set_key(socket, amqp_cert, amqp_key);
     }
 #else
-    die("librabbitmq was not built with SSL/TLS support");
+    log_error("librabbitmq was not built with SSL/TLS support");
+    return NULL;
 #endif
   } else {
     socket = amqp_tcp_socket_new(conn);
     if (!socket) {
-      die("creating TCP socket (out of memory)");
+      log_error("creating TCP socket (out of memory)");
+      return NULL;
     }
   }
   status = amqp_socket_open(socket, ci.host, ci.port);
   if (status) {
-    die_amqp_error(status, "opening socket to %s:%d", ci.host, ci.port);
+    log_amqp_error(status, "opening socket to %s:%d", ci.host, ci.port);
+    return NULL;
   }
-  die_rpc(amqp_login(conn, ci.vhost, 0, 131072, amqp_heartbeat,
+  log_rpc(amqp_login(conn, ci.vhost, 0, 131072, amqp_heartbeat,
                      AMQP_SASL_METHOD_PLAIN, ci.user, ci.password),
           "logging in to AMQP server");
   if (!amqp_channel_open(conn, 1)) {
-    die_rpc(amqp_get_rpc_reply(conn), "opening channel");
+    log_rpc(amqp_get_rpc_reply(conn), "opening channel");
   }
   return conn;
 }
