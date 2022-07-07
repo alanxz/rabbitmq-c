@@ -8,10 +8,10 @@ add_definitions(-DAMQP_STATIC)
 
 if(BUILD_LIBFUZZ)
   add_executable(fuzz_url fuzz_url.c)
-  target_link_libraries(fuzz_url rabbitmq-static)
+  target_link_libraries(fuzz_url rabbitmq-static -fsanitize=fuzzer)
 
   add_executable(fuzz_table fuzz_table.c)
-  target_link_libraries(fuzz_table rabbitmq-static)
+  target_link_libraries(fuzz_table rabbitmq-static -fsanitize=fuzzer)
 endif ()
 
 if(BUILD_AFLFUZZ)

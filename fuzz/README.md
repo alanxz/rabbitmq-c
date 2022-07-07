@@ -1,6 +1,6 @@
 #### Libfuzzer
 ```
-cmake -DCMAKE_C_COMPILER=clang -DCMAKE_BUILD_TYPE=Debug -DBUILD_LIBFUZZ=ON -DBUILD_TESTING=OFF ../
+cmake -DCMAKE_C_COMPILER=clang -DCMAKE_BUILD_TYPE=Debug -DBUILD_LIBFUZZ=ON ../
 
 ./fuzz/fuzz_url
 ./fuzz/fuzz_table
