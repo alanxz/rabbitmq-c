@@ -1,3 +1,6 @@
+// Copyright 2007 - 2022, Alan Antonuk and the rabbitmq-c contributors.
+// SPDX-License-Identifier: mit
+
 #include <stdint.h>
 #include <stddef.h>
 #include <string.h>

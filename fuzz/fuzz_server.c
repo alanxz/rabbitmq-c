@@ -1,3 +1,6 @@
+// Copyright 2007 - 2022, Alan Antonuk and the rabbitmq-c contributors.
+// SPDX-License-Identifier: mit
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdint.h>
@@ -80,38 +83,6 @@ void *Server(void *args){
     pthread_exit(NULL);
 }
 
-/*
-void clientTest(Fuzzer *fuzzer){// For Testing 
-    
-    int sock, client_fd;
-    struct sockaddr_in serv_addr;
-    char* hello = "Hello from client";
-    char buffer[10240] = { 0 };
-    if ((sock = socket(AF_INET, SOCK_STREAM, 0)) < 0) {
-        printf("\n Socket creation error \n");
-        return;
-    }
-
-    serv_addr.sin_family = AF_INET;
-    serv_addr.sin_port = htons(fuzzer->port);
-
-    if (inet_pton(AF_INET, "127.0.0.1", &serv_addr.sin_addr) <= 0) {
-        printf("\nInvalid address/ Address not supported \n");
-        return;
-    }
-    client_fd = connect(sock, (struct sockaddr*)&serv_addr, sizeof(serv_addr));
-
-    if (client_fd < 0) {
-        printf("\nConnection Failed \n");
-        return;
-    }
-    send(sock, hello, strlen(hello), 0);
-    read(sock, buffer, sizeof(buffer));
-
-    close(client_fd);
-    return;
-}
-*/
 void client(Fuzzer *fuzzer){
     char const *hostname;
     int status;
