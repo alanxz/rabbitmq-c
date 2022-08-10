@@ -6,15 +6,15 @@ include_directories(
 add_definitions(-DHAVE_CONFIG_H)
 add_definitions(-DAMQP_STATIC)
 
-if(BUILD_LIBFUZZ)
+SET(CMAKE_EXE_LINKER_FLAGS "${LIB_FUZZING_ENGINE}")
+
+if(BUILD_OSSFUZZ)
   add_executable(fuzz_url fuzz_url.c)
-  target_link_libraries(fuzz_url rabbitmq-static -fsanitize=fuzzer)
+  target_link_libraries(fuzz_url rabbitmq-static)
 
   add_executable(fuzz_table fuzz_table.c)
-  target_link_libraries(fuzz_table rabbitmq-static -fsanitize=fuzzer)
-endif ()
+  target_link_libraries(fuzz_table rabbitmq-static)
 
-if(BUILD_AFLFUZZ)
   add_executable(fuzz_server fuzz_server.c)
   target_link_libraries(fuzz_server rabbitmq-static)
 endif ()

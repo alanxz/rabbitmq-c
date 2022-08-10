@@ -136,8 +136,7 @@ option(BUILD_TOOLS "Build Tools (requires POPT Library)" OFF)
 cmake_dependent_option(BUILD_TOOLS_DOCS "Build man pages for tools (requires xmlto)" OFF "BUILD_TOOLS" OFF)
 option(BUILD_API_DOCS "Build Doxygen API docs" OFF)
 option(RUN_SYSTEM_TESTS "Run system tests (i.e. tests requiring an accessible RabbitMQ server instance on localhost)" OFF)
-option(BUILD_LIBFUZZ "Build LibFuzzer" OFF)
-option(BUILD_AFLFUZZ "Build AFLFuzzer" OFF)
+option(BUILD_OSSFUZZ "Build OSSFUZZ" OFF)
 
 if (NOT BUILD_SHARED_LIBS AND NOT BUILD_STATIC_LIBS)
     message(FATAL_ERROR "One or both of BUILD_SHARED_LIBS or BUILD_STATIC_LIBS must be set to ON to build")
@@ -145,25 +144,12 @@ endif()
 
 set(targets_export_name rabbitmq-targets)
 
-if(BUILD_LIBFUZZ)
-  if (NOT CMAKE_C_COMPILER_ID STREQUAL "Clang")
-    message(FATAL_ERROR "Need clang for libFuzzer support")
-  endif()
+if(BUILD_OSSFUZZ)
   if (NOT BUILD_STATIC_LIBS)
-    message(FATAL_ERROR "LibFuzzer can only be built against static libraries " "(set BUILD_STATIC_LIBS=ON)")
+    message(FATAL_ERROR "OSS-FUZZ can only be built against static libraries " "(set BUILD_STATIC_LIBS=ON)")
   endif ()
-
-  SET(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -fsanitize=fuzzer-no-link,address,undefined")
-  SET(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -fsanitize=address,undefined")
-endif ()
-
-if(BUILD_AFLFUZZ)
-  if (NOT BUILD_STATIC_LIBS)
-    message(FATAL_ERROR "AFL-Fuzzer can only be built against static libraries " "(set BUILD_STATIC_LIBS=ON)")
-  endif ()
-
-  SET(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -fsanitize=address,undefined")
-  SET(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -fsanitize=address,undefined")
+  SET(CMAKE_C_FLAGS "${CMAKE_C_FLAGS}")
+  SET(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS}")
 endif ()
 
 add_subdirectory(librabbitmq)
@@ -192,7 +178,7 @@ if(CMAKE_PROJECT_NAME STREQUAL PROJECT_NAME AND BUILD_TESTING)
   add_subdirectory(tests)
 endif ()
 
-if(BUILD_LIBFUZZ OR BUILD_AFLFUZZ)
+if(BUILD_OSSFUZZ)
   add_subdirectory(fuzz)
 endif ()
 

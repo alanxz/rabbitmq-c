@@ -15,30 +15,22 @@
 #include <rabbitmq-c/tcp_socket.h>
 
 struct Fuzzer {
+  int socket;
   uint16_t port;
-  char *file;
+  pthread_t thread;
 
-  FILE *inFile;
   uint64_t size;
   uint8_t *buffer;
-
-  pthread_t thread;
-  int socket;
 };
 typedef struct Fuzzer Fuzzer;
 
-static uint8_t pre_encoded_table[] = {0x00, 0x00, 0x00, 0xff, 0x07,
-                                      0x6c, 0x6f, 0x6e, 0x67, 0x73};
+#define PORT 8080
+#define kMinInputLength 9
+#define kMaxInputLength 1024
+
+int client(Fuzzer *fuzzer);
 
 void fuzzinit(Fuzzer *fuzzer) {
-  // File
-  fuzzer->inFile = fopen(fuzzer->file, "rb");
-  fseek(fuzzer->inFile, 0L, SEEK_END);
-  fuzzer->size = ftell(fuzzer->inFile);
-  fseek(fuzzer->inFile, 0L, SEEK_SET);
-  fuzzer->buffer = (uint8_t *)calloc(fuzzer->size, sizeof(char));
-  fread(fuzzer->buffer, sizeof(char), fuzzer->size, fuzzer->inFile);
-  // Server
   struct sockaddr_in server_addr;
   fuzzer->socket = socket(AF_INET, SOCK_STREAM, 0);
   server_addr.sin_family = AF_INET;
@@ -50,7 +42,6 @@ void fuzzinit(Fuzzer *fuzzer) {
 }
 
 void *Server(void *args) {
-
   Fuzzer *fuzzer = (Fuzzer *)args;
 
   int client;
@@ -61,16 +52,40 @@ void *Server(void *args) {
   client = accept(fuzzer->socket, (struct sockaddr *)&clientAddr, &clientSZ);
 
   recv(client, clientData, sizeof(clientData), 0);
+  send(client, fuzzer->buffer, fuzzer->size, 0);
 
-  if (fuzzer->size < 9) {
-    send(client, pre_encoded_table, sizeof(pre_encoded_table), 0);
-  } else {
-    send(client, fuzzer->buffer, fuzzer->size, 0);
-  }
-
+  shutdown(client, SHUT_RDWR);
   close(client);
 
   pthread_exit(NULL);
+}
+
+void clean(Fuzzer *fuzzer) {
+  shutdown(fuzzer->socket, SHUT_RDWR);
+  close(fuzzer->socket);
+  free(fuzzer);
+}
+
+extern int LLVMFuzzerTestOneInput(const char *data, size_t size) {
+
+  if (size < kMinInputLength || size > kMaxInputLength) {
+    return 0;
+  }
+
+  Fuzzer *fuzzer = (Fuzzer *)malloc(sizeof(Fuzzer));
+  fuzzer->port = PORT;
+
+  fuzzinit(fuzzer);
+
+  pthread_create(&fuzzer->thread, NULL, Server, fuzzer);
+
+  client(fuzzer);
+
+  pthread_join(fuzzer->thread, NULL);
+
+  clean(fuzzer);
+
+  return 0;
 }
 
 void client(Fuzzer *fuzzer) {
@@ -98,36 +113,3 @@ void client(Fuzzer *fuzzer) {
   amqp_destroy_connection(conn);
 }
 
-void clean(Fuzzer *fuzzer) {
-
-  free(fuzzer->buffer);
-  fclose(fuzzer->inFile);
-
-  close(fuzzer->socket);
-
-  free(fuzzer);
-}
-
-int main(int argc, char *argv[]) {
-
-  if (argc < 3) {
-    printf("Server-port,Input-file \n");
-    return 0;
-  }
-
-  Fuzzer *fuzzer = (Fuzzer *)malloc(sizeof(Fuzzer));
-  fuzzer->port = atoi(argv[1]);
-  fuzzer->file = argv[2];
-
-  fuzzinit(fuzzer);
-
-  pthread_create(&fuzzer->thread, NULL, Server, fuzzer);
-
-  client(fuzzer);
-
-  pthread_join(fuzzer->thread, NULL);
-
-  clean(fuzzer);
-
-  return 0;
-}
