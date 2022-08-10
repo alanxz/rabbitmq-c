@@ -28,7 +28,7 @@ typedef struct Fuzzer Fuzzer;
 #define kMinInputLength 9
 #define kMaxInputLength 1024
 
-int client(Fuzzer *fuzzer);
+void client(Fuzzer *fuzzer);
 
 void fuzzinit(Fuzzer *fuzzer) {
   struct sockaddr_in server_addr;
