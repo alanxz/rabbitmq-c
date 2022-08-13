@@ -21,7 +21,7 @@ cmake -DCMAKE_BUILD_TYPE=Debug -DBUILD_OSSFUZZ=ON \
 #### Run Fuzzer
 ```
 mkdir coverage
-./fuzz/fuzz_url coverage/
+./fuzz/fuzz_url coverage/ ../fuzz/input/
 ./fuzz/fuzz_table coverage/ ../fuzz/input/
 ./fuzz/fuzz_server coverage/ ../fuzz/input/
 ```
