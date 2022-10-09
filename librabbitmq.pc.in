@@ -10,4 +10,4 @@ URL: https://github.com/alanxz/rabbitmq-c
 Requires.private: @requires_private@
 Libs: -L${libdir} -lrabbitmq
 Libs.private: @libs_private@
-CFlags: -I${includedir}
+Cflags: -I${includedir}
