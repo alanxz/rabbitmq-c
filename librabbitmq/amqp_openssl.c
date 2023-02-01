@@ -9,6 +9,9 @@
 #define _CRT_SECURE_NO_WARNINGS
 #endif
 
+// Use OpenSSL v1.1.0 API.
+#define OPENSSL_API_COMPAT 10100
+
 #include "amqp_openssl_bio.h"
 #include "amqp_private.h"
 #include "amqp_socket.h"

@@ -4,6 +4,9 @@
 #ifndef AMQP_OPENSSL_BIO
 #define AMQP_OPENSSL_BIO
 
+// Use OpenSSL v1.1.0 API.
+#define OPENSSL_API_COMPAT 10100
+
 #include <openssl/bio.h>
 
 int amqp_openssl_bio_init(void);
