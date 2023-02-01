@@ -129,6 +129,7 @@ include(CMakeDependentOption)
 
 option(BUILD_SHARED_LIBS "Build rabbitmq-c as a shared library" ON)
 option(BUILD_STATIC_LIBS "Build rabbitmq-c as a static library" ON)
+option(INSTALL_STATIC_LIBS "Install rabbitmq-c static library" ON)
 
 option(BUILD_EXAMPLES "Build Examples" OFF)
 option(BUILD_TOOLS "Build Tools (requires POPT Library)" OFF)
@@ -244,7 +245,7 @@ configure_package_config_file(
 if(BUILD_SHARED_LIBS)
     list(APPEND INSTALL_TARGETS rabbitmq)
 endif()
-if(BUILD_STATIC_LIBS)
+if(BUILD_STATIC_LIBS AND INSTALL_STATIC_LIBS)
     list(APPEND INSTALL_TARGETS rabbitmq-static)
 endif()
 

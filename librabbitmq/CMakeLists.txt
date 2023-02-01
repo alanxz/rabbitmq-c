@@ -142,10 +142,12 @@ if(BUILD_STATIC_LIBS)
     set_target_properties(rabbitmq-static PROPERTIES COMPILE_OPTIONS "/Z7")
   endif()
 
-  install(TARGETS rabbitmq-static EXPORT "${targets_export_name}"
-    ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}
+  if(INSTALL_STATIC_LIBS)
+    install(TARGETS rabbitmq-static EXPORT "${targets_export_name}"
+      ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}
             COMPONENT rabbitmq-c-development
-  )
+    )
+  endif()
 
   add_library(rabbitmq::rabbitmq-static ALIAS rabbitmq-static)
 endif()
