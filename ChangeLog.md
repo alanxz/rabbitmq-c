@@ -1,4 +1,19 @@
 # Change Log
+## v0.12.0 - 2023-01-31
+## Changed
+- rabbitmq-c now compiles as C99
+- CMake 3.12 is new minimum required version
+- CMake -DBUILD_TESTS renamed to -DBUILD_TESTING
+- CMake -DBUILD_EXAMPLES now defaults to OFF
+- CMake -DBUILD_TOOLS now defaults to OFF
+- Unix library version now matches the release version, SONAME remains the same.
+- Modernized CMake scripts to better adopt modern standards
+- Public headers have moved to rabbitmq-c/ directory
+- Dropped support for MSVC older than VS 2010
+- Dropped support for OpenSSL v1.1.0 and older
+- Minimum SSL version set to TLSv1.2
+- Updated to RabbitMQ framing to v3.8.19
+
 ## v0.11.0 - 2021-03-31
 ## Added:
 - rabbitmq-c-config.cmake is now generated (#611)
