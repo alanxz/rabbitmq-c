@@ -14,7 +14,7 @@ set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} ${CMAKE_CURRENT_SOURCE_DIR}/cmake)
 # 4. If any interfaces have been removed since the last public release, then set age to 0.
 
 set(RMQ_SOVERSION_CURRENT   9)
-set(RMQ_SOVERSION_REVISION  1)
+set(RMQ_SOVERSION_REVISION  3)
 set(RMQ_SOVERSION_AGE       5)
 
 include(VersionFunctions)
@@ -129,18 +129,28 @@ include(CMakeDependentOption)
 
 option(BUILD_SHARED_LIBS "Build rabbitmq-c as a shared library" ON)
 option(BUILD_STATIC_LIBS "Build rabbitmq-c as a static library" ON)
+option(INSTALL_STATIC_LIBS "Install rabbitmq-c static library" ON)
 
 option(BUILD_EXAMPLES "Build Examples" OFF)
 option(BUILD_TOOLS "Build Tools (requires POPT Library)" OFF)
 cmake_dependent_option(BUILD_TOOLS_DOCS "Build man pages for tools (requires xmlto)" OFF "BUILD_TOOLS" OFF)
 option(BUILD_API_DOCS "Build Doxygen API docs" OFF)
 option(RUN_SYSTEM_TESTS "Run system tests (i.e. tests requiring an accessible RabbitMQ server instance on localhost)" OFF)
+option(BUILD_OSSFUZZ "Build OSSFUZZ" OFF)
 
 if (NOT BUILD_SHARED_LIBS AND NOT BUILD_STATIC_LIBS)
     message(FATAL_ERROR "One or both of BUILD_SHARED_LIBS or BUILD_STATIC_LIBS must be set to ON to build")
 endif()
 
 set(targets_export_name rabbitmq-targets)
+
+if(BUILD_OSSFUZZ)
+  if (NOT BUILD_STATIC_LIBS)
+    message(FATAL_ERROR "OSS-FUZZ can only be built against static libraries " "(set BUILD_STATIC_LIBS=ON)")
+  endif ()
+  SET(CMAKE_C_FLAGS "${CMAKE_C_FLAGS}")
+  SET(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS}")
+endif ()
 
 add_subdirectory(librabbitmq)
 
@@ -166,6 +176,10 @@ if(CMAKE_PROJECT_NAME STREQUAL PROJECT_NAME AND BUILD_TESTING)
       "(set BUILD_STATIC_LIBS=ON)")
   endif ()
   add_subdirectory(tests)
+endif ()
+
+if(BUILD_OSSFUZZ)
+  add_subdirectory(fuzz)
 endif ()
 
 if (BUILD_API_DOCS)
@@ -217,7 +231,7 @@ configure_package_config_file(
 if(BUILD_SHARED_LIBS)
     list(APPEND INSTALL_TARGETS rabbitmq)
 endif()
-if(BUILD_STATIC_LIBS)
+if(BUILD_STATIC_LIBS AND INSTALL_STATIC_LIBS)
     list(APPEND INSTALL_TARGETS rabbitmq-static)
 endif()
 
