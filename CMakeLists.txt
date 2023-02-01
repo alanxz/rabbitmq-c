@@ -18,8 +18,12 @@ set(RMQ_SOVERSION_REVISION  3)
 set(RMQ_SOVERSION_AGE       5)
 
 include(VersionFunctions)
-get_library_version(RMQ_VERSION)
-compute_soversion(${RMQ_SOVERSION_CURRENT} ${RMQ_SOVERSION_REVISION} ${RMQ_SOVERSION_AGE} RMQ_SOVERSION)
+get_library_version(VERSION)
+compute_soversion(${RMQ_SOVERSION_CURRENT} ${RMQ_SOVERSION_REVISION} ${RMQ_SOVERSION_AGE} RMQ_SOVERSION RMQ_VERSION)
+
+  message(STATUS "VERSION: " ${VERSION})
+  message(STATUS "RMQ_VERSION: " ${RMQ_VERSION})
+  message(STATUS "RMQ_SOVERSION: " ${RMQ_SOVERSION})
 
 project(rabbitmq-c 
   VERSION ${RMQ_VERSION}
@@ -233,7 +237,7 @@ set(version_config "${CMAKE_CURRENT_BINARY_DIR}/rabbitmq-c-config-version.cmake"
 
 write_basic_package_version_file(
     "${version_config}"
-    VERSION ${RMQ_VERSION}
+    VERSION ${VERSION}
     COMPATIBILITY AnyNewerVersion)
 
 configure_package_config_file(
