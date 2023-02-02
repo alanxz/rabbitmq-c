@@ -451,6 +451,7 @@ int amqp_ssl_socket_set_key_buffer(amqp_socket_t *base, const char *cert,
   if (1 != status) {
     goto error;
   }
+  status = AMQP_STATUS_OK;
 exit:
   BIO_vfree(buf);
   RSA_free(rsa);
