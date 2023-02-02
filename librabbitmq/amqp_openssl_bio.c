@@ -109,18 +109,15 @@ int amqp_openssl_bio_init(void) {
     return AMQP_STATUS_NO_MEMORY;
   }
 
-  // casting away const is necessary until
-  // https://github.com/openssl/openssl/pull/2181/, which is targeted for
-  // openssl 1.1.1
-  BIO_METHOD *meth = (BIO_METHOD *)BIO_s_socket();
-  BIO_meth_set_create(amqp_bio_method, BIO_meth_get_create(meth));
-  BIO_meth_set_destroy(amqp_bio_method, BIO_meth_get_destroy(meth));
-  BIO_meth_set_ctrl(amqp_bio_method, BIO_meth_get_ctrl(meth));
-  BIO_meth_set_callback_ctrl(amqp_bio_method, BIO_meth_get_callback_ctrl(meth));
-  BIO_meth_set_read(amqp_bio_method, BIO_meth_get_read(meth));
-  BIO_meth_set_write(amqp_bio_method, BIO_meth_get_write(meth));
-  BIO_meth_set_gets(amqp_bio_method, BIO_meth_get_gets(meth));
-  BIO_meth_set_puts(amqp_bio_method, BIO_meth_get_puts(meth));
+  BIO_meth_set_create(amqp_bio_method, BIO_meth_get_create(BIO_s_socket()));
+  BIO_meth_set_destroy(amqp_bio_method, BIO_meth_get_destroy(BIO_s_socket()));
+  BIO_meth_set_ctrl(amqp_bio_method, BIO_meth_get_ctrl(BIO_s_socket()));
+  BIO_meth_set_callback_ctrl(amqp_bio_method,
+                             BIO_meth_get_callback_ctrl(BIO_s_socket()));
+  BIO_meth_set_read(amqp_bio_method, BIO_meth_get_read(BIO_s_socket()));
+  BIO_meth_set_write(amqp_bio_method, BIO_meth_get_write(BIO_s_socket()));
+  BIO_meth_set_gets(amqp_bio_method, BIO_meth_get_gets(BIO_s_socket()));
+  BIO_meth_set_puts(amqp_bio_method, BIO_meth_get_puts(BIO_s_socket()));
 
   BIO_meth_set_write(amqp_bio_method, amqp_openssl_bio_write);
   BIO_meth_set_read(amqp_bio_method, amqp_openssl_bio_read);
