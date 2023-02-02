@@ -206,6 +206,9 @@ int AMQP_CALL amqp_ssl_socket_set_ssl_versions(amqp_socket_t *self,
 /**
  * Sets whether rabbitmq-c will initialize OpenSSL.
  *
+ * \deprecated Since v0.13.0 this is a no-op. OpenSSL automatically manages
+ *    library initialization and uninitialization.
+ *
  * OpenSSL requires a one-time initialization across a whole program, this sets
  * whether or not rabbitmq-c will initialize the SSL library when the first call
  * to amqp_ssl_socket_new() is made. You should call this function with
@@ -226,11 +229,14 @@ int AMQP_CALL amqp_ssl_socket_set_ssl_versions(amqp_socket_t *self,
  *
  * \since v0.4.0
  */
-AMQP_EXPORT
+AMQP_DEPRECATED_EXPORT
 void AMQP_CALL amqp_set_initialize_ssl_library(amqp_boolean_t do_initialize);
 
 /**
  * Initialize the underlying SSL/TLS library.
+ *
+ * \deprecated Since v0.13.0 this is a no-op. OpenSSL automatically manages
+ *    library initialization and uninitialization.
  *
  * The OpenSSL library requires a one-time initialization across the whole
  * program.
@@ -244,7 +250,7 @@ void AMQP_CALL amqp_set_initialize_ssl_library(amqp_boolean_t do_initialize);
  *
  * \since v0.9.0
  */
-AMQP_EXPORT
+AMQP_DEPRECATED_EXPORT
 int AMQP_CALL amqp_initialize_ssl_library(void);
 
 /**
@@ -266,11 +272,14 @@ int amqp_set_ssl_engine(const char *engine);
 /**
  * Uninitialize the underlying SSL/TLS library.
  *
+ * \deprecated Since v0.13.0 this is a no-op. OpenSSL automatically manages
+ *    library initialization and uninitialization.
+ *
  * \return AMQP_STATUS_OK on success.
  *
  * \since v0.9.0
  */
-AMQP_EXPORT
+AMQP_DEPRECATED_EXPORT
 int AMQP_CALL amqp_uninitialize_ssl_library(void);
 
 AMQP_END_DECLS
