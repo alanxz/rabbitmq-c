@@ -1,4 +1,16 @@
 # Change Log
+## v0.13.0 - 2023-02-05
+## Fixed
+- Fixed missing option to not install static library (#665)
+- Missing pkgconfig version in v0.12.0 output (#755, #751)
+- Correct return value from amqp_ssl_socket_set_key_buffer (#723)
+
+## Changed
+- Remove OpenSSL code no longer needed when used with OpenSSL >= 1.1.0. (Fixed: #715, #737)
+
+## Added
+- Integration with OSS-Fuzz (#736)
+
 ## v0.12.0 - 2023-01-31
 ## Changed
 - rabbitmq-c now compiles as C99
