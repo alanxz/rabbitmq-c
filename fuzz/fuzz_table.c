@@ -13,7 +13,7 @@
 
 extern int LLVMFuzzerTestOneInput(const char *data, size_t size) {
 
-  int result;
+  int unused_result;
   amqp_pool_t pool;
 
   init_amqp_pool(&pool, 4096);
@@ -24,8 +24,9 @@ extern int LLVMFuzzerTestOneInput(const char *data, size_t size) {
     decoding_bytes.len = size;
     decoding_bytes.bytes = (uint8_t *)data;
 
-    result =
+    unused_result =
         amqp_decode_table(decoding_bytes, &pool, &decoded, &decoding_offset);
   }
-  return result;
+  empty_amqp_pool(&pool);
+  return 0;
 }
