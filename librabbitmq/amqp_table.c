@@ -15,9 +15,11 @@
 
 #define INITIAL_ARRAY_SIZE 16
 #define INITIAL_TABLE_SIZE 16
+#define TABLE_DEPTH_LIMIT 100
 
 static int amqp_decode_field_value(amqp_bytes_t encoded, amqp_pool_t *pool,
-                                   amqp_field_value_t *entry, size_t *offset);
+                                   amqp_field_value_t *entry, size_t *offset,
+                                   int depth);
 
 static int amqp_encode_field_value(amqp_bytes_t encoded,
                                    amqp_field_value_t *entry, size_t *offset);
@@ -25,7 +27,7 @@ static int amqp_encode_field_value(amqp_bytes_t encoded,
 /*---------------------------------------------------------------------------*/
 
 static int amqp_decode_array(amqp_bytes_t encoded, amqp_pool_t *pool,
-                             amqp_array_t *output, size_t *offset) {
+                             amqp_array_t *output, size_t *offset, int depth) {
   uint32_t arraysize;
   int num_entries = 0;
   int allocated_entries = INITIAL_ARRAY_SIZE;
@@ -61,7 +63,8 @@ static int amqp_decode_array(amqp_bytes_t encoded, amqp_pool_t *pool,
       entries = newentries;
     }
 
-    res = amqp_decode_field_value(encoded, pool, &entries[num_entries], offset);
+    res = amqp_decode_field_value(encoded, pool, &entries[num_entries], offset,
+                                  depth);
     if (res < 0) {
       goto out;
     }
@@ -90,14 +93,19 @@ out:
   return res;
 }
 
-int amqp_decode_table(amqp_bytes_t encoded, amqp_pool_t *pool,
-                      amqp_table_t *output, size_t *offset) {
+static int amqp_decode_table_internal(amqp_bytes_t encoded, amqp_pool_t *pool,
+                                      amqp_table_t *output, size_t *offset,
+                                      int depth) {
   uint32_t tablesize;
   int num_entries = 0;
   amqp_table_entry_t *entries;
   int allocated_entries = INITIAL_TABLE_SIZE;
   size_t limit;
   int res;
+
+  if (depth > TABLE_DEPTH_LIMIT) {
+    return AMQP_STATUS_BAD_AMQP_DATA;
+  }
 
   if (!amqp_decode_32(encoded, offset, &tablesize)) {
     return AMQP_STATUS_BAD_AMQP_DATA;
@@ -141,7 +149,7 @@ int amqp_decode_table(amqp_bytes_t encoded, amqp_pool_t *pool,
     }
 
     res = amqp_decode_field_value(encoded, pool, &entries[num_entries].value,
-                                  offset);
+                                  offset, depth);
     if (res < 0) {
       goto out;
     }
@@ -170,8 +178,14 @@ out:
   return res;
 }
 
+int amqp_decode_table(amqp_bytes_t encoded, amqp_pool_t *pool,
+                      amqp_table_t *output, size_t *offset) {
+  return amqp_decode_table_internal(encoded, pool, output, offset, 0);
+}
+
 static int amqp_decode_field_value(amqp_bytes_t encoded, amqp_pool_t *pool,
-                                   amqp_field_value_t *entry, size_t *offset) {
+                                   amqp_field_value_t *entry, size_t *offset,
+                                   int depth) {
   int res = AMQP_STATUS_BAD_AMQP_DATA;
 
   if (!amqp_decode_8(encoded, offset, &entry->kind)) {
@@ -242,14 +256,16 @@ static int amqp_decode_field_value(amqp_bytes_t encoded, amqp_pool_t *pool,
     }
 
     case AMQP_FIELD_KIND_ARRAY:
-      res = amqp_decode_array(encoded, pool, &(entry->value.array), offset);
+      res = amqp_decode_array(encoded, pool, &(entry->value.array), offset,
+                              depth + 1);
       goto out;
 
     case AMQP_FIELD_KIND_TIMESTAMP:
       TRIVIAL_FIELD_DECODER(64);
 
     case AMQP_FIELD_KIND_TABLE:
-      res = amqp_decode_table(encoded, pool, &(entry->value.table), offset);
+      res = amqp_decode_table_internal(encoded, pool, &(entry->value.table),
+                                       offset, depth + 1);
       goto out;
 
     case AMQP_FIELD_KIND_VOID:
