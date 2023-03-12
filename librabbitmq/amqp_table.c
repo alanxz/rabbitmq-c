@@ -103,10 +103,6 @@ static int amqp_decode_table_internal(amqp_bytes_t encoded, amqp_pool_t *pool,
   size_t limit;
   int res;
 
-  if (depth > TABLE_DEPTH_LIMIT) {
-    return AMQP_STATUS_BAD_AMQP_DATA;
-  }
-
   if (!amqp_decode_32(encoded, offset, &tablesize)) {
     return AMQP_STATUS_BAD_AMQP_DATA;
   }
@@ -187,6 +183,10 @@ static int amqp_decode_field_value(amqp_bytes_t encoded, amqp_pool_t *pool,
                                    amqp_field_value_t *entry, size_t *offset,
                                    int depth) {
   int res = AMQP_STATUS_BAD_AMQP_DATA;
+
+  if (depth > TABLE_DEPTH_LIMIT) {
+    return AMQP_STATUS_BAD_AMQP_DATA;
+  }
 
   if (!amqp_decode_8(encoded, offset, &entry->kind)) {
     goto out;
