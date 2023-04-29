@@ -2,6 +2,7 @@
 // SPDX-License-Identifier: mit
 
 #include <arpa/inet.h>
+#include <errno.h>
 #include <netinet/in.h>
 #include <pthread.h>
 #include <stdint.h>
@@ -24,7 +25,7 @@ struct Fuzzer {
 };
 typedef struct Fuzzer Fuzzer;
 
-#define PORT 8080
+#define PORT 5672
 #define kMinInputLength 9
 #define kMaxInputLength 1024
 
@@ -32,13 +33,32 @@ void client(Fuzzer *fuzzer);
 
 void fuzzinit(Fuzzer *fuzzer) {
   struct sockaddr_in server_addr;
+  int res;
   fuzzer->socket = socket(AF_INET, SOCK_STREAM, 0);
+  if (fuzzer->socket == -1) {
+    fprintf(stderr, "socket failed %s", strerror(errno));
+    exit(1);
+  }
+  memset(&server_addr, 0, sizeof(server_addr));
   server_addr.sin_family = AF_INET;
   server_addr.sin_port = htons(fuzzer->port);
   server_addr.sin_addr.s_addr = inet_addr("127.0.0.1");
-  setsockopt(fuzzer->socket, SOL_SOCKET, SO_REUSEADDR, &(int){1}, sizeof(int));
-  bind(fuzzer->socket, (struct sockaddr *)&server_addr, sizeof(server_addr));
-  listen(fuzzer->socket, 1);
+  res = setsockopt(fuzzer->socket, SOL_SOCKET, SO_REUSEADDR, &(int){1}, sizeof(int));
+  if (res) {
+    fprintf(stderr, "setsockopt failed: %s", strerror(errno));
+    exit(1);
+  }
+
+  res = bind(fuzzer->socket, (struct sockaddr *)&server_addr, sizeof(server_addr));
+  if (res) {
+    fprintf(stderr, "bind failed: %s", strerror(errno));
+    exit(1);
+  }
+  res = listen(fuzzer->socket, 1);
+  if (res) {
+    fprintf(stderr, "listen failed: %s", strerror(errno));
+    exit(1);
+  }
 }
 
 void *Server(void *args) {
@@ -46,18 +66,15 @@ void *Server(void *args) {
 
   int client;
   char clientData[10240];
-  struct sockaddr_in clientAddr;
-  uint32_t clientSZ = sizeof(clientAddr);
 
-  client = accept(fuzzer->socket, (struct sockaddr *)&clientAddr, &clientSZ);
+  client = accept(fuzzer->socket, NULL, NULL);
 
   recv(client, clientData, sizeof(clientData), 0);
   send(client, fuzzer->buffer, fuzzer->size, 0);
 
   shutdown(client, SHUT_RDWR);
   close(client);
-
-  pthread_exit(NULL);
+  return NULL;
 }
 
 void clean(Fuzzer *fuzzer) {
@@ -104,7 +121,8 @@ void client(Fuzzer *fuzzer) {
   }
 
   status = amqp_socket_open(socket, hostname, fuzzer->port);
-  if (status) {
+  if (status != AMQP_STATUS_OK) {
+    fprintf(stderr, "amqp_socket_open failed: %s", amqp_error_string2(status));
     exit(1);
   }
 
