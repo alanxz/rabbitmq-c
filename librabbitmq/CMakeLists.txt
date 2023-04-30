@@ -90,6 +90,13 @@ if(BUILD_SHARED_LIBS)
     SOVERSION ${RMQ_SOVERSION}
   )
 
+  if (APPLE)
+    set_target_properties(rabbitmq PROPERTIES
+      MACHO_CURRENT_VERSION ${RMQ_SOVERSION}.${RMQ_SOVERSION_AGE}.${RMQ_SOVERSION_REVISION}
+      MACHO_COMPATIBILITY_VERSION ${RMQ_SOVERSION}
+    )
+  endif()
+
   if (WIN32)
     set_target_properties(rabbitmq PROPERTIES OUTPUT_NAME rabbitmq.${RMQ_SOVERSION})
   endif()
@@ -129,7 +136,15 @@ if(BUILD_STATIC_LIBS)
 
   set_target_properties(rabbitmq-static PROPERTIES
     VERSION ${RMQ_VERSION}
-    SOVERSION ${RMQ_SOVERSION})
+    SOVERSION ${RMQ_SOVERSION}
+  )
+
+  if (APPLE)
+    set_target_properties(rabbitmq PROPERTIES
+      MACHO_CURRENT_VERSION ${RMQ_SOVERSION}.${RMQ_SOVERSION_AGE}.${RMQ_SOVERSION_REVISION}
+      MACHO_COMPATIBILITY_VERSION ${RMQ_SOVERSION}
+    )
+  endif()
 
   if (WIN32)
     set_target_properties(rabbitmq-static PROPERTIES OUTPUT_NAME librabbitmq.${RMQ_SOVERSION})
