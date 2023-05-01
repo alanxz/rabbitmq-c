@@ -4,6 +4,8 @@
 
 [![Coverage Status](https://coveralls.io/repos/github/alanxz/rabbitmq-c/badge.svg?branch=master)](https://coveralls.io/github/alanxz/rabbitmq-c?branch=master)
 
+[![Fuzzing Status](https://oss-fuzz-build-logs.storage.googleapis.com/badges/rabbitmq-c.svg)](https://oss-fuzz-build-logs.storage.googleapis.com/index.html#rabbitmq-c)
+
 ## Introduction
 
 This is a C-language AMQP client library for use with v2.0+ of the
