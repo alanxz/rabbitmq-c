@@ -36,7 +36,7 @@ void fuzzinit(Fuzzer *fuzzer) {
   int res;
   fuzzer->socket = socket(AF_INET, SOCK_STREAM, 0);
   if (fuzzer->socket == -1) {
-    fprintf(stderr, "socket failed %s", strerror(errno));
+    fprintf(stderr, "socket failed %s\n", strerror(errno));
     exit(1);
   }
   memset(&server_addr, 0, sizeof(server_addr));
@@ -45,18 +45,18 @@ void fuzzinit(Fuzzer *fuzzer) {
   server_addr.sin_addr.s_addr = inet_addr("127.0.0.1");
   res = setsockopt(fuzzer->socket, SOL_SOCKET, SO_REUSEADDR, &(int){1}, sizeof(int));
   if (res) {
-    fprintf(stderr, "setsockopt failed: %s", strerror(errno));
+    fprintf(stderr, "setsockopt failed: %s\n", strerror(errno));
     exit(1);
   }
 
   res = bind(fuzzer->socket, (struct sockaddr *)&server_addr, sizeof(server_addr));
   if (res) {
-    fprintf(stderr, "bind failed: %s", strerror(errno));
+    fprintf(stderr, "bind failed: %s\n", strerror(errno));
     exit(1);
   }
   res = listen(fuzzer->socket, 1);
   if (res) {
-    fprintf(stderr, "listen failed: %s", strerror(errno));
+    fprintf(stderr, "listen failed: %s\n", strerror(errno));
     exit(1);
   }
 }
@@ -65,14 +65,27 @@ void *Server(void *args) {
   Fuzzer *fuzzer = (Fuzzer *)args;
 
   int client;
+  int res;
   char clientData[10240];
 
   client = accept(fuzzer->socket, NULL, NULL);
+  if (client == -1) {
+    fprintf(stderr, "accept failed: %s\n", strerror(errno));
+    exit(1);
+  }
 
-  recv(client, clientData, sizeof(clientData), 0);
-  send(client, fuzzer->buffer, fuzzer->size, 0);
+  res = recv(client, clientData, sizeof(clientData), 0);
+  if (res == -1) {
+    fprintf(stderr, "recv failed: %s\n", strerror(errno));
+    exit(1);
+  }
+  res = send(client, fuzzer->buffer, fuzzer->size, 0);
+  if (res == -1) {
+    fprintf(stderr, "send failed: %s\n", strerror(errno));
+    exit(1);
+  }
 
-  shutdown(client, SHUT_RDWR);
+  res = shutdown(client, SHUT_RDWR);
   close(client);
   return NULL;
 }
@@ -122,7 +135,9 @@ void client(Fuzzer *fuzzer) {
 
   status = amqp_socket_open(socket, hostname, fuzzer->port);
   if (status != AMQP_STATUS_OK) {
-    fprintf(stderr, "amqp_socket_open failed: %s", amqp_error_string2(status));
+    int sav_errno = errno;
+    fprintf(stderr, "amqp_socket_open failed: %s\n", amqp_error_string2(status));
+    fprintf(stderr, "amqp_socket_open errno: %d: %s\n", sav_errno, strerror(sav_errno));
     exit(1);
   }
 
