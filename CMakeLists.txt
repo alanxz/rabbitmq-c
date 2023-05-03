@@ -207,8 +207,8 @@ endif()
 
 set(prefix ${CMAKE_INSTALL_PREFIX})
 set(exec_prefix "\${prefix}")
-set(libdir "\${exec_prefix}/${CMAKE_INSTALL_LIBDIR}")
-set(includedir "\${prefix}/${CMAKE_INSTALL_INCLUDEDIR}")
+cmake_path(APPEND libdir "\${exec_prefix}" "${CMAKE_INSTALL_LIBDIR}")
+cmake_path(APPEND includedir "\${prefix}" "${CMAKE_INSTALL_INCLUDEDIR}")
 
 configure_file(cmake/config.h.in ${CMAKE_CURRENT_BINARY_DIR}/librabbitmq/config.h)
 configure_file(librabbitmq.pc.in ${CMAKE_CURRENT_BINARY_DIR}/librabbitmq.pc @ONLY)
