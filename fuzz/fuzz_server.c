@@ -124,7 +124,7 @@ void client(Fuzzer *fuzzer) {
   amqp_socket_t *socket = NULL;
   amqp_connection_state_t conn;
 
-  hostname = "localhost";
+  hostname = "127.0.0.1";
 
   conn = amqp_new_connection();
 
