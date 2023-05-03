@@ -113,7 +113,8 @@ endif()
 option(ENABLE_SSL_SUPPORT "Enable SSL support" ON)
 
 if (ENABLE_SSL_SUPPORT)
-  find_package(OpenSSL 1.1.1 REQUIRED)
+  set(RMQ_OPENSSL_MIN_VERSION 1.1.1)
+  find_package(OpenSSL "${RMQ_OPENSSL_MIN_VERSION}" REQUIRED)
 
   cmake_push_check_state()
   set(THREADS_PREFER_PTHREAD_FLAG ON)

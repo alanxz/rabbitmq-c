@@ -1,4 +1,12 @@
 @PACKAGE_INIT@
 
+set(RMQ_USES_OPENSSL @ENABLE_SSL_SUPPORT@)
+
+include(CMakeFindDependencyMacro)
+
+if (RMQ_USES_OPENSSL)
+  find_dependency(OpenSSL @RMQ_OPENSSL_MIN_VERSION@ REQUIRED)
+endif ()
+
 include(${CMAKE_CURRENT_LIST_DIR}/@targets_export_name@.cmake)
 check_required_components(rabbitmq-c)
