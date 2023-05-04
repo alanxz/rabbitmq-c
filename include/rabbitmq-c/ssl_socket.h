@@ -189,6 +189,9 @@ typedef enum {
  * connecting to the broker. Set min == max to restrict to just that
  * version.
  *
+ * As of v0.14.0 the defaults are TLS v1.2 and TLS v1.3. TLS v1.1 and lower are
+ * no longer supported.
+ *
  * \param [in,out] self An SSL/TLS socket object.
  * \param [in] min the minimum acceptable TLS version
  * \param [in] max the maxmium acceptable TLS version

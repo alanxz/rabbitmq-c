@@ -331,10 +331,11 @@ amqp_socket_t *amqp_ssl_socket_new(amqp_connection_state_t state) {
   if (!self->ctx) {
     goto error;
   }
-  /* Disable SSLv2 and SSLv3 */
-  SSL_CTX_set_options(self->ctx, SSL_OP_NO_SSLv2 | SSL_OP_NO_SSLv3);
-  amqp_ssl_socket_set_ssl_versions((amqp_socket_t *)self, AMQP_TLSv1_2,
-                                   AMQP_TLSvLATEST);
+  status = amqp_ssl_socket_set_ssl_versions((amqp_socket_t *)self, AMQP_TLSv1_2,
+                                            AMQP_TLSvLATEST);
+  if (status != AMQP_STATUS_OK) {
+    goto error;
+  }
 
   SSL_CTX_set_mode(self->ctx, SSL_MODE_ENABLE_PARTIAL_WRITE);
   /* OpenSSL v1.1.1 turns this on by default, which makes the non-blocking
@@ -509,64 +510,52 @@ void amqp_ssl_socket_set_verify_hostname(amqp_socket_t *base,
   self->verify_hostname = verify;
 }
 
+static int get_tls_version(amqp_tls_version_t ver, int *tls_version) {
+  switch (ver) {
+    case AMQP_TLSv1_2:
+      *tls_version = TLS1_2_VERSION;
+      break;
+    case AMQP_TLSv1_3:
+    case AMQP_TLSvLATEST:
+      *tls_version = TLS1_3_VERSION;
+      break;
+    default:
+      return AMQP_STATUS_UNSUPPORTED;
+  }
+  return AMQP_STATUS_OK;
+}
+
 int amqp_ssl_socket_set_ssl_versions(amqp_socket_t *base,
                                      amqp_tls_version_t min,
                                      amqp_tls_version_t max) {
   struct amqp_ssl_socket_t *self;
+  int min_ver;
+  int max_ver;
+  int status;
   if (base->klass != &amqp_ssl_socket_class) {
     amqp_abort("<%p> is not of type amqp_ssl_socket_t", base);
   }
   self = (struct amqp_ssl_socket_t *)base;
 
-  {
-    long clear_options;
-    long set_options = 0;
-#if defined(SSL_OP_NO_TLSv1_3)
-    amqp_tls_version_t max_supported = AMQP_TLSv1_3;
-    clear_options = SSL_OP_NO_TLSv1 | SSL_OP_NO_TLSv1_1 | SSL_OP_NO_TLSv1_2 |
-                    SSL_OP_NO_TLSv1_3;
-#elif defined(SSL_OP_NO_TLSv1_2)
-    amqp_tls_version_t max_supported = AMQP_TLSv1_2;
-    clear_options = SSL_OP_NO_TLSv1 | SSL_OP_NO_TLSv1_1 | SSL_OP_NO_TLSv1_2;
-#else
-#error "Need a version of OpenSSL that can support TLSv1.2 or greater."
-#endif
+  if (max < min) {
+    return AMQP_STATUS_INVALID_PARAMETER;
+  }
 
-    if (AMQP_TLSvLATEST == max) {
-      max = max_supported;
-    }
-    if (AMQP_TLSvLATEST == min) {
-      min = max_supported;
-    }
+  status = get_tls_version(min, &min_ver);
+  if (status != AMQP_STATUS_OK) {
+    return status;
+  }
 
-    if (min > max) {
-      return AMQP_STATUS_INVALID_PARAMETER;
-    }
+  status = get_tls_version(max, &max_ver);
+  if (status != AMQP_STATUS_OK) {
+    return status;
+  }
 
-    if (max > max_supported || min > max_supported) {
-      return AMQP_STATUS_UNSUPPORTED;
-    }
-
-    if (min > AMQP_TLSv1) {
-      set_options |= SSL_OP_NO_TLSv1;
-    }
-#ifdef SSL_OP_NO_TLSv1_1
-    if (min > AMQP_TLSv1_1 || max < AMQP_TLSv1_1) {
-      set_options |= SSL_OP_NO_TLSv1_1;
-    }
-#endif
-#ifdef SSL_OP_NO_TLSv1_2
-    if (max < AMQP_TLSv1_2) {
-      set_options |= SSL_OP_NO_TLSv1_2;
-    }
-#endif
-#ifdef SSL_OP_NO_TLSv1_3
-    if (max < AMQP_TLSv1_3) {
-      set_options |= SSL_OP_NO_TLSv1_3;
-    }
-#endif
-    SSL_CTX_clear_options(self->ctx, clear_options);
-    SSL_CTX_set_options(self->ctx, set_options);
+  if (!SSL_CTX_set_min_proto_version(self->ctx, min_ver)) {
+    return AMQP_STATUS_INVALID_PARAMETER;
+  }
+  if (!SSL_CTX_set_max_proto_version(self->ctx, max_ver)) {
+    return AMQP_STATUS_INVALID_PARAMETER;
   }
 
   return AMQP_STATUS_OK;
