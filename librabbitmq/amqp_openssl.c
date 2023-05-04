@@ -9,8 +9,8 @@
 #define _CRT_SECURE_NO_WARNINGS
 #endif
 
-// Use OpenSSL v1.1.0 API.
-#define OPENSSL_API_COMPAT 10100
+// Use OpenSSL v1.1.1 API.
+#define OPENSSL_API_COMPAT 10101
 
 #include "amqp_openssl_bio.h"
 #include "amqp_private.h"
@@ -327,7 +327,7 @@ amqp_socket_t *amqp_ssl_socket_new(amqp_connection_state_t state) {
     goto error;
   }
 
-  self->ctx = SSL_CTX_new(SSLv23_client_method());
+  self->ctx = SSL_CTX_new(TLS_client_method());
   if (!self->ctx) {
     goto error;
   }
