@@ -729,7 +729,7 @@ int amqp_try_recv(amqp_connection_state_t state) {
       state->last_queued_frame = link;
     }
   }
-  res = amqp_time_s_from_now(&timeout, 0);
+  res = amqp_time_from_now(&timeout, &(struct timeval){0});
   if (AMQP_STATUS_OK != res) {
     return res;
   }
