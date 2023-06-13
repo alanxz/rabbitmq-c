@@ -168,7 +168,7 @@ struct poptOption connect_options[] = {
 
 void read_authfile(const char *path) {
   size_t n;
-  FILE *fp;
+  FILE *fp = NULL;
   char token[MAXAUTHTOKENLEN];
 
   if ((amqp_username = malloc(MAXAUTHTOKENLEN)) == NULL ||
