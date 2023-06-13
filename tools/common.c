@@ -175,7 +175,7 @@ void read_authfile(const char *path) {
       (amqp_password = malloc(MAXAUTHTOKENLEN)) == NULL) {
     die("Out of memory");
   } else if ((fp = fopen(path, "r")) == NULL) {
-    die("Could not read auth data file", path);
+    die("Could not read auth data file %s", path);
   }
 
   if (fgets(token, MAXAUTHTOKENLEN, fp) == NULL ||
