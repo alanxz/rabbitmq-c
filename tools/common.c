@@ -20,8 +20,8 @@
 
 /* For when reading auth data from a file */
 #define MAXAUTHTOKENLEN 128
-#define USERNAMEPREFIX  "username:"
-#define PASSWORDPREFIX  "password:"
+#define USERNAMEPREFIX "username:"
+#define PASSWORDPREFIX "password:"
 
 void die(const char *fmt, ...) {
   va_list ap;
@@ -166,8 +166,7 @@ struct poptOption connect_options[] = {
 #endif /* WITH_SSL */
     {NULL, '\0', 0, NULL, 0, NULL, NULL}};
 
-void read_authfile(const char *path)
-{
+void read_authfile(const char *path) {
   size_t n;
   FILE *fp;
   char token[MAXAUTHTOKENLEN];
@@ -186,10 +185,10 @@ void read_authfile(const char *path)
   strncpy(amqp_username, &token[strlen(USERNAMEPREFIX)], MAXAUTHTOKENLEN);
   /* Missing newline means token was cut off */
   n = strlen(amqp_username);
-  if (amqp_username[n-1] != '\n') {
+  if (amqp_username[n - 1] != '\n') {
     die("Username too long");
   } else {
-    amqp_username[n-1] = '\0';
+    amqp_username[n - 1] = '\0';
   }
 
   if (fgets(token, MAXAUTHTOKENLEN, fp) == NULL ||
@@ -199,13 +198,13 @@ void read_authfile(const char *path)
   strncpy(amqp_password, &token[strlen(PASSWORDPREFIX)], MAXAUTHTOKENLEN);
   /* Missing newline means token was cut off */
   n = strlen(amqp_password);
-  if (amqp_password[n-1] != '\n') {
+  if (amqp_password[n - 1] != '\n') {
     die("Password too long");
   } else {
-    amqp_password[n-1] = '\0';
+    amqp_password[n - 1] = '\0';
   }
 
-  (void) fgetc(fp);
+  (void)fgetc(fp);
   if (!feof(fp)) {
     die("Malformed auth file (trailing data)");
   }
