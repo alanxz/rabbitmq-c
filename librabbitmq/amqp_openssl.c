@@ -233,7 +233,7 @@ start_connect:
       goto error_out3;
     }
 
-    if (1 != X509_check_host(cert, host, 0,
+    if (1 != X509_check_host(cert, host, strlen(host),
                              X509_CHECK_FLAG_NO_PARTIAL_WILDCARDS, NULL)) {
       self->internal_error = 0;
       status = AMQP_STATUS_SSL_HOSTNAME_VERIFY_FAILED;
