@@ -26,7 +26,7 @@ struct Fuzzer {
 typedef struct Fuzzer Fuzzer;
 
 #define PORT 5672
-#define kMinInputLength 9
+#define kMinInputLength 8
 #define kMaxInputLength 1024
 
 void client(Fuzzer *fuzzer);
@@ -93,6 +93,7 @@ void *Server(void *args) {
 void clean(Fuzzer *fuzzer) {
   shutdown(fuzzer->socket, SHUT_RDWR);
   close(fuzzer->socket);
+  free(fuzzer->buffer);
   free(fuzzer);
 }
 
@@ -104,6 +105,10 @@ extern int LLVMFuzzerTestOneInput(const char *data, size_t size) {
 
   Fuzzer *fuzzer = (Fuzzer *)malloc(sizeof(Fuzzer));
   fuzzer->port = PORT;
+
+  fuzzer->size = size;
+  fuzzer->buffer = malloc(fuzzer->size);
+  memcpy(fuzzer->buffer, data, size);
 
   fuzzinit(fuzzer);
 
@@ -145,4 +150,3 @@ void client(Fuzzer *fuzzer) {
 
   amqp_destroy_connection(conn);
 }
-
