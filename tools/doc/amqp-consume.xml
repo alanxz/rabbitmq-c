@@ -194,7 +194,7 @@
                 output the message bodies on standard output via
                 <command>cat</command>:</term>
                 <listitem>
-                    <screen><prompt>$ </prompt><userinput>amqp-publish -q myqueue cat</userinput></screen>
+                    <screen><prompt>$ </prompt><userinput>amqp-consume -q myqueue cat</userinput></screen>
                 </listitem>
             </varlistentry>
 
