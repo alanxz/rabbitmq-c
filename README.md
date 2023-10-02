@@ -6,6 +6,8 @@
 
 [![Fuzzing Status](https://oss-fuzz-build-logs.storage.googleapis.com/badges/rabbitmq-c.svg)](https://oss-fuzz-build-logs.storage.googleapis.com/index.html#rabbitmq-c)
 
+[![OpenSSF Best Practices](https://www.bestpractices.dev/projects/7001/badge)](https://www.bestpractices.dev/projects/7001)
+
 ## Introduction
 
 This is a C-language AMQP client library for use with v2.0+ of the
