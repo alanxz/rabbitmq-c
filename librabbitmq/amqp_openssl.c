@@ -25,8 +25,8 @@
 #include <openssl/conf.h>
 #include <openssl/engine.h>
 #include <openssl/err.h>
-#include <openssl/ssl.h>
 #include <openssl/rsa.h>
+#include <openssl/ssl.h>
 #include <openssl/x509v3.h>
 #include <stdlib.h>
 #include <string.h>
