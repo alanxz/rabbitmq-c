@@ -37,7 +37,9 @@ jobs:
         submodules: true
     - name: Install Prerequisites
       shell: bash
-      run: sudo apt install -y ninja-build libpopt-dev
+      run: |
+        sudo apt update
+        sudo apt install -y ninja-build libpopt-dev
 
     - name: Configure Build & Test
       shell: bash
