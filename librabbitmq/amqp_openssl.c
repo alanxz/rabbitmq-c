@@ -37,7 +37,10 @@ static int decrement_ssl_connections(void);
 static pthread_mutex_t openssl_init_mutex = PTHREAD_MUTEX_INITIALIZER;
 static amqp_boolean_t openssl_bio_initialized = 0;
 static int openssl_connections = 0;
+
+#ifdef OPENSSL_ENGINE
 static ENGINE *openssl_engine = NULL;
+#endif
 
 #define CHECK_SUCCESS(condition)                                            \
   do {                                                                      \
@@ -405,6 +408,7 @@ int amqp_ssl_socket_set_key(amqp_socket_t *base, const char *cert,
   return AMQP_STATUS_OK;
 }
 
+#ifdef OPENSSL_ENGINE
 int amqp_ssl_socket_set_key_engine(amqp_socket_t *base, const char *cert,
                                    const char *key) {
   int status;
@@ -432,6 +436,7 @@ int amqp_ssl_socket_set_key_engine(amqp_socket_t *base, const char *cert,
   }
   return AMQP_STATUS_OK;
 }
+#endif
 
 static int password_cb(AMQP_UNUSED char *buffer, AMQP_UNUSED int length,
                        AMQP_UNUSED int rwflag, AMQP_UNUSED void *user_data) {
@@ -583,6 +588,7 @@ void amqp_set_initialize_ssl_library(amqp_boolean_t do_initialize) {
 
 int amqp_initialize_ssl_library(void) { return AMQP_STATUS_OK; }
 
+#ifdef OPENSSL_ENGINE
 int amqp_set_ssl_engine(const char *engine) {
   int status = AMQP_STATUS_OK;
   CHECK_SUCCESS(pthread_mutex_lock(&openssl_init_mutex));
@@ -614,6 +620,7 @@ out:
   CHECK_SUCCESS(pthread_mutex_unlock(&openssl_init_mutex));
   return status;
 }
+#endif
 
 static int initialize_ssl_and_increment_connections() {
   int status;

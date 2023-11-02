@@ -111,6 +111,7 @@ if (CLOCK_GETTIME_NEEDS_LIBRT OR POSIX_SPAWNP_NEEDS_LIBRT)
 endif()
 
 option(ENABLE_SSL_SUPPORT "Enable SSL support" ON)
+option(OPENSSL_ENGINE "Support the OpenSSL ENGINE interface" ON)
 
 if (ENABLE_SSL_SUPPORT)
   set(RMQ_OPENSSL_MIN_VERSION 1.1.1)
@@ -120,6 +121,10 @@ if (ENABLE_SSL_SUPPORT)
   set(THREADS_PREFER_PTHREAD_FLAG ON)
   find_package(Threads REQUIRED)
   cmake_pop_check_state()
+
+  if ( OPENSSL_ENGINE )
+    add_compile_definitions(OPENSSL_ENGINE)
+  endif()
 endif()
 
 if(CMAKE_PROJECT_NAME STREQUAL PROJECT_NAME)

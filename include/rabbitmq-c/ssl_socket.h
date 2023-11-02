@@ -105,6 +105,8 @@ AMQP_EXPORT
 int AMQP_CALL amqp_ssl_socket_set_key(amqp_socket_t *self, const char *cert,
                                       const char *key);
 
+
+#ifdef OPENSSL_ENGINE
 /**
  * Set the client key use the engine.
  *
@@ -122,6 +124,7 @@ int AMQP_CALL amqp_ssl_socket_set_key(amqp_socket_t *self, const char *cert,
 AMQP_EXPORT
 int AMQP_CALL amqp_ssl_socket_set_key_engine(amqp_socket_t *self,
                                              const char *cert, const char *key);
+#endif
 
 /**
  * Set the client key from a buffer.
@@ -269,6 +272,7 @@ void AMQP_CALL amqp_set_initialize_ssl_library(amqp_boolean_t do_initialize);
 AMQP_DEPRECATED_EXPORT
 int AMQP_CALL amqp_initialize_ssl_library(void);
 
+#ifdef OPENSSL_ENGINE
 /**
  * Set the engine for underlying SSL/TLS library.
  *
@@ -284,6 +288,7 @@ int AMQP_CALL amqp_initialize_ssl_library(void);
  */
 AMQP_EXPORT
 int amqp_set_ssl_engine(const char *engine);
+#endif
 
 /**
  * Uninitialize the underlying SSL/TLS library.
