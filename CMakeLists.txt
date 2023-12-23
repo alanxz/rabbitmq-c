@@ -42,6 +42,7 @@ endif()
 
 include(CheckSymbolExists)
 include(CheckLibraryExists)
+include(CMakeDependentOption)
 include(CMakePushCheckState)
 include(GNUInstallDirs)
 
@@ -120,13 +121,18 @@ if (ENABLE_SSL_SUPPORT)
   set(THREADS_PREFER_PTHREAD_FLAG ON)
   find_package(Threads REQUIRED)
   cmake_pop_check_state()
+
+  cmake_push_check_state()
+  set(CMAKE_REQUIRED_LIBRARIES OpenSSL::SSL)
+  check_symbol_exists(ENGINE_new openssl/engine.h HAS_OPENSSL_ENGINE)
+  cmake_pop_check_state()
+
+  cmake_dependent_option(ENABLE_SSL_ENGINE_API "Enable support for deprecated OpenSSL ENGINE feature" ON "HAS_OPENSSL_ENGINE" OFF)
 endif()
 
 if(CMAKE_PROJECT_NAME STREQUAL PROJECT_NAME)
   include(CTest)
 endif()
-
-include(CMakeDependentOption)
 
 option(BUILD_SHARED_LIBS "Build rabbitmq-c as a shared library" ON)
 option(BUILD_STATIC_LIBS "Build rabbitmq-c as a static library" ON)

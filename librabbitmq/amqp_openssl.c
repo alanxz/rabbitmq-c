@@ -23,7 +23,9 @@
 #include <limits.h>
 #include <openssl/bio.h>
 #include <openssl/conf.h>
+#ifdef ENABLE_SSL_ENGINE_API
 #include <openssl/engine.h>
+#endif
 #include <openssl/err.h>
 #include <openssl/rsa.h>
 #include <openssl/ssl.h>
@@ -37,7 +39,9 @@ static int decrement_ssl_connections(void);
 static pthread_mutex_t openssl_init_mutex = PTHREAD_MUTEX_INITIALIZER;
 static amqp_boolean_t openssl_bio_initialized = 0;
 static int openssl_connections = 0;
+#ifdef ENABLE_SSL_ENGINE_API
 static ENGINE *openssl_engine = NULL;
+#endif
 
 #define CHECK_SUCCESS(condition)                                            \
   do {                                                                      \
@@ -407,6 +411,7 @@ int amqp_ssl_socket_set_key(amqp_socket_t *base, const char *cert,
 
 int amqp_ssl_socket_set_key_engine(amqp_socket_t *base, const char *cert,
                                    const char *key) {
+#ifdef ENABLE_SSL_ENGINE_API
   int status;
   struct amqp_ssl_socket_t *self;
   EVP_PKEY *pkey = NULL;
@@ -431,6 +436,9 @@ int amqp_ssl_socket_set_key_engine(amqp_socket_t *base, const char *cert,
     return AMQP_STATUS_SSL_ERROR;
   }
   return AMQP_STATUS_OK;
+#else
+  return AMQP_STATUS_SSL_UNIMPLEMENTED;
+#endif
 }
 
 static int password_cb(AMQP_UNUSED char *buffer, AMQP_UNUSED int length,
@@ -584,6 +592,7 @@ void amqp_set_initialize_ssl_library(amqp_boolean_t do_initialize) {
 int amqp_initialize_ssl_library(void) { return AMQP_STATUS_OK; }
 
 int amqp_set_ssl_engine(const char *engine) {
+#ifdef ENABLE_SSL_ENGINE_API
   int status = AMQP_STATUS_OK;
   CHECK_SUCCESS(pthread_mutex_lock(&openssl_init_mutex));
 
@@ -613,6 +622,9 @@ int amqp_set_ssl_engine(const char *engine) {
 out:
   CHECK_SUCCESS(pthread_mutex_unlock(&openssl_init_mutex));
   return status;
+#else
+  return AMQP_STATUS_SSL_UNIMPLEMENTED;
+#endif
 }
 
 static int initialize_ssl_and_increment_connections() {

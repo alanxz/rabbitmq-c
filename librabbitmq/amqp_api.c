@@ -85,7 +85,9 @@ static const char *ssl_error_strings[] = {
     /* AMQP_STATUS_SSL_CONNECTION_FAILED      -0x0203 */
     "SSL handshake failed",
     /* AMQP_STATUS_SSL_SET_ENGINE_FAILED      -0x0204 */
-    "SSL setting engine failed"};
+    "SSL setting engine failed",
+    /* AMQP_STATUS_SSL_UNIMPLEMENTED          -0x0204 */
+    "SSL API is not implemented"};
 
 static const char *unknown_error_string = "(unknown error)";
 
