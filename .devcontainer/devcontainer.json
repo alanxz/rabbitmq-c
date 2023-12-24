@@ -6,7 +6,7 @@
 		"dockerfile": "Dockerfile"
 	},
 	"features": {
-		"ghcr.io/devcontainers-contrib/features/wget-apt-get:1": {}
+		"ghcr.io/itsmechlark/features/rabbitmq-server:1": {}
 	}
 
 	// Features to add to the dev container. More info: https://containers.dev/features.
