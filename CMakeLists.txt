@@ -130,7 +130,7 @@ if (ENABLE_SSL_SUPPORT)
   cmake_dependent_option(ENABLE_SSL_ENGINE_API "Enable support for deprecated OpenSSL ENGINE feature" ON "HAS_OPENSSL_ENGINE" OFF)
 endif()
 
-if(CMAKE_PROJECT_NAME STREQUAL PROJECT_NAME)
+if(PROJECT_IS_TOP_LEVEL)
   include(CTest)
 endif()
 
@@ -176,7 +176,7 @@ if(BUILD_TOOLS)
   add_subdirectory(tools)
 endif()
 
-if(CMAKE_PROJECT_NAME STREQUAL PROJECT_NAME AND BUILD_TESTING)
+if(PROJECT_IS_TOP_LEVEL AND BUILD_TESTING)
   if (NOT BUILD_STATIC_LIBS)
     message(FATAL_ERROR
       "Tests can only be built against static libraries "
