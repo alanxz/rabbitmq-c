@@ -140,7 +140,7 @@ if(BUILD_STATIC_LIBS)
   )
 
   if (APPLE)
-    set_target_properties(rabbitmq PROPERTIES
+    set_target_properties(rabbitmq-static PROPERTIES
       MACHO_CURRENT_VERSION ${RMQ_SOVERSION}.${RMQ_SOVERSION_AGE}.${RMQ_SOVERSION_REVISION}
       MACHO_COMPATIBILITY_VERSION ${RMQ_SOVERSION}
     )
