@@ -152,11 +152,6 @@ if(BUILD_STATIC_LIBS)
     set_target_properties(rabbitmq-static PROPERTIES OUTPUT_NAME rabbitmq)
   endif()
 
-  if(MSVC)
-    # Embed debugging info in the library itself instead of generating a .pdb file.
-    set_target_properties(rabbitmq-static PROPERTIES COMPILE_OPTIONS "/Z7")
-  endif()
-
   if(INSTALL_STATIC_LIBS)
     install(TARGETS rabbitmq-static EXPORT "${targets_export_name}"
       ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}
