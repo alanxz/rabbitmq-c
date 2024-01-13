@@ -109,15 +109,13 @@ int amqp_openssl_bio_init(void) {
     return AMQP_STATUS_NO_MEMORY;
   }
 
-  BIO_meth_set_create(amqp_bio_method, BIO_meth_get_create(BIO_s_socket()));
-  BIO_meth_set_destroy(amqp_bio_method, BIO_meth_get_destroy(BIO_s_socket()));
-  BIO_meth_set_ctrl(amqp_bio_method, BIO_meth_get_ctrl(BIO_s_socket()));
-  BIO_meth_set_callback_ctrl(amqp_bio_method,
-                             BIO_meth_get_callback_ctrl(BIO_s_socket()));
-  BIO_meth_set_read(amqp_bio_method, BIO_meth_get_read(BIO_s_socket()));
-  BIO_meth_set_write(amqp_bio_method, BIO_meth_get_write(BIO_s_socket()));
-  BIO_meth_set_gets(amqp_bio_method, BIO_meth_get_gets(BIO_s_socket()));
-  BIO_meth_set_puts(amqp_bio_method, BIO_meth_get_puts(BIO_s_socket()));
+  BIO_meth_set_create(amqp_bio_method, BIO_s_socket()->create);
+  BIO_meth_set_destroy(amqp_bio_method, BIO_s_socket()->destroy);
+  BIO_meth_set_ctrl(amqp_bio_method, BIO_s_socket()->ctrl);
+  BIO_meth_set_read(amqp_bio_method, BIO_s_socket()->bread);
+  BIO_meth_set_write(amqp_bio_method, BIO_s_socket()->bwrite);
+  BIO_meth_set_gets(amqp_bio_method, BIO_s_socket()->bgets);
+  BIO_meth_set_puts(amqp_bio_method, BIO_s_socket()->bputs);
 
   BIO_meth_set_write(amqp_bio_method, amqp_openssl_bio_write);
   BIO_meth_set_read(amqp_bio_method, amqp_openssl_bio_read);
