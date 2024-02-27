@@ -67,8 +67,6 @@ jobs:
     - uses: actions/checkout@v2
       with:
         submodules: true
-    - name: Install Prerequisites
-      run: choco install openssl
     - name: Configure Build & Test
       shell: bash
       run: |
