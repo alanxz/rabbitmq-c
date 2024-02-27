@@ -151,14 +151,6 @@ endif()
 
 set(targets_export_name rabbitmq-targets)
 
-if(BUILD_OSSFUZZ)
-  if (NOT BUILD_STATIC_LIBS)
-    message(FATAL_ERROR "OSS-FUZZ can only be built against static libraries " "(set BUILD_STATIC_LIBS=ON)")
-  endif ()
-  SET(CMAKE_C_FLAGS "${CMAKE_C_FLAGS}")
-  SET(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS}")
-endif ()
-
 add_subdirectory(librabbitmq)
 
 if(BUILD_EXAMPLES)
@@ -186,6 +178,9 @@ if(PROJECT_IS_TOP_LEVEL AND BUILD_TESTING)
 endif ()
 
 if(BUILD_OSSFUZZ)
+  if (NOT BUILD_STATIC_LIBS)
+    message(FATAL_ERROR "OSS-FUZZ can only be built against static libraries " "(set BUILD_STATIC_LIBS=ON)")
+  endif ()
   add_subdirectory(fuzz)
 endif ()
 
