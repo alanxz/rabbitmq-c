@@ -106,7 +106,7 @@ if(BUILD_SHARED_LIBS)
             COMPONENT rabbitmq-c-runtime
     LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
             COMPONENT rabbitmq-c-runtime
-            NAMELINK_COMPONENT runtime-c-development
+            NAMELINK_COMPONENT rabbitmq-c-development
     ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}
             COMPONENT rabbitmq-c-development
   )
