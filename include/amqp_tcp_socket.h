@@ -4,7 +4,11 @@
 #ifndef AMQP_TCP_SOCKET_H
 #define AMQP_TCP_SOCKET_H
 
-#warning "amqp_tcp_socket.h is deprecated, use rabbitmq-c/tcp_socket.h instead."
+#ifdef _MSC_VER
+#   pragma message("warning: amqp_tcp_socket.h is deprecated, use rabbitmq-c/tcp_socket.h instead.")
+#else
+#   warning "amqp_tcp_socket.h is deprecated, use rabbitmq-c/tcp_socket.h instead."
+#endif
 
 #include <rabbitmq-c/tcp_socket.h>
 
