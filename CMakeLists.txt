@@ -114,8 +114,14 @@ endif()
 option(ENABLE_SSL_SUPPORT "Enable SSL support" ON)
 
 if (ENABLE_SSL_SUPPORT)
+  # Manually check OpenSSL version because BoringSSL doesn't support version checking via find_package
   set(RMQ_OPENSSL_MIN_VERSION 1.1.1)
   find_package(OpenSSL REQUIRED)
+  if(OPENSSL_VERSION) # Will be empty for BoringSSL
+    if(OPENSSL_VERSION VERSION_LESS RMQ_OPENSSL_MIN_VERSION)
+      MESSAGE(FATAL_ERROR "Found OpenSSL version ${OPENSSL_VERSION} but ${RMQ_OPENSSL_MIN_VERSION} or later is required")
+    endif()
+  endif()
 
   cmake_push_check_state()
   set(THREADS_PREFER_PTHREAD_FLAG ON)
