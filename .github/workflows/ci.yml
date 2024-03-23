@@ -32,6 +32,11 @@ jobs:
             config: framing
 
     steps:
+      # Workaround issue actions/runner-images#9491
+    - name: modify number of bits to use for aslr entropy
+      run: |
+        sudo sysctl -a | grep vm.mmap.rnd
+        sudo sysctl -w vm.mmap_rnd_bits=28
     - uses: actions/checkout@v2
       with:
         submodules: true
