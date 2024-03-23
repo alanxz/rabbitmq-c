@@ -32,7 +32,7 @@ jobs:
             config: framing
 
     steps:
-    - uses: actions/checkout@v2
+    - uses: actions/checkout@v4
       with:
         submodules: true
     - name: Install Prerequisites
@@ -50,7 +50,7 @@ jobs:
   build-macox:
     runs-on: macos-latest
     steps:
-    - uses: actions/checkout@v2
+    - uses: actions/checkout@v4
       with:
         submodules: true
     - name: Install Prerequisites
@@ -64,7 +64,7 @@ jobs:
   build-win32:
     runs-on: windows-latest
     steps:
-    - uses: actions/checkout@v2
+    - uses: actions/checkout@v4
       with:
         submodules: true
     - name: Configure Build & Test
