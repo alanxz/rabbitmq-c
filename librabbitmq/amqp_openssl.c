@@ -215,7 +215,11 @@ start_connect:
     goto error_out2;
   }
 
+#if OPENSSL_VERSION_NUMBER < 0x30000000L
   cert = SSL_get_peer_certificate(self->ssl);
+#else
+  cert = SSL_get1_peer_certificate(self->ssl);
+#endif
 
   if (self->verify_peer) {
     if (!cert) {
