@@ -627,7 +627,7 @@ out:
 #endif
 }
 
-static int initialize_ssl_and_increment_connections() {
+static int initialize_ssl_and_increment_connections(void) {
   int status;
   CHECK_SUCCESS(pthread_mutex_lock(&openssl_init_mutex));
 
