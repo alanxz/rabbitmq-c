@@ -73,11 +73,11 @@ More information on CMake can be found on its FAQ (http://www.cmake.org/Wiki/CMa
 
 Other interesting flags that can be passed to CMake:
 
-* `BUILD_EXAMPLES=ON/OFF` toggles building the examples. ON by default.
+* `BUILD_EXAMPLES=ON/OFF` toggles building the examples. OFF by default.
 * `BUILD_SHARED_LIBS=ON/OFF` toggles building rabbitmq-c as a shared library.
    ON by default.
 * `BUILD_STATIC_LIBS=ON/OFF` toggles building rabbitmq-c as a static library.
-   OFF by default.
+   ON by default.
 * `BUILD_TESTING=ON/OFF` toggles building test code. ON by default.
 * `BUILD_TOOLS=ON/OFF` toggles building the command line tools. By default
    this is ON if the build system can find the POpt header and library.
