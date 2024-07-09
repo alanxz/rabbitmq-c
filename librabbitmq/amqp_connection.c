@@ -279,8 +279,7 @@ int amqp_handle_input(amqp_connection_state_t state, amqp_bytes_t received_data,
         return AMQP_STATUS_NO_MEMORY;
       }
 
-      amqp_pool_alloc_bytes(channel_pool, frame_size,
-                            &state->inbound_buffer);
+      amqp_pool_alloc_bytes(channel_pool, frame_size, &state->inbound_buffer);
       if (NULL == state->inbound_buffer.bytes) {
         return AMQP_STATUS_NO_MEMORY;
       }
