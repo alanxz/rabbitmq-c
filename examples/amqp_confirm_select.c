@@ -75,7 +75,6 @@ static void send_batch(amqp_connection_state_t conn, char const *queue_name,
 #define WAITING_TIMEOUT_USEC (30 * 1000)
 void wait_for_acks(amqp_connection_state_t conn, amqp_channel_t channel) {
   uint64_t start_time = now_microseconds();
-  amqp_frame_t frame;
   amqp_basic_ack_t ack;
   struct timeval timeout = {0, CONSUME_TIMEOUT_USEC};
   uint64_t now;
@@ -95,8 +94,7 @@ void wait_for_acks(amqp_connection_state_t conn, amqp_channel_t channel) {
 
     if (AMQP_RESPONSE_LIBRARY_EXCEPTION == ret.reply_type) {
       if (AMQP_STATUS_UNEXPECTED_STATE == ret.library_error) {
-        fprintf(stderr, "An unexpected method was received %u\n",
-                frame.payload.method.id);
+        fprintf(stderr, "An unexpected method was received\n");
         return;
       } else {
         die_on_amqp_error(ret, "Waiting for publisher confirmation");
