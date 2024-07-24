@@ -73,7 +73,7 @@ static void send_batch(amqp_connection_state_t conn, char const *queue_name,
 
 #define CONSUME_TIMEOUT_USEC 100
 #define WAITING_TIMEOUT_USEC (30 * 1000)
-void wait_for_acks(amqp_connection_state_t conn, amqp_channel_t channel) {
+void wait_for_acks(amqp_connection_state_t conn) {
   uint64_t start_time = now_microseconds();
   amqp_basic_ack_t ack;
   struct timeval timeout = {0, CONSUME_TIMEOUT_USEC};
@@ -151,12 +151,7 @@ int main(int argc, char const *const *argv) {
 
   send_batch(conn, "test queue", rate_limit, message_count);
 
-  fprintf(stderr, "%d: Frames enqueued? «%d»\n", (int)__LINE__,
-          amqp_frames_enqueued(conn));
-  wait_for_acks(conn, 1);
-  fprintf(stderr, "%d: Frames enqueued? «%d»\n", (int)__LINE__,
-          amqp_frames_enqueued(conn));
-
+  wait_for_acks(conn);
   die_on_amqp_error(amqp_channel_close(conn, 1, AMQP_REPLY_SUCCESS),
                     "Closing channel");
   die_on_amqp_error(amqp_connection_close(conn, AMQP_REPLY_SUCCESS),
