@@ -2433,6 +2433,26 @@ AMQP_EXPORT
 int AMQP_CALL amqp_set_rpc_timeout(amqp_connection_state_t state,
                                    const struct timeval *timeout);
 
+
+/**
+ * amqp_publisher_confirm_wait
+ *
+ * Wait for a publisher confirm when the connection is in select mode.
+ * If the response has a `reply_type` of `AMQP_RESPONSE_LIBRARY_EXCEPTION` _and_
+ * the `library_error` is `AMQP_STATUS_UNEXPECTED_STATE`, then the frame
+ * received was likely not an ack.
+ *
+ * \param [in] state connection state
+ * \param [out] pointer to where the ACK details should go
+ * \param [in] timeout when waiting for the frame. Passing NULL will result in
+ * blocking behavior
+ * \returns amqp_rpc_reply_t *
+ */
+AMQP_EXPORT
+amqp_rpc_reply_t AMQP_CALL amqp_publisher_confirm_wait(
+    amqp_connection_state_t state, amqp_envelope_t *envelope,
+    amqp_basic_ack_t *ack, const struct timeval *timeout);
+
 AMQP_END_DECLS
 
 #endif /* RABBITMQ_C_RABBITMQ_C_H */

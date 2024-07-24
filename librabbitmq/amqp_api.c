@@ -364,3 +364,40 @@ int amqp_set_rpc_timeout(amqp_connection_state_t state,
   }
   return AMQP_STATUS_OK;
 }
+
+amqp_rpc_reply_t amqp_publisher_confirm_wait(amqp_connection_state_t state,
+                                             amqp_envelope_t *envelope,
+                                             amqp_basic_ack_t *ack,
+                                             const struct timeval *timeout) {
+
+  int res;
+  amqp_frame_t frame;
+  amqp_rpc_reply_t ret;
+  amqp_basic_ack_t *ptr_to_ack;
+
+  memset(&ret, 0, sizeof(ret));
+  memset(envelope, 0, sizeof(*envelope));
+  memset(ack, 0, sizeof(*ack));
+
+  res = amqp_simple_wait_frame_noblock(state, &frame, timeout);
+
+  if (AMQP_STATUS_OK != res) {
+    ret.reply_type = AMQP_RESPONSE_LIBRARY_EXCEPTION;
+    ret.library_error = res;
+
+  } else if (AMQP_FRAME_METHOD != frame.frame_type ||
+             AMQP_BASIC_ACK_METHOD != frame.payload.method.id) {
+    amqp_put_back_frame(state, &frame);
+    ret.reply_type = AMQP_RESPONSE_LIBRARY_EXCEPTION;
+    ret.library_error = AMQP_STATUS_UNEXPECTED_STATE;
+
+  } else {
+    ptr_to_ack = frame.payload.method.decoded;
+    memcpy(ack, ptr_to_ack, sizeof(*ack));
+    envelope->channel = frame.channel;
+    envelope->delivery_tag = ptr_to_ack->delivery_tag;
+    ret.reply_type = AMQP_RESPONSE_NORMAL;
+  }
+
+  return ret;
+}
