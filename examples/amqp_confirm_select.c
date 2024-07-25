@@ -104,7 +104,7 @@ void wait_for_acks(amqp_connection_state_t conn) {
 
     fprintf(stderr, "Got an ACK!\n");
     fprintf(stderr, "Here's the ACK:\n");
-    fprintf(stderr, "\tdelivery_tag: «%"PRIu64"»\n", ack.delivery_tag);
+    fprintf(stderr, "\tdelivery_tag: «%" PRIu64 "»\n", ack.delivery_tag);
     fprintf(stderr, "\tmultiple: «%d»\n", ack.multiple);
   }
 }
