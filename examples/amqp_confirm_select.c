@@ -13,6 +13,18 @@
 #include "rabbitmq-c/framing.h"
 #include "utils.h"
 
+#if ((defined(_WIN32)) || (defined(__MINGW32__)) || (defined(__MINGW64__)))
+#ifndef WINVER
+#define WINVER 0x0502
+#endif
+#ifndef WIN32_LEAN_AND_MEAN
+#define WIN32_LEAN_AND_MEAN
+#endif
+#include <winsock2.h>
+#else
+#include <sys/time.h>
+#endif
+
 #define SUMMARY_EVERY_US 5000
 
 static void send_batch(amqp_connection_state_t conn, char const *queue_name,
