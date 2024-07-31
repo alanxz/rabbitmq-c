@@ -103,7 +103,7 @@ void wait_for_acks(amqp_connection_state_t conn) {
     }
 
     amqp_maybe_release_buffers(conn);
-    ret = amqp_publisher_confirm_wait(conn, &envelope, &ack, &timeout);
+    ret = amqp_publisher_confirm_wait(conn, &timeout, &envelope, &ack);
 
     if (AMQP_RESPONSE_LIBRARY_EXCEPTION == ret.reply_type) {
       if (AMQP_STATUS_UNEXPECTED_STATE == ret.library_error) {

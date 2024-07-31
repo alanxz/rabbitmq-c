@@ -2433,7 +2433,6 @@ AMQP_EXPORT
 int AMQP_CALL amqp_set_rpc_timeout(amqp_connection_state_t state,
                                    const struct timeval *timeout);
 
-
 /**
  * amqp_publisher_confirm_wait
  *
@@ -2443,15 +2442,16 @@ int AMQP_CALL amqp_set_rpc_timeout(amqp_connection_state_t state,
  * received was likely not an ack.
  *
  * \param [in] state connection state
- * \param [out] pointer to where the ACK details should go
  * \param [in] timeout when waiting for the frame. Passing NULL will result in
  * blocking behavior
+ * \param [out] pointer to where the envelope details should go
+ * \param [out] pointer to where the ACK details should go
  * \returns amqp_rpc_reply_t *
  */
 AMQP_EXPORT
 amqp_rpc_reply_t AMQP_CALL amqp_publisher_confirm_wait(
-    amqp_connection_state_t state, amqp_envelope_t *envelope,
-    amqp_basic_ack_t *ack, const struct timeval *timeout);
+    amqp_connection_state_t state, const struct timeval *timeout,
+    amqp_envelope_t *envelope, amqp_basic_ack_t *ack);
 
 AMQP_END_DECLS
 

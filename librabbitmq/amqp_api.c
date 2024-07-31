@@ -366,10 +366,9 @@ int amqp_set_rpc_timeout(amqp_connection_state_t state,
 }
 
 amqp_rpc_reply_t amqp_publisher_confirm_wait(amqp_connection_state_t state,
+                                             const struct timeval *timeout,
                                              amqp_envelope_t *envelope,
-                                             amqp_basic_ack_t *ack,
-                                             const struct timeval *timeout) {
-
+                                             amqp_basic_ack_t *ack) {
   int res;
   amqp_frame_t frame;
   amqp_rpc_reply_t ret;
