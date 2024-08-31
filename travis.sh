@@ -20,14 +20,6 @@ build_framing() {
   ctest -V .
 }
 
-build_macos() {
-  mkdir $PWD/_build && cd $PWD/_build
-  cmake .. -GNinja -DBUILD_EXAMPLES=ON -DBUILD_TOOLS=ON -DCMAKE_INSTALL_PREFIX=$PWD/../_install -DCMAKE_C_FLAGS="-Wall -Wextra -Wstrict-prototypes -Wno-unused-function -Werror" \
-    -DOPENSSL_ROOT_DIR="/usr/local/opt/openssl@1.1"
-  cmake --build . --target install
-  ctest -V .
-}
-
 build_format() {
   sudo apt-get install -y clang-format
   ./travis/run-clang-format/run-clang-format.py \
@@ -73,7 +65,7 @@ build_scan-build() {
 }
 
 if [ "$#" -ne 1 ]; then
-  echo "Usage: $0 {cmake|framing|macos|format|coverage|asan|tsan|scan-build}"
+  echo "Usage: $0 {cmake|framing|format|coverage|asan|tsan|scan-build}"
   exit 1
 fi
 
