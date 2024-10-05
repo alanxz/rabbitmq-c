@@ -133,8 +133,8 @@ void wait_for_acks(amqp_connection_state_t conn) {
         fprintf(stderr, "REJECT\n");
         break;
       default:
-        fprintf(stderr, "I have no idea which method «%u» is.\n",
-                result.method);
+        fprintf(stderr, "Unexpected method «%s» is.\n",
+                amqp_method_name(result.method));
     };
   }
 }
@@ -146,10 +146,6 @@ int main(int argc, char const *const *argv) {
   int message_count;
   amqp_socket_t *socket = NULL;
   amqp_connection_state_t conn;
-
-  fprintf(stderr, "AMQP_BASIC_ACK_METHOD: %x\n", AMQP_BASIC_ACK_METHOD);
-  fprintf(stderr, "AMQP_BASIC_NACK_METHOD: %x\n", AMQP_BASIC_NACK_METHOD);
-  fprintf(stderr, "AMQP_BASIC_REJECT_METHOD: %x\n", AMQP_BASIC_REJECT_METHOD);
 
   if (argc < 5) {
     fprintf(stderr,
