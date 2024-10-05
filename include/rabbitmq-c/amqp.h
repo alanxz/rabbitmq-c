@@ -2434,6 +2434,24 @@ int AMQP_CALL amqp_set_rpc_timeout(amqp_connection_state_t state,
                                    const struct timeval *timeout);
 
 /**
+ * Possible payload permutations for publisher confirms.
+ **/
+typedef union amqp_publisher_confirm_payload_t_ {
+  amqp_basic_ack_t ack; /* basic.ack */
+  amqp_basic_nack_t nack; /* basic.nack */
+  amqp_basic_reject_t reject; /* basic.reject */
+} amqp_publisher_confirm_payload_t;
+
+/**
+ * Return information from publisher confirm wait
+ **/
+typedef struct amqp_publisher_confirm_t_ {
+  amqp_publisher_confirm_payload_t payload; /* The response payload */
+  amqp_channel_t channel; /* The channel where the confirmation was received */
+  amqp_method_number_t method; /* The method which was received */
+} amqp_publisher_confirm_t;
+
+/**
  * amqp_publisher_confirm_wait
  *
  * Wait for a publisher confirm when the connection is in select mode.
@@ -2444,14 +2462,12 @@ int AMQP_CALL amqp_set_rpc_timeout(amqp_connection_state_t state,
  * \param [in] state connection state
  * \param [in] timeout when waiting for the frame. Passing NULL will result in
  * blocking behavior
- * \param [out] pointer to where the envelope details should go
- * \param [out] pointer to where the ACK details should go
- * \returns amqp_rpc_reply_t *
+ * \param [out] The result of the publisher confirm wait.
  */
 AMQP_EXPORT
 amqp_rpc_reply_t AMQP_CALL amqp_publisher_confirm_wait(
     amqp_connection_state_t state, const struct timeval *timeout,
-    amqp_envelope_t *envelope, amqp_basic_ack_t *ack);
+    amqp_publisher_confirm_t *result);
 
 AMQP_END_DECLS
 

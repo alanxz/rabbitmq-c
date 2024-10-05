@@ -6,11 +6,12 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <unistd.h>
 
 #include <rabbitmq-c/amqp.h>
 #include <rabbitmq-c/tcp_socket.h>
 
-#include "rabbitmq-c/framing.h"
+// #include "rabbitmq-c/framing.h"
 #include "utils.h"
 
 #if ((defined(_WIN32)) || (defined(__MINGW32__)) || (defined(__MINGW64__)))
@@ -88,10 +89,9 @@ static void send_batch(amqp_connection_state_t conn, char const *queue_name,
 #define WAITING_TIMEOUT_USEC (30 * 1000)
 void wait_for_acks(amqp_connection_state_t conn) {
   uint64_t start_time = now_microseconds();
-  amqp_basic_ack_t ack;
   struct timeval timeout = {0, CONSUME_TIMEOUT_USEC};
-  uint64_t now;
-  amqp_envelope_t envelope;
+  uint64_t now = 0;
+  amqp_publisher_confirm_t result = {};
 
   for (;;) {
     amqp_rpc_reply_t ret;
@@ -99,25 +99,43 @@ void wait_for_acks(amqp_connection_state_t conn) {
     now = now_microseconds();
 
     if (now > start_time + WAITING_TIMEOUT_USEC) {
+      sleep(2);
       return;
     }
 
     amqp_maybe_release_buffers(conn);
-    ret = amqp_publisher_confirm_wait(conn, &timeout, &envelope, &ack);
+    ret = amqp_publisher_confirm_wait(conn, &timeout, &result);
 
     if (AMQP_RESPONSE_LIBRARY_EXCEPTION == ret.reply_type) {
       if (AMQP_STATUS_UNEXPECTED_STATE == ret.library_error) {
         fprintf(stderr, "An unexpected method was received\n");
+        return;
+      } else if (AMQP_STATUS_TIMEOUT == ret.library_error) {
+        // Timeout means you're done; no publisher confirms were waiting!
         return;
       } else {
         die_on_amqp_error(ret, "Waiting for publisher confirmation");
       }
     }
 
-    fprintf(stderr, "Got an ACK!\n");
-    fprintf(stderr, "Here's the ACK:\n");
-    fprintf(stderr, "\tdelivery_tag: «%" PRIu64 "»\n", ack.delivery_tag);
-    fprintf(stderr, "\tmultiple: «%d»\n", ack.multiple);
+    switch (result.method) {
+      case AMQP_BASIC_ACK_METHOD:
+        fprintf(stderr, "Got an ACK!\n");
+        fprintf(stderr, "Here's the ACK:\n");
+        fprintf(stderr, "\tdelivery_tag: «%" PRIu64 "»\n",
+                result.payload.ack.delivery_tag);
+        fprintf(stderr, "\tmultiple: «%d»\n", result.payload.ack.multiple);
+        break;
+      case AMQP_BASIC_NACK_METHOD:
+        fprintf(stderr, "NACK\n");
+        break;
+      case AMQP_BASIC_REJECT_METHOD:
+        fprintf(stderr, "REJECT\n");
+        break;
+      default:
+        fprintf(stderr, "I have no idea which method «%u» is.\n",
+                result.method);
+    };
   }
 }
 
@@ -128,6 +146,10 @@ int main(int argc, char const *const *argv) {
   int message_count;
   amqp_socket_t *socket = NULL;
   amqp_connection_state_t conn;
+
+  fprintf(stderr, "AMQP_BASIC_ACK_METHOD: %x\n", AMQP_BASIC_ACK_METHOD);
+  fprintf(stderr, "AMQP_BASIC_NACK_METHOD: %x\n", AMQP_BASIC_NACK_METHOD);
+  fprintf(stderr, "AMQP_BASIC_REJECT_METHOD: %x\n", AMQP_BASIC_REJECT_METHOD);
 
   if (argc < 5) {
     fprintf(stderr,
