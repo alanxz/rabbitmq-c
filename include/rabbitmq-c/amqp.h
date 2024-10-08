@@ -2446,7 +2446,7 @@ typedef union amqp_publisher_confirm_payload_t_ {
  * Return information from publisher confirm wait
  **/
 typedef struct amqp_publisher_confirm_t_ {
-  amqp_publisher_confirm_payload_t payload; /* The response payload */
+  amqp_publisher_confirm_payload_t payload; /* The response payload; check the `method` value to see which value you should use in the union */
   amqp_channel_t channel; /* The channel where the confirmation was received */
   amqp_method_number_t method; /* The method which was received */
 } amqp_publisher_confirm_t;
@@ -2457,7 +2457,19 @@ typedef struct amqp_publisher_confirm_t_ {
  * Wait for a publisher confirm when the connection is in select mode.
  * If the response has a `reply_type` of `AMQP_RESPONSE_LIBRARY_EXCEPTION` _and_
  * the `library_error` is `AMQP_STATUS_UNEXPECTED_STATE`, then the frame
- * received was likely not an ack.
+ * received was not an ack.
+ *
+ * In the event that there are no publisher confirms received during the
+ * allotted time, `reply_type` will be `AMQP_RESPONSE_LIBRARY_EXCEPTION`
+ * and the `library_error` will be `AMQP_STATUS_TIMEOUT`.
+ *
+ * When a publisher confirm is received, `reply_type` will equal
+ * `AMQP_RESPONSE_NORMAL`, and the `result` out parameter will
+ * contain all of the information you need:
+ * 
+ * - The `channel` will identify which channel the publisher confirm was received on
+ * - The `method` will tell you whether this is an `ack`, `nack`, or `reject`
+ * - The `payload` is a union, and based on the `method` it will use one of `amqp_basic_ack_t`, `amqp_basic_nack_t`, or `amqp_basic_reject_t`
  *
  * \param [in] state connection state
  * \param [in] timeout when waiting for the frame. Passing NULL will result in

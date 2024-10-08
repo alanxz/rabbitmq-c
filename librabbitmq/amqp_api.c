@@ -408,9 +408,6 @@ amqp_rpc_reply_t amqp_publisher_confirm_wait(amqp_connection_state_t state,
       break;
 
     default:
-      fprintf(stderr, "Got 0x%X for the method, which is «%s».\n",
-              frame.payload.method.id,
-              amqp_method_name(frame.payload.method.id));
       amqp_put_back_frame(state, &frame);
       ret.reply_type = AMQP_RESPONSE_LIBRARY_EXCEPTION;
       ret.library_error = AMQP_STATUS_UNSUPPORTED;
