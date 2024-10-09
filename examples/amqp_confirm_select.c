@@ -6,7 +6,6 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <unistd.h>
 
 #include <rabbitmq-c/amqp.h>
 #include <rabbitmq-c/tcp_socket.h>
@@ -24,6 +23,7 @@
 #include <winsock2.h>
 #else
 #include <sys/time.h>
+#include <unistd.h>
 #endif
 
 #define SUMMARY_EVERY_US 5000
