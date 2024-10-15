@@ -23,7 +23,6 @@
 #include <winsock2.h>
 #else
 #include <sys/time.h>
-#include <unistd.h>
 #endif
 
 #define SUMMARY_EVERY_US 5000
@@ -99,7 +98,6 @@ void wait_for_acks(amqp_connection_state_t conn) {
     now = now_microseconds();
 
     if (now > start_time + WAITING_TIMEOUT_USEC) {
-      sleep(2);
       return;
     }
 
