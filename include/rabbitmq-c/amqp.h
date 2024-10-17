@@ -2454,7 +2454,7 @@ typedef struct amqp_publisher_confirm_t_ {
 /**
  * amqp_publisher_confirm_wait
  *
- * Wait for a publisher confirm when the connection is in select mode.
+ * Wait for a publisher confirm when one or more channel is in select mode.
  * If the response has a `reply_type` of `AMQP_RESPONSE_LIBRARY_EXCEPTION` _and_
  * the `library_error` is `AMQP_STATUS_UNEXPECTED_STATE`, then the frame
  * received was not an ack.
