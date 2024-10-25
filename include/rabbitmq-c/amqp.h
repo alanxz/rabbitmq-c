@@ -850,6 +850,23 @@ void AMQP_CALL amqp_pool_alloc_bytes(amqp_pool_t *pool, size_t amount,
                                      amqp_bytes_t *output);
 
 /**
+ * Wraps a c string literal in an amqp_bytes_t
+ *
+ * Takes a string literal, calculates its length and creates an
+ * amqp_bytes_t that points to it. The string literal is not duplicated.
+ *
+ * For a given input str, The amqp_bytes_t output.bytes is the
+ * same as str, output.len is the length of the string literal not including
+ * the \0 terminator
+ *
+ * \param [in] str the c string literal to wrap
+ * \return an amqp_bytes_t that describes the string literal
+ *
+ * \since v0.15
+ */
+#define amqp_literal_bytes(str) (amqp_bytes_t){sizeof(str) - 1, str}
+
+/**
  * Wraps a c string in an amqp_bytes_t
  *
  * Takes a string, calculates its length and creates an

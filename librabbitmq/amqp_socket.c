@@ -509,10 +509,10 @@ static amqp_bytes_t sasl_method_name(amqp_sasl_method_enum method) {
 
   switch (method) {
     case AMQP_SASL_METHOD_PLAIN:
-      res = amqp_cstring_bytes("PLAIN");
+      res = amqp_literal_bytes("PLAIN");
       break;
     case AMQP_SASL_METHOD_EXTERNAL:
-      res = amqp_cstring_bytes("EXTERNAL");
+      res = amqp_literal_bytes("EXTERNAL");
       break;
 
     default:
@@ -1332,7 +1332,7 @@ static amqp_rpc_reply_t amqp_login_inner(amqp_connection_state_t state,
     s.client_properties = state->client_properties;
     s.mechanism = sasl_method_name(sasl_method);
     s.response = response_bytes;
-    s.locale = amqp_cstring_bytes("en_US");
+    s.locale = amqp_literal_bytes("en_US");
 
     res = amqp_send_method_inner(state, 0, AMQP_CONNECTION_START_OK_METHOD, &s,
                                  AMQP_SF_NONE, deadline);
