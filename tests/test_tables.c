@@ -139,38 +139,38 @@ static void test_dump_value(FILE *out) {
   amqp_table_t table;
   amqp_field_value_t val;
 
-  entries[0].key = amqp_cstring_bytes("zebra");
+  entries[0].key = amqp_literal_bytes("zebra");
   entries[0].value.kind = AMQP_FIELD_KIND_UTF8;
-  entries[0].value.value.bytes = amqp_cstring_bytes("last");
+  entries[0].value.value.bytes = amqp_literal_bytes("last");
 
-  entries[1].key = amqp_cstring_bytes("aardvark");
+  entries[1].key = amqp_literal_bytes("aardvark");
   entries[1].value.kind = AMQP_FIELD_KIND_UTF8;
-  entries[1].value.value.bytes = amqp_cstring_bytes("first");
+  entries[1].value.value.bytes = amqp_literal_bytes("first");
 
-  entries[2].key = amqp_cstring_bytes("middle");
+  entries[2].key = amqp_literal_bytes("middle");
   entries[2].value.kind = AMQP_FIELD_KIND_UTF8;
-  entries[2].value.value.bytes = amqp_cstring_bytes("third");
+  entries[2].value.value.bytes = amqp_literal_bytes("third");
 
-  entries[3].key = amqp_cstring_bytes("number");
+  entries[3].key = amqp_literal_bytes("number");
   entries[3].value.kind = AMQP_FIELD_KIND_I32;
   entries[3].value.value.i32 = 1234;
 
-  entries[4].key = amqp_cstring_bytes("decimal");
+  entries[4].key = amqp_literal_bytes("decimal");
   entries[4].value.kind = AMQP_FIELD_KIND_DECIMAL;
   entries[4].value.value.decimal.decimals = 2;
   entries[4].value.value.decimal.value = 1234;
 
-  entries[5].key = amqp_cstring_bytes("time");
+  entries[5].key = amqp_literal_bytes("time");
   entries[5].value.kind = AMQP_FIELD_KIND_TIMESTAMP;
   entries[5].value.value.u64 = 1234123412341234;
 
-  entries[6].key = amqp_cstring_bytes("beta");
+  entries[6].key = amqp_literal_bytes("beta");
   entries[6].value.kind = AMQP_FIELD_KIND_UTF8;
-  entries[6].value.value.bytes = amqp_cstring_bytes("second");
+  entries[6].value.value.bytes = amqp_literal_bytes("second");
 
-  entries[7].key = amqp_cstring_bytes("wombat");
+  entries[7].key = amqp_literal_bytes("wombat");
   entries[7].value.kind = AMQP_FIELD_KIND_UTF8;
-  entries[7].value.value.bytes = amqp_cstring_bytes("fourth");
+  entries[7].value.value.bytes = amqp_literal_bytes("fourth");
 
   table.num_entries = 8;
   table.entries = entries;
@@ -221,13 +221,13 @@ static void test_table_codec(FILE *out) {
   amqp_table_entry_t entries[14];
   amqp_table_t table;
 
-  inner_entries[0].key = amqp_cstring_bytes("one");
+  inner_entries[0].key = amqp_literal_bytes("one");
   inner_entries[0].value.kind = AMQP_FIELD_KIND_I32;
   inner_entries[0].value.value.i32 = 54321;
 
-  inner_entries[1].key = amqp_cstring_bytes("two");
+  inner_entries[1].key = amqp_literal_bytes("two");
   inner_entries[1].value.kind = AMQP_FIELD_KIND_UTF8;
-  inner_entries[1].value.value.bytes = amqp_cstring_bytes("A long string");
+  inner_entries[1].value.value.bytes = amqp_literal_bytes("A long string");
 
   inner_table.num_entries = 2;
   inner_table.entries = inner_entries;
@@ -236,64 +236,64 @@ static void test_table_codec(FILE *out) {
   inner_values[0].value.i32 = 54321;
 
   inner_values[1].kind = AMQP_FIELD_KIND_UTF8;
-  inner_values[1].value.bytes = amqp_cstring_bytes("A long string");
+  inner_values[1].value.bytes = amqp_literal_bytes("A long string");
 
   inner_array.num_entries = 2;
   inner_array.entries = inner_values;
 
-  entries[0].key = amqp_cstring_bytes("longstr");
+  entries[0].key = amqp_literal_bytes("longstr");
   entries[0].value.kind = AMQP_FIELD_KIND_UTF8;
-  entries[0].value.value.bytes = amqp_cstring_bytes("Here is a long string");
+  entries[0].value.value.bytes = amqp_literal_bytes("Here is a long string");
 
-  entries[1].key = amqp_cstring_bytes("signedint");
+  entries[1].key = amqp_literal_bytes("signedint");
   entries[1].value.kind = AMQP_FIELD_KIND_I32;
   entries[1].value.value.i32 = 12345;
 
-  entries[2].key = amqp_cstring_bytes("decimal");
+  entries[2].key = amqp_literal_bytes("decimal");
   entries[2].value.kind = AMQP_FIELD_KIND_DECIMAL;
   entries[2].value.value.decimal.decimals = 3;
   entries[2].value.value.decimal.value = 123456;
 
-  entries[3].key = amqp_cstring_bytes("timestamp");
+  entries[3].key = amqp_literal_bytes("timestamp");
   entries[3].value.kind = AMQP_FIELD_KIND_TIMESTAMP;
   entries[3].value.value.u64 = 109876543209876;
 
-  entries[4].key = amqp_cstring_bytes("table");
+  entries[4].key = amqp_literal_bytes("table");
   entries[4].value.kind = AMQP_FIELD_KIND_TABLE;
   entries[4].value.value.table = inner_table;
 
-  entries[5].key = amqp_cstring_bytes("byte");
+  entries[5].key = amqp_literal_bytes("byte");
   entries[5].value.kind = AMQP_FIELD_KIND_I8;
   entries[5].value.value.i8 = (int8_t)-1;
 
-  entries[6].key = amqp_cstring_bytes("long");
+  entries[6].key = amqp_literal_bytes("long");
   entries[6].value.kind = AMQP_FIELD_KIND_I64;
   entries[6].value.value.i64 = 1234567890;
 
-  entries[7].key = amqp_cstring_bytes("short");
+  entries[7].key = amqp_literal_bytes("short");
   entries[7].value.kind = AMQP_FIELD_KIND_I16;
   entries[7].value.value.i16 = 655;
 
-  entries[8].key = amqp_cstring_bytes("bool");
+  entries[8].key = amqp_literal_bytes("bool");
   entries[8].value.kind = AMQP_FIELD_KIND_BOOLEAN;
   entries[8].value.value.boolean = 1;
 
-  entries[9].key = amqp_cstring_bytes("binary");
+  entries[9].key = amqp_literal_bytes("binary");
   entries[9].value.kind = AMQP_FIELD_KIND_BYTES;
-  entries[9].value.value.bytes = amqp_cstring_bytes("a binary string");
+  entries[9].value.value.bytes = amqp_literal_bytes("a binary string");
 
-  entries[10].key = amqp_cstring_bytes("void");
+  entries[10].key = amqp_literal_bytes("void");
   entries[10].value.kind = AMQP_FIELD_KIND_VOID;
 
-  entries[11].key = amqp_cstring_bytes("array");
+  entries[11].key = amqp_literal_bytes("array");
   entries[11].value.kind = AMQP_FIELD_KIND_ARRAY;
   entries[11].value.value.array = inner_array;
 
-  entries[12].key = amqp_cstring_bytes("float");
+  entries[12].key = amqp_literal_bytes("float");
   entries[12].value.kind = AMQP_FIELD_KIND_F32;
   entries[12].value.value.f32 = (float)M_PI;
 
-  entries[13].key = amqp_cstring_bytes("double");
+  entries[13].key = amqp_literal_bytes("double");
   entries[13].value.kind = AMQP_FIELD_KIND_F64;
   entries[13].value.value.f64 = M_PI;
 

@@ -26,13 +26,13 @@ static void parse_fail(amqp_bytes_t mechanisms, amqp_sasl_method_enum method) {
 }
 
 int main(void) {
-  parse_success(amqp_cstring_bytes("DIGEST-MD5 CRAM-MD5 LOGIN PLAIN"),
+  parse_success(amqp_literal_bytes("DIGEST-MD5 CRAM-MD5 LOGIN PLAIN"),
                 AMQP_SASL_METHOD_PLAIN);
-  parse_fail(amqp_cstring_bytes("DIGEST-MD5 CRAM-MD5 LOGIN PLAIN"),
+  parse_fail(amqp_literal_bytes("DIGEST-MD5 CRAM-MD5 LOGIN PLAIN"),
              AMQP_SASL_METHOD_EXTERNAL);
-  parse_success(amqp_cstring_bytes("DIGEST-MD5 CRAM-MD5 EXTERNAL"),
+  parse_success(amqp_literal_bytes("DIGEST-MD5 CRAM-MD5 EXTERNAL"),
                 AMQP_SASL_METHOD_EXTERNAL);
-  parse_fail(amqp_cstring_bytes("DIGEST-MD5 CRAM-MD5 EXTERNAL"),
+  parse_fail(amqp_literal_bytes("DIGEST-MD5 CRAM-MD5 EXTERNAL"),
              AMQP_SASL_METHOD_PLAIN);
   return 0;
 }
