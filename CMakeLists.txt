@@ -13,9 +13,9 @@ set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} ${CMAKE_CURRENT_SOURCE_DIR}/cmake)
 # 3. If any interfaces have been added since the last public release, then increment age.
 # 4. If any interfaces have been removed since the last public release, then set age to 0.
 
-set(RMQ_SOVERSION_CURRENT   10)
+set(RMQ_SOVERSION_CURRENT   11)
 set(RMQ_SOVERSION_REVISION  0)
-set(RMQ_SOVERSION_AGE       6)
+set(RMQ_SOVERSION_AGE       7)
 
 include(VersionFunctions)
 get_library_version(RMQ_VERSION)
