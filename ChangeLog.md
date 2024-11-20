@@ -1,4 +1,17 @@
 # Change Log
+## v0.15.0 - 2024-11-19
+## Fixed
+- Warning on MacOS about incompatible function declaration
+- Logic when decoding AMQP data after bad data may cause crash (#837)
+- Use SSL_get1_peer_certificate when compiling against OpenSSL 3+
+
+## Changed
+- Updates to various github actions.
+
+## Added
+- Add amqp_publisher_confirm_wait function (#841)
+- Add amqp_literal_bytes macro (#844)
+
 ## v0.14.0 - 2024-03-18
 ## Fixed
 - Fix potential stackoverflow in decoding table and array
