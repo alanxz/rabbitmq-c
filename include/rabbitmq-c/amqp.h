@@ -864,7 +864,7 @@ void AMQP_CALL amqp_pool_alloc_bytes(amqp_pool_t *pool, size_t amount,
  *
  * \since v0.15
  */
-#define amqp_literal_bytes(str) (amqp_bytes_t){sizeof(str) - 1, str}
+#define amqp_literal_bytes(str) (amqp_bytes_t){sizeof(str) - 1, (void *)str}
 
 /**
  * Wraps a c string in an amqp_bytes_t
