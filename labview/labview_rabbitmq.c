@@ -172,7 +172,7 @@ int lv_amqp_basic_consume(int64_t conn_intptr, uint16_t channel, char *queuename
 	}
 
 	amqp_boolean_t NO_LOCAL = 0;
-	amqp_boolean_t NO_ACK = 1;
+	amqp_boolean_t NO_ACK = 0;
 	amqp_boolean_t EXCLUSIVE2 = 0;
 	amqp_basic_consume(conn, channel, amqp_cstring_bytes(queuename), amqp_empty_bytes, NO_LOCAL, NO_ACK, EXCLUSIVE2, amqp_empty_table);
 	/*amqp_basic_consume is used to register a consumer on the queue,
@@ -192,6 +192,7 @@ int lv_amqp_consume_message(int64_t conn_intptr, int timeout_sec, LStrHandle out
 	tval.tv_usec = 0;
 	amqp_rpc_reply_t res;
 	amqp_envelope_t envelope;
+	uint64_t delivery_tag;
 
 	amqp_maybe_release_buffers(conn);
 
@@ -212,6 +213,8 @@ int lv_amqp_consume_message(int64_t conn_intptr, int timeout_sec, LStrHandle out
 	{
 		headersToString(headers, concatenatedHeaders);
 	}
+	delivery_tag = envelope.delivery_tag;
+	amqp_basic_ack(conn, 1, delivery_tag, 0);
 
 	amqp_destroy_envelope(&envelope);
 	return status;
