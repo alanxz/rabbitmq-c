@@ -15,7 +15,7 @@
 LABVIEW_PUBLIC_FUNCTION
 char *lv_rabbitmq_version(void)
 {
-	char *VERSION = "0.0.3";
+	char *VERSION = "0.0.4";
 	return VERSION;
 }
 
