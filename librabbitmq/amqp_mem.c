@@ -138,6 +138,12 @@ amqp_bytes_t amqp_cstring_bytes(char const *cstr) {
   result.bytes = (void *)cstr;
   return result;
 }
+amqp_bytes_t amqp_cstring_bytes_with_length(char const *cstr, size_t length) {
+  amqp_bytes_t result;
+  result.len = length;
+  result.bytes = (void *)cstr;
+  return result;
+}
 
 amqp_bytes_t amqp_bytes_malloc_dup(amqp_bytes_t src) {
   amqp_bytes_t result;
