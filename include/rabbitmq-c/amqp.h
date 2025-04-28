@@ -888,6 +888,21 @@ AMQP_EXPORT
 amqp_bytes_t AMQP_CALL amqp_cstring_bytes(char const *cstr);
 
 /**
+ * Wraps a string of bytes in an amqp_bytes_t
+ *
+ * Takes a string of bytes and its length and creates an
+ * amqp_bytes_t that points to it. The input is not duplicated.
+ *
+ * \param [in] ptr the string of bytes to wrap
+ * \param [in] length the length of the string
+ * \return an amqp_bytes_t that describes the string
+ *
+ * \since v0.16
+ */
+AMQP_EXPORT
+amqp_bytes_t AMQP_CALL amqp_bytes_from_buffer(void const *ptr, size_t length);
+
+/**
  * Duplicates an amqp_bytes_t buffer.
  *
  * The buffer is cloned and the contents copied.
