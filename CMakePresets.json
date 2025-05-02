@@ -1,0 +1,43 @@
+{
+    "version": 3,
+    "cmakeMinimumRequired": {
+        "major": 3,
+        "minor": 22,
+        "patch": 0
+    },
+    "configurePresets": [
+        {
+            "name": "ci-macos",
+            "displayName": "Continuous integration for MacOS",
+            "generator": "Ninja",
+            "binaryDir": "${sourceDir}/out/build/${presetName}",
+            "cacheVariables": {
+                "CMAKE_INSTALL_PREFIX": "${sourceDir}/out/install/${presetName}",
+                "CMAKE_C_FLAGS": "-Wall -Wextra -Wstrict-prototypes -Wno-unused-function -Werror",
+                "OPENSSL_ROOT_DIR": "/usr/local/opt/openssl@1.1",
+                "BUILD_EXAMPLES": "ON",
+                "BUILD_TESTING": "ON",
+                "BUILD_TOOLS": "ON"
+            }
+        }
+    ],
+    "buildPresets": [
+        {
+            "name": "ci-macos",
+            "description": "",
+            "displayName": "",
+            "configurePreset": "ci-macos",
+            "targets": [
+                "install"
+            ]
+        }
+    ],
+    "testPresets": [
+        {
+            "name": "ci-macos",
+            "description": "",
+            "displayName": "",
+            "configurePreset": "ci-macos"
+        }
+    ]
+}

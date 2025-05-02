@@ -57,9 +57,17 @@ jobs:
       shell: bash
       run: brew install ninja popt
     
-    - name: Configure Build & Test
+    - name: Configure
       shell: bash
-      run: ./travis.sh macos
+      run: cmake --preset ci-macos
+
+    - name: Build
+      shell: bash
+      run: cmake --build --preset ci-macos
+
+    - name: Test
+      shell: bash
+      run: ctest --preset ci-macos
 
   build-win32:
     runs-on: windows-latest
