@@ -174,7 +174,6 @@ start_poll:
         return AMQP_STATUS_SOCKET_ERROR;
     }
   }
-  return AMQP_STATUS_OK;
 #elif defined(HAVE_SELECT)
   fd_set fds;
   fd_set exceptfds;
