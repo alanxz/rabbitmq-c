@@ -122,6 +122,10 @@ int main(int argc, const char **argv) {
   } else {
     if (line_buffered) {
       body_bytes.bytes = (char *)malloc(MAX_LINE_LENGTH);
+      if (body_bytes.bytes == NULL) {
+        fprintf(stderr, "Memory allocation failed\n");
+        return 1;
+      }
       while (fgets(body_bytes.bytes, MAX_LINE_LENGTH, stdin)) {
         body_bytes.len = strlen(body_bytes.bytes);
         do_publish(conn, exchange, routing_key, &props, body_bytes);
