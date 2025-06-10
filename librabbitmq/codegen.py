@@ -339,7 +339,7 @@ char const *amqp_constant_name(int constantNumber) {
     print("""
 amqp_boolean_t amqp_constant_is_hard_error(int constantNumber) {
   switch (constantNumber) {""")
-    for (c,v,cls) in spec.constants:
+    for (c,_,cls) in spec.constants:
         if cls == 'hard-error':
             print("    case %s: return 1;" % (cConstantName(c),))
     print("""    default: return 0;
