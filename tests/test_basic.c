@@ -155,6 +155,9 @@ char *consume_message(amqp_connection_state_t connection_state_,
 
   *out_body_size_ = envelope.message.body.len;
   char *body = malloc(*out_body_size_);
+  if (body == NULL) {
+    return NULL;
+  }
   if (*out_body_size_) {
     memcpy(body, envelope.message.body.bytes, *out_body_size_);
   }
@@ -172,6 +175,7 @@ void publish_and_consume_message(const char *msg_to_publish) {
   uint64_t body_size;
   char *msg = consume_message(connection_state, test_queue_name, &body_size);
 
+  assert(msg != NULL && "Test errored: memory allocation failed!");
   assert(body_size == strlen(msg_to_publish));
   assert(strncmp(msg_to_publish, msg, body_size) == 0);
   free(msg);
