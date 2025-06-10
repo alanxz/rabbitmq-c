@@ -208,6 +208,7 @@ void read_authfile(const char *path) {
   if (!feof(fp)) {
     die("Malformed auth file (trailing data)");
   }
+  fclose(fp);
 }
 
 static void init_connection_info(struct amqp_connection_info *ci) {
