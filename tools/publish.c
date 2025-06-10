@@ -91,6 +91,10 @@ int main(int argc, const char **argv) {
       amqp_table_t *table = &props.headers;
       table->num_entries = num;
       table->entries = calloc(num, sizeof(amqp_table_entry_t));
+      if (table->entries == NULL) {
+        fprintf(stderr, "Memory allocation failed\n");
+        return 1;
+      }
       int i = 0;
       for (pos = headers; *pos; pos++) {
         char *colon = strchr(*pos, ':');
