@@ -16,6 +16,9 @@
 static char *stringify_bytes(amqp_bytes_t bytes) {
   /* We will need up to 4 chars per byte, plus the terminating 0 */
   char *res = malloc(bytes.len * 4 + 1);
+  if (res == NULL) {
+    return NULL;
+  }
   uint8_t *data = bytes.bytes;
   char *p = res;
   size_t i;
@@ -67,6 +70,10 @@ static amqp_bytes_t setup_queue(amqp_connection_state_t conn, char *queue,
       char *sq;
       queue_bytes = amqp_bytes_malloc_dup(res->queue);
       sq = stringify_bytes(queue_bytes);
+      if (sq == NULL) {
+        fprintf(stderr, "Memory allocation failed.\n");
+        exit(1);
+      }
       fprintf(stderr, "Server provided queue name: %s\n", sq);
       free(sq);
     }
