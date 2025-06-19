@@ -313,7 +313,7 @@ def genErl(spec):
 
     print("""// Copyright 2007 - 2021, Alan Antonuk and the rabbitmq-c contributors.
 // SPDX-License-Identifier: mit
-    
+
  /* Generated code. Do not edit. Edit and re-run codegen.py instead. */
 
 #ifdef HAVE_CONFIG_H
@@ -330,7 +330,7 @@ def genErl(spec):
     print("""
 char const *amqp_constant_name(int constantNumber) {
   switch (constantNumber) {""")
-    for (c,v,cls) in spec.constants:
+    for (c,_,_) in spec.constants:
         print("    case %s: return \"%s\";" % (cConstantName(c), cConstantName(c)))
     print("""    default: return "(unknown)";
   }
@@ -339,7 +339,7 @@ char const *amqp_constant_name(int constantNumber) {
     print("""
 amqp_boolean_t amqp_constant_is_hard_error(int constantNumber) {
   switch (constantNumber) {""")
-    for (c,v,cls) in spec.constants:
+    for (c,_,cls) in spec.constants:
         if cls == 'hard-error':
             print("    case %s: return 1;" % (cConstantName(c),))
     print("""    default: return 0;
@@ -502,7 +502,7 @@ def genHrl(spec):
 
     print("""// Copyright 2007 - 2021, Alan Antonuk and the rabbitmq-c contributors.
 // SPDX-License-Identifier: mit
-    
+
  /* Generated code. Do not edit. Edit and re-run codegen.py instead. */
 
 /** @file rabbitmq-c/framing.h */
