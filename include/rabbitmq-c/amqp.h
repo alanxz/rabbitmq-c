@@ -899,8 +899,7 @@ amqp_bytes_t AMQP_CALL amqp_cstring_bytes(char const *cstr);
  *
  * \since v0.16
  */
-AMQP_EXPORT
-amqp_bytes_t AMQP_CALL amqp_bytes_from_buffer(void const *ptr, size_t length);
+#define amqp_bytes_from_buffer(ptr, length) (amqp_bytes_t){length, (void *)ptr}
 
 /**
  * Duplicates an amqp_bytes_t buffer.
