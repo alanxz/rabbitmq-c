@@ -13,7 +13,7 @@
 
 #define SUMMARY_EVERY_US 1000000
 
-static void send_batch(amqp_connection_state_t conn, char const *queue_name,
+static void send_batch(amqp_connection_state_t conn, amqp_bytes_t queue_name,
                        int rate_limit, int message_count) {
   uint64_t start_time = now_microseconds();
   int i;
@@ -36,7 +36,7 @@ static void send_batch(amqp_connection_state_t conn, char const *queue_name,
     uint64_t now = now_microseconds();
 
     die_on_error(amqp_basic_publish(conn, 1, amqp_literal_bytes("amq.direct"),
-                                    amqp_cstring_bytes(queue_name), 0, 0, NULL,
+                                    queue_name, 0, 0, NULL,
                                     message_bytes),
                  "Publishing");
     sent++;
@@ -107,7 +107,7 @@ int main(int argc, char const *const *argv) {
   amqp_channel_open(conn, 1);
   die_on_amqp_error(amqp_get_rpc_reply(conn), "Opening channel");
 
-  send_batch(conn, "test queue", rate_limit, message_count);
+  send_batch(conn, amqp_literal_bytes("test queue"), rate_limit, message_count);
 
   die_on_amqp_error(amqp_channel_close(conn, 1, AMQP_REPLY_SUCCESS),
                     "Closing channel");
