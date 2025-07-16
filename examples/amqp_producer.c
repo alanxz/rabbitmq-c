@@ -36,8 +36,7 @@ static void send_batch(amqp_connection_state_t conn, amqp_bytes_t queue_name,
     uint64_t now = now_microseconds();
 
     die_on_error(amqp_basic_publish(conn, 1, amqp_literal_bytes("amq.direct"),
-                                    queue_name, 0, 0, NULL,
-                                    message_bytes),
+                                    queue_name, 0, 0, NULL, message_bytes),
                  "Publishing");
     sent++;
     if (now > next_summary_time) {
