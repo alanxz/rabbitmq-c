@@ -444,6 +444,9 @@ int amqp_open_socket_inner(char const *hostname, int portnumber,
   char portnumber_string[33];
   int sockfd = -1;
   int last_error;
+  amqp_time_t deadline_per_ip;
+  uint64_t timeout_per_ip;
+  uint64_t now_ns;
 
   last_error = amqp_os_socket_init();
   if (AMQP_STATUS_OK != last_error) {
@@ -462,15 +465,22 @@ int amqp_open_socket_inner(char const *hostname, int portnumber,
     return AMQP_STATUS_HOSTNAME_RESOLUTION_FAILED;
   }
 
+  timeout_per_ip = amqp_time_ms_until(deadline) * AMQP_NS_PER_MS;
+
   for (addr = address_list; addr; addr = addr->ai_next) {
-    sockfd = connect_socket(addr, deadline);
+    now_ns = amqp_get_monotonic_timestamp();
+    if (0 == now_ns) {
+      return AMQP_STATUS_TIMER_FAILURE;
+    }
+
+    deadline_per_ip.time_point_ns = now_ns + timeout_per_ip;
+    sockfd = connect_socket(addr, deadline_per_ip);
 
     if (sockfd >= 0) {
       last_error = AMQP_STATUS_OK;
       break;
     } else if (sockfd == AMQP_STATUS_TIMEOUT) {
       last_error = sockfd;
-      break;
     }
   }
 
