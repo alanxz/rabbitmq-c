@@ -23,6 +23,7 @@
 /libtool
 /ltmain.sh
 /missing
+/out
 /stamp-h1
 /test-suite.log
 INSTALL
