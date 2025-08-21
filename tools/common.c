@@ -136,6 +136,7 @@ static int amqp_ssl = 0;
 static char *amqp_cacert = "/etc/ssl/certs/cacert.pem";
 static char *amqp_key = NULL;
 static char *amqp_cert = NULL;
+static int amqp_no_default_cert_paths = 0;
 #endif /* WITH_SSL */
 
 const char *connect_options_title = "Connection options";
@@ -163,10 +164,12 @@ struct poptOption connect_options[] = {
      "path to the client private key file", "key.pem"},
     {"cert", 0, POPT_ARG_STRING, &amqp_cert, 0,
      "path to the client certificate file", "cert.pem"},
+     {"no-default-cert-paths", 0, POPT_ARG_NONE, &amqp_no_default_cert_paths, 0,
+      "do not use default certificate paths", NULL}
 #endif /* WITH_SSL */
     {NULL, '\0', 0, NULL, 0, NULL, NULL}};
 
-void read_authfile(const char *path) {
+static void read_authfile(const char *path) {
   size_t n;
   FILE *fp = NULL;
   char token[MAXAUTHTOKENLEN];
@@ -349,6 +352,9 @@ amqp_connection_state_t make_connection(void) {
     }
     if (amqp_key) {
       amqp_ssl_socket_set_key(socket, amqp_cert, amqp_key);
+    }
+    if (!amqp_no_default_cert_paths) {
+      amqp_ssl_socket_enable_default_verify_paths(socket);
     }
 #else
     die("librabbitmq was not built with SSL/TLS support");
