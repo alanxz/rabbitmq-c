@@ -1733,14 +1733,15 @@ amqp_rpc_reply_t AMQP_CALL amqp_get_rpc_reply(amqp_connection_state_t state);
  *
  * \since v0.1
  */
-AMQP_EXPORT DEPRECATED("use amqp_login_plain() or amqp_login_external()")
+DEPRECATED("use amqp_login_plain() or amqp_login_external()")
+AMQP_EXPORT
 amqp_rpc_reply_t AMQP_CALL amqp_login(amqp_connection_state_t state,
                                       char const *vhost, int channel_max,
                                       int frame_max, int heartbeat,
                                       amqp_sasl_method_enum sasl_method, ...);
 
 /**
-* Login to the broker using the AMQP_SASL_METHOD_PLAIN SASL method
+ * Login to the broker using the AMQP_SASL_METHOD_PLAIN SASL method
  *
  * After using amqp_open_socket and amqp_set_sockfd, call
  * amqp_login to complete connecting to the broker
@@ -1795,7 +1796,7 @@ amqp_rpc_reply_t AMQP_CALL amqp_login_plain(
   int frame_max, int heartbeat, const char *username, const char *password);
 
 /**
-* Login to the broker using the AMQP_SASL_METHOD_EXTERNAL SASL method
+ * Login to the broker using the AMQP_SASL_METHOD_EXTERNAL SASL method
  *
  * After using amqp_open_socket and amqp_set_sockfd, call
  * amqp_login to complete connecting to the broker
@@ -1917,7 +1918,8 @@ amqp_rpc_reply_t AMQP_CALL amqp_login_external(
  * \since v0.4.0
  */
 DEPRECATED("use amqp_login_plain_with_properties() or amqp_login_external_with_properties()")
-AMQP_EXPORT amqp_rpc_reply_t AMQP_CALL amqp_login_with_properties(
+AMQP_EXPORT
+amqp_rpc_reply_t AMQP_CALL amqp_login_with_properties(
     amqp_connection_state_t state, char const *vhost, int channel_max,
     int frame_max, int heartbeat, const amqp_table_t *properties,
     amqp_sasl_method_enum sasl_method, ...);
