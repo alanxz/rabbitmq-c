@@ -1662,17 +1662,18 @@ AMQP_EXPORT
 amqp_rpc_reply_t AMQP_CALL amqp_get_rpc_reply(amqp_connection_state_t state);
 
 #if defined(__GNUC__) || defined(__clang__)
-#define DEPRECATED __attribute__((deprecated))
+#define DEPRECATED(msg) __attribute__((deprecated))
 #elif defined(_MSC_VER)
-#define DEPRECATED __declspec(deprecated)
+#define DEPRECATED(msg) __declspec(deprecated)
 #else
-#define DEPRECATED
+#define DEPRECATED(msg)
 #endif
 
 /**
  * Login to the broker
  *
- * DEPRECATED, please use amqp_login_plain() or amqp_login_external()
+ * \deprecated This function is deprecated and should be replaced by a call to
+ * amqp_login_plain() or amqp_login_external()
  *
  * After using amqp_open_socket and amqp_set_sockfd, call
  * amqp_login to complete connecting to the broker
@@ -1732,7 +1733,7 @@ amqp_rpc_reply_t AMQP_CALL amqp_get_rpc_reply(amqp_connection_state_t state);
  *
  * \since v0.1
  */
-AMQP_EXPORT DEPRECATED
+AMQP_EXPORT DEPRECATED("use amqp_login_plain() or amqp_login_external()")
 amqp_rpc_reply_t AMQP_CALL amqp_login(amqp_connection_state_t state,
                                       char const *vhost, int channel_max,
                                       int frame_max, int heartbeat,
@@ -1851,8 +1852,8 @@ amqp_rpc_reply_t AMQP_CALL amqp_login_external(
 /**
  * Login to the broker passing a properties table
  *
- * DEPRECATED, please use amqp_login_plain_with_properties() or
- * amqp_login_external_with_properties()
+ * \deprecated This function is deprecated and should be replaced by a call to
+ * amqp_login_plain_with_properties() or amqp_login_external_with_properties().
  *
  * This function is similar to amqp_login() and differs in that it provides a
  * way to pass client properties to the broker. This is commonly used to
@@ -1915,8 +1916,8 @@ amqp_rpc_reply_t AMQP_CALL amqp_login_external(
  *
  * \since v0.4.0
  */
-AMQP_EXPORT DEPRECATED
-amqp_rpc_reply_t AMQP_CALL amqp_login_with_properties(
+DEPRECATED("use amqp_login_plain_with_properties() or amqp_login_external_with_properties()")
+AMQP_EXPORT amqp_rpc_reply_t AMQP_CALL amqp_login_with_properties(
     amqp_connection_state_t state, char const *vhost, int channel_max,
     int frame_max, int heartbeat, const amqp_table_t *properties,
     amqp_sasl_method_enum sasl_method, ...);
@@ -1975,7 +1976,6 @@ amqp_rpc_reply_t AMQP_CALL amqp_login_with_properties(
  *
  * \since v0.4.0
  */
-AMQP_EXPORT DEPRECATED
 amqp_rpc_reply_t AMQP_CALL amqp_login_plain_with_properties(
     amqp_connection_state_t state, char const *vhost, int channel_max,
     int frame_max, int heartbeat, const amqp_table_t *properties,
@@ -2035,7 +2035,6 @@ amqp_rpc_reply_t AMQP_CALL amqp_login_plain_with_properties(
  *
  * \since v0.4.0
  */
-AMQP_EXPORT DEPRECATED
 amqp_rpc_reply_t AMQP_CALL amqp_login_external_with_properties(
     amqp_connection_state_t state, char const *vhost, int channel_max,
     int frame_max, int heartbeat, const amqp_table_t *properties,
