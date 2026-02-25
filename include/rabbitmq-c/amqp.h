@@ -1739,7 +1739,7 @@ amqp_rpc_reply_t AMQP_CALL amqp_login(amqp_connection_state_t state,
                                       amqp_sasl_method_enum sasl_method, ...);
 
 /**
-* Login to the broker using the AMQP_SASL_METHOD_PLAIN method
+* Login to the broker using the AMQP_SASL_METHOD_PLAIN SASL method
  *
  * After using amqp_open_socket and amqp_set_sockfd, call
  * amqp_login to complete connecting to the broker
@@ -1794,7 +1794,7 @@ amqp_rpc_reply_t AMQP_CALL amqp_login_plain(
   int frame_max, int heartbeat, const char *username, const char *password);
 
 /**
-* Login to the broker using the AMQP_SASL_METHOD_EXTERNAL method
+* Login to the broker using the AMQP_SASL_METHOD_EXTERNAL SASL method
  *
  * After using amqp_open_socket and amqp_set_sockfd, call
  * amqp_login to complete connecting to the broker
@@ -1922,8 +1922,8 @@ amqp_rpc_reply_t AMQP_CALL amqp_login_with_properties(
     amqp_sasl_method_enum sasl_method, ...);
 
 /**
- * Login to the broker using the AMQP_SASL_METHOD_PLAIN method passing a
- * properties table
+ * Login to the broker using the AMQP_SASL_METHOD_PLAIN SASL method passing in
+ * a properties table
  *
  * This function is similar to amqp_login() and differs in that it provides a
  * way to pass client properties to the broker. This is commonly used to
@@ -1982,8 +1982,8 @@ amqp_rpc_reply_t AMQP_CALL amqp_login_plain_with_properties(
     const char *username, const char *password);
 
 /**
- * Login to the broker using the AMQP_SASL_METHOD_EXTERN method passing a
- * properties table
+ * Login to the broker using the AMQP_SASL_METHOD_EXTERNAL SASL method passing
+ * in a properties table
  *
  * This function is similar to amqp_login() and differs in that it provides a
  * way to pass client properties to the broker. This is commonly used to
