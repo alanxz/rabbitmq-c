@@ -7,4 +7,6 @@
 
 #define AMQ_PLATFORM "@CMAKE_SYSTEM_NAME@"
 
+#cmakedefine ENABLE_SSL_ENGINE_API
+
 #endif /* CONFIG_H */

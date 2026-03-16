@@ -50,6 +50,19 @@ AMQP_EXPORT
 void *AMQP_CALL amqp_ssl_socket_get_context(amqp_socket_t *self);
 
 /**
+ * Enable loading of the CA certificates from the default location.
+ *
+ * \param [in,out] self An SSL/TLS socket object.
+ *
+ * \return \ref AMQP_STATUS_OK on success an \ref amqp_status_enum value on
+ *  failure.
+ *
+ * \since v0.14.0
+ */
+AMQP_EXPORT
+int AMQP_CALL amqp_ssl_socket_enable_default_verify_paths(amqp_socket_t *self);
+
+/**
  * Set the CA certificate.
  *
  * \param [in,out] self An SSL/TLS socket object.
@@ -143,7 +156,8 @@ int AMQP_CALL amqp_ssl_socket_set_key(amqp_socket_t *self, const char *cert,
  * \param [in] the key ID.
  *
  * \return \ref AMQP_STATUS_OK on success an \ref amqp_status_enum value on
- *  failure.
+ *  failure. May return \ref AMQP_STATUS_SSL_UNIMPLEMENTED if OpenSSL does 
+ *  not support the ENGINE API.
  *
  * \since v0.11.0
  */
@@ -306,7 +320,8 @@ int AMQP_CALL amqp_initialize_ssl_library(void);
  * has been called.
  *
  * \param [in] engine the engine ID
- * \return AMQP_STATUS_OK on success.
+ * \return AMQP_STATUS_OK on success. May return \ref AMQP_STATUS_SSL_UNIMPLEMENTED
+ *   if OpenSSL does not support the ENGINE API.
  *
  * \since v0.11.0
  */

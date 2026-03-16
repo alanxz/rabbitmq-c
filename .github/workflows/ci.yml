@@ -32,12 +32,14 @@ jobs:
             config: framing
 
     steps:
-    - uses: actions/checkout@v2
+    - uses: actions/checkout@v4
       with:
         submodules: true
     - name: Install Prerequisites
       shell: bash
-      run: sudo apt install -y ninja-build libpopt-dev
+      run: |
+        sudo apt update
+        sudo apt install -y ninja-build libpopt-dev
 
     - name: Configure Build & Test
       shell: bash
@@ -48,7 +50,7 @@ jobs:
   build-macox:
     runs-on: macos-latest
     steps:
-    - uses: actions/checkout@v2
+    - uses: actions/checkout@v4
       with:
         submodules: true
     - name: Install Prerequisites
@@ -62,11 +64,9 @@ jobs:
   build-win32:
     runs-on: windows-latest
     steps:
-    - uses: actions/checkout@v2
+    - uses: actions/checkout@v4
       with:
         submodules: true
-    - name: Install Prerequisites
-      run: choco install openssl
     - name: Configure Build & Test
       shell: bash
       run: |

@@ -269,8 +269,8 @@ int amqp_handle_input(amqp_connection_state_t state, amqp_bytes_t received_data,
         return AMQP_STATUS_BAD_AMQP_DATA;
       }
 
-      state->target_size = frame_size + HEADER_SIZE + FOOTER_SIZE;
-      if ((size_t)state->frame_max < state->target_size) {
+      frame_size = frame_size + HEADER_SIZE + FOOTER_SIZE;
+      if ((size_t)state->frame_max < frame_size) {
         return AMQP_STATUS_BAD_AMQP_DATA;
       }
 
@@ -279,8 +279,7 @@ int amqp_handle_input(amqp_connection_state_t state, amqp_bytes_t received_data,
         return AMQP_STATUS_NO_MEMORY;
       }
 
-      amqp_pool_alloc_bytes(channel_pool, state->target_size,
-                            &state->inbound_buffer);
+      amqp_pool_alloc_bytes(channel_pool, frame_size, &state->inbound_buffer);
       if (NULL == state->inbound_buffer.bytes) {
         return AMQP_STATUS_NO_MEMORY;
       }
@@ -288,7 +287,7 @@ int amqp_handle_input(amqp_connection_state_t state, amqp_bytes_t received_data,
       raw_frame = state->inbound_buffer.bytes;
 
       state->state = CONNECTION_STATE_BODY;
-
+      state->target_size = frame_size;
       bytes_consumed += consume_data(state, &received_data);
 
       /* do we have target_size data yet? if not, return with the

@@ -1,6 +1,7 @@
 // Copyright 2007 - 2021, Alan Antonuk and the rabbitmq-c contributors.
 // SPDX-License-Identifier: mit
 
+#include <inttypes.h>
 #include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -11,7 +12,19 @@
 
 #include "utils.h"
 
-#define SUMMARY_EVERY_US 1000000
+#if ((defined(_WIN32)) || (defined(__MINGW32__)) || (defined(__MINGW64__)))
+#ifndef WINVER
+#define WINVER 0x0502
+#endif
+#ifndef WIN32_LEAN_AND_MEAN
+#define WIN32_LEAN_AND_MEAN
+#endif
+#include <winsock2.h>
+#else
+#include <sys/time.h>
+#endif
+
+#define SUMMARY_EVERY_US 5000
 
 static void send_batch(amqp_connection_state_t conn, amqp_bytes_t queue_name,
                        int rate_limit, int message_count) {
@@ -69,6 +82,59 @@ static void send_batch(amqp_connection_state_t conn, amqp_bytes_t queue_name,
   }
 }
 
+#define CONSUME_TIMEOUT_USEC 100
+#define WAITING_TIMEOUT_USEC (30 * 1000)
+void wait_for_acks(amqp_connection_state_t conn) {
+  uint64_t start_time = now_microseconds();
+  struct timeval timeout = {0, CONSUME_TIMEOUT_USEC};
+  uint64_t now = 0;
+  amqp_publisher_confirm_t result = {};
+
+  for (;;) {
+    amqp_rpc_reply_t ret;
+
+    now = now_microseconds();
+
+    if (now > start_time + WAITING_TIMEOUT_USEC) {
+      return;
+    }
+
+    amqp_maybe_release_buffers(conn);
+    ret = amqp_publisher_confirm_wait(conn, &timeout, &result);
+
+    if (AMQP_RESPONSE_LIBRARY_EXCEPTION == ret.reply_type) {
+      if (AMQP_STATUS_UNEXPECTED_STATE == ret.library_error) {
+        fprintf(stderr, "An unexpected method was received\n");
+        return;
+      } else if (AMQP_STATUS_TIMEOUT == ret.library_error) {
+        // Timeout means you're done; no publisher confirms were waiting!
+        return;
+      } else {
+        die_on_amqp_error(ret, "Waiting for publisher confirmation");
+      }
+    }
+
+    switch (result.method) {
+      case AMQP_BASIC_ACK_METHOD:
+        fprintf(stderr, "Got an ACK!\n");
+        fprintf(stderr, "Here's the ACK:\n");
+        fprintf(stderr, "\tdelivery_tag: «%" PRIu64 "»\n",
+                result.payload.ack.delivery_tag);
+        fprintf(stderr, "\tmultiple: «%d»\n", result.payload.ack.multiple);
+        break;
+      case AMQP_BASIC_NACK_METHOD:
+        fprintf(stderr, "NACK\n");
+        break;
+      case AMQP_BASIC_REJECT_METHOD:
+        fprintf(stderr, "REJECT\n");
+        break;
+      default:
+        fprintf(stderr, "Unexpected method «%s» is.\n",
+                amqp_method_name(result.method));
+    };
+  }
+}
+
 int main(int argc, char const *const *argv) {
   char const *hostname;
   int port, status;
@@ -106,8 +172,13 @@ int main(int argc, char const *const *argv) {
   amqp_channel_open(conn, 1);
   die_on_amqp_error(amqp_get_rpc_reply(conn), "Opening channel");
 
+  // Enable confirm_select
+  amqp_confirm_select(conn, 1);
+  die_on_amqp_error(amqp_get_rpc_reply(conn), "Enable confirm-select");
+
   send_batch(conn, amqp_literal_bytes("test queue"), rate_limit, message_count);
 
+  wait_for_acks(conn);
   die_on_amqp_error(amqp_channel_close(conn, 1, AMQP_REPLY_SUCCESS),
                     "Closing channel");
   die_on_amqp_error(amqp_connection_close(conn, AMQP_REPLY_SUCCESS),

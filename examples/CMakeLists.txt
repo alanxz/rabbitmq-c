@@ -27,6 +27,9 @@ target_link_libraries(amqp_listen PRIVATE examples-common rabbitmq::rabbitmq)
 add_executable(amqp_producer amqp_producer.c)
 target_link_libraries(amqp_producer PRIVATE examples-common rabbitmq::rabbitmq)
 
+add_executable(amqp_confirm_select amqp_confirm_select.c)
+target_link_libraries(amqp_confirm_select PRIVATE examples-common rabbitmq::rabbitmq)
+
 add_executable(amqp_connect_timeout amqp_connect_timeout.c)
 target_link_libraries(amqp_connect_timeout PRIVATE examples-common rabbitmq::rabbitmq)
 

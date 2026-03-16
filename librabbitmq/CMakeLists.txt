@@ -29,7 +29,7 @@ endif()
 set(PUBLIC_INCLUDE_DIRS
   $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}/../include>
   $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../include>
-  $<INSTALL_INTERFACE:include>
+  $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}>
 )
 
 set(PRIVATE_INCLUDE_DIRS
@@ -106,7 +106,7 @@ if(BUILD_SHARED_LIBS)
             COMPONENT rabbitmq-c-runtime
     LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
             COMPONENT rabbitmq-c-runtime
-            NAMELINK_COMPONENT runtime-c-development
+            NAMELINK_COMPONENT rabbitmq-c-development
     ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}
             COMPONENT rabbitmq-c-development
   )
@@ -140,7 +140,7 @@ if(BUILD_STATIC_LIBS)
   )
 
   if (APPLE)
-    set_target_properties(rabbitmq PROPERTIES
+    set_target_properties(rabbitmq-static PROPERTIES
       MACHO_CURRENT_VERSION ${RMQ_SOVERSION}.${RMQ_SOVERSION_AGE}.${RMQ_SOVERSION_REVISION}
       MACHO_COMPATIBILITY_VERSION ${RMQ_SOVERSION}
     )
@@ -150,11 +150,6 @@ if(BUILD_STATIC_LIBS)
     set_target_properties(rabbitmq-static PROPERTIES OUTPUT_NAME librabbitmq.${RMQ_SOVERSION})
   else()
     set_target_properties(rabbitmq-static PROPERTIES OUTPUT_NAME rabbitmq)
-  endif()
-
-  if(MSVC)
-    # Embed debugging info in the library itself instead of generating a .pdb file.
-    set_target_properties(rabbitmq-static PROPERTIES COMPILE_OPTIONS "/Z7")
   endif()
 
   if(INSTALL_STATIC_LIBS)

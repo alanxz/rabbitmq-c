@@ -13,9 +13,9 @@ set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} ${CMAKE_CURRENT_SOURCE_DIR}/cmake)
 # 3. If any interfaces have been added since the last public release, then increment age.
 # 4. If any interfaces have been removed since the last public release, then set age to 0.
 
-set(RMQ_SOVERSION_CURRENT   9)
-set(RMQ_SOVERSION_REVISION  4)
-set(RMQ_SOVERSION_AGE       5)
+set(RMQ_SOVERSION_CURRENT   11)
+set(RMQ_SOVERSION_REVISION  0)
+set(RMQ_SOVERSION_AGE       7)
 
 include(VersionFunctions)
 get_library_version(RMQ_VERSION)
@@ -42,6 +42,7 @@ endif()
 
 include(CheckSymbolExists)
 include(CheckLibraryExists)
+include(CMakeDependentOption)
 include(CMakePushCheckState)
 include(GNUInstallDirs)
 
@@ -113,20 +114,31 @@ endif()
 option(ENABLE_SSL_SUPPORT "Enable SSL support" ON)
 
 if (ENABLE_SSL_SUPPORT)
+  # Manually check OpenSSL version because BoringSSL doesn't support version checking via find_package
   set(RMQ_OPENSSL_MIN_VERSION 1.1.1)
-  find_package(OpenSSL "${RMQ_OPENSSL_MIN_VERSION}" REQUIRED)
+  find_package(OpenSSL REQUIRED)
+  if(OPENSSL_VERSION) # Will be empty for BoringSSL
+    if(OPENSSL_VERSION VERSION_LESS RMQ_OPENSSL_MIN_VERSION)
+      MESSAGE(FATAL_ERROR "Found OpenSSL version ${OPENSSL_VERSION} but ${RMQ_OPENSSL_MIN_VERSION} or later is required")
+    endif()
+  endif()
 
   cmake_push_check_state()
   set(THREADS_PREFER_PTHREAD_FLAG ON)
   find_package(Threads REQUIRED)
   cmake_pop_check_state()
+
+  cmake_push_check_state()
+  set(CMAKE_REQUIRED_LIBRARIES OpenSSL::SSL)
+  check_symbol_exists(ENGINE_new openssl/engine.h HAS_OPENSSL_ENGINE)
+  cmake_pop_check_state()
+
+  cmake_dependent_option(ENABLE_SSL_ENGINE_API "Enable support for deprecated OpenSSL ENGINE feature" ON "HAS_OPENSSL_ENGINE" OFF)
 endif()
 
-if(CMAKE_PROJECT_NAME STREQUAL PROJECT_NAME)
+if(PROJECT_IS_TOP_LEVEL)
   include(CTest)
 endif()
-
-include(CMakeDependentOption)
 
 option(BUILD_SHARED_LIBS "Build rabbitmq-c as a shared library" ON)
 option(BUILD_STATIC_LIBS "Build rabbitmq-c as a static library" ON)
@@ -145,14 +157,6 @@ endif()
 
 set(targets_export_name rabbitmq-targets)
 
-if(BUILD_OSSFUZZ)
-  if (NOT BUILD_STATIC_LIBS)
-    message(FATAL_ERROR "OSS-FUZZ can only be built against static libraries " "(set BUILD_STATIC_LIBS=ON)")
-  endif ()
-  SET(CMAKE_C_FLAGS "${CMAKE_C_FLAGS}")
-  SET(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS}")
-endif ()
-
 add_subdirectory(librabbitmq)
 
 if(BUILD_EXAMPLES)
@@ -170,7 +174,7 @@ if(BUILD_TOOLS)
   add_subdirectory(tools)
 endif()
 
-if(CMAKE_PROJECT_NAME STREQUAL PROJECT_NAME AND BUILD_TESTING)
+if(PROJECT_IS_TOP_LEVEL AND BUILD_TESTING)
   if (NOT BUILD_STATIC_LIBS)
     message(FATAL_ERROR
       "Tests can only be built against static libraries "
@@ -180,6 +184,9 @@ if(CMAKE_PROJECT_NAME STREQUAL PROJECT_NAME AND BUILD_TESTING)
 endif ()
 
 if(BUILD_OSSFUZZ)
+  if (NOT BUILD_STATIC_LIBS)
+    message(FATAL_ERROR "OSS-FUZZ can only be built against static libraries " "(set BUILD_STATIC_LIBS=ON)")
+  endif ()
   add_subdirectory(fuzz)
 endif ()
 

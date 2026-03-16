@@ -118,7 +118,7 @@ AMQP_BEGIN_DECLS
  */
 
 #define AMQP_VERSION_MAJOR 0
-#define AMQP_VERSION_MINOR 14
+#define AMQP_VERSION_MINOR 16
 #define AMQP_VERSION_PATCH 0
 #define AMQP_VERSION_IS_RELEASE 0
 
@@ -670,7 +670,8 @@ typedef enum amqp_status_enum_ {
                                                          certificate failed. */
   AMQP_STATUS_SSL_CONNECTION_FAILED = -0x0203, /**< SSL handshake failed. */
   AMQP_STATUS_SSL_SET_ENGINE_FAILED = -0x0204, /**< SSL setting engine failed */
-  _AMQP_STATUS_SSL_NEXT_VALUE = -0x0205        /**< Internal value */
+  AMQP_STATUS_SSL_UNIMPLEMENTED = -0x0205, /**< SSL API is not implemented. */
+  _AMQP_STATUS_SSL_NEXT_VALUE = -0x0206        /**< Internal value */
 } amqp_status_enum;
 
 /**
@@ -849,6 +850,23 @@ void AMQP_CALL amqp_pool_alloc_bytes(amqp_pool_t *pool, size_t amount,
                                      amqp_bytes_t *output);
 
 /**
+ * Wraps a c string literal in an amqp_bytes_t
+ *
+ * Takes a string literal, calculates its length and creates an
+ * amqp_bytes_t that points to it. The string literal is not duplicated.
+ *
+ * For a given input str, The amqp_bytes_t output.bytes is the
+ * same as str, output.len is the length of the string literal not including
+ * the \0 terminator
+ *
+ * \param [in] str the c string literal to wrap
+ * \return an amqp_bytes_t that describes the string literal
+ *
+ * \since v0.15
+ */
+#define amqp_literal_bytes(str) (amqp_bytes_t){sizeof(str) - 1, (void *)str}
+
+/**
  * Wraps a c string in an amqp_bytes_t
  *
  * Takes a string, calculates its length and creates an
@@ -868,6 +886,20 @@ void AMQP_CALL amqp_pool_alloc_bytes(amqp_pool_t *pool, size_t amount,
  */
 AMQP_EXPORT
 amqp_bytes_t AMQP_CALL amqp_cstring_bytes(char const *cstr);
+
+/**
+ * Wraps a string of bytes in an amqp_bytes_t
+ *
+ * Takes a string of bytes and its length and creates an
+ * amqp_bytes_t that points to it. The input is not duplicated.
+ *
+ * \param [in] ptr the string of bytes to wrap
+ * \param [in] length the length of the string
+ * \return an amqp_bytes_t that describes the string
+ *
+ * \since v0.16
+ */
+#define amqp_bytes_from_buffer(ptr, length) (amqp_bytes_t){length, (void *)ptr}
 
 /**
  * Duplicates an amqp_bytes_t buffer.
@@ -2466,6 +2498,54 @@ struct timeval *AMQP_CALL amqp_get_rpc_timeout(amqp_connection_state_t state);
 AMQP_EXPORT
 int AMQP_CALL amqp_set_rpc_timeout(amqp_connection_state_t state,
                                    const struct timeval *timeout);
+
+/**
+ * Possible payload permutations for publisher confirms.
+ **/
+typedef union amqp_publisher_confirm_payload_t_ {
+  amqp_basic_ack_t ack; /* basic.ack */
+  amqp_basic_nack_t nack; /* basic.nack */
+  amqp_basic_reject_t reject; /* basic.reject */
+} amqp_publisher_confirm_payload_t;
+
+/**
+ * Return information from publisher confirm wait
+ **/
+typedef struct amqp_publisher_confirm_t_ {
+  amqp_publisher_confirm_payload_t payload; /* The response payload; check the `method` value to see which value you should use in the union */
+  amqp_channel_t channel; /* The channel where the confirmation was received */
+  amqp_method_number_t method; /* The method which was received */
+} amqp_publisher_confirm_t;
+
+/**
+ * amqp_publisher_confirm_wait
+ *
+ * Wait for a publisher confirm when one or more channel is in select mode.
+ * If the response has a `reply_type` of `AMQP_RESPONSE_LIBRARY_EXCEPTION` _and_
+ * the `library_error` is `AMQP_STATUS_UNEXPECTED_STATE`, then the frame
+ * received was not an ack.
+ *
+ * In the event that there are no publisher confirms received during the
+ * allotted time, `reply_type` will be `AMQP_RESPONSE_LIBRARY_EXCEPTION`
+ * and the `library_error` will be `AMQP_STATUS_TIMEOUT`.
+ *
+ * When a publisher confirm is received, `reply_type` will equal
+ * `AMQP_RESPONSE_NORMAL`, and the `result` out parameter will
+ * contain all of the information you need:
+ * 
+ * - The `channel` will identify which channel the publisher confirm was received on
+ * - The `method` will tell you whether this is an `ack`, `nack`, or `reject`
+ * - The `payload` is a union, and based on the `method` it will use one of `amqp_basic_ack_t`, `amqp_basic_nack_t`, or `amqp_basic_reject_t`
+ *
+ * \param [in] state connection state
+ * \param [in] timeout when waiting for the frame. Passing NULL will result in
+ * blocking behavior
+ * \param [out] The result of the publisher confirm wait.
+ */
+AMQP_EXPORT
+amqp_rpc_reply_t AMQP_CALL amqp_publisher_confirm_wait(
+    amqp_connection_state_t state, const struct timeval *timeout,
+    amqp_publisher_confirm_t *result);
 
 AMQP_END_DECLS
 

@@ -85,7 +85,9 @@ static const char *ssl_error_strings[] = {
     /* AMQP_STATUS_SSL_CONNECTION_FAILED      -0x0203 */
     "SSL handshake failed",
     /* AMQP_STATUS_SSL_SET_ENGINE_FAILED      -0x0204 */
-    "SSL setting engine failed"};
+    "SSL setting engine failed",
+    /* AMQP_STATUS_SSL_UNIMPLEMENTED          -0x0204 */
+    "SSL API is not implemented"};
 
 static const char *unknown_error_string = "(unknown error)";
 
@@ -361,4 +363,59 @@ int amqp_set_rpc_timeout(amqp_connection_state_t state,
     state->rpc_timeout = NULL;
   }
   return AMQP_STATUS_OK;
+}
+
+amqp_rpc_reply_t amqp_publisher_confirm_wait(amqp_connection_state_t state,
+                                             const struct timeval *timeout,
+                                             amqp_publisher_confirm_t *result) {
+  int res;
+  amqp_frame_t frame;
+  amqp_rpc_reply_t ret;
+
+  memset(&ret, 0x0, sizeof(ret));
+  memset(result, 0x0, sizeof(amqp_publisher_confirm_t));
+
+  res = amqp_simple_wait_frame_noblock(state, &frame, timeout);
+
+  if (AMQP_STATUS_OK != res) {
+    ret.reply_type = AMQP_RESPONSE_LIBRARY_EXCEPTION;
+    ret.library_error = res;
+    return ret;
+  } else if (AMQP_FRAME_METHOD != frame.frame_type ||
+             (AMQP_BASIC_ACK_METHOD != frame.payload.method.id &&
+              AMQP_BASIC_NACK_METHOD != frame.payload.method.id &&
+              AMQP_BASIC_REJECT_METHOD != frame.payload.method.id)) {
+    amqp_put_back_frame(state, &frame);
+    ret.reply_type = AMQP_RESPONSE_LIBRARY_EXCEPTION;
+    ret.library_error = AMQP_STATUS_UNEXPECTED_STATE;
+    return ret;
+  }
+
+  switch (frame.payload.method.id) {
+    case AMQP_BASIC_ACK_METHOD:
+      memcpy(&(result->payload.ack), frame.payload.method.decoded,
+             sizeof(amqp_basic_ack_t));
+      break;
+
+    case AMQP_BASIC_NACK_METHOD:
+      memcpy(&(result->payload.nack), frame.payload.method.decoded,
+             sizeof(amqp_basic_nack_t));
+      break;
+
+    case AMQP_BASIC_REJECT_METHOD:
+      memcpy(&(result->payload.reject), frame.payload.method.decoded,
+             sizeof(amqp_basic_reject_t));
+      break;
+
+    default:
+      amqp_put_back_frame(state, &frame);
+      ret.reply_type = AMQP_RESPONSE_LIBRARY_EXCEPTION;
+      ret.library_error = AMQP_STATUS_UNSUPPORTED;
+      return ret;
+  }
+  result->method = frame.payload.method.id;
+  result->channel = frame.channel;
+  ret.reply_type = AMQP_RESPONSE_NORMAL;
+
+  return ret;
 }

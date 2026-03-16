@@ -85,14 +85,14 @@ int main(int argc, char *argv[]) {
     props._flags = AMQP_BASIC_CONTENT_TYPE_FLAG |
                    AMQP_BASIC_DELIVERY_MODE_FLAG | AMQP_BASIC_REPLY_TO_FLAG |
                    AMQP_BASIC_CORRELATION_ID_FLAG;
-    props.content_type = amqp_cstring_bytes("text/plain");
+    props.content_type = amqp_literal_bytes("text/plain");
     props.delivery_mode = 2; /* persistent delivery mode */
     props.reply_to = amqp_bytes_malloc_dup(reply_to_queue);
     if (props.reply_to.bytes == NULL) {
       fprintf(stderr, "Out of memory while copying queue name");
       return 1;
     }
-    props.correlation_id = amqp_cstring_bytes("1");
+    props.correlation_id = amqp_literal_bytes("1");
 
     /*
       publish

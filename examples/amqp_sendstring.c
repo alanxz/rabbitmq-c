@@ -54,7 +54,7 @@ int main(int argc, char const *const *argv) {
   {
     amqp_basic_properties_t props;
     props._flags = AMQP_BASIC_CONTENT_TYPE_FLAG | AMQP_BASIC_DELIVERY_MODE_FLAG;
-    props.content_type = amqp_cstring_bytes("text/plain");
+    props.content_type = amqp_literal_bytes("text/plain");
     props.delivery_mode = 2; /* persistent delivery mode */
     die_on_error(amqp_basic_publish(conn, 1, amqp_cstring_bytes(exchange),
                                     amqp_cstring_bytes(routingkey), 0, 0,

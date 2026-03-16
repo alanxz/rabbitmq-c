@@ -6,6 +6,8 @@
 
 [![Fuzzing Status](https://oss-fuzz-build-logs.storage.googleapis.com/badges/rabbitmq-c.svg)](https://oss-fuzz-build-logs.storage.googleapis.com/index.html#rabbitmq-c)
 
+[![OpenSSF Best Practices](https://www.bestpractices.dev/projects/7001/badge)](https://www.bestpractices.dev/projects/7001)
+
 ## Introduction
 
 This is a C-language AMQP client library for use with v2.0+ of the
@@ -36,7 +38,7 @@ API documentation for v0.8.0+ can viewed from:
 ### Building and installing
 
 #### Prereqs:
-- [CMake v3.12 or better](http://www.cmake.org/)
+- [CMake v3.22 or better](http://www.cmake.org/)
 - A C compiler (GCC 4.4+, clang, and MSVC are test. Other compilers may also
   work)
 - *Optionally* [OpenSSL](http://www.openssl.org/) v1.1.1+ to enable support for
@@ -71,11 +73,11 @@ More information on CMake can be found on its FAQ (http://www.cmake.org/Wiki/CMa
 
 Other interesting flags that can be passed to CMake:
 
-* `BUILD_EXAMPLES=ON/OFF` toggles building the examples. ON by default.
+* `BUILD_EXAMPLES=ON/OFF` toggles building the examples. OFF by default.
 * `BUILD_SHARED_LIBS=ON/OFF` toggles building rabbitmq-c as a shared library.
    ON by default.
 * `BUILD_STATIC_LIBS=ON/OFF` toggles building rabbitmq-c as a static library.
-   OFF by default.
+   ON by default.
 * `BUILD_TESTING=ON/OFF` toggles building test code. ON by default.
 * `BUILD_TOOLS=ON/OFF` toggles building the command line tools. By default
    this is ON if the build system can find the POpt header and library.
