@@ -221,9 +221,14 @@ static void init_connection_info(struct amqp_connection_info *ci) {
 
   amqp_default_connection_info(ci);
 
-  if (amqp_url)
+  if (!amqp_url) {
+    amqp_url = getenv("AMQP_URL");
+  }
+
+  if (amqp_url) {
     die_amqp_error(amqp_parse_url(strdup(amqp_url), ci), "Parsing URL '%s'",
                    amqp_url);
+  }
 
   if (amqp_server) {
     char *colon;

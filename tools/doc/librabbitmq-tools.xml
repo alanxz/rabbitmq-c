@@ -38,6 +38,19 @@
         <title>Common Options</title>
         <variablelist>
             <varlistentry>
+                <term><option>-u</option></term>
+                <term><option>--url</option>=<replaceable class="parameter">URL</replaceable></term>
+                <listitem>
+                    <para>
+                        An AMQP URL to connect to. If this option is
+                        omitted, the environment variable
+                        <envar>AMQP_URL</envar> will be used if set.
+                        This option cannot be used with any of the
+                        options described below.
+                    </para>
+                </listitem>
+            </varlistentry>
+            <varlistentry>
                 <term><option>-s</option></term>
                 <term><option>--server</option>=<replaceable class="parameter">hostname:port</replaceable></term>
                 <listitem>
