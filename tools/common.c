@@ -140,8 +140,8 @@ static char *amqp_cert = NULL;
 
 const char *connect_options_title = "Connection options";
 struct poptOption connect_options[] = {
-    {"url", 'u', POPT_ARG_STRING, &amqp_url, 0, "the AMQP URL to connect to",
-     "amqp://..."},
+    {"url", 'u', POPT_ARG_STRING, &amqp_url, 0,
+     "the AMQP URL to connect to (overrides AMQP_URL env var)", "amqp://..."},
     {"server", 's', POPT_ARG_STRING, &amqp_server, 0,
      "the AMQP server to connect to", "hostname"},
     {"port", 0, POPT_ARG_INT, &amqp_port, 0, "the port to connect on", "port"},
@@ -220,6 +220,17 @@ static void init_connection_info(struct amqp_connection_info *ci) {
   ci->user = NULL;
 
   amqp_default_connection_info(ci);
+
+  /* If no connection options were given on the CLI, fall back to AMQP_URL env
+   * var. Any explicit CLI connection flag takes full precedence and bypasses
+   * the env var entirely. */
+  if (!amqp_url && !amqp_server && amqp_port < 0 && !amqp_username &&
+      !amqp_password && !amqp_vhost) {
+    const char *env_url = getenv("AMQP_URL");
+    if (env_url) {
+      amqp_url = (char *)env_url;
+    }
+  }
 
   if (amqp_url)
     die_amqp_error(amqp_parse_url(strdup(amqp_url), ci), "Parsing URL '%s'",
