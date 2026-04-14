@@ -39,14 +39,13 @@
         <variablelist>
             <varlistentry>
                 <term><option>-u</option></term>
-                <term><option>--url</option>=<replaceable class="parameter">URL</replaceable></term>
+                <term><option>--url</option>=<replaceable class="parameter">amqp://...</replaceable></term>
                 <listitem>
                     <para>
-                        An AMQP URL to connect to. If this option is
-                        omitted, the environment variable
-                        <envar>AMQP_URL</envar> will be used if set.
-                        This option cannot be used with any of the
-                        options described below.
+                        The AMQP URL to connect to. Takes precedence
+                        over the <envar>AMQP_URL</envar> environment
+                        variable. If neither is given, the default
+                        connection parameters are used.
                     </para>
                 </listitem>
             </varlistentry>
@@ -84,6 +83,28 @@
                 <listitem>
                     <para>
                         The password to authenticate to the AMQP server with.  Defaults to <literal>guest</literal>.
+                    </para>
+                </listitem>
+            </varlistentry>
+        </variablelist>
+    </refsect1>
+
+    <refsect1>
+        <title>Environment Variables</title>
+        <variablelist>
+            <varlistentry>
+                <term><envar>AMQP_URL</envar></term>
+                <listitem>
+                    <para>
+                        Specifies the default AMQP URL to connect to.
+                        Ignored if any connection option
+                        (<option>--url</option>,
+                        <option>--server</option>,
+                        <option>--port</option>,
+                        <option>--username</option>,
+                        <option>--password</option>, or
+                        <option>--vhost</option>) is given on the
+                        command line.
                     </para>
                 </listitem>
             </varlistentry>
