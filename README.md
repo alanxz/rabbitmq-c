@@ -133,6 +133,10 @@ terminal window:
 Please see the `examples` directory for short examples of the use of
 the `librabbitmq` library.
 
+During login, `frame_max` negotiation follows the AMQP minimum frame size.
+Values below `AMQP_FRAME_MIN_SIZE` are raised before the client sizes its
+outbound frame buffer or sends `connection.tune-ok`.
+
 ### Threading
 
 You cannot share a socket, an `amqp_connection_state_t`, or a channel

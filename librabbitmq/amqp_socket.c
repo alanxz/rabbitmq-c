@@ -1386,6 +1386,7 @@ static amqp_rpc_reply_t amqp_login_inner(amqp_connection_state_t state,
   if (res < 0) {
     goto error_res;
   }
+  client_frame_max = (uint32_t)amqp_get_frame_max(state);
 
   {
     amqp_connection_tune_ok_t s;

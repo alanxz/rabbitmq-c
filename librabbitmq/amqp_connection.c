@@ -113,6 +113,10 @@ int amqp_tune_connection(amqp_connection_state_t state, int channel_max,
 
   ENFORCE_STATE(state, CONNECTION_STATE_IDLE);
 
+  if (frame_max < AMQP_FRAME_MIN_SIZE) {
+    frame_max = AMQP_FRAME_MIN_SIZE;
+  }
+
   state->channel_max = channel_max;
   state->frame_max = frame_max;
 
