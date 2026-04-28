@@ -23,6 +23,10 @@ add_executable(test_status_enum
 target_link_libraries(test_status_enum rabbitmq-static)
 add_test(status_enum test_status_enum)
 
+add_executable(test_tune_connection test_tune_connection.c)
+target_link_libraries(test_tune_connection rabbitmq-static)
+add_test(tune_connection test_tune_connection)
+
 add_executable(test_basic
                test_basic.c)
 target_link_libraries(test_basic rabbitmq-static)
@@ -40,4 +44,3 @@ add_test(sasl_mechanism test_sasl_mechanism)
 add_executable(test_merge_capabilities test_merge_capabilities.c)
 target_link_libraries(test_merge_capabilities rabbitmq-static)
 add_test(merge_capabilities test_merge_capabilities)
-
