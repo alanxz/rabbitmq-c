@@ -320,6 +320,13 @@ int amqp_handle_input(amqp_connection_state_t state, amqp_bytes_t received_data,
 
       switch (decoded_frame->frame_type) {
         case AMQP_FRAME_METHOD:
+          /* A METHOD frame body must contain at least the 4-byte method id.
+           * Reject undersized frames before subtracting from target_size to
+           * avoid an unsigned underflow that would yield a huge encoded.len
+           * and cause out-of-bounds reads in amqp_decode_method(). */
+          if (state->target_size < HEADER_SIZE + 4 + FOOTER_SIZE) {
+            return AMQP_STATUS_BAD_AMQP_DATA;
+          }
           decoded_frame->payload.method.id =
               amqp_d32(amqp_offset(raw_frame, HEADER_SIZE));
           encoded.bytes = amqp_offset(raw_frame, HEADER_SIZE + 4);
@@ -335,6 +342,15 @@ int amqp_handle_input(amqp_connection_state_t state, amqp_bytes_t received_data,
           break;
 
         case AMQP_FRAME_HEADER:
+          /* A HEADER frame body must contain at least 12 bytes (class_id,
+           * weight, body_size). Reject undersized frames before subtracting
+           * from target_size to avoid an unsigned underflow that would yield
+           * a huge encoded.len and cause out-of-bounds reads in
+           * amqp_decode_properties() / the table decoder
+           * (CVE: GHSA-9mmv-r8g3-qp46). */
+          if (state->target_size < HEADER_SIZE + 12 + FOOTER_SIZE) {
+            return AMQP_STATUS_BAD_AMQP_DATA;
+          }
           decoded_frame->payload.properties.class_id =
               amqp_d16(amqp_offset(raw_frame, HEADER_SIZE));
           /* unused 2-byte weight field goes here */
@@ -354,6 +370,9 @@ int amqp_handle_input(amqp_connection_state_t state, amqp_bytes_t received_data,
           break;
 
         case AMQP_FRAME_BODY:
+          if (state->target_size < HEADER_SIZE + FOOTER_SIZE) {
+            return AMQP_STATUS_BAD_AMQP_DATA;
+          }
           decoded_frame->payload.body_fragment.len =
               state->target_size - HEADER_SIZE - FOOTER_SIZE;
           decoded_frame->payload.body_fragment.bytes =
