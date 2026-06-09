@@ -1,4 +1,22 @@
 # Change Log
+## v0.16.0 - 2026-06-08
+
+### Security
+- Fix out-of-bounds read via undersized frames in `amqp_handle_input` (GHSA-9mmv-r8g3-qp46, #878)
+- Fix client crash when server negotiates `frame_max` below the AMQP protocol minimum (GHSA-jh48-qjf5-fx5v)
+
+### Added
+- Add `amqp_bytes_from_buffer` macro to create `amqp_bytes_t` from an arbitrary byte buffer with explicit length (#856, #866)
+
+### Fixed
+- Fix NULL pointer dereferences on allocation failure in `tools/publish.c` (#860, #861)
+- Fix NULL pointer dereference in `tools/consume.c` `stringify_bytes()` on allocation failure (#858)
+- Fix file stream leak in `tools/common.c` `read_authfile()` (#859)
+- Fix handling of absolute `CMAKE_INSTALL_INCLUDEDIR` in exported CMake targets (#849)
+
+### Changed
+- `amqp_literal_bytes` macro now uses an explicit `(void *)` cast (#853)
+
 ## v0.15.0 - 2024-11-19
 ## Fixed
 - Warning on MacOS about incompatible function declaration

@@ -14,7 +14,7 @@ set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} ${CMAKE_CURRENT_SOURCE_DIR}/cmake)
 # 4. If any interfaces have been removed since the last public release, then set age to 0.
 
 set(RMQ_SOVERSION_CURRENT   11)
-set(RMQ_SOVERSION_REVISION  0)
+set(RMQ_SOVERSION_REVISION  1)
 set(RMQ_SOVERSION_AGE       7)
 
 include(VersionFunctions)
