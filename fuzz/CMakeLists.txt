@@ -17,4 +17,7 @@ if(BUILD_OSSFUZZ)
 
   add_executable(fuzz_server fuzz_server.c)
   target_link_libraries(fuzz_server rabbitmq-static)
+
+  add_executable(fuzz_method_decode fuzz_method_decode.c)
+  target_link_libraries(fuzz_method_decode rabbitmq-static)
 endif ()
