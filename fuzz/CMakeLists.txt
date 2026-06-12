@@ -23,4 +23,7 @@ if(BUILD_OSSFUZZ)
 
   add_executable(fuzz_properties_decode fuzz_properties_decode.c)
   target_link_libraries(fuzz_properties_decode rabbitmq-static)
+
+  add_executable(fuzz_handle_input fuzz_handle_input.c)
+  target_link_libraries(fuzz_handle_input rabbitmq-static)
 endif ()
