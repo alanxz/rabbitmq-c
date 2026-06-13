@@ -394,7 +394,7 @@ int amqp_decode_properties(uint16_t class_id,
   do {
     if (!amqp_decode_16(encoded, &offset, &partial_flags))
       return AMQP_STATUS_BAD_AMQP_DATA;
-    flags |= (partial_flags << (flagword_index * 16));
+    flags |= ((amqp_flags_t)partial_flags << (flagword_index * 16));
     flagword_index++;
   } while (partial_flags & 1);
 
