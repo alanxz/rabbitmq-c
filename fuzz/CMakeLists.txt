@@ -26,4 +26,7 @@ if(BUILD_OSSFUZZ)
 
   add_executable(fuzz_handle_input fuzz_handle_input.c)
   target_link_libraries(fuzz_handle_input rabbitmq-static)
+
+  add_executable(fuzz_codec fuzz_codec.c)
+  target_link_libraries(fuzz_codec rabbitmq-static)
 endif ()
