@@ -388,15 +388,16 @@ int amqp_decode_properties(uint16_t class_id,
   size_t offset = 0;
 
   amqp_flags_t flags = 0;
-  int flagword_index = 0;
   uint16_t partial_flags;
 
-  do {
-    if (!amqp_decode_16(encoded, &offset, &partial_flags))
-      return AMQP_STATUS_BAD_AMQP_DATA;
-    flags |= ((amqp_flags_t)partial_flags << (flagword_index * 16));
-    flagword_index++;
-  } while (partial_flags & 1);
+  if (!amqp_decode_16(encoded, &offset, &partial_flags))
+    return AMQP_STATUS_BAD_AMQP_DATA;
+  /* No AMQP 0-9-1 class defines more than 14 properties, so all property
+     flags fit in a single 16-bit flag word. Bit 0 is the continuation bit;
+     if it is set the message declares further flag words, which we do not
+     support, so reject the frame rather than misinterpret it. */
+  if (partial_flags & 1) return AMQP_STATUS_BAD_AMQP_DATA;
+  flags = partial_flags;
 
   switch (class_id) {""")
     for c in spec.allClasses(): genDecodeProperties(c)
