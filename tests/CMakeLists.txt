@@ -44,3 +44,7 @@ add_test(sasl_mechanism test_sasl_mechanism)
 add_executable(test_merge_capabilities test_merge_capabilities.c)
 target_link_libraries(test_merge_capabilities rabbitmq-static)
 add_test(merge_capabilities test_merge_capabilities)
+
+add_executable(test_decode_bytes test_decode_bytes.c)
+target_link_libraries(test_decode_bytes rabbitmq-static)
+add_test(decode_bytes test_decode_bytes)
