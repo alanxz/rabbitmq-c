@@ -4,6 +4,12 @@
 #  POPT_FOUND - System has popt
 #  POPT_INCLUDE_DIR - The popt include directory
 #  POPT_LIBRARY - The libraries needed to use popt
+#  POPT_VERSION - The version of popt that was found
+#
+# This module also supports version requirements, e.g.
+# find_package(POPT 1.14 REQUIRED). popt does not expose its release
+# version in popt.h, so the version is obtained from pkg-config. A version
+# requirement therefore needs pkg-config and the popt.pc file to be available.
 
 # use pkg-config to get the directories and then use these values
 # in the FIND_PATH() and FIND_LIBRARY() calls
