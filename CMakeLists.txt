@@ -167,7 +167,7 @@ if(BUILD_EXAMPLES)
 endif()
 
 if(BUILD_TOOLS)
-  find_package(POPT REQUIRED)
+  find_package(POPT 1.14 REQUIRED)
   if(BUILD_TOOLS_DOCS)
     find_package(XMLTO REQUIRED)
   endif()
