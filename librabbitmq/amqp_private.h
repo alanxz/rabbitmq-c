@@ -299,7 +299,10 @@ static inline int amqp_encode_bytes(amqp_bytes_t encoded, size_t *offset,
   if (input.len == 0) {
     return 1;
   }
-  if ((*offset = o + input.len) <= encoded.len) {
+  *offset = o + input.len;
+  /* Compare against remaining space rather than o + input.len to avoid size_t
+   * overflow; o <= encoded.len, so encoded.len - o cannot underflow. */
+  if (o <= encoded.len && input.len <= encoded.len - o) {
     memcpy(amqp_offset(encoded.bytes, o), input.bytes, input.len);
     return 1;
   } else {
@@ -310,7 +313,12 @@ static inline int amqp_encode_bytes(amqp_bytes_t encoded, size_t *offset,
 static inline int amqp_decode_bytes(amqp_bytes_t encoded, size_t *offset,
                                     amqp_bytes_t *output, size_t len) {
   size_t o = *offset;
-  if ((*offset = o + len) <= encoded.len) {
+  *offset = o + len;
+  /* Compare against remaining space rather than o + len: with len read from the
+   * wire (uint32_t), o + len can overflow size_t on 32-bit platforms and wrap
+   * past the check, yielding an out-of-bounds amqp_bytes_t. o <= encoded.len,
+   * so encoded.len - o cannot underflow. */
+  if (o <= encoded.len && len <= encoded.len - o) {
     output->bytes = amqp_offset(encoded.bytes, o);
     output->len = len;
     return 1;

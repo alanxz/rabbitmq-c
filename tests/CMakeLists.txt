@@ -48,3 +48,7 @@ add_test(merge_capabilities test_merge_capabilities)
 add_executable(test_send_frame test_send_frame.c)
 target_link_libraries(test_send_frame rabbitmq-static)
 add_test(send_frame test_send_frame)
+
+add_executable(test_decode_bytes test_decode_bytes.c)
+target_link_libraries(test_decode_bytes rabbitmq-static)
+add_test(decode_bytes test_decode_bytes)
