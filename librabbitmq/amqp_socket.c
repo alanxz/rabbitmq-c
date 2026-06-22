@@ -291,6 +291,7 @@ int amqp_open_socket_noblock(char const *hostname, int portnumber,
 #ifdef _WIN32
 static int connect_socket(struct addrinfo *addr, amqp_time_t deadline) {
   int one = 1;
+  u_long nonblocking = 1;
   SOCKET sockfd;
   int last_error;
 
@@ -305,7 +306,7 @@ static int connect_socket(struct addrinfo *addr, amqp_time_t deadline) {
   }
 
   /* Set the socket to be non-blocking */
-  if (SOCKET_ERROR == ioctlsocket(sockfd, FIONBIO, &one)) {
+  if (SOCKET_ERROR == ioctlsocket(sockfd, FIONBIO, &nonblocking)) {
     last_error = AMQP_STATUS_SOCKET_ERROR;
     goto err;
   }
