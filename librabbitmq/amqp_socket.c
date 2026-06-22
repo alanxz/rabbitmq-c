@@ -290,7 +290,7 @@ int amqp_open_socket_noblock(char const *hostname, int portnumber,
 
 #ifdef _WIN32
 static int connect_socket(struct addrinfo *addr, amqp_time_t deadline) {
-  int one = 1;
+  u_long one = 1;
   SOCKET sockfd;
   int last_error;
 
