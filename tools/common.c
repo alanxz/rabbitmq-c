@@ -164,8 +164,8 @@ struct poptOption connect_options[] = {
      "path to the client private key file", "key.pem"},
     {"cert", 0, POPT_ARG_STRING, &amqp_cert, 0,
      "path to the client certificate file", "cert.pem"},
-    {"no-default-cert-paths", 0, POPT_ARG_NONE, &amqp_no_default_cert_paths,
-     0, "do not use default certificate paths", NULL},
+    {"no-default-cert-paths", 0, POPT_ARG_NONE, &amqp_no_default_cert_paths, 0,
+     "do not use default certificate paths", NULL},
 #endif /* WITH_SSL */
     {NULL, '\0', 0, NULL, 0, NULL, NULL}};
 
