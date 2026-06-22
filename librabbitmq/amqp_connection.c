@@ -464,6 +464,14 @@ static int amqp_frame_to_bytes(const amqp_frame_t *frame, amqp_bytes_t buffer,
     case AMQP_FRAME_BODY: {
       const amqp_bytes_t *body = &frame->payload.body_fragment;
 
+      /* Ensure the body fragment fits within the outbound buffer, leaving
+       * room for the frame header and footer. Without this check an
+       * oversized body fragment would overflow the heap-allocated buffer. */
+      if (buffer.len < HEADER_SIZE + FOOTER_SIZE ||
+          body->len > buffer.len - (HEADER_SIZE + FOOTER_SIZE)) {
+        return AMQP_STATUS_BAD_AMQP_DATA;
+      }
+
       memcpy(amqp_offset(out_frame, HEADER_SIZE), body->bytes, body->len);
 
       out_frame_len = body->len;
