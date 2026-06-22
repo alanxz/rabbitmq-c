@@ -36,6 +36,10 @@ amqp_connection_state_t setup_connection_and_channel(void) {
       connection_state_, "/", 1, AMQP_DEFAULT_FRAME_SIZE,
       AMQP_DEFAULT_HEARTBEAT, AMQP_SASL_METHOD_PLAIN, "guest", "guest");
   assert(rpc_reply.reply_type == AMQP_RESPONSE_NORMAL);
+  rpc_reply = amqp_login_plain(
+      connection_state_, "/", 1, AMQP_DEFAULT_FRAME_SIZE,
+      AMQP_DEFAULT_HEARTBEAT, "guest", "guest");
+  assert(rpc_reply.reply_type == AMQP_RESPONSE_NORMAL);
 
   amqp_channel_open_ok_t *res =
       amqp_channel_open(connection_state_, fixed_channel_id);
