@@ -2016,7 +2016,15 @@ const char *AMQP_CALL amqp_error_string2(int err);
  * This is an internal function and is not typically used by
  * client applications
  *
- * \param [in] encoded the buffer containing the serialized data
+ * \warning The decoded table entries contain direct references (pointers) into
+ *  the \p encoded buffer rather than independent copies. The \p encoded buffer
+ *  **must** remain valid and unmodified for as long as the decoded table (or
+ *  any data derived from it) is in use. Freeing or modifying \p encoded while
+ *  the table is still live will result in use-after-free. Use
+ *  amqp_table_clone() if you need a fully independent copy of the table.
+ *
+ * \param [in] encoded the buffer containing the serialized data. Must outlive
+ *             the decoded \p output table.
  * \param [in] pool memory pool used to allocate the table entries from
  * \param [in] output the amqp_table_t structure to fill in. Any existing
  *             entries will be erased
