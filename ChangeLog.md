@@ -1,4 +1,22 @@
 # Change Log
+## v0.17.0 - 2026-07-01
+
+### Security
+- Fix size_t overflow in `amqp_decode_bytes` bounds check leading to out-of-bounds read (GHSA-jgjf-7fwf-f3c7, #888)
+- Fix heap buffer overflow in `amqp_frame_to_bytes` for oversized body frames (GHSA-hfjv-vcp3-39wh, #892)
+
+### Added
+- `librabbitmq-tools` fall back to the `AMQP_URL` environment variable when no connection options are given on the command line (#887)
+
+### Fixed
+- Fix undefined behavior in `amqp_decode_properties` when decoding content-header property flags (#883, #885)
+- Fix `ioctlsocket` type mismatch on Windows (#890)
+- Document buffer lifetime requirement of `amqp_decode_table`'s encoded buffer to prevent use-after-free misuse (#895)
+
+### Changed
+- `librabbitmq-tools` now enable default SSL certificate verification paths unless `--no-default-cert-paths` is passed (fixes #868, #893)
+- Building the tools now requires POPT v1.14 or newer (#889)
+
 ## v0.16.0 - 2026-06-08
 
 ### Security
