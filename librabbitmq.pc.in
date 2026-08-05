@@ -8,6 +8,6 @@ Description: An AMQP 0-9-1 client library
 Version: @RMQ_VERSION@
 URL: https://github.com/alanxz/rabbitmq-c
 Requires.private: @requires_private@
-Libs: -L${libdir} -lrabbitmq
+Libs: -L${libdir} -l@RMQ_LIBRARY_NAME@
 Libs.private: @libs_private@
 Cflags: -I${includedir}
