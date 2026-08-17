@@ -49,3 +49,5 @@ if (ENABLE_SSL_SUPPORT)
   add_executable(amqp_ssl_connect amqp_ssl_connect.c)
   target_link_libraries(amqp_ssl_connect PRIVATE examples-common rabbitmq::rabbitmq)
 endif (ENABLE_SSL_SUPPORT)
+
+add_subdirectory(tutorial-1-hello-world)
