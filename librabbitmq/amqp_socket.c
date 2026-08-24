@@ -569,23 +569,34 @@ int sasl_mechanism_in_list(amqp_bytes_t mechanisms,
 }
 
 static amqp_bytes_t sasl_response(amqp_pool_t *pool,
-                                  amqp_sasl_method_enum method, va_list args) {
-  amqp_bytes_t response;
+                                  amqp_sasl_method_enum method, va_list args,
+                                  int *status) {
+  amqp_bytes_t response = amqp_empty_bytes;
+
+  *status = AMQP_STATUS_OK;
 
   switch (method) {
     case AMQP_SASL_METHOD_PLAIN: {
       char *username = va_arg(args, char *);
-      size_t username_len = strlen(username);
       char *password = va_arg(args, char *);
-      size_t password_len = strlen(password);
+      size_t username_len;
+      size_t password_len;
       char *response_buf;
 
-      amqp_pool_alloc_bytes(pool, strlen(username) + strlen(password) + 2,
-                            &response);
+      if (username == NULL || password == NULL) {
+        *status = AMQP_STATUS_INVALID_PARAMETER;
+        return response;
+      }
+
+      username_len = strlen(username);
+      password_len = strlen(password);
+
+      amqp_pool_alloc_bytes(pool, username_len + password_len + 2, &response);
       if (response.bytes == NULL)
       /* We never request a zero-length block, because of the +2
          above, so a NULL here really is ENOMEM. */
       {
+        *status = AMQP_STATUS_NO_MEMORY;
         return response;
       }
 
@@ -598,10 +609,18 @@ static amqp_bytes_t sasl_response(amqp_pool_t *pool,
     }
     case AMQP_SASL_METHOD_EXTERNAL: {
       char *identity = va_arg(args, char *);
-      size_t identity_len = strlen(identity);
+      size_t identity_len;
+
+      if (identity == NULL) {
+        *status = AMQP_STATUS_INVALID_PARAMETER;
+        return response;
+      }
+
+      identity_len = strlen(identity);
 
       amqp_pool_alloc_bytes(pool, identity_len, &response);
       if (response.bytes == NULL) {
+        *status = AMQP_STATUS_NO_MEMORY;
         return response;
       }
 
@@ -1291,7 +1310,10 @@ static amqp_rpc_reply_t amqp_login_inner(amqp_connection_state_t state,
       goto error_res;
     }
 
-    response_bytes = sasl_response(channel_pool, sasl_method, vl);
+    response_bytes = sasl_response(channel_pool, sasl_method, vl, &res);
+    if (AMQP_STATUS_OK != res) {
+      goto error_res;
+    }
     if (response_bytes.bytes == NULL) {
       res = AMQP_STATUS_NO_MEMORY;
       goto error_res;
