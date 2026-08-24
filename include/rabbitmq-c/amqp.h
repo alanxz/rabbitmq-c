@@ -1694,7 +1694,13 @@ amqp_rpc_reply_t AMQP_CALL amqp_get_rpc_reply(amqp_connection_state_t state);
  *                 const char* username, and const char* password.
  *              -  AMQP_SASL_METHOD_EXTERNAL, the AMQP_SASL_METHOD_EXTERNAL
  *                 argument should be followed one argument:
- *                 const char* identity.
+ *                 const char* identity. This argument is mandatory and must
+ *                 not be NULL or omitted: because these are varargs, the
+ *                 library has no way to detect a missing argument, and
+ *                 omitting it is undefined behavior. Pass an empty string
+ *                 ("") if there is no identity to send. Passing NULL
+ *                 explicitly is detected and returns
+ *                 AMQP_STATUS_INVALID_PARAMETER.
  * \return amqp_rpc_reply_t indicating success or failure.
  *  - r.reply_type == AMQP_RESPONSE_NORMAL. Login completed successfully
  *  - r.reply_type == AMQP_RESPONSE_LIBRARY_EXCEPTION. In most cases errors
@@ -1760,7 +1766,13 @@ amqp_rpc_reply_t AMQP_CALL amqp_login(amqp_connection_state_t state,
  *                const char* username, and const char* password.
  *             -  AMQP_SASL_METHOD_EXTERNAL, the AMQP_SASL_METHOD_EXTERNAL
  *                argument should be followed one argument:
- *                const char* identity.
+ *                const char* identity. This argument is mandatory and must
+ *                not be NULL or omitted: because these are varargs, the
+ *                library has no way to detect a missing argument, and
+ *                omitting it is undefined behavior. Pass an empty string
+ *                ("") if there is no identity to send. Passing NULL
+ *                explicitly is detected and returns
+ *                AMQP_STATUS_INVALID_PARAMETER.
  * \return amqp_rpc_reply_t indicating success or failure.
  *  - r.reply_type == AMQP_RESPONSE_NORMAL. Login completed successfully
  *  - r.reply_type == AMQP_RESPONSE_LIBRARY_EXCEPTION. In most cases errors
