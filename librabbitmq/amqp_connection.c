@@ -263,6 +263,16 @@ int amqp_handle_input(amqp_connection_state_t state, amqp_bytes_t received_data,
 
       channel = amqp_d16(amqp_offset(raw_frame, 1));
 
+      /* Reject frames on channels beyond the negotiated channel_max before
+       * creating a per-channel pool for them. Without this check a peer can
+       * drive unbounded memory growth by sending frames on an unbounded
+       * number of distinct channel numbers, each of which gets its own
+       * frame_max-sized pool page (channel_max == 0 means "no limit"). */
+      if (0 != state->channel_max &&
+          channel > (amqp_channel_t)state->channel_max) {
+        return AMQP_STATUS_BAD_AMQP_DATA;
+      }
+
       /* frame length is 3 bytes in */
       frame_size = amqp_d32(amqp_offset(raw_frame, 3));
       /* To prevent the target_size calculation below from overflowing, check
@@ -384,6 +394,10 @@ int amqp_handle_input(amqp_connection_state_t state, amqp_bytes_t received_data,
           break;
 
         case AMQP_FRAME_HEARTBEAT:
+          /* Heartbeat frames must be sent on the connection channel. */
+          if (0 != decoded_frame->channel) {
+            return AMQP_STATUS_BAD_AMQP_DATA;
+          }
           break;
 
         default:
@@ -393,6 +407,17 @@ int amqp_handle_input(amqp_connection_state_t state, amqp_bytes_t received_data,
       }
 
       return_to_idle(state);
+
+      if (0 == decoded_frame->frame_type) {
+        /* The frame was ignored rather than handed back to the caller, so
+         * nothing references the pool memory just allocated for it. Recycle
+         * the channel's pool pages immediately rather than waiting for the
+         * caller to release buffers, otherwise a sustained stream of
+         * unrecognized frame types can accumulate pool pages indefinitely.
+         */
+        amqp_maybe_release_buffers_on_channel(state, decoded_frame->channel);
+      }
+
       return (int)bytes_consumed;
     }
 
