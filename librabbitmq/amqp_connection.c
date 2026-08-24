@@ -268,7 +268,8 @@ int amqp_handle_input(amqp_connection_state_t state, amqp_bytes_t received_data,
        * drive unbounded memory growth by sending frames on an unbounded
        * number of distinct channel numbers, each of which gets its own
        * frame_max-sized pool page (channel_max == 0 means "no limit"). */
-      if (0 != state->channel_max && channel > (amqp_channel_t)state->channel_max) {
+      if (0 != state->channel_max &&
+          channel > (amqp_channel_t)state->channel_max) {
         return AMQP_STATUS_BAD_AMQP_DATA;
       }
 

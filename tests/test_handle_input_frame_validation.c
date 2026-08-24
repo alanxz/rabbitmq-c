@@ -15,8 +15,7 @@
 #include <stdlib.h>
 #include <string.h>
 
-static amqp_connection_state_t new_ready_state(int channel_max,
-                                               int frame_max) {
+static amqp_connection_state_t new_ready_state(int channel_max, int frame_max) {
   amqp_connection_state_t state = amqp_new_connection();
   if (state == NULL) {
     fprintf(stderr, "amqp_new_connection failed\n");
@@ -63,15 +62,15 @@ static void test_channel_exceeding_channel_max_rejected(void) {
   res = amqp_handle_input(state, data, &frame);
   if (res != AMQP_STATUS_BAD_AMQP_DATA) {
     fprintf(stderr,
-           "expected AMQP_STATUS_BAD_AMQP_DATA (%d) for channel > "
-           "channel_max, got %d\n",
-           AMQP_STATUS_BAD_AMQP_DATA, res);
+            "expected AMQP_STATUS_BAD_AMQP_DATA (%d) for channel > "
+            "channel_max, got %d\n",
+            AMQP_STATUS_BAD_AMQP_DATA, res);
     abort();
   }
 
   if (amqp_get_channel_pool(state, 2) != NULL) {
     fprintf(stderr,
-           "channel pool was created for a channel beyond channel_max\n");
+            "channel pool was created for a channel beyond channel_max\n");
     abort();
   }
 
@@ -93,7 +92,7 @@ static void test_channel_max_zero_means_unlimited(void) {
   res = amqp_handle_input(state, data, &frame);
   if (res != (int)data.len) {
     fprintf(stderr, "expected frame to be consumed (%d), got %d\n",
-           (int)data.len, res);
+            (int)data.len, res);
     abort();
   }
   if (frame.frame_type != 0) {
@@ -118,9 +117,9 @@ static void test_heartbeat_on_nonzero_channel_rejected(void) {
   res = amqp_handle_input(state, data, &frame);
   if (res != AMQP_STATUS_BAD_AMQP_DATA) {
     fprintf(stderr,
-           "expected AMQP_STATUS_BAD_AMQP_DATA (%d) for heartbeat on "
-           "non-zero channel, got %d\n",
-           AMQP_STATUS_BAD_AMQP_DATA, res);
+            "expected AMQP_STATUS_BAD_AMQP_DATA (%d) for heartbeat on "
+            "non-zero channel, got %d\n",
+            AMQP_STATUS_BAD_AMQP_DATA, res);
     abort();
   }
 
@@ -148,7 +147,7 @@ static void test_ignored_frames_do_not_leak_pool_pages(void) {
     res = amqp_handle_input(state, data, &frame);
     if (res != (int)data.len) {
       fprintf(stderr, "frame %d: expected %d consumed, got %d\n", i,
-             (int)data.len, res);
+              (int)data.len, res);
       abort();
     }
     if (frame.frame_type != 0) {
@@ -164,9 +163,9 @@ static void test_ignored_frames_do_not_leak_pool_pages(void) {
   }
   if (pool->pages.num_blocks > 1) {
     fprintf(stderr,
-           "channel pool grew to %d pages after 5000 ignored frames; "
-           "pool pages are not being recycled\n",
-           pool->pages.num_blocks);
+            "channel pool grew to %d pages after 5000 ignored frames; "
+            "pool pages are not being recycled\n",
+            pool->pages.num_blocks);
     abort();
   }
 
