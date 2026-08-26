@@ -1661,8 +1661,19 @@ void *AMQP_CALL amqp_simple_rpc_decoded(amqp_connection_state_t state,
 AMQP_EXPORT
 amqp_rpc_reply_t AMQP_CALL amqp_get_rpc_reply(amqp_connection_state_t state);
 
+#if defined(__GNUC__) || defined(__clang__)
+#define DEPRECATED(msg) __attribute__((deprecated))
+#elif defined(_MSC_VER)
+#define DEPRECATED(msg) __declspec(deprecated)
+#else
+#define DEPRECATED(msg)
+#endif
+
 /**
  * Login to the broker
+ *
+ * \deprecated This function is deprecated and should be replaced by a call to
+ * amqp_login_plain() or amqp_login_external()
  *
  * After using amqp_open_socket and amqp_set_sockfd, call
  * amqp_login to complete connecting to the broker
@@ -1695,6 +1706,67 @@ amqp_rpc_reply_t AMQP_CALL amqp_get_rpc_reply(amqp_connection_state_t state);
  *              -  AMQP_SASL_METHOD_EXTERNAL, the AMQP_SASL_METHOD_EXTERNAL
  *                 argument should be followed one argument:
  *                 const char* identity.
+ * \param [in] ... either 1 or 2 const char * arguments depending on sasl_method.
+ *              If sasl_method is AMQP_SASL_METHOD_PLAIN then this should be
+ *              const char* username and const char* password.  For
+ *              AMQP_SASL_METHOD_EXTERNAL this should be const char* identity.
+ * \return amqp_rpc_reply_t indicating success or failure.
+ *  - r.reply_type == AMQP_RESPONSE_NORMAL. Login completed successfully
+ *  - r.reply_type == AMQP_RESPONSE_LIBRARY_EXCEPTION. In most cases errors
+ *    from the broker when logging in will be represented by the broker closing
+ *    the socket. In this case r.library_error will be set to
+ *    AMQP_STATUS_CONNECTION_CLOSED. This error can represent a number of
+ *    error conditions including: invalid vhost, authentication failure.
+ *  - r.reply_type == AMQP_RESPONSE_SERVER_EXCEPTION. The broker returned an
+ *    exception:
+ *    - If r.reply.id == AMQP_CHANNEL_CLOSE_METHOD a channel exception
+ *      occurred, cast r.reply.decoded to amqp_channel_close_t* to see details
+ *      of the exception. The client should amqp_send_method() a
+ *      amqp_channel_close_ok_t. The channel must be re-opened before it
+ *      can be used again. Any resources associated with the channel
+ *      (auto-delete exchanges, auto-delete queues, consumers) are invalid
+ *      and must be recreated before attempting to use them again.
+ *    - If r.reply.id == AMQP_CONNECTION_CLOSE_METHOD a connection exception
+ *      occurred, cast r.reply.decoded to amqp_connection_close_t* to see
+ *      details of the exception. The client amqp_send_method() a
+ *      amqp_connection_close_ok_t and disconnect from the broker.
+ *
+ * \since v0.1
+ */
+DEPRECATED("use amqp_login_plain() or amqp_login_external()")
+AMQP_EXPORT
+amqp_rpc_reply_t AMQP_CALL amqp_login(amqp_connection_state_t state,
+                                      char const *vhost, int channel_max,
+                                      int frame_max, int heartbeat,
+                                      amqp_sasl_method_enum sasl_method, ...);
+
+/**
+ * Login to the broker using the AMQP_SASL_METHOD_PLAIN SASL method
+ *
+ * After using amqp_open_socket and amqp_set_sockfd, call
+ * amqp_login to complete connecting to the broker
+ *
+ * \param [in] state the connection object
+ * \param [in] vhost the virtual host to connect to on the broker. The default
+ *              on most brokers is "/"
+ * \param [in] channel_max the limit for number of channels for the connection.
+ *              0 means no limit, and is a good default
+ *              (AMQP_DEFAULT_MAX_CHANNELS)
+ *              Note that the maximum number of channels the protocol supports
+ *              is 65535 (2^16, with the 0-channel reserved). The server can
+ *              set a lower channel_max and then the client will use the lowest
+ *              of the two
+ * \param [in] frame_max the maximum size of an AMQP frame on the wire to
+ *              request of the broker for this connection. 4096 is the minimum
+ *              size, 2^31-1 is the maximum, a good default is 131072 (128KB),
+ *              or AMQP_DEFAULT_FRAME_SIZE
+ * \param [in] heartbeat the number of seconds between heartbeat frames to
+ *              request of the broker. A value of 0 disables heartbeats.
+ *              Note rabbitmq-c only has partial support for heartbeats, as of
+ *              v0.4.0 they are only serviced during amqp_basic_publish() and
+ *              amqp_simple_wait_frame()/amqp_simple_wait_frame_noblock()
+ * \param [in] username the authentication username.
+ * \param [in] password the authentication password.
  * \return amqp_rpc_reply_t indicating success or failure.
  *  - r.reply_type == AMQP_RESPONSE_NORMAL. Login completed successfully
  *  - r.reply_type == AMQP_RESPONSE_LIBRARY_EXCEPTION. In most cases errors
@@ -1719,13 +1791,70 @@ amqp_rpc_reply_t AMQP_CALL amqp_get_rpc_reply(amqp_connection_state_t state);
  * \since v0.1
  */
 AMQP_EXPORT
-amqp_rpc_reply_t AMQP_CALL amqp_login(amqp_connection_state_t state,
-                                      char const *vhost, int channel_max,
-                                      int frame_max, int heartbeat,
-                                      amqp_sasl_method_enum sasl_method, ...);
+amqp_rpc_reply_t AMQP_CALL amqp_login_plain(
+  amqp_connection_state_t state, char const *vhost, int channel_max,
+  int frame_max, int heartbeat, const char *username, const char *password);
+
+/**
+ * Login to the broker using the AMQP_SASL_METHOD_EXTERNAL SASL method
+ *
+ * After using amqp_open_socket and amqp_set_sockfd, call
+ * amqp_login to complete connecting to the broker
+ *
+ * \param [in] state the connection object
+ * \param [in] vhost the virtual host to connect to on the broker. The default
+ *              on most brokers is "/"
+ * \param [in] channel_max the limit for number of channels for the connection.
+ *              0 means no limit, and is a good default
+ *              (AMQP_DEFAULT_MAX_CHANNELS)
+ *              Note that the maximum number of channels the protocol supports
+ *              is 65535 (2^16, with the 0-channel reserved). The server can
+ *              set a lower channel_max and then the client will use the lowest
+ *              of the two
+ * \param [in] frame_max the maximum size of an AMQP frame on the wire to
+ *              request of the broker for this connection. 4096 is the minimum
+ *              size, 2^31-1 is the maximum, a good default is 131072 (128KB),
+ *              or AMQP_DEFAULT_FRAME_SIZE
+ * \param [in] heartbeat the number of seconds between heartbeat frames to
+ *              request of the broker. A value of 0 disables heartbeats.
+ *              Note rabbitmq-c only has partial support for heartbeats, as of
+ *              v0.4.0 they are only serviced during amqp_basic_publish() and
+ *              amqp_simple_wait_frame()/amqp_simple_wait_frame_noblock()
+ * \param [in] identity the authentication optional identify.  This can be
+ *              NULL if none.
+ * \return amqp_rpc_reply_t indicating success or failure.
+ *  - r.reply_type == AMQP_RESPONSE_NORMAL. Login completed successfully
+ *  - r.reply_type == AMQP_RESPONSE_LIBRARY_EXCEPTION. In most cases errors
+ *    from the broker when logging in will be represented by the broker closing
+ *    the socket. In this case r.library_error will be set to
+ *    AMQP_STATUS_CONNECTION_CLOSED. This error can represent a number of
+ *    error conditions including: invalid vhost, authentication failure.
+ *  - r.reply_type == AMQP_RESPONSE_SERVER_EXCEPTION. The broker returned an
+ *    exception:
+ *    - If r.reply.id == AMQP_CHANNEL_CLOSE_METHOD a channel exception
+ *      occurred, cast r.reply.decoded to amqp_channel_close_t* to see details
+ *      of the exception. The client should amqp_send_method() a
+ *      amqp_channel_close_ok_t. The channel must be re-opened before it
+ *      can be used again. Any resources associated with the channel
+ *      (auto-delete exchanges, auto-delete queues, consumers) are invalid
+ *      and must be recreated before attempting to use them again.
+ *    - If r.reply.id == AMQP_CONNECTION_CLOSE_METHOD a connection exception
+ *      occurred, cast r.reply.decoded to amqp_connection_close_t* to see
+ *      details of the exception. The client amqp_send_method() a
+ *      amqp_connection_close_ok_t and disconnect from the broker.
+ *
+ * \since v0.1
+ */
+AMQP_EXPORT
+amqp_rpc_reply_t AMQP_CALL amqp_login_external(
+  amqp_connection_state_t state, char const *vhost, int channel_max,
+  int frame_max, int heartbeat, const char *identity);
 
 /**
  * Login to the broker passing a properties table
+ *
+ * \deprecated This function is deprecated and should be replaced by a call to
+ * amqp_login_plain_with_properties() or amqp_login_external_with_properties().
  *
  * This function is similar to amqp_login() and differs in that it provides a
  * way to pass client properties to the broker. This is commonly used to
@@ -1761,6 +1890,10 @@ amqp_rpc_reply_t AMQP_CALL amqp_login(amqp_connection_state_t state,
  *             -  AMQP_SASL_METHOD_EXTERNAL, the AMQP_SASL_METHOD_EXTERNAL
  *                argument should be followed one argument:
  *                const char* identity.
+ * \param [in] ... either 1 or 2 const char * arguments depending on sasl_method.
+ *              If sasl_method is AMQP_SASL_METHOD_PLAIN then this should be
+ *              const char* username and const char* password.  For
+ *              AMQP_SASL_METHOD_EXTERNAL this should be const char* identity.
  * \return amqp_rpc_reply_t indicating success or failure.
  *  - r.reply_type == AMQP_RESPONSE_NORMAL. Login completed successfully
  *  - r.reply_type == AMQP_RESPONSE_LIBRARY_EXCEPTION. In most cases errors
@@ -1784,11 +1917,130 @@ amqp_rpc_reply_t AMQP_CALL amqp_login(amqp_connection_state_t state,
  *
  * \since v0.4.0
  */
+DEPRECATED("use amqp_login_plain_with_properties() or amqp_login_external_with_properties()")
 AMQP_EXPORT
 amqp_rpc_reply_t AMQP_CALL amqp_login_with_properties(
     amqp_connection_state_t state, char const *vhost, int channel_max,
     int frame_max, int heartbeat, const amqp_table_t *properties,
     amqp_sasl_method_enum sasl_method, ...);
+
+/**
+ * Login to the broker using the AMQP_SASL_METHOD_PLAIN SASL method passing in
+ * a properties table
+ *
+ * This function is similar to amqp_login() and differs in that it provides a
+ * way to pass client properties to the broker. This is commonly used to
+ * negotiate newer protocol features as they are supported by the broker.
+ *
+ * \param [in] state the connection object
+ * \param [in] vhost the virtual host to connect to on the broker. The default
+ *              on most brokers is "/"
+ * \param [in] channel_max the limit for the number of channels for the
+ *             connection.
+ *             0 means no limit, and is a good default
+ *             (AMQP_DEFAULT_MAX_CHANNELS)
+ *             Note that the maximum number of channels the protocol supports
+ *             is 65535 (2^16, with the 0-channel reserved). The server can
+ *             set a lower channel_max and then the client will use the lowest
+ *             of the two
+ * \param [in] frame_max the maximum size of an AMQP frame ont he wire to
+ *              request of the broker for this connection. 4096 is the minimum
+ *              size, 2^31-1 is the maximum, a good default is 131072 (128KB),
+ *              or AMQP_DEFAULT_FRAME_SIZE
+ * \param [in] heartbeat the number of seconds between heartbeat frame to
+ *             request of the broker. A value of 0 disables heartbeats.
+ *             Note rabbitmq-c only has partial support for hearts, as of
+ *             v0.4.0 heartbeats are only serviced during amqp_basic_publish(),
+ *             and amqp_simple_wait_frame()/amqp_simple_wait_frame_noblock()
+ * \param [in] properties a table of properties to send the broker.
+ * \param [in] username the authentication username.
+ * \param [in] password the authentication password.
+ * \return amqp_rpc_reply_t indicating success or failure.
+ *  - r.reply_type == AMQP_RESPONSE_NORMAL. Login completed successfully
+ *  - r.reply_type == AMQP_RESPONSE_LIBRARY_EXCEPTION. In most cases errors
+ *    from the broker when logging in will be represented by the broker closing
+ *    the socket. In this case r.library_error will be set to
+ *    AMQP_STATUS_CONNECTION_CLOSED. This error can represent a number of
+ *    error conditions including: invalid vhost, authentication failure.
+ *  - r.reply_type == AMQP_RESPONSE_SERVER_EXCEPTION. The broker returned an
+ *    exception:
+ *    - If r.reply.id == AMQP_CHANNEL_CLOSE_METHOD a channel exception
+ *      occurred, cast r.reply.decoded to amqp_channel_close_t* to see details
+ *      of the exception. The client should amqp_send_method() a
+ *      amqp_channel_close_ok_t. The channel must be re-opened before it
+ *      can be used again. Any resources associated with the channel
+ *      (auto-delete exchanges, auto-delete queues, consumers) are invalid
+ *      and must be recreated before attempting to use them again.
+ *    - If r.reply.id == AMQP_CONNECTION_CLOSE_METHOD a connection exception
+ *      occurred, cast r.reply.decoded to amqp_connection_close_t* to see
+ *      details of the exception. The client amqp_send_method() a
+ *      amqp_connection_close_ok_t and disconnect from the broker.
+ *
+ * \since v0.4.0
+ */
+amqp_rpc_reply_t AMQP_CALL amqp_login_plain_with_properties(
+    amqp_connection_state_t state, char const *vhost, int channel_max,
+    int frame_max, int heartbeat, const amqp_table_t *properties,
+    const char *username, const char *password);
+
+/**
+ * Login to the broker using the AMQP_SASL_METHOD_EXTERNAL SASL method passing
+ * in a properties table
+ *
+ * This function is similar to amqp_login() and differs in that it provides a
+ * way to pass client properties to the broker. This is commonly used to
+ * negotiate newer protocol features as they are supported by the broker.
+ *
+ * \param [in] state the connection object
+ * \param [in] vhost the virtual host to connect to on the broker. The default
+ *              on most brokers is "/"
+ * \param [in] channel_max the limit for the number of channels for the
+ *             connection.
+ *             0 means no limit, and is a good default
+ *             (AMQP_DEFAULT_MAX_CHANNELS)
+ *             Note that the maximum number of channels the protocol supports
+ *             is 65535 (2^16, with the 0-channel reserved). The server can
+ *             set a lower channel_max and then the client will use the lowest
+ *             of the two
+ * \param [in] frame_max the maximum size of an AMQP frame ont he wire to
+ *              request of the broker for this connection. 4096 is the minimum
+ *              size, 2^31-1 is the maximum, a good default is 131072 (128KB),
+ *              or AMQP_DEFAULT_FRAME_SIZE
+ * \param [in] heartbeat the number of seconds between heartbeat frame to
+ *             request of the broker. A value of 0 disables heartbeats.
+ *             Note rabbitmq-c only has partial support for hearts, as of
+ *             v0.4.0 heartbeats are only serviced during amqp_basic_publish(),
+ *             and amqp_simple_wait_frame()/amqp_simple_wait_frame_noblock()
+ * \param [in] properties a table of properties to send the broker.
+ * \param [in] identity the authentication optional identify.  This can be
+ *             NULL if none.
+ * \return amqp_rpc_reply_t indicating success or failure.
+ *  - r.reply_type == AMQP_RESPONSE_NORMAL. Login completed successfully
+ *  - r.reply_type == AMQP_RESPONSE_LIBRARY_EXCEPTION. In most cases errors
+ *    from the broker when logging in will be represented by the broker closing
+ *    the socket. In this case r.library_error will be set to
+ *    AMQP_STATUS_CONNECTION_CLOSED. This error can represent a number of
+ *    error conditions including: invalid vhost, authentication failure.
+ *  - r.reply_type == AMQP_RESPONSE_SERVER_EXCEPTION. The broker returned an
+ *    exception:
+ *    - If r.reply.id == AMQP_CHANNEL_CLOSE_METHOD a channel exception
+ *      occurred, cast r.reply.decoded to amqp_channel_close_t* to see details
+ *      of the exception. The client should amqp_send_method() a
+ *      amqp_channel_close_ok_t. The channel must be re-opened before it
+ *      can be used again. Any resources associated with the channel
+ *      (auto-delete exchanges, auto-delete queues, consumers) are invalid
+ *      and must be recreated before attempting to use them again.
+ *    - If r.reply.id == AMQP_CONNECTION_CLOSE_METHOD a connection exception
+ *      occurred, cast r.reply.decoded to amqp_connection_close_t* to see
+ *      details of the exception. The client amqp_send_method() a
+ *      amqp_connection_close_ok_t and disconnect from the broker.
+ *
+ * \since v0.4.0
+ */
+amqp_rpc_reply_t AMQP_CALL amqp_login_external_with_properties(
+    amqp_connection_state_t state, char const *vhost, int channel_max,
+    int frame_max, int heartbeat, const amqp_table_t *properties,
+    const char *identity);
 
 struct amqp_basic_properties_t_;
 

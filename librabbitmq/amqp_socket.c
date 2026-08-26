@@ -568,24 +568,26 @@ int sasl_mechanism_in_list(amqp_bytes_t mechanisms,
   return 0;
 }
 
+/*
+ * Build the response buffer.  Returns a amqp_bytes_t len of -1 on memory errors.
+ */
 static amqp_bytes_t sasl_response(amqp_pool_t *pool,
-                                  amqp_sasl_method_enum method, va_list args) {
+  amqp_sasl_method_enum method, const char *username, const char *password,
+  const char *identity) {
   amqp_bytes_t response;
 
   switch (method) {
     case AMQP_SASL_METHOD_PLAIN: {
-      char *username = va_arg(args, char *);
       size_t username_len = strlen(username);
-      char *password = va_arg(args, char *);
       size_t password_len = strlen(password);
       char *response_buf;
 
       amqp_pool_alloc_bytes(pool, strlen(username) + strlen(password) + 2,
                             &response);
-      if (response.bytes == NULL)
-      /* We never request a zero-length block, because of the +2
-         above, so a NULL here really is ENOMEM. */
-      {
+      if (response.bytes == NULL) {
+        /* We never request a zero-length block, because of the +2
+           above, so a NULL here really is ENOMEM so we return len of -1. */
+        response.len = -1;
         return response;
       }
 
@@ -597,11 +599,14 @@ static amqp_bytes_t sasl_response(amqp_pool_t *pool,
       break;
     }
     case AMQP_SASL_METHOD_EXTERNAL: {
-      char *identity = va_arg(args, char *);
-      size_t identity_len = strlen(identity);
+      size_t identity_len = 0;
+      if (identity != NULL) {
+        identity_len = strlen(identity);
+      }
 
       amqp_pool_alloc_bytes(pool, identity_len, &response);
       if (response.bytes == NULL) {
+        // identity could be NULL (or "") here so this could be a valid response
         return response;
       }
 
@@ -1206,7 +1211,9 @@ static amqp_rpc_reply_t amqp_login_inner(amqp_connection_state_t state,
                                          const amqp_table_t *client_properties,
                                          const struct timeval *timeout,
                                          amqp_sasl_method_enum sasl_method,
-                                         va_list vl) {
+                                         const char *username,
+                                         const char *password,
+                                         const char *identity) {
   int res;
   amqp_method_t method;
 
@@ -1291,8 +1298,10 @@ static amqp_rpc_reply_t amqp_login_inner(amqp_connection_state_t state,
       goto error_res;
     }
 
-    response_bytes = sasl_response(channel_pool, sasl_method, vl);
-    if (response_bytes.bytes == NULL) {
+    response_bytes = sasl_response(channel_pool, sasl_method, username,
+      password, identity);
+    // NOTE: response_bytes.bytes can be NULL if the idenity is NULL or ""
+    if (response_bytes.len < 0) {
       res = AMQP_STATUS_NO_MEMORY;
       goto error_res;
     }
@@ -1440,16 +1449,44 @@ amqp_rpc_reply_t amqp_login(amqp_connection_state_t state, char const *vhost,
 
   va_list vl;
   amqp_rpc_reply_t ret;
+  char *username, *password, *identity;
 
   va_start(vl, sasl_method);
-
-  ret = amqp_login_inner(state, vhost, channel_max, frame_max, heartbeat,
-                         &amqp_empty_table, state->handshake_timeout,
-                         sasl_method, vl);
-
+  if (sasl_method == AMQP_SASL_METHOD_PLAIN) {
+    username = va_arg(vl, char *);
+    password = va_arg(vl, char *);
+  } else if (sasl_method == AMQP_SASL_METHOD_EXTERNAL) {
+    identity = va_arg(vl, char *);
+  }
   va_end(vl);
 
-  return ret;
+  if (sasl_method == AMQP_SASL_METHOD_PLAIN) {
+    return amqp_login_inner(state, vhost, channel_max, frame_max, heartbeat,
+                            &amqp_empty_table, state->handshake_timeout,
+                            AMQP_SASL_METHOD_PLAIN, username, password, NULL);
+  } else if (sasl_method == AMQP_SASL_METHOD_EXTERNAL) {
+    return amqp_login_inner(state, vhost, channel_max, frame_max, heartbeat,
+                            &amqp_empty_table, state->handshake_timeout,
+                            AMQP_SASL_METHOD_EXTERNAL, NULL, NULL, identity);
+  } else {
+    return amqp_rpc_reply_error(AMQP_RESPONSE_LIBRARY_EXCEPTION);
+  }
+}
+
+amqp_rpc_reply_t amqp_login_plain(
+    amqp_connection_state_t state, char const *vhost, int channel_max,
+    int frame_max, int heartbeat, const char *username, const char *password) {
+  return amqp_login_inner(state, vhost, channel_max, frame_max, heartbeat,
+                          &amqp_empty_table, state->handshake_timeout,
+                          AMQP_SASL_METHOD_PLAIN, username, password, NULL);
+}
+
+amqp_rpc_reply_t amqp_login_external(
+    amqp_connection_state_t state, char const *vhost, int channel_max,
+    int frame_max, int heartbeat, const char *identity) {
+  return amqp_login_inner(state, vhost, channel_max, frame_max, heartbeat,
+                          &amqp_empty_table, state->handshake_timeout,
+                          AMQP_SASL_METHOD_EXTERNAL, NULL, NULL, identity);
 }
 
 amqp_rpc_reply_t amqp_login_with_properties(
@@ -1458,14 +1495,44 @@ amqp_rpc_reply_t amqp_login_with_properties(
     amqp_sasl_method_enum sasl_method, ...) {
   va_list vl;
   amqp_rpc_reply_t ret;
+  char *username, *password, *identity;
 
   va_start(vl, sasl_method);
-
-  ret = amqp_login_inner(state, vhost, channel_max, frame_max, heartbeat,
-                         client_properties, state->handshake_timeout,
-                         sasl_method, vl);
-
+  if (sasl_method == AMQP_SASL_METHOD_PLAIN) {
+    username = va_arg(vl, char *);
+    password = va_arg(vl, char *);
+  } else if (sasl_method == AMQP_SASL_METHOD_EXTERNAL) {
+    identity = va_arg(vl, char *);
+  }
   va_end(vl);
 
-  return ret;
+  if (sasl_method == AMQP_SASL_METHOD_PLAIN) {
+    return amqp_login_inner(state, vhost, channel_max, frame_max, heartbeat,
+                            client_properties, state->handshake_timeout,
+                            AMQP_SASL_METHOD_PLAIN, username, password, NULL);
+  } else if (sasl_method == AMQP_SASL_METHOD_EXTERNAL) {
+    return amqp_login_inner(state, vhost, channel_max, frame_max, heartbeat,
+                            client_properties, state->handshake_timeout,
+                            AMQP_SASL_METHOD_EXTERNAL, NULL, NULL, identity);
+  } else {
+    return amqp_rpc_reply_error(AMQP_RESPONSE_LIBRARY_EXCEPTION);
+  }
+}
+
+amqp_rpc_reply_t amqp_login_plain_with_properties(
+    amqp_connection_state_t state, char const *vhost, int channel_max,
+    int frame_max, int heartbeat, const amqp_table_t *client_properties,
+    const char *username, const char *password) {
+  return amqp_login_inner(state, vhost, channel_max, frame_max, heartbeat,
+                          client_properties, state->handshake_timeout,
+                          AMQP_SASL_METHOD_PLAIN, username, password, NULL);
+}
+
+amqp_rpc_reply_t amqp_login_external_with_properties(
+    amqp_connection_state_t state, char const *vhost, int channel_max,
+    int frame_max, int heartbeat, const amqp_table_t *client_properties,
+    const char *identity) {
+  return amqp_login_inner(state, vhost, channel_max, frame_max, heartbeat,
+                          client_properties, state->handshake_timeout,
+                          AMQP_SASL_METHOD_EXTERNAL, NULL, NULL, identity);
 }
