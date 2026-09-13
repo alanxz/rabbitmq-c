@@ -394,6 +394,10 @@ int amqp_handle_input(amqp_connection_state_t state, amqp_bytes_t received_data,
           break;
 
         case AMQP_FRAME_HEARTBEAT:
+          /* Heartbeat frames must be sent on the connection channel. */
+          if (0 != decoded_frame->channel) {
+            return AMQP_STATUS_BAD_AMQP_DATA;
+          }
           break;
 
         default:
