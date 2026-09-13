@@ -263,6 +263,16 @@ int amqp_handle_input(amqp_connection_state_t state, amqp_bytes_t received_data,
 
       channel = amqp_d16(amqp_offset(raw_frame, 1));
 
+      /* channel_max == 0 means no explicit limit, AMQP sets this as 65535. */
+      {
+        amqp_channel_t max_channel = (0 != state->channel_max)
+                                         ? (amqp_channel_t)state->channel_max
+                                         : (amqp_channel_t)UINT16_MAX;
+        if (channel > max_channel) {
+          return AMQP_STATUS_BAD_AMQP_DATA;
+        }
+      }
+
       /* frame length is 3 bytes in */
       frame_size = amqp_d32(amqp_offset(raw_frame, 3));
       /* To prevent the target_size calculation below from overflowing, check

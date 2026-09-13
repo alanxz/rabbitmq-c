@@ -52,3 +52,7 @@ add_test(send_frame test_send_frame)
 add_executable(test_decode_bytes test_decode_bytes.c)
 target_link_libraries(test_decode_bytes rabbitmq-static)
 add_test(decode_bytes test_decode_bytes)
+
+add_executable(test_handle_input_frame_validation test_handle_input_frame_validation.c)
+target_link_libraries(test_handle_input_frame_validation rabbitmq-static)
+add_test(handle_input_frame_validation test_handle_input_frame_validation)
