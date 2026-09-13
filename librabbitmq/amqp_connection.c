@@ -401,9 +401,8 @@ int amqp_handle_input(amqp_connection_state_t state, amqp_bytes_t received_data,
           break;
 
         default:
-          /* Ignore the frame */
-          decoded_frame->frame_type = 0;
-          break;
+          /* Unrecognized frame type: this is a framing error per AMQP spec. */
+          return AMQP_STATUS_BAD_AMQP_DATA;
       }
 
       return_to_idle(state);
