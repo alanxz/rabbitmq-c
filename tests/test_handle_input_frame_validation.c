@@ -120,9 +120,66 @@ static void test_heartbeat_on_nonzero_channel_rejected(void) {
   amqp_destroy_connection(state);
 }
 
+static void test_unknown_frame_type_rejected(void) {
+  amqp_connection_state_t state = new_ready_state(1, AMQP_FRAME_MIN_SIZE);
+  amqp_frame_t frame;
+  amqp_bytes_t data;
+  uint8_t buf[8];
+  int res;
+
+  data.len = build_empty_frame(buf, 0xff, 1);
+  data.bytes = buf;
+
+  res = amqp_handle_input(state, data, &frame);
+  if (res != AMQP_STATUS_BAD_AMQP_DATA) {
+    fprintf(stderr,
+            "expected AMQP_STATUS_BAD_AMQP_DATA (%d) for an unrecognized "
+            "frame type, got %d\n",
+            AMQP_STATUS_BAD_AMQP_DATA, res);
+    abort();
+  }
+
+  amqp_destroy_connection(state);
+}
+
+/* Unlike test_unknown_frame_type_rejected, also checks that no pool memory
+ * accumulates before the rejection. */
+static void test_unknown_frame_type_stream_rejected_immediately(void) {
+  amqp_connection_state_t state = new_ready_state(1, AMQP_FRAME_MIN_SIZE);
+  amqp_pool_t *pool;
+  amqp_frame_t frame;
+  amqp_bytes_t data;
+  uint8_t buf[8];
+  int res;
+
+  data.len = build_empty_frame(buf, 0xff, 1);
+  data.bytes = buf;
+
+  res = amqp_handle_input(state, data, &frame);
+  if (res != AMQP_STATUS_BAD_AMQP_DATA) {
+    fprintf(stderr,
+            "expected the first unrecognized frame to be rejected "
+            "immediately, got %d\n",
+            res);
+    abort();
+  }
+
+  pool = amqp_get_channel_pool(state, 1);
+  if (pool != NULL && pool->pages.num_blocks > 1) {
+    fprintf(stderr,
+            "channel pool grew to %d pages after a single rejected frame\n",
+            pool->pages.num_blocks);
+    abort();
+  }
+
+  amqp_destroy_connection(state);
+}
+
 int main(void) {
   test_channel_exceeding_channel_max_rejected();
   test_channel_max_zero_means_protocol_max();
   test_heartbeat_on_nonzero_channel_rejected();
+  test_unknown_frame_type_rejected();
+  test_unknown_frame_type_stream_rejected_immediately();
   return 0;
 }
