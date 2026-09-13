@@ -98,8 +98,31 @@ static void test_channel_max_zero_means_protocol_max(void) {
   amqp_destroy_connection(state);
 }
 
+static void test_heartbeat_on_nonzero_channel_rejected(void) {
+  amqp_connection_state_t state = new_ready_state(0, AMQP_FRAME_MIN_SIZE);
+  amqp_frame_t frame;
+  amqp_bytes_t data;
+  uint8_t buf[8];
+  int res;
+
+  data.len = build_empty_frame(buf, AMQP_FRAME_HEARTBEAT, 1);
+  data.bytes = buf;
+
+  res = amqp_handle_input(state, data, &frame);
+  if (res != AMQP_STATUS_BAD_AMQP_DATA) {
+    fprintf(stderr,
+            "expected AMQP_STATUS_BAD_AMQP_DATA (%d) for heartbeat on "
+            "non-zero channel, got %d\n",
+            AMQP_STATUS_BAD_AMQP_DATA, res);
+    abort();
+  }
+
+  amqp_destroy_connection(state);
+}
+
 int main(void) {
   test_channel_exceeding_channel_max_rejected();
   test_channel_max_zero_means_protocol_max();
+  test_heartbeat_on_nonzero_channel_rejected();
   return 0;
 }
