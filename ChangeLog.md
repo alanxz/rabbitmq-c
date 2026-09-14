@@ -1,4 +1,13 @@
 # Change Log
+## v0.18.0 - 2026-09-14
+
+### Security
+- Fix client-side memory-exhaustion DoS in `amqp_handle_input` (GHSA-5fp7-wg2f-hhgp, #899)
+
+### Fixed
+- `amqp_login`/`amqp_login_with_properties` return an error instead of crashing on `NULL` SASL credentials for `AMQP_SASL_METHOD_PLAIN`; `NULL` and `""` are now accepted for the `AMQP_SASL_METHOD_EXTERNAL` identity argument (#898, #900)
+- Fix pkgconfig bindings on Windows (#897)
+
 ## v0.17.0 - 2026-07-01
 
 ### Security
