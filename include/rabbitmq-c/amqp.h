@@ -1693,8 +1693,13 @@ amqp_rpc_reply_t AMQP_CALL amqp_get_rpc_reply(amqp_connection_state_t state);
  *                 should be followed by two arguments in this order:
  *                 const char* username, and const char* password.
  *              -  AMQP_SASL_METHOD_EXTERNAL, the AMQP_SASL_METHOD_EXTERNAL
- *                 argument should be followed one argument:
- *                 const char* identity.
+ *                 argument must be followed by one argument:
+ *                 const char* identity. NULL and an empty string ("") are
+ *                 both accepted and are equivalent: they indicate the
+ *                 caller has no authorization identity to send, and the
+ *                 broker should rely on the identity established by the
+ *                 underlying transport (e.g. the TLS client certificate).
+ *                 See RFC 4422 Appendix A.
  * \return amqp_rpc_reply_t indicating success or failure.
  *  - r.reply_type == AMQP_RESPONSE_NORMAL. Login completed successfully
  *  - r.reply_type == AMQP_RESPONSE_LIBRARY_EXCEPTION. In most cases errors
@@ -1759,8 +1764,13 @@ amqp_rpc_reply_t AMQP_CALL amqp_login(amqp_connection_state_t state,
  *                should be followed by two arguments in this order:
  *                const char* username, and const char* password.
  *             -  AMQP_SASL_METHOD_EXTERNAL, the AMQP_SASL_METHOD_EXTERNAL
- *                argument should be followed one argument:
- *                const char* identity.
+ *                argument must be followed by one argument:
+ *                const char* identity. NULL and an empty string ("") are
+ *                both accepted and are equivalent: they indicate the
+ *                caller has no authorization identity to send, and the
+ *                broker should rely on the identity established by the
+ *                underlying transport (e.g. the TLS client certificate).
+ *                See RFC 4422 Appendix A.
  * \return amqp_rpc_reply_t indicating success or failure.
  *  - r.reply_type == AMQP_RESPONSE_NORMAL. Login completed successfully
  *  - r.reply_type == AMQP_RESPONSE_LIBRARY_EXCEPTION. In most cases errors
