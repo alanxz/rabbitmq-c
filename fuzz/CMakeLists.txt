@@ -29,4 +29,7 @@ if(BUILD_OSSFUZZ)
 
   add_executable(fuzz_codec fuzz_codec.c)
   target_link_libraries(fuzz_codec rabbitmq-static)
+
+  add_executable(fuzz_read_message fuzz_read_message.c)
+  target_link_libraries(fuzz_read_message rabbitmq-static)
 endif ()
