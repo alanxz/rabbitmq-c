@@ -206,6 +206,15 @@ amqp_rpc_reply_t amqp_read_message(amqp_connection_state_t state,
     goto error_out1;
   }
 
+  /* Only basic class content headers carry amqp_basic_properties_t. Other
+   * class ids decode into smaller property structs, so treating them as basic
+   * properties would read past the end of the decoded struct. */
+  if (AMQP_BASIC_CLASS != frame.payload.properties.class_id) {
+    ret.reply_type = AMQP_RESPONSE_LIBRARY_EXCEPTION;
+    ret.library_error = AMQP_STATUS_BAD_AMQP_DATA;
+    goto error_out1;
+  }
+
   init_amqp_pool(&message->pool, 4096);
   res = amqp_basic_properties_clone(frame.payload.properties.decoded,
                                     &message->properties, &message->pool);
