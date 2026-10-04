@@ -1,0 +1,60 @@
+name: Fuzz Targets
+
+on:
+  pull_request:
+    branches:
+    - master
+
+jobs:
+  fuzz:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        sanitizer: [address, undefined]
+    env:
+      CC: clang
+      CXX: clang++
+      FUZZ_SECONDS: 60
+    steps:
+    - uses: actions/checkout@v4
+      with:
+        submodules: true
+    - name: Install Prerequisites
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y clang cmake ninja-build libssl-dev
+    - name: Build Fuzzers (${{ matrix.sanitizer }})
+      run: |
+        cmake -S . -B build -G Ninja \
+          -DCMAKE_BUILD_TYPE=Debug -DBUILD_OSSFUZZ=ON \
+          -DBUILD_SHARED_LIBS=OFF -DBUILD_TESTING=OFF -DBUILD_TOOLS=OFF \
+          -DBUILD_EXAMPLES=OFF \
+          -DCMAKE_C_COMPILER=$CC -DCMAKE_CXX_COMPILER=$CXX \
+          -DCMAKE_C_FLAGS="-fsanitize=fuzzer-no-link,${{ matrix.sanitizer }} -fno-sanitize-recover=all" \
+          -DCMAKE_EXE_LINKER_FLAGS="-fsanitize=${{ matrix.sanitizer }}" \
+          -DLIB_FUZZING_ENGINE="-fsanitize=fuzzer,${{ matrix.sanitizer }}"
+        cmake --build build
+    - name: Run Fuzzers (${{ matrix.sanitizer }})
+      run: |
+        status=0
+        for target in fuzz_url fuzz_table fuzz_server fuzz_method_decode \
+                      fuzz_properties_decode fuzz_handle_input fuzz_codec \
+                      fuzz_read_message; do
+          echo "::group::$target"
+          mkdir -p "corpus/$target" "artifacts/$target"
+          # Seed corpus: shared inputs named after the target, if any.
+          cp fuzz/input/"$target"*.raw "corpus/$target/" 2>/dev/null || true
+          ./build/fuzz/$target \
+            -max_total_time=$FUZZ_SECONDS \
+            -artifact_prefix="artifacts/$target/" \
+            "corpus/$target" || status=1
+          echo "::endgroup::"
+        done
+        exit $status
+    - name: Upload Crashes
+      uses: actions/upload-artifact@v4
+      if: failure()
+      with:
+        name: ${{ matrix.sanitizer }}-fuzz-artifacts
+        path: artifacts
