@@ -34,3 +34,9 @@ target_link_libraries(routing_emit_log_direct PRIVATE tutorials-common rabbitmq:
 
 add_executable(routing_receive_logs_direct routing_receive_logs_direct.c)
 target_link_libraries(routing_receive_logs_direct PRIVATE tutorials-common rabbitmq::rabbitmq)
+
+add_executable(topics_emit_log_topic topics_emit_log_topic.c)
+target_link_libraries(topics_emit_log_topic PRIVATE tutorials-common rabbitmq::rabbitmq)
+
+add_executable(topics_receive_logs_topic topics_receive_logs_topic.c)
+target_link_libraries(topics_receive_logs_topic PRIVATE tutorials-common rabbitmq::rabbitmq)
