@@ -16,3 +16,9 @@ target_link_libraries(hello_world_send PRIVATE tutorials-common rabbitmq::rabbit
 
 add_executable(hello_world_receive hello_world_receive.c)
 target_link_libraries(hello_world_receive PRIVATE tutorials-common rabbitmq::rabbitmq)
+
+add_executable(work_queues_new_task work_queues_new_task.c)
+target_link_libraries(work_queues_new_task PRIVATE tutorials-common rabbitmq::rabbitmq)
+
+add_executable(work_queues_worker work_queues_worker.c)
+target_link_libraries(work_queues_worker PRIVATE tutorials-common rabbitmq::rabbitmq)
