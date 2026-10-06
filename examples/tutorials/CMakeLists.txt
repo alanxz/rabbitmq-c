@@ -46,3 +46,6 @@ target_link_libraries(rpc_server PRIVATE tutorials-common rabbitmq::rabbitmq)
 
 add_executable(rpc_client rpc_client.c)
 target_link_libraries(rpc_client PRIVATE tutorials-common rabbitmq::rabbitmq)
+
+add_executable(publisher_confirms publisher_confirms.c)
+target_link_libraries(publisher_confirms PRIVATE tutorials-common rabbitmq::rabbitmq)
