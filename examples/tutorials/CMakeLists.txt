@@ -22,3 +22,9 @@ target_link_libraries(work_queues_new_task PRIVATE tutorials-common rabbitmq::ra
 
 add_executable(work_queues_worker work_queues_worker.c)
 target_link_libraries(work_queues_worker PRIVATE tutorials-common rabbitmq::rabbitmq)
+
+add_executable(publish_subscribe_emit_log publish_subscribe_emit_log.c)
+target_link_libraries(publish_subscribe_emit_log PRIVATE tutorials-common rabbitmq::rabbitmq)
+
+add_executable(publish_subscribe_receive_logs publish_subscribe_receive_logs.c)
+target_link_libraries(publish_subscribe_receive_logs PRIVATE tutorials-common rabbitmq::rabbitmq)
