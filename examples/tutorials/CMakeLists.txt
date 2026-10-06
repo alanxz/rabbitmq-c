@@ -28,3 +28,9 @@ target_link_libraries(publish_subscribe_emit_log PRIVATE tutorials-common rabbit
 
 add_executable(publish_subscribe_receive_logs publish_subscribe_receive_logs.c)
 target_link_libraries(publish_subscribe_receive_logs PRIVATE tutorials-common rabbitmq::rabbitmq)
+
+add_executable(routing_emit_log_direct routing_emit_log_direct.c)
+target_link_libraries(routing_emit_log_direct PRIVATE tutorials-common rabbitmq::rabbitmq)
+
+add_executable(routing_receive_logs_direct routing_receive_logs_direct.c)
+target_link_libraries(routing_receive_logs_direct PRIVATE tutorials-common rabbitmq::rabbitmq)
