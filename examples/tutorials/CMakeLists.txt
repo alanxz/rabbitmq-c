@@ -40,3 +40,9 @@ target_link_libraries(topics_emit_log_topic PRIVATE tutorials-common rabbitmq::r
 
 add_executable(topics_receive_logs_topic topics_receive_logs_topic.c)
 target_link_libraries(topics_receive_logs_topic PRIVATE tutorials-common rabbitmq::rabbitmq)
+
+add_executable(rpc_server rpc_server.c)
+target_link_libraries(rpc_server PRIVATE tutorials-common rabbitmq::rabbitmq)
+
+add_executable(rpc_client rpc_client.c)
+target_link_libraries(rpc_client PRIVATE tutorials-common rabbitmq::rabbitmq)
