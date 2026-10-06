@@ -73,6 +73,27 @@ int tutorial_check_status(int status, char const *context);
  */
 int tutorial_handle_unexpected_frame(amqp_connection_state_t conn);
 
+typedef enum {
+  TUTORIAL_WAIT_MESSAGE, /* *envelope is filled in; caller must destroy it */
+  TUTORIAL_WAIT_IDLE,    /* nothing to process right now, call again */
+  TUTORIAL_WAIT_FAILED   /* the session is unusable; reason already printed */
+} tutorial_wait_result;
+
+/*
+ * Waits up to `timeout_seconds` for the next message delivery on the
+ * connection. Wraps amqp_consume_message() and the error classification every
+ * consumer needs: timeouts and benign non-delivery frames become
+ * TUTORIAL_WAIT_IDLE, and anything that means the channel or connection is gone
+ * becomes TUTORIAL_WAIT_FAILED. Also releases buffers from the previous
+ * message.
+ */
+tutorial_wait_result tutorial_wait_for_message(amqp_connection_state_t conn,
+                                               amqp_envelope_t *envelope,
+                                               int timeout_seconds);
+
+/* Sleeps for the given number of milliseconds. */
+void tutorial_sleep_ms(unsigned int ms);
+
 /*
  * Installs a SIGINT/SIGTERM handler that sets the flag returned by
  * tutorial_interrupted(). Long running examples poll it so they can shut down

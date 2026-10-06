@@ -55,47 +55,31 @@ int main(int argc, char const *const *argv) {
 
   while (!tutorial_interrupted()) {
     amqp_envelope_t envelope;
-    amqp_rpc_reply_t reply;
-    struct timeval timeout = {POLL_INTERVAL_SECONDS, 0};
 
-    /* Returns memory held by the previous message back to the library. */
-    amqp_maybe_release_buffers(conn);
-
-    reply = amqp_consume_message(conn, &envelope, &timeout, 0);
-
-    if (reply.reply_type == AMQP_RESPONSE_NORMAL) {
-      printf(" [x] Received '%.*s'\n", (int)envelope.message.body.len,
-             (char *)envelope.message.body.bytes);
-
-      /* Acknowledge only after the work is done. If this fails the
-       * connection is unusable, so stop. */
-      if (tutorial_check_status(
-              amqp_basic_ack(conn, envelope.channel, envelope.delivery_tag,
-                             /*multiple*/ 0),
-              "Acknowledging message") != TUTORIAL_OK) {
-        amqp_destroy_envelope(&envelope);
-        goto out;
-      }
-      amqp_destroy_envelope(&envelope);
-      continue;
-    }
-
-    if (reply.reply_type == AMQP_RESPONSE_LIBRARY_EXCEPTION) {
-      if (reply.library_error == AMQP_STATUS_TIMEOUT) {
+    switch (tutorial_wait_for_message(conn, &envelope, POLL_INTERVAL_SECONDS)) {
+      case TUTORIAL_WAIT_IDLE:
         continue; /* nothing arrived, loop around and check for Ctrl-C */
-      }
-      if (reply.library_error == AMQP_STATUS_UNEXPECTED_STATE) {
-        if (tutorial_handle_unexpected_frame(conn) == TUTORIAL_OK) {
-          continue;
-        }
+
+      case TUTORIAL_WAIT_FAILED:
         goto out;
-      }
+
+      case TUTORIAL_WAIT_MESSAGE:
+        break;
     }
 
-    /* Anything else (socket closed, heartbeat timeout, ...) is fatal for this
-     * connection. A long lived service would reconnect here with backoff. */
-    tutorial_check_reply(reply, "Consuming");
-    goto out;
+    printf(" [x] Received '%.*s'\n", (int)envelope.message.body.len,
+           (char *)envelope.message.body.bytes);
+
+    /* Acknowledge only after the work is done. If this fails the connection is
+     * unusable, so stop. */
+    if (tutorial_check_status(
+            amqp_basic_ack(conn, envelope.channel, envelope.delivery_tag,
+                           /*multiple*/ 0),
+            "Acknowledging message") != TUTORIAL_OK) {
+      amqp_destroy_envelope(&envelope);
+      goto out;
+    }
+    amqp_destroy_envelope(&envelope);
   }
 
   printf(" [*] Interrupted, shutting down\n");

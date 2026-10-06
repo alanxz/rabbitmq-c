@@ -4,6 +4,9 @@
 #include "tutorial_common.h"
 
 #include <signal.h>
+#ifndef _WIN32
+#include <time.h>
+#endif
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -247,4 +250,49 @@ int tutorial_handle_unexpected_frame(amqp_connection_state_t conn) {
               (unsigned)frame.payload.method.id);
       return TUTORIAL_ERROR;
   }
+}
+
+tutorial_wait_result tutorial_wait_for_message(amqp_connection_state_t conn,
+                                               amqp_envelope_t *envelope,
+                                               int timeout_seconds) {
+  struct timeval timeout;
+  amqp_rpc_reply_t reply;
+
+  timeout.tv_sec = timeout_seconds;
+  timeout.tv_usec = 0;
+
+  /* Returns memory held by the previous message back to the library. */
+  amqp_maybe_release_buffers(conn);
+  reply = amqp_consume_message(conn, envelope, &timeout, 0);
+
+  if (reply.reply_type == AMQP_RESPONSE_NORMAL) {
+    return TUTORIAL_WAIT_MESSAGE;
+  }
+
+  if (reply.reply_type == AMQP_RESPONSE_LIBRARY_EXCEPTION) {
+    if (reply.library_error == AMQP_STATUS_TIMEOUT) {
+      return TUTORIAL_WAIT_IDLE;
+    }
+    if (reply.library_error == AMQP_STATUS_UNEXPECTED_STATE) {
+      return tutorial_handle_unexpected_frame(conn) == TUTORIAL_OK
+                 ? TUTORIAL_WAIT_IDLE
+                 : TUTORIAL_WAIT_FAILED;
+    }
+  }
+
+  /* Socket closed, heartbeat timeout, ...: fatal for this connection. A long
+   * lived service would reconnect here with backoff. */
+  tutorial_check_reply(reply, "Consuming");
+  return TUTORIAL_WAIT_FAILED;
+}
+
+void tutorial_sleep_ms(unsigned int ms) {
+#ifdef _WIN32
+  Sleep(ms);
+#else
+  struct timespec ts;
+  ts.tv_sec = ms / 1000;
+  ts.tv_nsec = (long)(ms % 1000) * 1000000L;
+  nanosleep(&ts, NULL);
+#endif
 }
