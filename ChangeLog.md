@@ -1,4 +1,12 @@
 # Change Log
+## v0.18.1 - 2026-10-12
+
+### Security
+- Fix heap buffer over-read in `amqp_read_message` when a content header frame with a non-basic class id is received; `AMQP_STATUS_BAD_AMQP_DATA` is now returned (found by OSS-Fuzz)
+
+### Added
+- Add `fuzz_read_message` OSS-Fuzz fuzzer target for socket message reading
+
 ## v0.18.0 - 2026-09-14
 
 ### Security
