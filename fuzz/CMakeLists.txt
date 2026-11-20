@@ -32,4 +32,7 @@ if(BUILD_OSSFUZZ)
 
   add_executable(fuzz_read_message fuzz_read_message.c)
   target_link_libraries(fuzz_read_message rabbitmq-static)
+
+  add_executable(fuzz_client fuzz_client.c)
+  target_link_libraries(fuzz_client rabbitmq-static)
 endif ()
