@@ -122,7 +122,7 @@ int amqp_socket_close(amqp_socket_t *self, amqp_socket_close_enum force) {
 void amqp_socket_delete(amqp_socket_t *self) {
   if (self) {
     assert(self->klass->delete);
-    self->klass->delete (self);
+    self->klass->delete(self);
   }
 }
 

@@ -30,7 +30,7 @@ extern void write_all(int fd, amqp_bytes_t data);
 extern void copy_body(amqp_connection_state_t conn, int fd);
 
 #define INCLUDE_OPTIONS(options) \
-  { NULL, 0, POPT_ARG_INCLUDE_TABLE, options, 0, options##_title, NULL }
+  {NULL, 0, POPT_ARG_INCLUDE_TABLE, options, 0, options##_title, NULL}
 
 extern poptContext process_options(int argc, const char **argv,
                                    struct poptOption *options,
